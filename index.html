@@ -30,36 +30,80 @@
 <style>
 body{
   margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#111827;
+  font-family: Arial, Helvetica, sans-serif;
+  background:#0f172a;
   color:white;
-  font-family:Arial,Helvetica,sans-serif;
+  display:flex;
+  height:100vh;
+  align-items:center;
+  justify-content:center;
 }
 
-.container{
-  text-align:center;
+.card{
+  width:90%;
+  max-width:360px;
 }
 
-h1{
-  font-size:26px;
-  margin-bottom:10px;
+input{
+  width:100%;
+  padding:14px;
+  margin-top:12px;
+  border-radius:10px;
+  border:none;
+  font-size:16px;
 }
 
-p{
-  opacity:0.7;
+button{
+  width:100%;
+  padding:14px;
+  margin-top:18px;
+  border-radius:12px;
+  border:none;
+  background:#22c55e;
+  color:white;
+  font-size:18px;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>GILT Club</h1>
-  <p>Mobile App Loading...</p>
+<div class="card">
+  <h2>G-WALLET</h2>
+  <input id="username" placeholder="Username">
+  <input id="pin" type="password" placeholder="PIN">
+  <button onclick="login()">LOGIN</button>
 </div>
 
+<script>
+
+const SERVER = "https://script.google.com/macros/s/AKfycbw_D4TTo21Atgoi1ttpFahfogmLq7jefNl8fnqkn29LLdT6AnZgFKWIMWELYzbVZcnZ/exec";
+
+async function login(){
+
+  const username = document.getElementById("username").value;
+  const pin = document.getElementById("pin").value;
+
+  const res = await fetch(SERVER,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"login",
+      username:username,
+      pin:pin
+    })
+  });
+
+  const data = await res.json();
+
+  if(data.status==="ok"){
+      localStorage.setItem("guser",JSON.stringify(data.user));
+      alert("Login success");
+  }else{
+      alert("Username / PIN salah");
+  }
+}
+
+</script>
 </body>
 </html>
