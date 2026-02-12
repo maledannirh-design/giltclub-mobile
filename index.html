@@ -80,14 +80,25 @@ button{
 <div id="dashboard" style="display:none; padding:20px;">
 
   <h2 id="welcome"></h2>
-  <p>Member ID: <span id="memberid"></span></p>
-  <p>Role: <span id="role"></span></p>
 
-  <button onclick="logout()" style="background:#ef4444;">
+  <div style="
+    background:#1e293b;
+    padding:18px;
+    border-radius:14px;
+    margin-top:20px;
+  ">
+    <div style="font-size:14px;opacity:.7">Saldo Wallet</div>
+    <div id="balance" style="font-size:28px;font-weight:bold;margin-top:8px">
+      Rp 0
+    </div>
+  </div>
+
+  <button onclick="logout()" style="background:#ef4444;margin-top:30px;">
     LOGOUT
   </button>
 
 </div>
+
 
 <script>
 
@@ -176,8 +187,7 @@ async function checkSession(){
   }
 }
 
-  
-function showDashboard(user){
+async function showDashboard(user){
 
   document.querySelector(".card").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
@@ -185,12 +195,29 @@ function showDashboard(user){
   document.getElementById("welcome").innerText =
     "Welcome " + user.name;
 
-  document.getElementById("memberid").innerText =
-    user.member_id;
-
-  document.getElementById("role").innerText =
-    user.role;
+  await loadBalance();
 }
+async function loadBalance(){
+
+  const token = localStorage.getItem("gtoken");
+
+  const formData = new URLSearchParams();
+  formData.append("action","balance");
+  formData.append("token",token);
+
+  const res = await fetch(SERVER,{
+    method:"POST",
+    body:formData
+  });
+
+  const data = await res.json();
+
+  if(data.status==="ok"){
+    document.getElementById("balance").innerText =
+      "Rp " + Number(data.balance).toLocaleString("id-ID");
+  }
+}
+
 
 function logout(){
   localStorage.removeItem("gtoken");
