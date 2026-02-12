@@ -70,17 +70,20 @@ button{
 </head>
 
 <body>
-
+<!-- LOGIN -->
 <div class="card">
   <h2>G-WALLET</h2>
   <input id="username" placeholder="Username">
   <input id="pin" type="password" placeholder="PIN">
   <button onclick="login()">LOGIN</button>
 </div>
+
+<!-- DASHBOARD -->
 <div id="dashboard" style="display:none; padding:20px;">
 
   <h2 id="welcome"></h2>
 
+  <!-- SALDO -->
   <div style="
     background:#1e293b;
     padding:18px;
@@ -92,34 +95,44 @@ button{
       Rp 0
     </div>
   </div>
-<div style="margin-top:25px">
 
-  <input id="topupAmount" type="number"
-         placeholder="Nominal Top Up (contoh: 50000)"
-         style="width:100%;padding:14px;border-radius:10px;border:none;margin-bottom:12px;">
+  <!-- TOPUP -->
+  <div style="margin-top:25px">
+    <input id="topupAmount" type="number"
+           placeholder="Nominal Top Up (contoh: 50000)"
+           style="width:100%;padding:14px;border-radius:10px;border:none;margin-bottom:12px;">
 
-  <button onclick="requestTopup()" style="background:#3b82f6">
-    TOP UP SALDO
-  </button>
+    <button onclick="requestTopup()" style="background:#3b82f6">
+      TOP UP SALDO
+    </button>
+  </div>
 
-</div>
+  <!-- HISTORY -->
+  <div style="margin-top:30px">
+    <h3>Riwayat Transaksi</h3>
+    <div id="historyList"></div>
+  </div>
 
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none;margin-top:35px">
+
+    <h3>Admin Panel</h3>
+
+    <button onclick="loadPendingTopup()" style="background:#f59e0b;margin-bottom:15px">
+      CEK TOPUP MASUK
+    </button>
+
+    <div id="pendingList"></div>
+
+  </div>
+
+  <!-- LOGOUT -->
   <button onclick="logout()" style="background:#ef4444;margin-top:30px;">
     LOGOUT
   </button>
 
 </div>
-<div id="adminPanel" style="display:none;margin-top:35px">
 
-  <h3>Admin Panel</h3>
-
-  <button onclick="loadPendingTopup()" style="background:#f59e0b;margin-bottom:15px">
-    CEK TOPUP MASUK
-  </button>
-
-  <div id="pendingList"></div>
-
-</div>
 
 
 <script>
@@ -218,12 +231,13 @@ async function showDashboard(user){
     "Welcome " + user.name;
 
   await loadBalance();
+  await loadHistory();
 
-  // tampilkan panel admin kalau role ADMIN
   if(user.role === "ADMIN"){
     document.getElementById("adminPanel").style.display="block";
   }
 }
+
 
 async function loadBalance(){
 
@@ -335,6 +349,49 @@ async function requestTopup(){
   }else{
     alert(data.message);
   }
+}
+async function loadHistory(){
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd = new URLSearchParams();
+  fd.append("action","history");
+  fd.append("token",token);
+
+  const res = await fetch(SERVER,{method:"POST",body:fd});
+  const data = await res.json();
+
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+
+  if(!data.data || data.data.length===0){
+    list.innerHTML="<p>Belum ada transaksi</p>";
+    return;
+  }
+
+  data.data.forEach(t=>{
+
+    const plus = t.type === "CREDIT";
+    const color = plus ? "#22c55e" : "#ef4444";
+    const sign  = plus ? "+" : "-";
+
+    list.innerHTML += `
+      <div style="
+        background:#1e293b;
+        padding:12px;
+        border-radius:12px;
+        margin-bottom:10px;
+      ">
+        <div style="font-size:14px;opacity:.8">${t.desc || "Transaksi"}</div>
+        <div style="font-size:18px;font-weight:bold;color:${color}">
+          ${sign} Rp ${Number(t.amount).toLocaleString("id-ID")}
+        </div>
+        <div style="font-size:12px;opacity:.5">
+          Saldo: Rp ${Number(t.balance).toLocaleString("id-ID")}
+        </div>
+      </div>
+    `;
+  });
 }
 
 
