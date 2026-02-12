@@ -75,6 +75,17 @@ button{
   <input id="pin" type="password" placeholder="PIN">
   <button onclick="login()">LOGIN</button>
 </div>
+<div id="dashboard" style="display:none; padding:20px;">
+
+  <h2 id="welcome"></h2>
+  <p>Member ID: <span id="memberid"></span></p>
+  <p>Role: <span id="role"></span></p>
+
+  <button onclick="logout()" style="background:#ef4444;">
+    LOGOUT
+  </button>
+
+</div>
 
 <script>
 
@@ -104,7 +115,7 @@ async function login(){
     if(data.status==="ok"){
         localStorage.setItem("guser",JSON.stringify(data.user));
         localStorage.setItem("gtoken",data.token);
-        alert("Login success");
+        showDashboard(data.user);
     }else{
         alert(data.message);
     }
@@ -115,6 +126,59 @@ async function login(){
   }
 }
 
+// ===== AUTO LOGIN CHECK =====
+window.onload = async function(){
+
+  const token = localStorage.getItem("gtoken");
+  if(!token) return;
+
+  try{
+
+    const formData = new URLSearchParams();
+    formData.append("action","session");
+    formData.append("token",token);
+
+    const res = await fetch(SERVER,{
+      method:"POST",
+      body:formData
+    });
+
+    const data = await res.json();
+
+    if(data.status==="ok"){
+        showDashboard(data.user);
+
+    }else{
+        localStorage.removeItem("gtoken");
+        localStorage.removeItem("guser");
+    }
+
+  }catch(err){
+    console.log("session check fail");
+  }
+};
+
+  
+function showDashboard(user){
+
+  document.querySelector(".card").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+
+  document.getElementById("welcome").innerText =
+    "Welcome " + user.name;
+
+  document.getElementById("memberid").innerText =
+    user.member_id;
+
+  document.getElementById("role").innerText =
+    user.role;
+}
+
+function logout(){
+  localStorage.removeItem("gtoken");
+  localStorage.removeItem("guser");
+  location.reload();
+}
 </script>
 
 </body>
