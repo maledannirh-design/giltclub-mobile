@@ -42,7 +42,9 @@ body{
 .card{
   width:90%;
   max-width:360px;
+  display:none;
 }
+
 
 input{
   width:100%;
@@ -127,10 +129,21 @@ async function login(){
 }
 
 // ===== AUTO LOGIN CHECK =====
-window.onload = async function(){
+document.addEventListener("DOMContentLoaded", checkSession);
 
+async function checkSession(){
+
+  const card = document.querySelector(".card");
   const token = localStorage.getItem("gtoken");
-  if(!token) return;
+
+  // default: sembunyikan login dulu
+  card.style.display = "none";
+
+  // kalau tidak ada token → langsung tampilkan login
+  if(!token){
+    card.style.display = "block";
+    return;
+  }
 
   try{
 
@@ -146,17 +159,22 @@ window.onload = async function(){
     const data = await res.json();
 
     if(data.status==="ok"){
+        // session valid → langsung dashboard
         showDashboard(data.user);
-
-    }else{
-        localStorage.removeItem("gtoken");
-        localStorage.removeItem("guser");
+        return;
     }
 
+    // token invalid
+    localStorage.removeItem("gtoken");
+    localStorage.removeItem("guser");
+    card.style.display = "block";
+
   }catch(err){
-    console.log("session check fail");
+    // server unreachable → tetap kasih login
+    console.log("session restore fail");
+    card.style.display = "block";
   }
-};
+}
 
   
 function showDashboard(user){
