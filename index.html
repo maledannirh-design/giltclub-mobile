@@ -85,25 +85,37 @@ async function login(){
   const username = document.getElementById("username").value;
   const pin = document.getElementById("pin").value;
 
-  const res = await fetch(SERVER,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"login",
-      username:username,
-      pin:pin
-    })
-  });
+  const formData = new URLSearchParams();
+  formData.append("action","login");
+  formData.append("username",username);
+  formData.append("pin",pin);
+  formData.append("device",navigator.userAgent);
 
-  const data = await res.json();
+  try{
 
-  if(data.status==="ok"){
-      localStorage.setItem("guser",JSON.stringify(data.user));
-      alert("Login success");
-  }else{
-      alert("Username / PIN salah");
+    const res = await fetch(SERVER,{
+      method:"POST",
+      body:formData
+    });
+
+    const text = await res.text();
+    const data = JSON.parse(text);
+
+    if(data.status==="ok"){
+        localStorage.setItem("guser",JSON.stringify(data.user));
+        localStorage.setItem("gtoken",data.token);
+        alert("Login success");
+    }else{
+        alert(data.message);
+    }
+
+  }catch(err){
+    alert("Tidak bisa konek ke server");
+    console.log(err);
   }
 }
 
 </script>
+
 </body>
 </html>
