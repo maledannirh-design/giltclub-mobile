@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GILT Club Mobile</title>
+
+<!-- ================= DESKTOP REDIRECT ================= -->
+<script>
+(function(){
+
+  var host = location.hostname;
+
+  // deteksi device
+  var isMobile = /android|iphone|ipad|ipod|blackberry|windows phone/i
+      .test(navigator.userAgent.toLowerCase());
+
+  // kalau dibuka pakai laptop → balik ke utama
+  if(host === "m.giltclub.my.id"){
+      if(!isMobile){
+          location.replace("https://giltclub.my.id");
+          return;
+      }
+  }
+
+})();
+</script>
+<!-- =================================================== -->
+
+<style>
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#111827;
+  color:white;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+.container{
+  text-align:center;
+}
+
+h1{
+  font-size:26px;
+  margin-bottom:10px;
+}
+
+p{
+  opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>GILT Club</h1>
+  <p>Mobile App Loading...</p>
+</div>
+
+</body>
+</html>
