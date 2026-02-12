@@ -109,9 +109,33 @@ button{
 
   <!-- HISTORY -->
   <div style="margin-top:30px">
-    <h3>Riwayat Transaksi</h3>
+
+  <button onclick="toggleHistory()" style="
+    width:100%;
+    background:#334155;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    color:white;
+    font-weight:bold;
+  ">
+    LIHAT RIWAYAT TRANSAKSI
+  </button>
+
+  <div id="historyPanel" style="
+    display:none;
+    margin-top:15px;
+    background:#020617;
+    padding:12px;
+    border-radius:14px;
+    max-height:320px;
+    overflow-y:auto;
+  ">
     <div id="historyList"></div>
   </div>
+
+</div>
+
 
   <!-- ADMIN PANEL -->
   <div id="adminPanel" style="display:none;margin-top:35px">
