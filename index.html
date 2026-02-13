@@ -120,7 +120,7 @@ button{
   padding:16px;
   border-radius:14px;
 ">
-  <div style="opacity:.7;font-size:13px">Kelas Saya 2 Minggu Kedepan</div>
+  <div style="opacity:.7;font-size:13px">Jadwal main terdekat</div>
   <div id="todayContent" style="margin-top:8px">
     Tidak ada kelas, ayo reserve kak !
   </div>
@@ -572,7 +572,11 @@ async function loadSchedule(){
         <b>${s.kelas}</b><br>
         ${s.date} ${s.start}<br>
         Sisa slot: ${sisa}<br>
-        Rp ${Number(s.price).toLocaleString("id-ID")}<br><br>
+        Guest : Rp ${Number(s.guest_price).toLocaleString("id-ID")}<br>
+Member : Rp ${Number(s.member_price).toLocaleString("id-ID")}<br>
+Squad : Rp ${Number(s.squad_price).toLocaleString("id-ID")}<br>
+VVIP : Rp ${Number(s.vvip_price).toLocaleString("id-ID")}<br><br>
+<br><br>
 
         <button onclick="bookClass('${s.date}','${s.kelas}')"
           style="background:#22c55e;width:100%">
