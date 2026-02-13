@@ -586,8 +586,9 @@ async function loadTodayBooking(){
     html+=`
       <div style="margin-top:10px">
         <b>${b.kelas}</b><br>
-        Jam ${b.start} - ${b.end}<br>
-        Court ${b.court}<br>
+${b.date}<br>
+Jam ${b.start} - ${b.end}<br>
+Court ${b.court}
         <button onclick="cancelMyBooking('${b.booking_id}')"
           style="margin-top:8px;background:#ef4444">
           Batalkan
