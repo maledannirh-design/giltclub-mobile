@@ -1052,12 +1052,21 @@ function openMemberTopup(){
       <hr>
 
       <h3>Upload Bukti Transfer</h3>
-      <input type="file" id="memberProofFile" accept="image/*">
+      <input type="file" id="memberProofFile" accept="image/*"
+       onchange="previewTopupImage(event)">
 
-      <button onclick="submitMemberTopup('${amount}')"
+<div style="margin-top:10px;text-align:center;">
+  <img id="previewTopupImg"
+       style="display:none;width:100%;border-radius:12px;">
+</div>
+
+
+      <button id="btnSendTopup"
+        onclick="submitMemberTopup('${amount}')"
         style="background:#22c55e">
-        KIRIM TOP UP
-      </button>
+  KIRIM TOP UP
+</button>
+
 
       <button onclick="closeMemberTopup()"
         style="background:#ef4444">
@@ -1073,6 +1082,7 @@ function openMemberTopup(){
 function closeMemberTopup(){
   document.getElementById("memberTopupModal")?.remove();
 }
+  
 async function submitMemberTopup(amount){
 
   const fileInput = document.getElementById("memberProofFile");
@@ -1082,6 +1092,15 @@ async function submitMemberTopup(amount){
     alert("Upload bukti transfer dulu");
     return;
   }
+
+  if(file.size > 2 * 1024 * 1024){
+    alert("Ukuran gambar maksimal 2MB");
+    return;
+  }
+
+  const btn = document.getElementById("btnSendTopup");
+  btn.disabled = true;
+  btn.innerText = "Mengirim...";
 
   const reader = new FileReader();
 
@@ -1095,7 +1114,7 @@ async function submitMemberTopup(amount){
     fd.append("token",token);
     fd.append("amount",amount);
     fd.append("method","QRIS_DANA");
-    fd.append("proof_url",base64); // pastikan backend kamu sudah simpan ini
+    fd.append("proof_url",base64);
 
     const res = await fetch(SERVER,{
       method:"POST",
@@ -1113,7 +1132,28 @@ async function submitMemberTopup(amount){
 
     }else{
       alert(data.message);
+
+      // kalau gagal, aktifkan lagi tombol
+      btn.disabled = false;
+      btn.innerText = "KIRIM TOP UP";
     }
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function previewTopupImage(event){
+
+  const img = document.getElementById("previewTopupImg");
+  const file = event.target.files[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+    img.src = e.target.result;
+    img.style.display = "block";
   };
 
   reader.readAsDataURL(file);
