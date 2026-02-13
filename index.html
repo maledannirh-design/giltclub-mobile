@@ -101,6 +101,8 @@ button{
 <div id="dashboard" style="display:none; padding:20px;">
 
   <h2 id="welcome"></h2>
+<div id="memberInfo" style="margin-top:6px;font-size:14px;opacity:.85"></div>
+
 
   <!-- SALDO -->
   <div style="
@@ -338,19 +340,26 @@ async function checkSession(){
     card.style.display = "block";
   }
 }
-
 async function showDashboard(user){
 
   document.querySelector(".card").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 
+  // ===== WELCOME =====
   document.getElementById("welcome").innerText =
-    "Welcome " + user.name;
+    "Welcome " + user.name.toUpperCase();
+
+  // ===== MEMBERSHIP TEXT =====
+  let membershipText = "Member";
+  if(user.membership === "SQUAD") membershipText = "Main Squad";
+  if(user.membership === "VVIP") membershipText = "VVIP";
+
+  // ===== MEMBER INFO =====
+  document.getElementById("memberInfo").innerHTML =
+    "ID Member : <b>"+user.member_id+"</b><br>"+
+    "Status Membership : <b>"+membershipText+"</b>";
 
   loadTodayBooking();
-  await loadBalance();
-  await new Promise(r => setTimeout(r, 700));
-  await loadTodayBooking();
   await loadBalance();
 
   if(user.role === "ADMIN"){
