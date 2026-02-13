@@ -201,19 +201,37 @@ button{
 
 </div>
 
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none;margin-top:35px">
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel" style="display:none;margin-top:35px">
+  <h3>Admin Panel</h3>
 
-    <h3>Admin Panel</h3>
+  <!-- TOPUP SECTION -->
+  <div style="margin-bottom:25px">
 
-    <button onclick="loadPendingTopup()" style="background:#f59e0b;margin-bottom:15px">
+    <button onclick="loadPendingTopup()" 
+      style="background:#f59e0b;margin-bottom:10px">
       CEK TOPUP MASUK
     </button>
 
     <div id="pendingList"></div>
 
   </div>
+
+  <!-- GUEST PAYMENT SECTION -->
+  <div>
+
+    <button onclick="loadGuestProof()" 
+      style="background:#06b6d4;margin-bottom:10px">
+      CEK PEMBAYARAN TAMU
+    </button>
+
+    <div id="guestProofList"></div>
+
+  </div>
+
+</div>
+
 
   <!-- LOGOUT -->
   <button onclick="logout()" style="background:#ef4444;margin-top:30px;">
@@ -738,15 +756,176 @@ async function guestBook(date,kelas){
 }
 function showPayment(holdId,price,expired){
 
-  alert(
-    "Booking sementara dibuat!\n\n"+
-    "Total: Rp "+Number(price).toLocaleString("id-ID")+
-    "\nBerlaku 15 menit.\n\n"+
-    "Silakan transfer lalu upload bukti."
-  );
+  const html = `
+  <div style="
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    z-index:9999;
+    padding:20px;
+    overflow:auto;
+  " id="paymentModal">
 
-  // nanti kita sambungkan ke QRIS / DANA / BCA
+    <div style="
+      background:#0f172a;
+      border-radius:16px;
+      padding:18px;
+      max-width:420px;
+      margin:auto;
+    ">
+
+      <h2 style="margin-top:0">Pembayaran Booking</h2>
+
+      <div style="margin:12px 0">
+        Total Bayar:
+        <div style="font-size:26px;font-weight:bold">
+          Rp ${Number(price).toLocaleString("id-ID")}
+        </div>
+      </div>
+
+      <hr>
+
+      <h3>DANA</h3>
+      Transfer ke:
+      <div style="font-size:18px;font-weight:bold">
+        085179694879
+      </div>
+      a.n Yayang Lely Mualifah
+
+      <hr>
+
+      <h3>Upload Bukti Transfer</h3>
+      <input type="file" id="proofFile" accept="image/*">
+
+      <button onclick="uploadProof('${holdId}')"
+        style="background:#22c55e">
+        KIRIM BUKTI
+      </button>
+
+      <button onclick="closePayment()"
+        style="background:#ef4444">
+        TUTUP
+      </button>
+
+    </div>
+  </div>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend",html);
 }
+
+function closePayment(){
+  document.getElementById("paymentModal")?.remove();
+}
+async function uploadProof(holdId){
+
+  const fileInput = document.getElementById("proofFile");
+  const file = fileInput.files[0];
+
+  if(!file){
+    alert("Pilih gambar bukti transfer dulu");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = async function(){
+
+    const base64 = reader.result;
+
+    const fd = new URLSearchParams();
+    fd.append("action","guest_upload_proof");
+    fd.append("hold_id",holdId);
+    fd.append("proof_url",base64);
+
+    const res = await fetch(SERVER,{method:"POST",body:fd});
+    const data = await res.json();
+
+    if(data.status==="ok"){
+      alert("Bukti berhasil dikirim. Tunggu admin konfirmasi.");
+      closePayment();
+    }else{
+      alert(data.message);
+    }
+  };
+
+  reader.readAsDataURL(file);
+}
+async function loadGuestProof(){
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd = new URLSearchParams();
+  fd.append("action","admin_guest_list");
+  fd.append("token",token);
+
+  const res = await fetch(SERVER,{method:"POST",body:fd});
+  const data = await res.json();
+
+  const list=document.getElementById("guestProofList");
+  list.innerHTML="";
+
+  if(!data.data || data.data.length===0){
+    list.innerHTML="<p>Tidak ada pembayaran tamu</p>";
+    return;
+  }
+
+  data.data.forEach(g=>{
+
+    list.innerHTML += `
+    <div style="
+      background:#1e293b;
+      padding:14px;
+      border-radius:14px;
+      margin-bottom:14px;
+    ">
+
+      <b>${g.name}</b><br>
+      ${g.phone}<br>
+      ${g.kelas} ${g.date} ${g.start}<br>
+      Court ${g.court}<br><br>
+
+      <div>
+        Rp ${Number(g.amount).toLocaleString("id-ID")}
+      </div><br>
+
+      <img src="${g.proof}" style="
+        width:100%;
+        border-radius:12px;
+        margin-bottom:12px;
+      ">
+
+      <button onclick="approveGuest('${g.hold_id}')"
+        style="background:#22c55e;width:100%">
+        APPROVE BOOKING
+      </button>
+
+    </div>
+    `;
+  });
+}
+async function approveGuest(holdId){
+
+  if(!confirm("Konfirmasi booking tamu ini?")) return;
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd = new URLSearchParams();
+  fd.append("action","admin_guest_confirm");
+  fd.append("token",token);
+  fd.append("hold_id",holdId);
+
+  const res = await fetch(SERVER,{method:"POST",body:fd});
+  const data = await res.json();
+
+  if(data.status==="ok"){
+    alert("Booking berhasil dikonfirmasi!");
+    loadGuestProof();
+  }else{
+    alert(data.message);
+  }
+}
+
 
 </script>
 
