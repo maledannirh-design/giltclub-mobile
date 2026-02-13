@@ -691,9 +691,17 @@ function logout(){
   btn.type="button";
 });
 function openGuest(){
+
+  // tutup semua halaman
   document.querySelector(".card").style.display="none";
-  document.getElementById("guestPage").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+
+  // buka guest screen
+  const g=document.getElementById("guestPage");
+  g.style.display="block";
+  window.scrollTo(0,0);
 }
+
 
 function backLogin(){
   document.getElementById("guestPage").style.display="none";
