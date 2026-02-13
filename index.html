@@ -110,7 +110,7 @@ button{
   padding:16px;
   border-radius:14px;
 ">
-  <div style="opacity:.7;font-size:13px">Kelas Saya Hari Ini</div>
+  <div style="opacity:.7;font-size:13px">Kelas Saya 2 Minggu Kedepan</div>
   <div id="todayContent" style="margin-top:8px">
     Tidak ada kelas hari ini
   </div>
@@ -320,6 +320,9 @@ async function showDashboard(user){
     "Welcome " + user.name;
 
   loadTodayBooking();
+  await loadBalance();
+  await new Promise(r => setTimeout(r, 700));
+  await loadTodayBooking();
   await loadBalance();
 
   if(user.role === "ADMIN"){
@@ -743,15 +746,6 @@ function showPayment(holdId,price,expired){
   );
 
   // nanti kita sambungkan ke QRIS / DANA / BCA
-}
-function showPayment(holdId,price,expired){
-
-  alert(
-    "Booking sementara dibuat!\n\n"+
-    "Total: Rp "+Number(price).toLocaleString("id-ID")+
-    "\nSlot ditahan 15 menit.\n"+
-    "Silakan transfer lalu upload bukti."
-  );
 }
 
 </script>
