@@ -64,7 +64,9 @@ button{
   color:white;
   font-size:18px;
   font-weight:bold;
+  cursor:pointer;
 }
+
 </style>
 </head>
 
@@ -95,6 +97,17 @@ button{
     </div>
   </div>
 <div style="margin-top:25px">
+<div id="todayClass" style="
+  margin-top:18px;
+  background:#1e293b;
+  padding:16px;
+  border-radius:14px;
+">
+  <div style="opacity:.7;font-size:13px">Kelas Saya Hari Ini</div>
+  <div id="todayContent" style="margin-top:8px">
+    Tidak ada kelas hari ini
+  </div>
+</div>
 
   <button onclick="openBooking()" style="
     width:100%;
@@ -278,13 +291,14 @@ async function showDashboard(user){
   document.getElementById("welcome").innerText =
     "Welcome " + user.name;
 
+  loadTodayBooking();
   await loadBalance();
-  await loadHistory();
 
   if(user.role === "ADMIN"){
     document.getElementById("adminPanel").style.display="block";
   }
 }
+
 
 
 async function loadBalance(){
@@ -510,9 +524,17 @@ async function loadSchedule(){
     `;
   });
 }
+let bookingLock=false;
+
 async function bookClass(date,kelas){
 
-  if(!confirm("Booking kelas ini?")) return;
+  if(bookingLock) return;
+  bookingLock=true;
+
+  if(!confirm("Booking kelas ini?")){
+    bookingLock=false;
+    return;
+  }
 
   const token = localStorage.getItem("gtoken");
 
@@ -522,25 +544,94 @@ async function bookClass(date,kelas){
   fd.append("date",date);
   fd.append("kelas",kelas);
 
+  try{
+    const res=await fetch(SERVER,{method:"POST",body:fd});
+    const data=await res.json();
+
+    if(data.status==="ok"){
+      alert("Booking berhasil!");
+      loadBalance();
+      loadTodayBooking();
+      historyLoaded=false;
+      loadSchedule();
+    }else{
+      alert(data.message);
+    }
+  }finally{
+    bookingLock=false;
+  }
+}
+
+async function loadTodayBooking(){
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd=new URLSearchParams();
+  fd.append("action","my_bookings");
+  fd.append("token",token);
+
+  const res=await fetch(SERVER,{method:"POST",body:fd});
+  const data=await res.json();
+
+  const el=document.getElementById("todayContent");
+
+  if(!data.data || data.data.length===0){
+    el.innerHTML="Tidak ada kelas hari ini";
+    return;
+  }
+
+  let html="";
+
+  data.data.forEach(b=>{
+    html+=`
+      <div style="margin-top:10px">
+        <b>${b.kelas}</b><br>
+        Jam ${b.start} - ${b.end}<br>
+        Court ${b.court}<br>
+        <button onclick="cancelMyBooking('${b.booking_id}')"
+          style="margin-top:8px;background:#ef4444">
+          Batalkan
+        </button>
+      </div>
+    `;
+  });
+
+  el.innerHTML=html;
+}
+async function cancelMyBooking(id){
+
+  if(!confirm("Batalkan booking?")) return;
+
+  const token=localStorage.getItem("gtoken");
+
+  const fd=new URLSearchParams();
+  fd.append("action","cancel_booking");
+  fd.append("token",token);
+  fd.append("booking_id",id);
+
   const res=await fetch(SERVER,{method:"POST",body:fd});
   const data=await res.json();
 
   if(data.status==="ok"){
-    alert("Booking berhasil!");
+    alert("Booking dibatalkan");
+    loadTodayBooking();
     loadBalance();
     loadHistory();
-    loadSchedule();
   }else{
     alert(data.message);
   }
 }
-
 
 function logout(){
   localStorage.removeItem("gtoken");
   localStorage.removeItem("guser");
   location.reload();
 }
+
+  document.querySelectorAll("button").forEach(btn=>{
+  btn.type="button";
+});
+
 </script>
 
 </body>
