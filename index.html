@@ -701,12 +701,15 @@ function openGuest(){
   g.style.display="block";
   window.scrollTo(0,0);
 }
-
-
 function backLogin(){
+
   document.getElementById("guestPage").style.display="none";
+  document.getElementById("dashboard").style.display="none";
   document.querySelector(".card").style.display="block";
+
+  window.scrollTo(0,0);
 }
+
 async function loadGuestSchedule(){
 
   const fd=new URLSearchParams();
