@@ -94,6 +94,31 @@ button{
       Rp 0
     </div>
   </div>
+<div style="margin-top:25px">
+
+  <button onclick="openBooking()" style="
+    width:100%;
+    background:#22c55e;
+    padding:14px;
+    border-radius:12px;
+    border:none;
+    color:white;
+    font-weight:bold;
+  ">
+    BOOKING KELAS
+  </button>
+
+  <div id="bookingPanel" style="
+    display:none;
+    margin-top:15px;
+    background:#020617;
+    padding:12px;
+    border-radius:14px;
+  ">
+    <div id="scheduleList"></div>
+  </div>
+
+</div>
 
   <!-- TOPUP -->
   <div style="margin-top:25px">
@@ -434,6 +459,79 @@ async function toggleHistory(){
 
   }else{
     panel.style.display = "none";
+  }
+}
+async function openBooking(){
+
+  const panel = document.getElementById("bookingPanel");
+
+  if(panel.style.display==="none"){
+    panel.style.display="block";
+    await loadSchedule();
+  }else{
+    panel.style.display="none";
+  }
+}
+async function loadSchedule(){
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd=new URLSearchParams();
+  fd.append("action","schedule");
+  fd.append("token",token);
+
+  const res=await fetch(SERVER,{method:"POST",body:fd});
+  const data=await res.json();
+
+  const list=document.getElementById("scheduleList");
+  list.innerHTML="";
+
+  data.data.forEach(s=>{
+
+    const sisa = s.slot - s.used;
+
+    list.innerHTML += `
+      <div style="
+        background:#1e293b;
+        padding:12px;
+        border-radius:12px;
+        margin-bottom:10px;
+      ">
+        <b>${s.kelas}</b><br>
+        ${s.date} ${s.start}<br>
+        Sisa slot: ${sisa}<br>
+        Rp ${Number(s.price).toLocaleString("id-ID")}<br><br>
+
+        <button onclick="bookClass('${s.date}','${s.kelas}')"
+          style="background:#22c55e;width:100%">
+          BOOK
+        </button>
+      </div>
+    `;
+  });
+}
+async function bookClass(date,kelas){
+
+  if(!confirm("Booking kelas ini?")) return;
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd=new URLSearchParams();
+  fd.append("action","booking");
+  fd.append("token",token);
+  fd.append("date",date);
+  fd.append("kelas",kelas);
+
+  const res=await fetch(SERVER,{method:"POST",body:fd});
+  const data=await res.json();
+
+  if(data.status==="ok"){
+    alert("Booking berhasil!");
+    loadBalance();
+    loadHistory();
+    loadSchedule();
+  }else{
+    alert(data.message);
   }
 }
 
