@@ -624,44 +624,74 @@ async function bookClass(date,kelas){
     bookingLock=false;
   }
 }
-
 async function loadTodayBooking(){
 
-  const token = localStorage.getItem("gtoken");
+  const el = document.getElementById("todayContent");
+  el.innerHTML = "Memuat jadwal...";
 
-  const fd=new URLSearchParams();
-  fd.append("action","my_bookings");
-  fd.append("token",token);
+  try{
 
-  const res=await fetch(SERVER,{method:"POST",body:fd});
-  const data=await res.json();
+    const token = localStorage.getItem("gtoken");
 
-  const el=document.getElementById("todayContent");
+    const fd = new URLSearchParams();
+    fd.append("action","my_bookings");
+    fd.append("token",token);
 
-  if(!data.data || data.data.length===0){
-    el.innerHTML="Tidak ada kelas, ayo reserve kak! ";
-    return;
-  }
+    const res = await fetch(SERVER,{method:"POST",body:fd});
+    const data = await res.json();
 
-  let html="";
+    // kalau tidak ada booking
+    if(!data || data.status!=="ok" || !data.data || data.data.length===0){
+      el.innerHTML = "Belum ada jadwal main.<br>Ayo booking dulu 🎾";
+      return;
+    }
 
-  data.data.forEach(b=>{
-    html+=`
-      <div style="margin-top:10px">
-        <b>${b.kelas}</b><br>
-${b.date}<br>
-Jam ${b.start} - ${b.end}<br>
-Court ${b.court}
+    const b = data.data[0];
+
+    // format tanggal indonesia
+    const d = new Date(b.date+"T00:00:00");
+    const tanggal = d.toLocaleDateString("id-ID",{
+      weekday:"long",
+      day:"numeric",
+      month:"long"
+    });
+
+    el.innerHTML = `
+      <div style="
+        background:#020617;
+        padding:14px;
+        border-radius:12px;
+        margin-top:10px;
+      ">
+        <div style="font-size:18px;font-weight:bold">
+          ${b.kelas}
+        </div>
+
+        <div style="opacity:.8;margin-top:6px">
+          ${tanggal}
+        </div>
+
+        <div style="margin-top:6px">
+          ⏰ ${b.start} - ${b.end}
+        </div>
+
+        <div style="margin-top:6px">
+          🎾 Court ${b.court}
+        </div>
+
         <button onclick="cancelMyBooking('${b.booking_id}')"
-          style="margin-top:8px;background:#ef4444">
-          Batalkan
+          style="margin-top:12px;background:#ef4444">
+          Batalkan Booking
         </button>
       </div>
     `;
-  });
 
-  el.innerHTML=html;
+  }catch(err){
+    el.innerHTML="Gagal memuat jadwal";
+    console.log(err);
+  }
 }
+
 async function cancelMyBooking(id){
 
   if(!confirm("Batalkan booking?")) return;
