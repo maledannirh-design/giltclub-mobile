@@ -73,11 +73,18 @@ button{
 <body>
 <!-- LOGIN -->
 <div class="card">
-  <h2>G-WALLET</h2>
+  <h2>GILT CLUB</h2>
+
   <input id="username" placeholder="Username">
   <input id="pin" type="password" placeholder="PIN">
-  <button onclick="login()">LOGIN</button>
+
+  <button onclick="login()">LOGIN MEMBER</button>
+
+  <button onclick="openGuest()" style="background:#f59e0b">
+    MAIN SEBAGAI TAMU
+  </button>
 </div>
+
 
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none; padding:20px;">
@@ -132,6 +139,27 @@ button{
   </div>
 
 </div>
+<!-- GUEST PAGE -->
+<div id="guestPage" style="display:none;padding:20px">
+
+  <h2>Booking Tamu</h2>
+
+  <input id="g_name" placeholder="Nama">
+  <input id="g_phone" placeholder="No HP">
+  <input id="g_email" placeholder="Email">
+
+  <button onclick="loadGuestSchedule()" style="background:#22c55e">
+    LIHAT JADWAL
+  </button>
+
+  <div id="guestSchedule" style="margin-top:20px"></div>
+
+  <button onclick="backLogin()" style="background:#ef4444">
+    KEMBALI
+  </button>
+
+</div>
+
 
   <!-- TOPUP -->
   <div style="margin-top:25px">
@@ -632,6 +660,99 @@ function logout(){
   document.querySelectorAll("button").forEach(btn=>{
   btn.type="button";
 });
+function openGuest(){
+  document.querySelector(".card").style.display="none";
+  document.getElementById("guestPage").style.display="block";
+}
+
+function backLogin(){
+  document.getElementById("guestPage").style.display="none";
+  document.querySelector(".card").style.display="block";
+}
+async function loadGuestSchedule(){
+
+  const fd=new URLSearchParams();
+  fd.append("action","schedule_public");
+
+  const res=await fetch(SERVER,{method:"POST",body:fd});
+  const data=await res.json();
+
+  const list=document.getElementById("guestSchedule");
+  list.innerHTML="";
+
+  data.data.forEach(s=>{
+
+    const sisa = s.slot - s.used;
+
+    list.innerHTML+=`
+      <div style="
+        background:#1e293b;
+        padding:12px;
+        border-radius:12px;
+        margin-bottom:12px;
+      ">
+        <b>${s.kelas}</b><br>
+        ${s.date} ${s.start}<br>
+        Slot: ${sisa}<br><br>
+
+        Guest : Rp ${Number(s.guest_price).toLocaleString("id-ID")}<br>
+        Member : Rp ${Number(s.member_price).toLocaleString("id-ID")}<br><br>
+
+        <button onclick="guestBook('${s.date}','${s.kelas}')">
+          BOOK
+        </button>
+      </div>
+    `;
+  });
+}
+async function guestBook(date,kelas){
+
+  const name=document.getElementById("g_name").value;
+  const phone=document.getElementById("g_phone").value;
+  const email=document.getElementById("g_email").value;
+
+  if(!name||!phone||!email){
+    alert("Lengkapi data dulu");
+    return;
+  }
+
+  const fd=new URLSearchParams();
+  fd.append("action","guest_hold");
+  fd.append("name",name);
+  fd.append("phone",phone);
+  fd.append("email",email);
+  fd.append("date",date);
+  fd.append("kelas",kelas);
+
+  const res=await fetch(SERVER,{method:"POST",body:fd});
+  const data=await res.json();
+
+  if(data.status==="ok"){
+    showPayment(data.hold_id,data.price,data.expired_at);
+  }else{
+    alert(data.message);
+  }
+}
+function showPayment(holdId,price,expired){
+
+  alert(
+    "Booking sementara dibuat!\n\n"+
+    "Total: Rp "+Number(price).toLocaleString("id-ID")+
+    "\nBerlaku 15 menit.\n\n"+
+    "Silakan transfer lalu upload bukti."
+  );
+
+  // nanti kita sambungkan ke QRIS / DANA / BCA
+}
+function showPayment(holdId,price,expired){
+
+  alert(
+    "Booking sementara dibuat!\n\n"+
+    "Total: Rp "+Number(price).toLocaleString("id-ID")+
+    "\nSlot ditahan 15 menit.\n"+
+    "Silakan transfer lalu upload bukti."
+  );
+}
 
 </script>
 
