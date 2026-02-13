@@ -160,7 +160,11 @@ button{
            placeholder="Nominal Top Up (contoh: 50000)"
            style="width:100%;padding:14px;border-radius:10px;border:none;margin-bottom:12px;">
 
-    <button onclick="requestTopup()" style="background:#3b82f6">
+    <button onclick="openMemberTopup()" style="background:#3b82f6">
+  TOP UP SALDO
+</button>
+
+
       TOP UP SALDO
     </button>
   </div>
@@ -791,6 +795,7 @@ async function loadGuestSchedule(){
     `;
   });
 }
+  
 async function guestBook(date,kelas){
 
   const name=document.getElementById("g_name").value;
@@ -819,6 +824,8 @@ async function guestBook(date,kelas){
     alert(data.message);
   }
 }
+
+  
 function showPayment(holdId,price,expired){
 
   const html = `
@@ -856,6 +863,11 @@ function showPayment(holdId,price,expired){
         085179694879
       </div>
       a.n Yayang Lely Mualifah
+      <div style="margin:15px 0;text-align:center;">
+  <img src="https://drive.google.com/uc?export=view&id=1NncPBnkcVDbqbau4AfLXXTyMLZ48KbqE"
+       style="width:100%;border-radius:12px;">
+</div>
+
 
       <hr>
 
@@ -916,6 +928,7 @@ async function uploadProof(holdId){
 
   reader.readAsDataURL(file);
 }
+  
 async function loadGuestProof(){
 
   const token = localStorage.getItem("gtoken");
@@ -969,6 +982,7 @@ async function loadGuestProof(){
     `;
   });
 }
+  
 async function approveGuest(holdId){
 
   if(!confirm("Konfirmasi booking tamu ini?")) return;
@@ -989,6 +1003,120 @@ async function approveGuest(holdId){
   }else{
     alert(data.message);
   }
+}
+function openMemberTopup(){
+
+  const amount = document.getElementById("topupAmount").value;
+
+  if(!amount || amount <= 0){
+    alert("Masukkan nominal topup dulu");
+    return;
+  }
+
+  const html = `
+  <div style="
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    z-index:9999;
+    padding:20px;
+    overflow:auto;
+  " id="memberTopupModal">
+
+    <div style="
+      background:#0f172a;
+      border-radius:16px;
+      padding:18px;
+      max-width:420px;
+      margin:auto;
+    ">
+
+      <h2 style="margin-top:0">Top Up Wallet</h2>
+
+      <div style="margin:12px 0">
+        Total Top Up:
+        <div style="font-size:26px;font-weight:bold">
+          Rp ${Number(amount).toLocaleString("id-ID")}
+        </div>
+      </div>
+
+      <hr>
+
+      <h3>QRIS DANA</h3>
+      Transfer ke:
+      <div style="font-size:18px;font-weight:bold">
+        085179694879
+      </div>
+      a.n Yayang Lely Mualifah
+
+      <hr>
+
+      <h3>Upload Bukti Transfer</h3>
+      <input type="file" id="memberProofFile" accept="image/*">
+
+      <button onclick="submitMemberTopup('${amount}')"
+        style="background:#22c55e">
+        KIRIM TOP UP
+      </button>
+
+      <button onclick="closeMemberTopup()"
+        style="background:#ef4444">
+        BATAL
+      </button>
+
+    </div>
+  </div>
+  `;
+
+  document.body.insertAdjacentHTML("beforeend",html);
+}
+function closeMemberTopup(){
+  document.getElementById("memberTopupModal")?.remove();
+}
+async function submitMemberTopup(amount){
+
+  const fileInput = document.getElementById("memberProofFile");
+  const file = fileInput.files[0];
+
+  if(!file){
+    alert("Upload bukti transfer dulu");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = async function(){
+
+    const base64 = reader.result;
+    const token = localStorage.getItem("gtoken");
+
+    const fd = new URLSearchParams();
+    fd.append("action","topup");
+    fd.append("token",token);
+    fd.append("amount",amount);
+    fd.append("method","QRIS_DANA");
+    fd.append("proof_url",base64); // pastikan backend kamu sudah simpan ini
+
+    const res = await fetch(SERVER,{
+      method:"POST",
+      body:fd
+    });
+
+    const data = await res.json();
+
+    if(data.status==="ok"){
+
+      alert("Top up terkirim, menunggu admin cek.");
+
+      closeMemberTopup();
+      document.getElementById("topupAmount").value="";
+
+    }else{
+      alert(data.message);
+    }
+  };
+
+  reader.readAsDataURL(file);
 }
 
 
