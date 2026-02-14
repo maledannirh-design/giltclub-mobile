@@ -32,8 +32,8 @@
 body{
   margin:0;
   font-family: Arial, Helvetica, sans-serif;
-  background:#0f172a;
-  color:white;
+  background:#F2E8D5;
+  color:#2E5D3A;
   min-height:100vh;
   overflow-y:auto;
 }
@@ -42,19 +42,18 @@ body{
   width:90%;
   max-width:360px;
   margin:80px auto;
-  display:block;   /* ganti dari none */
+  display:block;
 }
-
-
-
 
 input{
   width:100%;
   padding:14px;
   margin-top:12px;
   border-radius:10px;
-  border:none;
+  border:1px solid #E5A9A9;
   font-size:16px;
+  background:white;
+  color:#2E5D3A;
 }
 
 button{
@@ -63,21 +62,27 @@ button{
   margin-top:18px;
   border-radius:12px;
   border:none;
-  background:#22c55e;
+  background:#2E5D3A;
   color:white;
   font-size:18px;
   font-weight:bold;
   cursor:pointer;
 }
+
+button:hover{
+  opacity:.9;
+}
+
 #dashboard,
 #guestPage{
   display:none;
   position:fixed;
   inset:0;
   overflow-y:auto;
-  background:#0f172a;
+  background:#F2E8D5;
   z-index:5;
 }
+
 
 </style>
 </head>
@@ -113,7 +118,7 @@ button{
 
   <!-- SALDO -->
   <div style="
-    background:#1e293b;
+    background:white; border:1px solid #E5A9A9;
     padding:18px;
     border-radius:14px;
     margin-top:20px;
@@ -126,7 +131,7 @@ button{
 <div style="margin-top:25px">
 <div id="todayClass" style="
   margin-top:18px;
-  background:#1e293b;
+  background:white; border:1px solid #E5A9A9;
   padding:16px;
   border-radius:14px;
 ">
@@ -151,7 +156,7 @@ button{
   <div id="bookingPanel" style="
     display:none;
     margin-top:15px;
-    background:#020617;
+    background:#ffffff; border:1px solid #E5A9A9;
     padding:12px;
     border-radius:14px;
   ">
@@ -192,7 +197,7 @@ button{
   <div id="historyPanel" style="
     display:none;
     margin-top:15px;
-    background:#020617;
+    background:#ffffff; border:1px solid #E5A9A9;
     padding:12px;
     border-radius:14px;
     max-height:320px;
@@ -450,7 +455,7 @@ async function loadPendingTopup(){
 
   list.innerHTML += `
     <div style="
-      background:#1e293b;
+      background:white; border:1px solid #E5A9A9;
       padding:12px;
       border-radius:12px;
       margin-bottom:12px;
@@ -481,6 +486,8 @@ async function loadPendingTopup(){
     </div>
   `;
 });
+});
+}   // <<< TAMBAHKAN INI UNTUK MENUTUP FUNCTION
 
   
 async function approveTopup(id){
@@ -563,7 +570,7 @@ async function loadHistory(){
 
     list.innerHTML += `
       <div style="
-        background:#1e293b;
+        background:white; border:1px solid #E5A9A9;
         padding:12px;
         border-radius:12px;
         margin-bottom:10px;
@@ -630,7 +637,7 @@ async function loadSchedule(){
 
     list.innerHTML += `
       <div style="
-        background:#1e293b;
+        background:white; border:1px solid #E5A9A9;
         padding:12px;
         border-radius:12px;
         margin-bottom:10px;
@@ -732,7 +739,7 @@ async function loadTodayBooking(){
       html += `
         <div style="
           min-width:220px;
-          background:#020617;
+          background:#ffffff; border:1px solid #E5A9A9;
           padding:14px;
           border-radius:14px;
           flex-shrink:0;
@@ -852,7 +859,7 @@ async function loadGuestSchedule(){
 
     list.innerHTML+=`
       <div style="
-        background:#1e293b;
+        background:white; border:1px solid #E5A9A9;
         padding:12px;
         border-radius:12px;
         margin-bottom:12px;
@@ -1028,7 +1035,7 @@ async function loadGuestProof(){
 
     list.innerHTML += `
     <div style="
-      background:#1e293b;
+      background:white; border:1px solid #E5A9A9;
       padding:14px;
       border-radius:14px;
       margin-bottom:14px;
