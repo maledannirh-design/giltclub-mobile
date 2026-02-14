@@ -618,6 +618,7 @@ async function approveTopup(id){
   const data = await res.json();
 
   if(data.status==="ok"){
+    playSuccessSound();
     alert("Topup berhasil diapprove");
     loadPendingTopup();
     loadBalance(); // refresh saldo admin (kalau admin juga member)
@@ -883,6 +884,7 @@ async function bookClass(date,kelas){
     const data=await res.json();
 
     if(data.status==="ok"){
+      playSuccessSound();
       alert("Booking berhasil!");
       loadBalance();
       loadTodayBooking();
@@ -1317,6 +1319,7 @@ async function approveGuest(holdId){
   const data = await res.json();
 
   if(data.status==="ok"){
+    playSuccessSound();
     alert("Booking berhasil dikonfirmasi!");
     loadGuestProof();
   }else{
@@ -1735,12 +1738,21 @@ async function rentRacket(date,kelas){
   const data = await res.json();
 
   if(data.status==="ok"){
+    playSuccessSound();   // <-- DI SINI
     alert("Raket berhasil disewa");
     loadBalance();
     loadSchedule();
   }else{
     alert(data.message);
   }
+}
+const successSound = new Audio("sounds/gilt_success.mp3");
+successSound.preload = "auto";
+successSound.volume = 0.7;
+
+function playSuccessSound() {
+    successSound.currentTime = 0;
+    successSound.play().catch(err => console.log("Audio blocked:", err));
 }
 
 </script>
