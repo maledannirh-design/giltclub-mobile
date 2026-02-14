@@ -84,7 +84,12 @@ button{
 <body>
 <!-- LOGIN -->
 <div class="card">
-  <h2>GILT CLUB</h2>
+  <div style="text-align:center;margin-bottom:20px;">
+  <img src="https://drive.google.com/uc?export=view&id=12Z4pWJ6U9_g6CD_tzNOKiXSB71ly_aUI"
+       style="height:70px;margin-bottom:10px;">
+  <h2 style="margin:0;">GILT CLUB</h2>
+</div>
+
 
   <input id="username" placeholder="Username">
   <input id="pin" type="password" placeholder="PIN">
@@ -352,16 +357,44 @@ async function showDashboard(user){
   // ===== WELCOME =====
   document.getElementById("welcome").innerText =
     "Welcome " + user.name.toUpperCase();
+const membershipMap = {
+  MEMBER: "Member",
+  SQUAD: "Main Squad",
+  VVIP: "VVIP"
+};
 
-  // ===== MEMBERSHIP TEXT =====
-  let membershipText = "Member";
-  if(user.membership === "SQUAD") membershipText = "Main Squad";
-  if(user.membership === "VVIP") membershipText = "VVIP";
+const membershipText =
+  membershipMap[user.membership] || "Member";
 
-  // ===== MEMBER INFO =====
-  document.getElementById("memberInfo").innerHTML =
-    "ID Member : <b>"+user.member_id+"</b><br>"+
-    "Status Membership : <b>"+membershipText+"</b>";
+let logoHtml = "";
+
+if(user.membership === "SQUAD"){
+  logoHtml = `
+    <img src="https://drive.google.com/uc?export=view&id=1YiMQ9F-3YOVOsiR_sM4Sr-j1cz-MsHio"
+         style="
+           height:3em;
+           vertical-align:middle;
+           margin-left:8px;
+         ">
+  `;
+}
+
+if(user.membership === "VVIP"){
+  logoHtml = `
+    <img src="https://drive.google.com/uc?export=view&id=18beD2j5ywPtVtwX94LR5S9pvChxAANiL"
+         style="
+           height:3em;
+           vertical-align:middle;
+           margin-left:8px;
+         ">
+  `;
+}
+
+document.getElementById("memberInfo").innerHTML =
+  "ID Member : <b>"+user.member_id+"</b><br>"+
+  "Status Membership : <b>"+membershipText+"</b> "+logoHtml;
+
+
 
   loadTodayBooking();
   await loadBalance();
@@ -413,24 +446,42 @@ async function loadPendingTopup(){
   }
 
   data.data.forEach(t=>{
-    list.innerHTML += `
-      <div style="
-        background:#1e293b;
-        padding:12px;
-        border-radius:12px;
-        margin-bottom:12px;
-      ">
-        <b>${t.member_id}</b><br>
-        Rp ${Number(t.amount).toLocaleString("id-ID")}<br><br>
 
-        <button onclick="approveTopup('${t.topup_id}')"
-          style="background:#22c55e;width:100%">
-          APPROVE
-        </button>
-      </div>
-    `;
-  });
-}
+  list.innerHTML += `
+    <div style="
+      background:#1e293b;
+      padding:12px;
+      border-radius:12px;
+      margin-bottom:12px;
+    ">
+
+      <b>${t.member_id}</b><br>
+      Rp ${Number(t.amount).toLocaleString("id-ID")}<br><br>
+
+      ${t.proof_url ? `
+      <a href="${t.proof_url}" target="_blank"
+         style="
+           display:block;
+           background:#334155;
+           padding:10px;
+           border-radius:10px;
+           text-align:center;
+           margin-bottom:10px;
+         ">
+         CEK BUKTI TRANSFER
+      </a>
+      ` : ""}
+
+      <button onclick="approveTopup('${t.topup_id}')"
+        style="background:#22c55e;width:100%">
+        APPROVE
+      </button>
+
+    </div>
+  `;
+});
+
+  
 async function approveTopup(id){
 
   if(!confirm("Approve topup ini?")) return;
@@ -654,57 +705,81 @@ async function loadTodayBooking(){
     const res = await fetch(SERVER,{method:"POST",body:fd});
     const data = await res.json();
 
-    // kalau tidak ada booking
     if(!data || data.status!=="ok" || !data.data || data.data.length===0){
       el.innerHTML = "Belum ada jadwal main.<br>Ayo booking dulu 🎾";
       return;
     }
 
-    const b = data.data[0];
+    let html = `
+      <div style="
+        display:flex;
+        overflow-x:auto;
+        gap:14px;
+        padding-bottom:8px;
+      ">
+    `;
 
-    // format tanggal indonesia
-    const d = new Date(b.date+"T00:00:00");
-    const tanggal = d.toLocaleDateString("id-ID",{
-      weekday:"long",
-      day:"numeric",
-      month:"long"
+    data.data.forEach(b=>{
+
+      const d = new Date(b.date+"T00:00:00");
+      const tanggal = d.toLocaleDateString("id-ID",{
+        weekday:"short",
+        day:"numeric",
+        month:"short"
+      });
+
+      html += `
+        <div style="
+          min-width:220px;
+          background:#020617;
+          padding:14px;
+          border-radius:14px;
+          flex-shrink:0;
+        ">
+
+          <div style="font-size:16px;font-weight:bold">
+            ${b.kelas}
+          </div>
+
+          <div style="opacity:.8;margin-top:6px">
+            ${tanggal}
+          </div>
+
+          <div style="margin-top:6px">
+            ⏰ ${b.start} - ${b.end}
+          </div>
+
+          <div style="margin-top:6px">
+            🎾 Court ${b.court}
+          </div>
+
+          <button onclick="cancelMyBooking('${b.booking_id}')"
+            style="margin-top:12px;background:#ef4444">
+            Batalkan
+          </button>
+
+        </div>
+      `;
     });
 
-    el.innerHTML = `
+    html += `</div>
       <div style="
-        background:#020617;
-        padding:14px;
-        border-radius:12px;
-        margin-top:10px;
+        text-align:center;
+        font-size:13px;
+        opacity:.6;
+        margin-top:6px;
       ">
-        <div style="font-size:18px;font-weight:bold">
-          ${b.kelas}
-        </div>
-
-        <div style="opacity:.8;margin-top:6px">
-          ${tanggal}
-        </div>
-
-        <div style="margin-top:6px">
-          ⏰ ${b.start} - ${b.end}
-        </div>
-
-        <div style="margin-top:6px">
-          🎾 Court ${b.court}
-        </div>
-
-        <button onclick="cancelMyBooking('${b.booking_id}')"
-          style="margin-top:12px;background:#ef4444">
-          Batalkan Booking
-        </button>
+        ⬅ Geser ke kiri / kanan ➡
       </div>
     `;
 
+    el.innerHTML = html;
+
   }catch(err){
     el.innerHTML="Gagal memuat jadwal";
-    console.log(err);
   }
 }
+
 
 async function cancelMyBooking(id){
 
@@ -967,11 +1042,25 @@ async function loadGuestProof(){
         Rp ${Number(g.amount).toLocaleString("id-ID")}
       </div><br>
 
-      <img src="${g.proof}" style="
-        width:100%;
-        border-radius:12px;
-        margin-bottom:12px;
-      ">
+      <div style="margin-bottom:12px">
+  <a href="${g.proof}" target="_blank"
+     style="
+       display:block;
+       background:#334155;
+       padding:10px;
+       border-radius:10px;
+       text-align:center;
+       margin-bottom:10px;
+     ">
+     LIHAT BUKTI TRANSFER
+  </a>
+
+  <img src="${g.proof}" style="
+    width:100%;
+    border-radius:12px;
+  ">
+</div>
+
 
       <button onclick="approveGuest('${g.hold_id}')"
         style="background:#22c55e;width:100%">
