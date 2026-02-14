@@ -147,6 +147,41 @@ button:hover{
     MAIN SEBAGAI TAMU
   </button>
 </div>
+  
+<div id="termsPage" class="card" style="display:none; max-height:85vh; overflow:auto;">
+
+  <h2 style="margin-bottom:10px;">💚 Ketentuan GILT Club</h2>
+
+  <div style="font-size:14px;line-height:1.6;">
+
+    Sistem reservasi hanya dilakukan melalui aplikasi.
+    Saldo member digunakan untuk pemesanan lapangan jangka panjang.
+    Saldo tidak hangus dan hanya berkurang sesuai pemakaian.
+
+    <br><br>
+
+    Refund 50% untuk cancellation  >36, <48 jam.
+    Refund 100% untuk cancellation diatas 2 x 24 jam. 
+    Ketentuan cuaca berlaku sesuai kebijakan club.
+
+    <br><br>
+
+    Semua anggota wajib menjaga etika dan sportifitas bermain.
+
+  </div>
+
+  <div style="margin-top:15px;">
+    <label style="display:flex;gap:8px;font-size:14px;">
+      <input type="checkbox" id="agreeTerms">
+      Saya memahami dan menyetujui ketentuan club.
+    </label>
+  </div>
+
+  <button onclick="acceptTerms()" style="margin-top:15px;">
+    Lanjutkan
+  </button>
+
+</div>
 
 
 <!-- DASHBOARD -->
@@ -334,9 +369,15 @@ async function login(){
     const data = JSON.parse(text);
 
     if(data.status==="ok"){
-        localStorage.setItem("guser",JSON.stringify(data.user));
-        localStorage.setItem("gtoken",data.token);
-        showDashboard(data.user);
+    localStorage.setItem("guser",JSON.stringify(data.user));
+    localStorage.setItem("gtoken",data.token);
+
+    if(!localStorage.getItem("termsAccepted")){
+        showTermsPage();
+        return;
+    }
+
+    showDashboard(data.user);
     }else{
         alert(data.message);
     }
@@ -394,6 +435,22 @@ async function checkSession(){
     card.style.display = "block";
   }
 }
+function acceptTerms(){
+
+  const check = document.getElementById("agreeTerms");
+
+  if(!check.checked){
+    alert("Silakan centang persetujuan terlebih dahulu.");
+    return;
+  }
+
+  localStorage.setItem("termsAccepted","yes");
+
+  document.getElementById("termsPage").style.display="none";
+
+  showDashboard(JSON.parse(localStorage.getItem("guser")));
+}
+ 
 async function showDashboard(user){
 
   document.querySelector(".card").style.display = "none";
@@ -893,6 +950,10 @@ async function cancelMyBooking(id){
     alert(data.message);
   }
 }
+function showTermsPage(){
+  document.querySelector(".card").style.display="none";
+  document.getElementById("termsPage").style.display="block";
+}
 
 function logout(){
   localStorage.removeItem("gtoken");
@@ -1347,6 +1408,14 @@ function previewTopupImage(event){
   reader.readAsDataURL(file);
 }
 
+function showMembershipPage(){
+  document.getElementById("membershipPage").style.display="block";
+}
+
+function enterDashboard(){
+  document.getElementById("membershipPage").style.display="none";
+  showDashboard(JSON.parse(localStorage.getItem("guser")));
+}
 
 </script>
 
