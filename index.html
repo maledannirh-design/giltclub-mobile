@@ -92,7 +92,16 @@ button:hover{
 <div class="card">
   <div style="text-align:center;margin-bottom:20px;">
   <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/logo_giltclub.webp"
-     style="height:70px;margin-bottom:10px;">
+     style="
+        width:75%;
+        max-width:320px;
+        height:auto;
+        margin-bottom:20px;
+        display:block;
+        margin-left:auto;
+        margin-right:auto;
+     ">
+
 
 
   <h2 style="margin:0;">GILT CLUB</h2>
@@ -480,10 +489,20 @@ async function loadPendingTopup(){
       </a>
       ` : ""}
 
-      <button onclick="approveTopup('${t.topup_id}')"
-        style="background:#22c55e;width:100%">
-        APPROVE
-      </button>
+      <div style="display:flex;gap:8px">
+
+  <button onclick="approveTopup('${t.topup_id}')"
+    style="background:#22c55e;width:100%">
+    APPROVE
+  </button>
+
+  <button onclick="rejectTopup('${t.topup_id}')"
+    style="background:#ef4444;width:100%">
+    REJECT
+  </button>
+
+</div>
+
 
     </div>
   `;
@@ -509,6 +528,27 @@ async function approveTopup(id){
     alert("Topup berhasil diapprove");
     loadPendingTopup();
     loadBalance(); // refresh saldo admin (kalau admin juga member)
+  }else{
+    alert(data.message);
+  }
+}
+async function rejectTopup(id){
+
+  if(!confirm("Reject topup ini?")) return;
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd = new URLSearchParams();
+  fd.append("action","admin_topup_reject");
+  fd.append("token",token);
+  fd.append("topup_id",id);
+
+  const res = await fetch(SERVER,{method:"POST",body:fd});
+  const data = await res.json();
+
+  if(data.status==="ok"){
+    alert("Topup berhasil direject");
+    loadPendingTopup();
   }else{
     alert(data.message);
   }
@@ -644,11 +684,21 @@ async function loadSchedule(){
         margin-bottom:10px;
       ">
         <b>${s.kelas}</b><br>
-        ${s.date} ${s.start}<br>
-        Sisa slot: ${sisa}<br>
+
+${new Date(s.date).toLocaleDateString("id-ID", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric"
+})}<br>
+
+Jam: ${s.start} - ${s.end}<br>
+Court: ${s.court}<br>
+Sisa slot: ${sisa}<br>
+
         Guest : Rp ${Number(s.guest_price).toLocaleString("id-ID")}<br>
 Member : Rp ${Number(s.member_price).toLocaleString("id-ID")}<br>
-Squad : Rp ${Number(s.squad_price).toLocaleString("id-ID")}<br>
+Main Squad : Rp ${Number(s.squad_price).toLocaleString("id-ID")}<br>
 VVIP : Rp ${Number(s.vvip_price).toLocaleString("id-ID")}<br><br>
 <br><br>
 
@@ -866,8 +916,18 @@ async function loadGuestSchedule(){
         margin-bottom:12px;
       ">
         <b>${s.kelas}</b><br>
-        ${s.date} ${s.start}<br>
-        Slot: ${sisa}<br><br>
+
+${new Date(s.date).toLocaleDateString("id-ID", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric"
+})}<br>
+
+Jam: ${s.start} - ${s.end}<br>
+Court: ${s.court}<br>
+Sisa slot: ${sisa}<br>
+
 
         Guest : Rp ${Number(s.guest_price).toLocaleString("id-ID")}<br>
         Member : Rp ${Number(s.member_price).toLocaleString("id-ID")}<br><br>
