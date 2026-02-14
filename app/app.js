@@ -91,3 +91,26 @@ document.addEventListener("DOMContentLoaded", ()=>{
   navigate("home");
 });
 
+function openChat(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Member Chat</h2>
+
+    <div class="chat-box">
+      <div class="chat-message other">
+        <span>Lisa:</span> Main besok jam 7?
+      </div>
+
+      <div class="chat-message me">
+        Siap, aku join 🎾
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input placeholder="Tulis pesan...">
+      <button>Kirim</button>
+    </div>
+  `;
+}
