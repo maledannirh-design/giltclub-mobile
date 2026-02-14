@@ -121,3 +121,50 @@ body{
   margin-top:4px;
 }
 
+.chat-box{
+  margin-top:15px;
+  height:300px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.chat-message{
+  padding:10px 14px;
+  border-radius:16px;
+  max-width:75%;
+  font-size:14px;
+}
+
+.chat-message.me{
+  background:#16a34a;
+  color:white;
+  align-self:flex-end;
+}
+
+.chat-message.other{
+  background:#e2e8f0;
+  align-self:flex-start;
+}
+
+.chat-input{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.chat-input input{
+  flex:1;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+}
+
+.chat-input button{
+  padding:10px 16px;
+  border-radius:12px;
+  border:none;
+  background:#16a34a;
+  color:white;
+}
