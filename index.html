@@ -751,7 +751,7 @@ async function openBooking(){
     panel.style.display="none";
   }
 }
-  async function loadSchedule(){
+ async function loadSchedule(){
 
   const token = localStorage.getItem("gtoken");
 
@@ -772,13 +772,15 @@ async function openBooking(){
 
   data.data.forEach(s=>{
 
-    const sisaSlot = s.slot - s.used;
+    const sisaSlot = Number(s.slot) - Number(s.used);
 
-    // ===== RACKET LOGIC SAFE =====
     const racketSlot  = Number(s.racket_slot || 0);
     const racketUsed  = Number(s.racket_used || 0);
     const racketPrice = Number(s.racket_price || 0);
-    const sisaRaket   = racketSlot - racketUsed;
+
+    const sisaRaket = Math.max(0, racketSlot - racketUsed);
+
+    const sudahSewa = s.has_racket === true;
 
     list.innerHTML += `
       <div style="
@@ -824,31 +826,28 @@ async function openBooking(){
           </button>
 
           ${
-            sisaRaket > 0
-            ? `
-              ${s.has_racket ? `
-  <button disabled
-    style="
-      background:#94a3b8;
-      width:100%;
-      cursor:not-allowed;
-    ">
-    SUDAH SEWA
-  </button>
-` : `
-  <button onclick="rentRacket('${s.date}','${s.kelas}')"
-    style="background:#f59e0b;width:100%">
-    SEWA RAKET
-  </button>
-`}
-
-            `
+            sisaRaket > 0 && racketPrice > 0
+            ? (
+                sudahSewa
+                ? `
+                  <button disabled
+                    style="background:#94a3b8;width:100%;cursor:not-allowed;">
+                    SUDAH SEWA
+                  </button>
+                `
+                : `
+                  <button onclick="rentRacket('${s.date}','${s.kelas}')"
+                    style="background:#f59e0b;width:100%">
+                    SEWA RAKET
+                  </button>
+                `
+              )
             : `
-              <button disabled
-                style="background:#cbd5e1;width:100%">
-                RAKET HABIS
-              </button>
-            `
+                <button disabled
+                  style="background:#cbd5e1;width:100%">
+                  RAKET HABIS
+                </button>
+              `
           }
 
         </div>
