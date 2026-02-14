@@ -515,8 +515,6 @@ document.getElementById("memberInfo").innerHTML =
   }
 }
 
-
-
 async function loadBalance(){
 
   const token = localStorage.getItem("gtoken");
@@ -537,6 +535,7 @@ async function loadBalance(){
       "Rp " + Number(data.balance).toLocaleString("id-ID");
   }
 }
+  
 async function loadPendingTopup(){
 
   const token = localStorage.getItem("gtoken");
@@ -827,10 +826,22 @@ async function openBooking(){
           ${
             sisaRaket > 0
             ? `
-              <button onclick="rentRacket('${s.date}','${s.kelas}')"
-                style="background:#f59e0b;width:100%">
-                SEWA RAKET
-              </button>
+              ${s.has_racket ? `
+  <button disabled
+    style="
+      background:#94a3b8;
+      width:100%;
+      cursor:not-allowed;
+    ">
+    SUDAH SEWA
+  </button>
+` : `
+  <button onclick="rentRacket('${s.date}','${s.kelas}')"
+    style="background:#f59e0b;width:100%">
+    SEWA RAKET
+  </button>
+`}
+
             `
             : `
               <button disabled
@@ -949,7 +960,16 @@ async function loadTodayBooking(){
           <div style="margin-top:6px">
             🎾 Court ${b.court}
           </div>
-
+          ${b.has_racket ? `
+  <div style="
+    margin-top:6px;
+    font-size:13px;
+    color:#ef4444;
+    font-weight:bold;
+  ">
+    🎾 Anda sewa 1 raket di sesi ini
+  </div>
+` : ""}
           <button onclick="cancelMyBooking('${b.booking_id}')"
             style="margin-top:12px;background:#ef4444">
             Batalkan
