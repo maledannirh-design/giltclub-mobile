@@ -115,6 +115,12 @@ button:hover{
   animation-delay:0.25s;
   opacity:0;
 }
+
+@keyframes spinCoin {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(720deg); }
+}
+
 </style>
 
 </head>
@@ -344,6 +350,89 @@ button:hover{
     KEMBALI
   </button>
 
+</div>
+<div id="successAnim" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s ease;
+">
+
+  <div style="
+    background:white;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform:scale(.5);
+    transition:transform .3s ease;
+  " id="successCircle">
+
+    <div style="
+      font-size:50px;
+      color:#22c55e;
+    ">
+      ✓
+    </div>
+
+  </div>
+
+</div>
+<div id="successOverlay" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .4s ease;
+">
+
+  <div id="successCard" style="
+    background:white;
+    padding:30px 25px;
+    border-radius:20px;
+    text-align:center;
+    transform:scale(.6);
+    transition:all .4s ease;
+    width:260px;
+  ">
+
+    <div id="coinAnim" style="
+      width:80px;
+      height:80px;
+      margin:0 auto 20px;
+      border-radius:50%;
+      background:linear-gradient(145deg,#facc15,#eab308);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:36px;
+      color:white;
+    ">
+      💰
+    </div>
+
+    <div style="
+      font-size:16px;
+      font-weight:bold;
+      color:#2E5D3A;
+    ">
+      Transaksi berhasil diproses
+    </div>
+
+  </div>
 </div>
 
 </body>
@@ -1753,6 +1842,48 @@ successSound.volume = 0.7;
 function playSuccessSound() {
     successSound.currentTime = 0;
     successSound.play().catch(err => console.log("Audio blocked:", err));
+    showSuccessUI();
+}
+
+function showSuccessAnimation(){
+
+  const overlay = document.getElementById("successAnim");
+  const circle  = document.getElementById("successCircle");
+
+  overlay.style.opacity = "1";
+  overlay.style.pointerEvents = "auto";
+
+  setTimeout(()=>{
+    circle.style.transform = "scale(1)";
+  },50);
+
+  setTimeout(()=>{
+    overlay.style.opacity = "0";
+    circle.style.transform = "scale(.5)";
+    overlay.style.pointerEvents = "none";
+  },1000);
+}
+  
+function showSuccessUI(){
+
+  const overlay = document.getElementById("successOverlay");
+  const card = document.getElementById("successCard");
+  const coin = document.getElementById("coinAnim");
+
+  overlay.style.opacity = "1";
+  overlay.style.pointerEvents = "auto";
+
+  setTimeout(()=>{
+    card.style.transform = "scale(1)";
+    coin.style.animation = "spinCoin 4s linear";
+  },50);
+
+  setTimeout(()=>{
+    overlay.style.opacity = "0";
+    card.style.transform = "scale(.6)";
+    overlay.style.pointerEvents = "none";
+    coin.style.animation = "none";
+  },4000);
 }
 
 </script>
