@@ -120,6 +120,11 @@ button:hover{
   from { transform: rotateY(0deg); }
   to   { transform: rotateY(720deg); }
 }
+@keyframes pulseBadge {
+  0%   { transform:scale(1); }
+  50%  { transform:scale(1.08); }
+  100% { transform:scale(1); }
+}
 
 </style>
 
@@ -172,10 +177,33 @@ button:hover{
     </div>
 
     <!-- ================= VVIP ================= -->
-    <h3 style="margin-top:22px;">VVIP Exclusive Private Member</h3>
+    <div style="position:relative;margin-top:22px;">
 
-    <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp"
-         style="width:100%;border-radius:16px;margin-bottom:14px;">
+  <h3>VVIP Premium Private Member</h3>
+
+  <!-- BADGE LIMITED -->
+  <div style="
+    position:absolute;
+    top:-10px;
+    right:-10px;
+    background:linear-gradient(135deg,#facc15,#eab308);
+    color:black;
+    font-size:11px;
+    font-weight:bold;
+    padding:6px 10px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(250,204,21,.6);
+    letter-spacing:1px;
+    animation:pulseBadge 1.5s infinite;
+  ">
+    LIMITED
+  </div>
+
+  <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp"
+       style="width:100%;border-radius:16px;margin-bottom:14px;">
+
+</div>
+
 
     <div style="font-size:13px;line-height:1.7;opacity:.95">
 
