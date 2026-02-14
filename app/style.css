@@ -168,3 +168,53 @@ body{
   background:#16a34a;
   color:white;
 }
+
+.store-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+  margin-top:15px;
+}
+
+.product-card{
+  background:white;
+  border-radius:16px;
+  padding:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+  position:relative;
+}
+
+.product-card img{
+  width:100%;
+  border-radius:12px;
+}
+
+.badge-discount{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#ef4444;
+  color:white;
+  font-size:11px;
+  padding:4px 8px;
+  border-radius:8px;
+}
+
+.stock-low{
+  color:#ef4444;
+  font-size:12px;
+  margin-top:6px;
+}
+
+.price-old{
+  text-decoration:line-through;
+  font-size:12px;
+  opacity:.6;
+}
+
+.price-new{
+  font-weight:bold;
+  font-size:16px;
+  margin-top:4px;
+}
+
