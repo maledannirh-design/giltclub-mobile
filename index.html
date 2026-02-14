@@ -1260,7 +1260,7 @@ async function approveGuest(holdId){
     alert(data.message);
   }
 }
-function openMemberTopup(){
+ function openMemberTopup(){
 
   const amount = document.getElementById("topupAmount").value;
 
@@ -1275,16 +1275,22 @@ function openMemberTopup(){
     inset:0;
     background:rgba(0,0,0,.85);
     z-index:9999;
-    padding:20px;
-    overflow:auto;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
   " id="memberTopupModal">
 
-    <div style="
+    <div id="topupCard" style="
       background:#0f172a;
-      border-radius:16px;
-      padding:18px;
+      border-radius:20px 20px 0 0;
+      padding:20px;
+      width:100%;
       max-width:420px;
-      margin:auto;
+      max-height:95vh;
+      overflow:auto;
+      transform:translateY(100%);
+      transition:all .4s ease;
+      color:white;
     ">
 
       <h2 style="margin-top:0">Top Up Wallet</h2>
@@ -1296,36 +1302,84 @@ function openMemberTopup(){
         </div>
       </div>
 
-      <hr>
+      <div style="
+        background:#1e293b;
+        padding:10px;
+        border-radius:12px;
+        text-align:center;
+        margin-bottom:15px;
+        font-size:14px;
+      ">
+        Selesaikan pembayaran dalam
+        <div id="countdownTimer" style="font-size:20px;font-weight:bold;margin-top:5px">
+          15:00
+        </div>
+      </div>
+
+      <hr style="border-color:rgba(255,255,255,.2)">
 
       <h3>QRIS DANA</h3>
-      Transfer ke:
-      <div style="font-size:18px;font-weight:bold">
-        085179694879
-      </div>
-      a.n Yayang Lely Mualifah
 
-      <hr>
+      <div style="line-height:1.6">
+        Transfer ke:<br>
+        <b>085179694879</b><br>
+        a.n Yayang Lely Mualifah
+      </div>
+
+      <div style="
+        margin-top:15px;
+        background:white;
+        padding:14px;
+        border-radius:14px;
+        text-align:center;
+      ">
+        <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/qris_deposit.webp"
+             style="width:100%;max-width:260px;border-radius:12px;">
+      </div>
+
+      <div style="
+        margin-top:18px;
+        font-size:14px;
+        line-height:1.7;
+        opacity:.9;
+      ">
+        <b>Cara Bayar:</b><br><br>
+        1. Buka aplikasi mBanking / eWallet<br>
+        2. Pilih menu QRIS / Scan QR<br>
+        3. Scan kode QR di atas<br>
+        4. Masukkan nominal sesuai total top up<br>
+        5. Selesaikan pembayaran<br>
+        6. Upload bukti transfer di bawah
+      </div>
+
+      <hr style="border-color:rgba(255,255,255,.2);margin-top:20px;">
 
       <h3>Upload Bukti Transfer</h3>
-      <input type="file" id="memberProofFile" accept="image/*"
-       onchange="previewTopupImage(event)">
 
-<div style="margin-top:10px;text-align:center;">
-  <img id="previewTopupImg"
-       style="display:none;width:100%;border-radius:12px;">
-</div>
+      <input type="file"
+             id="memberProofFile"
+             accept="image/*"
+             onchange="previewTopupImage(event)"
+             style="margin-top:10px;color:white;">
 
+      <div style="margin-top:10px;text-align:center;">
+        <img id="previewTopupImg"
+             style="display:none;width:100%;border-radius:12px;">
+      </div>
+
+      <div id="topupStatus"
+           style="margin-top:10px;font-size:14px;color:#facc15;display:none;">
+           Menunggu Verifikasi Admin...
+      </div>
 
       <button id="btnSendTopup"
         onclick="submitMemberTopup('${amount}')"
-        style="background:#22c55e">
-  KIRIM TOP UP
-</button>
-
+        style="background:#22c55e;margin-top:15px;">
+        KIRIM TOP UP
+      </button>
 
       <button onclick="closeMemberTopup()"
-        style="background:#ef4444">
+        style="background:#ef4444;margin-top:10px;">
         BATAL
       </button>
 
@@ -1334,11 +1388,131 @@ function openMemberTopup(){
   `;
 
   document.body.insertAdjacentHTML("beforeend",html);
+
+  // slide up animation
+  setTimeout(()=>{
+    document.getElementById("topupCard").style.transform="translateY(0)";
+  },50);
+
+  startCountdown(15 * 60); // 15 menit
 }
+
 function closeMemberTopup(){
   document.getElementById("memberTopupModal")?.remove();
 }
-  
+
+/* ================= COUNTDOWN ================= */
+function startCountdown(seconds){
+
+  const el = document.getElementById("countdownTimer");
+  if(!el) return;
+
+  const interval = setInterval(()=>{
+
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+
+    el.innerText =
+      String(min).padStart(2,'0') + ":" +
+      String(sec).padStart(2,'0');
+
+    seconds--;
+
+    if(seconds < 0){
+      clearInterval(interval);
+      el.innerText = "Waktu habis";
+    }
+
+  },1000);
+}
+
+/* ================= IMAGE PREVIEW + AUTO COMPRESS ================= */
+function previewTopupImage(event){
+
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(e){
+
+    const img = new Image();
+    img.src = e.target.result;
+
+    img.onload = function(){
+
+      const canvas = document.createElement("canvas");
+      const maxWidth = 800;
+
+      let width = img.width;
+      let height = img.height;
+
+      if(width > maxWidth){
+        height = height * (maxWidth / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img,0,0,width,height);
+
+      const compressed = canvas.toDataURL("image/jpeg",0.7);
+
+      document.getElementById("previewTopupImg").src = compressed;
+      document.getElementById("previewTopupImg").style.display="block";
+
+      // simpan hasil compress ke global
+      window._compressedTopupImage = compressed;
+    };
+  };
+
+  reader.readAsDataURL(file);
+}
+
+/* ================= SUBMIT ================= */
+async function submitMemberTopup(amount){
+
+  if(!window._compressedTopupImage){
+    alert("Upload bukti transfer dulu");
+    return;
+  }
+
+  const btn = document.getElementById("btnSendTopup");
+  btn.disabled = true;
+  btn.innerText = "Mengirim...";
+
+  const token = localStorage.getItem("gtoken");
+
+  const fd = new URLSearchParams();
+  fd.append("action","topup");
+  fd.append("token",token);
+  fd.append("amount",amount);
+  fd.append("method","QRIS_DANA");
+  fd.append("proof_url",window._compressedTopupImage);
+
+  const res = await fetch(SERVER,{
+    method:"POST",
+    body:fd
+  });
+
+  const data = await res.json();
+
+  if(data.status==="ok"){
+
+    document.getElementById("topupStatus").style.display="block";
+
+    btn.innerText="Terkirim";
+    btn.style.background="#64748b";
+
+  }else{
+    alert(data.message);
+    btn.disabled=false;
+    btn.innerText="KIRIM TOP UP";
+  }
+}
+
 async function submitMemberTopup(amount){
 
   const fileInput = document.getElementById("memberProofFile");
