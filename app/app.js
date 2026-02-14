@@ -149,3 +149,72 @@ const PRODUCTS = [
     discount:20
   }
 ];
+
+function getMembership(){
+  const user = JSON.parse(localStorage.getItem("guser"));
+  return user?.membership || "MEMBER";
+}
+
+function calculatePrice(base, discount){
+
+  const membership = getMembership();
+
+  let extraDiscount = 0;
+
+  if(membership==="SQUAD") extraDiscount = 5;
+  if(membership==="VVIP") extraDiscount = 10;
+
+  const totalDiscount = discount + extraDiscount;
+
+  return Math.round(base - (base * totalDiscount / 100));
+}
+
+function getMembership(){
+  const user = JSON.parse(localStorage.getItem("guser"));
+  return user?.membership || "MEMBER";
+}
+
+function calculatePrice(base, discount){
+
+  const membership = getMembership();
+
+  let extraDiscount = 0;
+
+  if(membership==="SQUAD") extraDiscount = 5;
+  if(membership==="VVIP") extraDiscount = 10;
+
+  const totalDiscount = discount + extraDiscount;
+
+  return Math.round(base - (base * totalDiscount / 100));
+}
+
+let CART = [];
+
+function addToCart(productId){
+
+  const product = PRODUCTS.find(p=>p.id===productId);
+
+  if(!product) return;
+
+  if(product.stock<=0){
+    alert("Stok habis");
+    return;
+  }
+
+  const existing = CART.find(c=>c.id===productId);
+
+  if(existing){
+    existing.qty++;
+  }else{
+    CART.push({
+      id:product.id,
+      name:product.name,
+      price:calculatePrice(product.base_price,product.discount),
+      qty:1
+    });
+  }
+
+  alert("Produk ditambahkan ke keranjang");
+}
+
+
