@@ -109,6 +109,14 @@ const PRODUCTS = [
     stock:5,
     discount:15
   },
+   {
+    id:"PRFM001",
+    name:"Amitrea Perfume",
+    base_price:200000,
+    image:"images/products/amitrea_perfume.webp",
+    stock:5,
+    discount:25
+  },
   {
     id:"FNBF002",
     name:"Keripik Singkong",
