@@ -1,1 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GILT Club App</title>
 
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-title">GILT Club</div>
+    <div class="header-icon" onclick="openSettings()">⚙️</div>
+  </header>
+
+  <!-- CONTENT -->
+  <main id="content" class="content"></main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button onclick="navigate('home')" class="nav-btn active">🏠<span>Home</span></button>
+    <button onclick="navigate('booking')" class="nav-btn">🎾<span>Booking</span></button>
+    <button onclick="navigate('wallet')" class="nav-btn">💳<span>Wallet</span></button>
+    <button onclick="navigate('profile')" class="nav-btn">👤<span>Profile</span></button>
+    <button onclick="navigate('settings')" class="nav-btn">⚙️<span>Settings</span></button>
+  </nav>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
