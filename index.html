@@ -83,15 +83,36 @@ button:hover{
   z-index:5;
 }
 
+@keyframes fadeUp {
+  from {
+    opacity:0;
+    transform:translateY(20px);
+  }
+  to {
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.logo-animate{
+  animation:fadeUp 0.8s ease forwards;
+}
+
+.card-animate{
+  animation:fadeUp 0.8s ease forwards;
+  animation-delay:0.25s;
+  opacity:0;
+}
 
 </style>
 </head>
 
 <body>
 <!-- LOGIN -->
-<div class="card">
+<div class="card card-animate">
   <div style="text-align:center;margin-bottom:20px;">
   <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/logo_giltclub.webp"
+     class="logo-animate"
      style="
         width:75%;
         max-width:320px;
@@ -101,10 +122,19 @@ button:hover{
         margin-left:auto;
         margin-right:auto;
      ">
-
-
-
   <h2 style="margin:0;">GILT CLUB</h2>
+<div style="margin-top:6px;font-size:14px;letter-spacing:1px;">
+  Girl In Love With Tennis
+</div>
+<div style="font-size:12px;opacity:.7;margin-top:4px;">
+  We are GILT Family
+</div>
+
+<div style="font-size:12px;opacity:.7;">
+  Where passion, confidence & elegance meet the court
+</div>
+
+
 </div>
 
 
