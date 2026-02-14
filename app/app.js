@@ -114,3 +114,38 @@ function openChat(){
     </div>
   `;
 }
+
+const PRODUCTS = [
+  {
+    id:"FNBF001",
+    name:"Keripik Pisang",
+    base_price:25000,
+    image:"images/products/visorhat_black_giltlogo",
+    stock:3,
+    discount:0
+  },
+  {
+    id:"VISOR001",
+    name:"GILT Visor Black berlogo GILT",
+    base_price:85000,
+    image:"images/products/visorhat_black_giltlogo",
+    stock:5,
+    discount:15
+  },
+  {
+    id:"FNBF002",
+    name:"Keripik Singkong",
+    base_price:25000,
+    image:"images/products/keripik_singkong",
+    stock:3,
+    discount:0
+  },
+  {
+    id:"JERSEY001",
+    name:"Official Jersey Club GILT - ROK",
+    base_price:956000,
+    image:"images/products/jersey_club1",
+    stock:2,
+    discount:20
+  }
+];
