@@ -9,7 +9,6 @@
 </head>
 
 <body>
-
 <div id="app">
 
   <!-- HEADER -->
@@ -19,28 +18,43 @@
       <div onclick="openChat()">💬</div>
       <div onclick="openSettings()">⚙️</div>
     </div>
-
   </header>
 
-  <!-- CONTENT -->
+  <!-- DYNAMIC CONTENT AREA -->
   <main id="content" class="content"></main>
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button onclick="navigate('home')" class="nav-btn active">🏠<span>Home</span></button>
-    <button onclick="navigate('booking')" class="nav-btn">🎾<span>Booking</span></button>
-    <button onclick="navigate('wallet')" class="nav-btn">💳<span>Wallet</span></button>
-    <button onclick="navigate('store')" class="nav-btn">🛍️<span>Store</span></button>
-    <button onclick="navigate('profile')" class="nav-btn">👤<span>Profile</span></button>
-    <div class="nav-item" onclick="openStore()">🛍️<div>Store</div>
-</div>
+
+    <button onclick="navigate('home', this)" class="nav-btn active">
+      🏠
+      <span>Home</span>
+    </button>
+
+    <button onclick="navigate('booking', this)" class="nav-btn">
+      🎾
+      <span>Booking</span>
+    </button>
+
+    <button onclick="navigate('wallet', this)" class="nav-btn">
+      💳
+      <span>Wallet</span>
+    </button>
+
+    <button onclick="navigate('store', this)" class="nav-btn">
+      🛍️
+      <span>Store</span>
+    </button>
+
+    <button onclick="navigate('profile', this)" class="nav-btn">
+      👤
+      <span>Profile</span>
+    </button>
+
   </nav>
-  
+
 </div>
-<div id="storePage" style="display:none;padding:20px;">
-  <h2>GILT STORE</h2>
-  <div id="storeGrid" class="store-grid"></div>
-</div>
+
 
 <script src="app.js"></script>
 </body>
