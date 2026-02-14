@@ -38,6 +38,7 @@ body{
   overflow-y:auto;
 }
 
+/* ===== CARD LOGIN ===== */
 .card{
   width:90%;
   max-width:360px;
@@ -47,34 +48,42 @@ body{
   display:block;
 }
 
-input{
+/* ===== FORM ELEMENT ===== */
+input,
+button{
   width:100%;
   padding:14px;
-  margin-top:12px;
-  border-radius:10px;
-  border:1px solid #E5A9A9;
+  border-radius:12px;
   font-size:16px;
+  box-sizing:border-box;
+}
+
+/* ===== INPUT STYLE ===== */
+input{
+  margin-top:12px;
+  border:1px solid #E5A9A9;
   background:white;
   color:#2E5D3A;
 }
 
+/* ===== BUTTON STYLE ===== */
 button{
-  width:100%;
-  padding:14px;
   margin-top:18px;
-  border-radius:12px;
   border:none;
   background:#2E5D3A;
   color:white;
-  font-size:18px;
   font-weight:bold;
+  font-size:18px;
   cursor:pointer;
+  transition:0.2s ease;
 }
 
 button:hover{
   opacity:.9;
+  transform:translateY(-1px);
 }
 
+/* ===== PAGE CONTAINER ===== */
 #dashboard,
 #guestPage{
   display:none;
@@ -85,6 +94,7 @@ button:hover{
   z-index:5;
 }
 
+/* ===== ANIMATION ===== */
 @keyframes fadeUp {
   from {
     opacity:0;
@@ -105,74 +115,76 @@ button:hover{
   animation-delay:0.25s;
   opacity:0;
 }
-
 </style>
-</head>
 
+</head>
 <body>
-<!-- LOGIN -->
+
+<!-- ================= LOGIN ================= -->
 <div class="card card-animate">
-  <div style="text-align:center;margin-bottom:10px;margin-top:10px;">
-  <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/logo_giltclub.webp"
-     class="logo-animate"
-     style="
+
+  <div style="text-align:center; margin:20px 0 10px;">
+
+    <img
+      src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/logo_giltclub.webp"
+      class="logo-animate"
+      style="
         width:75%;
         max-width:320px;
         height:auto;
-        margin-bottom:20px;
+        margin:0 auto 18px;
         display:block;
-        margin-left:auto;
-        margin-right:auto;
-     ">
-  <h2 style="margin:0;">GILT CLUB</h2>
-<div style="margin-top:6px;font-size:14px;letter-spacing:1px;">
-  Girl In Love With Tennis
-</div>
-<div style="font-size:12px;opacity:.7;margin-top:4px;">
-  We are GILT Family
-</div>
+      ">
 
-<div style="
-  font-size:13px;
-  font-family: Georgia, serif;
-  font-style:italic;
-  opacity:.75;
-  margin-top:6px;
-  font-family: 'Brush Script MT', cursive;
-">
-  "Where passion, confidence & elegance meet the court..."
-</div>
+    <h2 style="margin:0;">GILT CLUB</h2>
 
+    <div style="margin-top:6px; font-size:14px; letter-spacing:1px;">
+      Girl In Love With Tennis
+    </div>
 
+    <div style="font-size:12px; opacity:.7; margin-top:4px;">
+      We are GILT Family
+    </div>
 
-</div>
+    <div style="
+      font-size:13px;
+      font-family:'Brush Script MT', cursive;
+      opacity:.75;
+      margin-top:6px;
+    ">
+      Where passion, confidence & elegance meet the court
+    </div>
 
+  </div>
 
   <input id="username" placeholder="Username">
   <input id="pin" type="password" placeholder="PIN">
 
   <button onclick="login()">LOGIN MEMBER</button>
 
-  <button onclick="openGuest()" style="background:#f59e0b">
+  <button onclick="openGuest()" style="background:#f59e0b;">
     MAIN SEBAGAI TAMU
   </button>
+
 </div>
-  
+
+
+<!-- ================= TERMS PAGE ================= -->
 <div id="termsPage" class="card" style="display:none; max-height:85vh; overflow:auto;">
 
   <h2 style="margin-bottom:10px;">💚 Ketentuan GILT Club</h2>
 
-  <div style="font-size:14px;line-height:1.6;">
+  <div style="font-size:14px; line-height:1.6;">
 
-    Sistem reservasi hanya dilakukan melalui aplikasi.
-    Saldo member digunakan untuk pemesanan lapangan jangka panjang.
+    Sistem reservasi hanya melalui aplikasi.  
+    Saldo member digunakan untuk pemesanan lapangan jangka panjang.  
     Saldo tidak hangus dan hanya berkurang sesuai pemakaian.
 
     <br><br>
 
-    Refund 50% untuk cancellation  >36, <48 jam.
-    Refund 100% untuk cancellation diatas 2 x 24 jam. 
-    Ketentuan cuaca berlaku sesuai kebijakan club.
+    Refund 50% untuk pembatalan 36–48 jam sebelum sesi.  
+    Refund 100% untuk pembatalan di atas 2 x 24 jam.  
+    Di bawah 36 jam tidak dapat dibatalkan.
 
     <br><br>
 
@@ -180,159 +192,141 @@ button:hover{
 
   </div>
 
-  <div style="margin-top:15px;">
-    <label style="display:flex;gap:8px;font-size:14px;">
+  <div style="margin-top:18px;">
+    <label style="display:flex; gap:8px; font-size:14px;">
       <input type="checkbox" id="agreeTerms">
       Saya memahami dan menyetujui ketentuan club.
     </label>
   </div>
 
-  <button onclick="acceptTerms()" style="margin-top:15px;">
+  <button onclick="acceptTerms()" style="margin-top:18px;">
     Lanjutkan
   </button>
 
 </div>
 
 
-<!-- DASHBOARD -->
+<!-- ================= DASHBOARD ================= -->
 <div id="dashboard" style="display:none; padding:20px;">
 
   <h2 id="welcome"></h2>
-<div id="memberInfo" style="margin-top:6px;font-size:14px;opacity:.85"></div>
+  <div id="memberInfo" style="margin-top:6px; font-size:14px; opacity:.85;"></div>
 
-
-  <!-- SALDO -->
+  <!-- ===== SALDO ===== -->
   <div style="
-    background:white; border:1px solid #E5A9A9;
+    background:white;
+    border:1px solid #E5A9A9;
     padding:18px;
     border-radius:14px;
     margin-top:20px;
   ">
-    <div style="font-size:14px;opacity:.7">Saldo Wallet</div>
-    <div id="balance" style="font-size:28px;font-weight:bold;margin-top:8px">
+    <div style="font-size:14px; opacity:.7;">Saldo Wallet</div>
+    <div id="balance" style="font-size:28px; font-weight:bold; margin-top:8px;">
       Rp 0
     </div>
   </div>
-<div style="margin-top:25px">
-<div id="todayClass" style="
-  margin-top:18px;
-  background:white; border:1px solid #E5A9A9;
-  padding:16px;
-  border-radius:14px;
-">
-  <div style="opacity:.7;font-size:13px">Jadwal main terdekat</div>
-  <div id="todayContent" style="margin-top:8px">
-    Tidak ada kelas, ayo reserve kak !
-  </div>
-</div>
 
-  <button onclick="openBooking()" style="
-    width:100%;
-    background:#22c55e;
-    padding:14px;
-    border-radius:12px;
-    border:none;
-    color:white;
-    font-weight:bold;
-  ">
-    BOOKING KELAS
-  </button>
+  <!-- ===== JADWAL TERDEKAT ===== -->
+  <div style="margin-top:25px;">
 
-  <div id="bookingPanel" style="
-    display:none;
-    margin-top:15px;
-    background:#ffffff; border:1px solid #E5A9A9;
-    padding:12px;
-    border-radius:14px;
-  ">
-    <div id="scheduleList"></div>
+    <div id="todayClass" style="
+      background:white;
+      border:1px solid #E5A9A9;
+      padding:16px;
+      border-radius:14px;
+    ">
+      <div style="opacity:.7; font-size:13px;">Jadwal main terdekat</div>
+      <div id="todayContent" style="margin-top:8px;">
+        Tidak ada kelas, ayo reserve kak!
+      </div>
+    </div>
+
+    <button onclick="openBooking()" style="background:#22c55e; margin-top:18px;">
+      JADWAL MAIN TERSEDIA
+    </button>
+
+    <div id="bookingPanel" style="
+      display:none;
+      margin-top:15px;
+      background:white;
+      border:1px solid #E5A9A9;
+      padding:12px;
+      border-radius:14px;
+    ">
+      <div id="scheduleList"></div>
+    </div>
+
   </div>
 
-</div>
+  <!-- ===== TOPUP ===== -->
+  <div style="margin-top:30px;">
 
-  <!-- TOPUP -->
-<div style="margin-top:25px">
+    <input
+      id="topupAmount"
+      type="number"
+      placeholder="Nominal Top Up (contoh: 50000)">
 
-  <input id="topupAmount" type="number"
-         placeholder="Nominal Top Up (contoh: 50000)"
-         style="width:100%;padding:14px;border-radius:10px;border:none;margin-bottom:12px;">
+    <button onclick="openMemberTopup()" style="background:#3b82f6;">
+      TOP UP SALDO
+    </button>
 
-  <button onclick="openMemberTopup()" style="background:#3b82f6">
-    TOP UP SALDO
-  </button>
-
-</div>
-
-
-  <!-- HISTORY -->
-  <div style="margin-top:30px">
-
-  <button onclick="toggleHistory()" style="
-    width:100%;
-    background:#334155;
-    padding:14px;
-    border-radius:12px;
-    border:none;
-    color:white;
-    font-weight:bold;
-  ">
-    LIHAT RIWAYAT TRANSAKSI
-  </button>
-
-  <div id="historyPanel" style="
-    display:none;
-    margin-top:15px;
-    background:#ffffff; border:1px solid #E5A9A9;
-    padding:12px;
-    border-radius:14px;
-    max-height:320px;
-    overflow-y:auto;
-  ">
-    <div id="historyList"></div>
   </div>
 
-</div>
+  <!-- ===== HISTORY ===== -->
+  <div style="margin-top:30px;">
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none;margin-top:35px">
+    <button onclick="toggleHistory()" style="background:#334155;">
+      LIHAT RIWAYAT TRANSAKSI
+    </button>
 
-  <h3>Admin Panel</h3>
+    <div id="historyPanel" style="
+      display:none;
+      margin-top:15px;
+      background:white;
+      border:1px solid #E5A9A9;
+      padding:12px;
+      border-radius:14px;
+      max-height:320px;
+      overflow-y:auto;
+    ">
+      <div id="historyList"></div>
+    </div>
 
-  <!-- TOPUP SECTION -->
-  <div style="margin-bottom:25px">
+  </div>
 
-    <button onclick="loadPendingTopup()" 
-      style="background:#f59e0b;margin-bottom:10px">
+
+  <!-- ================= ADMIN PANEL ================= -->
+  <div id="adminPanel" style="display:none; margin-top:40px;">
+
+    <h3>Admin Panel</h3>
+
+    <!-- TOPUP CHECK -->
+    <button onclick="loadPendingTopup()" style="background:#f59e0b; margin-top:15px;">
       CEK TOPUP MASUK
     </button>
 
-    <div id="pendingList"></div>
+    <div id="pendingList" style="margin-top:15px;"></div>
 
-  </div>
-
-  <!-- GUEST PAYMENT SECTION -->
-  <div>
-
-    <button onclick="loadGuestProof()" 
-      style="background:#06b6d4;margin-bottom:10px">
+    <!-- GUEST CHECK -->
+    <button onclick="loadGuestProof()" style="background:#06b6d4; margin-top:25px;">
       CEK PEMBAYARAN TAMU
     </button>
 
-    <div id="guestProofList"></div>
+    <div id="guestProofList" style="margin-top:15px;"></div>
 
   </div>
 
-</div>
-
 
   <!-- LOGOUT -->
-  <button onclick="logout()" style="background:#ef4444;margin-top:30px;">
+  <button onclick="logout()" style="background:#ef4444; margin-top:40px;">
     LOGOUT
   </button>
 
 </div>
-<!-- GUEST PAGE -->
-<div id="guestPage" style="display:none;padding:20px">
+
+
+<!-- ================= GUEST PAGE ================= -->
+<div id="guestPage" style="display:none; padding:20px;">
 
   <h2>Booking Tamu</h2>
 
@@ -340,17 +334,20 @@ button:hover{
   <input id="g_phone" placeholder="No HP">
   <input id="g_email" placeholder="Email">
 
-  <button onclick="loadGuestSchedule()" style="background:#22c55e">
+  <button onclick="loadGuestSchedule()" style="background:#22c55e;">
     LIHAT JADWAL
   </button>
 
-  <div id="guestSchedule" style="margin-top:20px"></div>
+  <div id="guestSchedule" style="margin-top:20px;"></div>
 
-  <button onclick="backLogin()" style="background:#ef4444">
+  <button onclick="backLogin()" style="background:#ef4444;">
     KEMBALI
   </button>
 
 </div>
+
+</body>
+
 
 
 <script>
@@ -801,7 +798,7 @@ VVIP : Rp ${Number(s.vvip_price).toLocaleString("id-ID")}<br><br>
 
         <button onclick="bookClass('${s.date}','${s.kelas}')"
           style="background:#22c55e;width:100%">
-          BOOK
+          IKUT GABUNG
         </button>
       </div>
     `;
@@ -1425,6 +1422,65 @@ function showMembershipPage(){
 function enterDashboard(){
   document.getElementById("membershipPage").style.display="none";
   showDashboard(JSON.parse(localStorage.getItem("guser")));
+}
+
+  async function adminRefund(){
+
+  const bookingId = document.getElementById("refundBookingId").value;
+  const percent = document.getElementById("refundPercent").value;
+  const reason = document.getElementById("refundReason").value;
+  const token = localStorage.getItem("gtoken");
+
+  if(!bookingId || !percent){
+    alert("Lengkapi data refund");
+    return;
+  }
+
+  if(!confirm("Proses refund ini?")) return;
+
+  const fd = new URLSearchParams();
+  fd.append("action","admin_refund_booking");
+  fd.append("token",token);
+  fd.append("booking_id",bookingId);
+  fd.append("percent",percent);
+  fd.append("reason",reason);
+
+  const res = await fetch(SERVER,{method:"POST",body:fd});
+  const data = await res.json();
+
+  if(data.status==="ok"){
+    alert("Refund berhasil diproses");
+  }else{
+    alert(data.message);
+  }
+}
+async function bulkRefundRain(){
+
+  const date = document.getElementById("bulkDate").value;
+  const kelas = document.getElementById("bulkClass").value;
+  const token = localStorage.getItem("gtoken");
+
+  if(!date){
+    alert("Pilih tanggal");
+    return;
+  }
+
+  if(!confirm("Refund semua sesi di tanggal ini?")) return;
+
+  const fd = new URLSearchParams();
+  fd.append("action","admin_bulk_rain_refund");
+  fd.append("token",token);
+  fd.append("date",date);
+  fd.append("kelas",kelas);
+
+  const res = await fetch(SERVER,{method:"POST",body:fd});
+  const data = await res.json();
+
+  if(data.status==="ok"){
+    alert("Bulk refund selesai. Total: "+data.total);
+  }else{
+    alert(data.message);
+  }
 }
 
 </script>
