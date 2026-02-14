@@ -125,6 +125,142 @@ button:hover{
 
 </head>
 <body>
+<div id="promoOverlay" style="
+  position:fixed;
+  inset:0;
+  background:linear-gradient(180deg,#0f172a,#111827);
+  color:white;
+  z-index:100000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+">
+
+  <div style="
+    width:100%;
+    max-width:380px;
+    background:#111827;
+    border-radius:22px;
+    padding:22px;
+    box-shadow:0 20px 50px rgba(0,0,0,.6);
+    animation:fadeUp .6s ease;
+    overflow-y:auto;
+    max-height:95vh;
+  ">
+
+    <div style="
+      text-align:center;
+      font-size:18px;
+      font-weight:bold;
+      color:#facc15;
+      letter-spacing:1px;
+    ">
+      SLOT TERBATAS KESEMPATAN 1X!
+    </div>
+
+    <div style="
+      text-align:center;
+      margin-top:8px;
+      font-size:14px;
+      background:#dc2626;
+      padding:6px 12px;
+      border-radius:12px;
+      display:inline-block;
+    ">
+      Sisa 4 Slot
+    </div>
+
+    <!-- ================= VVIP ================= -->
+    <h3 style="margin-top:22px;">VVIP Exclusive Private Member</h3>
+
+    <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp"
+         style="width:100%;border-radius:16px;margin-bottom:14px;">
+
+    <div style="font-size:13px;line-height:1.7;opacity:.95">
+
+      <div style="text-decoration:line-through;opacity:.4">
+        Minimal join 1x sesi private 1 on 1 with coach
+      </div>
+
+      <div style="text-decoration:line-through;opacity:.4">
+        Join di 350k – 1,2 juta per sesi 
+      </div>
+
+      <br>
+
+      <b style="color:#facc15">
+        Hanya deposit 1 juta — 1x seumur hidup
+      </b>
+
+      <br><br>
+
+      Keuntungan eksklusif VVIP:
+      <br>• Semua benefit membership club
+      <br>• Prioritas reservasi
+      <br>• Akses private session khusus
+      <br>• Elite circle di Private Lounge Group WA
+      <br>• Diskon event & program khusus lebih besar
+      <br>• Status eksklusif club !!
+
+      <br><br>
+
+      Dengan bergabung di kesempatan 1x ini,
+      Anda turut mendukung pengembangan club Anda.
+    </div>
+
+    <hr style="margin:22px 0;border-color:rgba(255,255,255,.15)">
+
+    <!-- ================= MEMBER BIASA ================= -->
+    <h3>Membership Club Non VVIP</h3>
+
+    <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card.webp"
+         style="width:100%;border-radius:16px;margin-bottom:14px;">
+
+    <div style="font-size:13px;line-height:1.7;opacity:.95">
+
+      Minimal deposit 250k.
+      <br>Top up perbulan hanya sesuai penggunaan.
+
+      <br><br>
+
+      Keuntungan:
+      <br>• Harga member 10–25% lebih murah dari guest
+      <br>• Akses marketplace sesama member
+      <br>• Bisa menawarkan produk & service ke member lain
+      <br>• Diskon program & produk club tertentu
+
+    </div>
+
+    <button onclick="closePromo()"
+      style="
+        margin-top:22px;
+        width:100%;
+        padding:14px;
+        border:none;
+        border-radius:16px;
+        background:#22c55e;
+        font-weight:bold;
+        font-size:16px;
+      ">
+      JOIN PENAWARAN TERBATAS SEKARANG
+    </button>
+
+    <button onclick="closePromo()"
+      style="
+        margin-top:10px;
+        width:100%;
+        padding:12px;
+        border:none;
+        border-radius:14px;
+        background:#374151;
+        font-size:14px;
+      ">
+      Lewati
+    </button>
+
+  </div>
+</div>
 
 <!-- ================= LOGIN ================= -->
 <div class="card card-animate">
@@ -1884,6 +2020,9 @@ function showSuccessUI(){
     overlay.style.pointerEvents = "none";
     coin.style.animation = "none";
   },4000);
+}
+function closePromo(){
+  document.getElementById("promoOverlay").style.display="none";
 }
 
 </script>
