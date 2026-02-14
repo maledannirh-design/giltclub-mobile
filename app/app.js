@@ -33,6 +33,34 @@ function navigate(page){
       </p>
     `;
   }
+  
+  if(page === "store"){
+    content.innerHTML = `
+      <h2>GILT Store</h2>
+
+      <div class="product-grid">
+
+        <div class="product-card">
+          <img src="../images/grip.webp">
+          <h4>Pinky Grip</h4>
+          <p>Rp 25.000</p>
+        </div>
+
+        <div class="product-card">
+          <img src="../images/visor.webp">
+          <h4>GILT Visor Hat - Premium Black - Logo Club</h4>
+          <p>Rp 85.000</p>
+        </div>
+
+        <div class="product-card">
+          <img src="../images/jersey.webp">
+          <h4>Official GILT Jersey</h4>
+          <p>Rp 956.000</p>
+        </div>
+
+      </div>
+  `  ;
+  }
 
   if(page === "profile"){
     content.innerHTML = `
