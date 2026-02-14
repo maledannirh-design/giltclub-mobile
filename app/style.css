@@ -83,3 +83,41 @@ body{
   color:#16a34a;
 }
 
+.product-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  margin-top:15px;
+}
+
+.product-card{
+  background:white;
+  border-radius:14px;
+  padding:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+  text-align:center;
+  transition:.2s;
+}
+
+.product-card:hover{
+  transform:translateY(-4px);
+}
+
+.product-card img{
+  width:100%;
+  border-radius:10px;
+  height:120px;
+  object-fit:cover;
+}
+
+.product-card h4{
+  font-size:14px;
+  margin-top:8px;
+}
+
+.product-card p{
+  color:#16a34a;
+  font-weight:600;
+  margin-top:4px;
+}
+
