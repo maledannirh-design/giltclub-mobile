@@ -1257,8 +1257,6 @@ async function loadTodayBooking(){
     el.innerHTML="Gagal memuat jadwal";
   }
 }
-
-
 async function cancelMyBooking(id){
 
   if(!confirm("Batalkan booking?")) return;
@@ -1274,14 +1272,25 @@ async function cancelMyBooking(id){
   const data=await res.json();
 
   if(data.status==="ok"){
-    alert(data.message);
+
+    alert("Booking dibatalkan. Saldo dikembalikan.");
+
+    // ⭐ update saldo langsung dari server response
+    if(data.balance !== undefined){
+      document.getElementById("balance").innerText =
+        "Rp " + Number(data.balance).toLocaleString("id-ID");
+    }
+
     loadTodayBooking();
-    loadBalance();
+    historyLoaded=false;
     loadHistory();
+
   }else{
     alert(data.message);
   }
 }
+
+  
 function showTermsPage(){
   document.querySelector(".card").style.display="none";
   document.getElementById("termsPage").style.display="block";
