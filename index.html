@@ -141,10 +141,10 @@ button:hover{
 }
 
 .promoCard{
-  min-width:260px;
-  height:165px;
+  width:100%;
   perspective:1000px;
 }
+
 
 /* 3D CARD */
 .card3d{
@@ -152,13 +152,7 @@ button:hover{
   position:relative;
   transform-style:preserve-3d;
   transition:transform .7s ease;
-}
-
-/* aspect ratio kartu ATM */
-.card3d::before{
-  content:"";
-  display:block;
-  padding-top:63%;
+  aspect-ratio: 85.6 / 54;
 }
 
 
