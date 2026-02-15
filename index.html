@@ -481,8 +481,32 @@ button:hover{
     <button onclick="loadPendingTopup()" style="background:#f59e0b; margin-top:15px;">
       CEK TOPUP MASUK
     </button>
-
+    
     <div id="pendingList" style="margin-top:15px;"></div>
+    <div style="
+  background:#1e293b;
+  padding:15px;
+  border-radius:14px;
+  margin-top:20px;
+">
+
+<h3>Adjustment Saldo</h3>
+
+<input id="adj_member" placeholder="Member ID (contoh: GC-23F10-25001)">
+<input id="adj_amount" type="number" placeholder="Nominal">
+
+<select id="adj_type" style="width:100%;padding:12px;margin-top:10px;border-radius:10px;">
+  <option value="CREDIT">Tambah Saldo</option>
+  <option value="DEBIT">Kurangi Saldo</option>
+</select>
+
+<input id="adj_note" placeholder="Catatan (contoh: Refund hujan)">
+
+<button onclick="adjustWallet()" style="background:#8b5cf6">
+  PROSES
+</button>
+
+</div>
 
     <!-- GUEST CHECK -->
     <button onclick="loadGuestProof()" style="background:#06b6d4; margin-top:25px;">
@@ -534,25 +558,6 @@ button:hover{
 
   <button onclick="bulkRefundRain()" style="background:#f59e0b;margin-top:10px">
     REFUND SEMUA KELAS
-  </button>
-
-</div>
-
-<div style="
-  background:white;
-  border:1px solid #E5A9A9;
-  padding:14px;
-  border-radius:14px;
-  margin-top:15px;
-">
-
-  <b>Admin Override Saldo</b>
-
-  <input id="overrideMember" placeholder="Member ID (GCxxxx)" style="margin-top:10px">
-  <input id="overrideAmount" type="number" placeholder="Nominal Tambah Saldo" style="margin-top:8px">
-
-  <button onclick="adminOverrideBalance()" style="background:#22c55e;margin-top:10px">
-    TAMBAH SALDO
   </button>
 
 </div>
@@ -2134,30 +2139,35 @@ function showSuccessUI(){
 function closePromo(){
   document.getElementById("promoOverlay").style.display="none";
 }
-async function adminOverrideBalance(){
+async function adjustWallet(){
 
-  const member = document.getElementById("overrideMember").value;
-  const amount = document.getElementById("overrideAmount").value;
   const token = localStorage.getItem("gtoken");
 
-  if(!member || !amount){
-    alert("Lengkapi data");
+  const member_id = document.getElementById("adj_member").value;
+  const amount    = document.getElementById("adj_amount").value;
+  const type      = document.getElementById("adj_type").value;
+  const note      = document.getElementById("adj_note").value;
+
+  if(!member_id || !amount){
+    alert("Isi Member ID dan Nominal");
     return;
   }
 
-  if(!confirm("Tambah saldo member ini?")) return;
+  if(!confirm("Yakin proses adjustment?")) return;
 
   const fd = new URLSearchParams();
-  fd.append("action","admin_cash_topup");
+  fd.append("action","admin_adjust_wallet");
   fd.append("token",token);
-  fd.append("member_id",member);
+  fd.append("member_id",member_id);
   fd.append("amount",amount);
+  fd.append("type",type);
+  fd.append("note",note);
 
   const res = await fetch(SERVER,{method:"POST",body:fd});
   const data = await res.json();
 
   if(data.status==="ok"){
-    alert("Saldo berhasil ditambahkan");
+    alert("Berhasil! Saldo baru: Rp "+Number(data.new_balance).toLocaleString("id-ID"));
   }else{
     alert(data.message);
   }
