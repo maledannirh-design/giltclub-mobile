@@ -419,3 +419,74 @@ function logout(){
   renderProfile();
 }
 
+function goLogin(){
+
+  const modal = document.getElementById("modal-overlay");
+  modal.style.display = "flex";
+
+  modal.innerHTML = `
+    <div class="modal-box">
+      <h3>Masuk Akun</h3>
+
+      <input id="login-username" placeholder="Username">
+      <input id="login-pin" type="password" maxlength="6" placeholder="PIN">
+
+      <button onclick="submitLogin()">Login</button>
+
+      <button style="background:#334155;margin-top:8px">
+        Login dengan QR
+      </button>
+
+      <div class="modal-close" onclick="closeModal()">Tutup</div>
+    </div>
+  `;
+}
+function goRegister(){
+
+  const modal = document.getElementById("modal-overlay");
+  modal.style.display = "flex";
+
+  modal.innerHTML = `
+    <div class="modal-box">
+      <h3>Daftar Akun</h3>
+
+      <input placeholder="Nama Lengkap">
+      <input placeholder="Tempat Lahir">
+      <input type="date">
+      <input placeholder="Username">
+      <input type="password" maxlength="6" placeholder="PIN Baru">
+      <input type="email" placeholder="Alamat Email">
+
+      <button onclick="fakeRegister()">Daftar</button>
+
+      <div class="modal-close" onclick="closeModal()">Tutup</div>
+    </div>
+  `;
+}
+function closeModal(){
+  const modal = document.getElementById("modal-overlay");
+  modal.style.display = "none";
+  modal.innerHTML = "";
+}
+function submitLogin(){
+
+  const username = document.getElementById("login-username").value;
+
+  if(!username){
+    alert("Masukkan username");
+    return;
+  }
+
+  localStorage.setItem("guser", JSON.stringify({
+    name: username,
+    membership: "MEMBER"
+  }));
+
+  closeModal();
+  renderProfile();
+}
+function fakeRegister(){
+  alert("Akun berhasil dibuat (simulasi)");
+  closeModal();
+}
+
