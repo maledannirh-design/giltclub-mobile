@@ -7,9 +7,14 @@
 
   <script>
   const VERSION = Date.now();
-  document.write('<link rel="stylesheet" href="style.css?v=' + VERSION + '">');
-  document.write('<script src="app.js?v=' + VERSION + '"><\/script>');
+  document.getElementById("main-style")
+    .href = "style.css?v=" + VERSION;
+
+  const script = document.createElement("script");
+  script.src = "app.js?v=" + VERSION;
+  document.body.appendChild(script);
 </script>
+
 </head>
 
 <body>
