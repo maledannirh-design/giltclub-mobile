@@ -2314,24 +2314,18 @@ function openQRLogin(){
 
   html5Qr = new Html5Qrcode("qrVideo");
 
-  Html5Qrcode.getCameras().then(devices => {
-
-    if(devices && devices.length){
-
-      const camId = devices[0].id;
-
-      html5Qr.start(
-        camId,
-        { fps:10, qrbox:250 },
-        qrSuccess
-      );
-
-    }
-
-  }).catch(err=>{
+  html5Qr.start(
+    { facingMode: "environment" },  // <-- BACK CAMERA
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    qrSuccess
+  ).catch(err=>{
     alert("Kamera tidak tersedia / izin belum diberikan");
   });
 }
+
 
 function closeQRLogin(){
   if(html5Qr){
