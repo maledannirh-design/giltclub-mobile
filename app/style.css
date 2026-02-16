@@ -219,3 +219,37 @@ body{
   margin-top:4px;
 }
 
+.section-title{
+  font-size:13px;
+  font-weight:600;
+  color:#94a3b8;
+  margin:20px 0 8px 0;
+  padding-left:4px;
+}
+
+.menu-card{
+  background:white;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);
+}
+
+.menu-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:16px;
+  border-bottom:1px solid #f1f5f9;
+  font-size:15px;
+  cursor:pointer;
+}
+
+.menu-item:last-child{
+  border-bottom:none;
+}
+
+.menu-item span:last-child{
+  color:#94a3b8;
+}
+
+
