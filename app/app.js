@@ -259,7 +259,7 @@ function renderProfile(){
 
   content.innerHTML = `
     <div style="text-align:center;margin-bottom:15px">
-      <img src="images/default_profile.webp"
+      <img src="images/woman_profile.webp"
            style="width:90px;height:90px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.1);">
     </div>
 
