@@ -26,7 +26,7 @@ function navigate(page, el){
       content.innerHTML = `
         <h2>Booking</h2>
         <p style="margin-top:10px;color:#64748b">
-          Schedule & reserve your court.
+          jadwal mabar dan pemesanan sesi latihan.
         </p>
       `;
       break;
@@ -35,7 +35,7 @@ function navigate(page, el){
       content.innerHTML = `
         <h2>Wallet</h2>
         <p style="margin-top:10px;color:#64748b">
-          Manage your balance & transactions.
+          kelola saldo dan atur transaksimu.
         </p>
       `;
       break;
@@ -68,7 +68,7 @@ function openChat(){
 
     <div class="chat-box">
       <div class="chat-message other">
-        <span>Lisa:</span> Main besok jam 7?
+        <span>Jasmine:</span> Main besok jam 12 siang?
       </div>
 
       <div class="chat-message me">
@@ -286,6 +286,7 @@ function renderProfile(){
     </div>
   `;
 }
+
 function requireLogin(callback){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -299,28 +300,6 @@ function requireLogin(callback){
 }
 
 
-  content.innerHTML = `
-    <div style="text-align:center;margin-bottom:20px">
-      <img src="images/default_profile.webp"
-           style="width:90px;height:90px;border-radius:50%;">
-      <h3 style="margin-top:12px">${user.name}</h3>
-    </div>
-
-    <div class="section-title">Akun Saya</div>
-    <div class="menu-card">
-      ${menuItem("Keamanan & Akun","renderSecurityMenu()")}
-      ${menuItem("Informasi Pribadi","renderPersonalInfo()")}
-      ${menuItem("Verifikasi Informasi","renderVerificationMenu()")}
-      ${menuItem("Pengaturan Privasi","renderPrivacyMenu()")}
-    </div>
-
-    <div style="margin-top:25px;text-align:center;color:#ef4444;font-weight:600;cursor:pointer"
-         onclick="logout()">
-      Log Out
-    </div>
-  `;
-}
-
 function menuItem(title, action){
   return `
     <div class="menu-item" onclick="${action}">
@@ -329,6 +308,7 @@ function menuItem(title, action){
     </div>
   `;
 }
+
 function renderAccountMenu(){
 
   const content = document.getElementById("content");
@@ -344,7 +324,6 @@ function renderAccountMenu(){
   `;
 }
 
-
 function renderSecurityMenu(){
 
   const content = document.getElementById("content");
@@ -359,6 +338,7 @@ function renderSecurityMenu(){
     </div>
   `;
 }
+
 function renderPersonalInfo(){
 
   const content = document.getElementById("content");
