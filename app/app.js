@@ -314,6 +314,7 @@ function renderAccountMenu(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
+  ${subHeader("Akun Saya","renderProfile()")}
     <div class="section-title">Keamanan & Akun</div>
     <div class="menu-card">
       ${menuItem("Ganti PIN Login (4 digit)","")}
@@ -329,6 +330,7 @@ function renderSecurityMenu(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
+   ${subHeader("Keamanan & Akun","renderProfile()")}
     <div class="section-title">Keamanan & Akun</div>
     <div class="menu-card">
       ${menuItem("Ganti PIN Login (4 digit)","")}
@@ -344,6 +346,7 @@ function renderPersonalInfo(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
+   ${subHeader("Informasi Pribadi","renderProfile()")}
     <div class="section-title">Informasi Kontak</div>
     <div class="menu-card">
       ${menuItem("Ganti Nomor HP","")}
@@ -364,6 +367,7 @@ function renderVerificationMenu(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
+     ${subHeader("Verifikasi Informasi","renderProfile()")}
     <div class="section-title">Verifikasi & Keamanan</div>
     <div class="menu-card">
       ${menuItem("Verifikasi Sidik Jari","")}
@@ -385,6 +389,7 @@ function renderAddressMenu(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
+  ${subHeader("Alamat Saya","renderVerificationMenu()")}
     <div class="section-title">Alamat</div>
     <div class="menu-card">
       ${menuItem("Isi Alamat Toko","")}
@@ -398,6 +403,7 @@ function renderPrivacyMenu(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
+  ${subHeader("Pengaturan Privasi","renderProfile()")}
     <div class="section-title">Privasi</div>
     <div class="menu-card">
       ${menuItem("Kelihatan Online","")}
@@ -490,3 +496,13 @@ function fakeRegister(){
   closeModal();
 }
 
+function subHeader(title, backFunction){
+  return `
+    <div class="sub-header">
+      <div class="sub-back" onclick="${backFunction}">
+        ←
+      </div>
+      <div class="sub-title">${title}</div>
+    </div>
+  `;
+}
