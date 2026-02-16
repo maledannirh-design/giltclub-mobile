@@ -304,3 +304,27 @@ body{
   cursor:pointer;
 }
 
+.sub-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:15px;
+}
+
+.sub-back{
+  font-size:18px;
+  cursor:pointer;
+  padding:6px 10px;
+  border-radius:8px;
+  transition:.2s;
+}
+
+.sub-back:hover{
+  background:#f1f5f9;
+}
+
+.sub-title{
+  font-size:18px;
+  font-weight:600;
+}
+
