@@ -2334,10 +2334,11 @@ function closeQRLogin(){
   document.getElementById("qrScanner").style.display="none";
 }
 let qrProcessing = false;
+let qrProcessing = false;
 
 async function qrSuccess(decodedText){
 
-  if(qrProcessing) return;   // 🔥 cegah double trigger
+  if(qrProcessing) return;
   qrProcessing = true;
 
   try{
@@ -2349,7 +2350,6 @@ async function qrSuccess(decodedText){
     const sig   = url.searchParams.get("sig");
 
     if(!scan || !issue || !sig){
-      alert("QR format tidak valid");
       qrProcessing = false;
       return;
     }
@@ -2365,30 +2365,30 @@ async function qrSuccess(decodedText){
 
     if(data.status === "ok"){
 
-      // 🔥 STOP SCANNER DULU
+      // STOP scanner dulu
       if(html5Qr){
         await html5Qr.stop().catch(()=>{});
       }
 
-      localStorage.setItem("gtoken",data.token);
-
       closeQRLogin();
-      location.reload();
+
+      localStorage.setItem("gtoken",data.token);
+      localStorage.setItem("guser",JSON.stringify(data.user));
+
+      // 🔥 LANGSUNG MASUK DASHBOARD TANPA RELOAD
+      showDashboard(data.user);
 
     }else{
 
-      alert(data.message || "QR tidak valid");
-      qrProcessing = false;   // boleh scan lagi
+      qrProcessing = false;
     }
 
   }catch(err){
 
     console.log("QR ERROR:",err);
-    alert("QR gagal diproses");
-    qrProcessing = false;   // boleh scan lagi
+    qrProcessing = false;
   }
 }
-
 
 function closePromo(){
 
