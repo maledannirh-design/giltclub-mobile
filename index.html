@@ -2326,13 +2326,29 @@ function openQRLogin(){
   });
 }
 
-
 function closeQRLogin(){
+
+  const scanner = document.getElementById("qrScanner");
+
   if(html5Qr){
     html5Qr.stop().catch(()=>{});
   }
-  document.getElementById("qrScanner").style.display="none";
+
+  if(scanner){
+    scanner.style.display = "none";
+    scanner.innerHTML = `
+      <div id="qrVideo" style="
+        width:100%;
+        max-width:420px;
+        border-radius:14px;
+        overflow:hidden;
+      "></div>
+    `;
+  }
+
+  html5Qr = null;
 }
+
 let qrProcessing = false;
 let qrProcessing = false;
 
