@@ -194,6 +194,9 @@ button:hover{
 .card-face.back{
   transform:rotateY(180deg);
 }
+#promoOverlay{
+  pointer-events:auto;
+}
 
 /* ANIMATION */
 @keyframes fadeUp{
@@ -2346,8 +2349,6 @@ function closeQRLogin(){
 
   html5Qr = null;
 }
-
-let qrProcessing = false;
 let qrProcessing = false;
 
 async function qrSuccess(decodedText){
