@@ -1,8 +1,9 @@
-// firebase.js
-
+// Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+import { getDatabase, ref, set, remove, onDisconnect } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
+// Config kamu (sudah benar dari console)
 const firebaseConfig = {
   apiKey: "AIzaSyCCl9nA3a4drx9RKTHDUEf6uHM30JszRGc",
   authDomain: "gilt-club-cinema.firebaseapp.com",
@@ -14,13 +15,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app);
+const db = getDatabase(app);
 
-import { ref, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
-
-const testRef = ref(db, "test_connection");
-set(testRef, {
-  status: "connected",
-  timestamp: Date.now()
-});
-
+// EXPORT supaya bisa dipakai di app.js
+export { db, ref, set, remove, onDisconnect };
