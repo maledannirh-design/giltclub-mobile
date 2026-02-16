@@ -258,15 +258,19 @@ function renderProfile(){
   const user = JSON.parse(localStorage.getItem("guser"));
 
   content.innerHTML = `
-    <div style="text-align:center;margin-bottom:10px">
-  <img src="images/woman_profile.webp"
-       style="width:100px;height:100px;border-radius:50%;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.15);">
+    const savedPhoto = localStorage.getItem("profilePhoto") || "images/woman_profile.webp";
 
-  <div onclick="changeProfilePhoto()"
-       style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:600;cursor:pointer">
-       Ganti Foto Profil
+<div style="text-align:center;margin-bottom:10px">
+  <img id="profileAvatar"
+       src="${savedPhoto}"
+       style="width:110px;height:110px;border-radius:50%;object-fit:cover;box-shadow:0 10px 25px rgba(0,0,0,.18);cursor:pointer"
+       onclick="document.getElementById('photoInput').click()">
+  
+  <div style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:600">
+    Ganti Foto Profil
   </div>
 </div>
+
 
 
     <div style="display:flex;gap:10px;margin-bottom:15px">
@@ -513,6 +517,37 @@ function subHeader(title, backFunction){
   `;
 }
 
-function changeProfilePhoto(){
-  alert("Fitur upload foto profil akan segera tersedia");
-}
+document.getElementById("photoInput").addEventListener("change", function(e){
+
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+
+    const img = new Image();
+    img.onload = function(){
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const size = 300; // output 300x300
+      canvas.width = size;
+      canvas.height = size;
+
+      ctx.drawImage(img, 0, 0, size, size);
+
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+      localStorage.setItem("profilePhoto", compressed);
+
+      document.getElementById("profileAvatar").src = compressed;
+    };
+
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(file);
+});
+
