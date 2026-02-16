@@ -26,7 +26,25 @@
 
 })();
 </script>
-<!-- =================================================== -->
+
+
+<!-- ================= QR LOGIN HANDLER ================= -->
+<script>
+(function(){
+
+  const params = new URLSearchParams(window.location.search);
+  const qr = params.get("qrlogin");
+
+  if(qr){
+    localStorage.setItem("gtoken", qr);
+
+    // bersihkan URL biar tidak login ulang terus
+    window.location.replace("index.html");
+  }
+
+})();
+</script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 body{
@@ -134,10 +152,6 @@ button:hover{
   margin-top:18px;
   scroll-behavior:smooth;
   padding-bottom:6px;
-}
-
-#cardCarousel{
-  display:block;
 }
 
 .promoCard{
@@ -315,7 +329,7 @@ button:hover{
     <!-- ======== CARD SLIDER ======== -->
     <div id="cardCarousel">
 
-      <!-- VVIP -->
+      <!-- REGULER -->
       <div class="promoCard">
         <div class="card3d">
           <div class="card-face front">
@@ -432,6 +446,47 @@ button:hover{
   <button onclick="openGuest()" style="background:#f59e0b;">
     MAIN SEBAGAI TAMU
   </button>
+  <button onclick="openQRLogin()" style="
+  background:#0ea5e9;
+  margin-top:10px;
+">
+  LOGIN DENGAN KARTU (SCAN QR)
+</button>
+<div id="qrScanner" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:999999;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+">
+
+  <div id="qrVideo" style="
+  width:100%;
+  max-width:420px;
+  border-radius:14px;
+  overflow:hidden;
+"></div>
+
+
+  <div style="color:white;margin-top:12px">
+    Arahkan kartu ke kamera
+  </div>
+
+  <button onclick="closeQRLogin()" style="
+    margin-top:14px;
+    padding:12px 20px;
+    border:none;
+    border-radius:12px;
+    background:#ef4444;
+    color:white;
+  ">
+    Tutup
+  </button>
+
+</div>
 
 </div>
 
@@ -1972,48 +2027,6 @@ function previewTopupImage(event){
   reader.readAsDataURL(file);
 }
   
-/* ================= SUBMIT ================= */
-async function submitMemberTopup(amount){
-
-  if(!window._compressedTopupImage){
-    alert("Upload bukti transfer dulu");
-    return;
-  }
-
-  const btn = document.getElementById("btnSendTopup");
-  btn.disabled = true;
-  btn.innerText = "Mengirim...";
-
-  const token = localStorage.getItem("gtoken");
-
-  const fd = new URLSearchParams();
-  fd.append("action","topup");
-  fd.append("token",token);
-  fd.append("amount",amount);
-  fd.append("method","QRIS_DANA");
-  fd.append("proof_url",window._compressedTopupImage);
-
-  const res = await fetch(SERVER,{
-    method:"POST",
-    body:fd
-  });
-
-  const data = await res.json();
-
-  if(data.status==="ok"){
-
-    document.getElementById("topupStatus").style.display="block";
-
-    btn.innerText="Terkirim";
-    btn.style.background="#64748b";
-
-  }else{
-    alert(data.message);
-    btn.disabled=false;
-    btn.innerText="KIRIM TOP UP";
-  }
-}
-
 async function submitMemberTopup(amount){
 
   const fileInput = document.getElementById("memberProofFile");
@@ -2267,43 +2280,6 @@ async function adjustWallet(){
     alert(data.message);
   }
 }
-
-  /* ===== AUTO SCROLL CAROUSEL ===== */
-
-let promoTimer;
-let userTouching=false;
-
-function startPromoScroll(){
-
-  const carousel=document.getElementById("cardCarousel");
-
-  promoTimer=setInterval(()=>{
-    if(userTouching) return;
-
-    const maxScroll=carousel.scrollWidth-carousel.clientWidth;
-
-    if(carousel.scrollLeft>=maxScroll-5){
-      carousel.scrollTo({left:0,behavior:"smooth"});
-    }else{
-      carousel.scrollBy({left:280,behavior:"smooth"});
-    }
-
-  },2000);
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-  const carousel=document.getElementById("cardCarousel");
-
-  startPromoScroll();
-
-  carousel.addEventListener("touchstart",()=>userTouching=true);
-  carousel.addEventListener("touchend",()=>{
-    setTimeout(()=>userTouching=false,2000);
-  });
-
-});
-
 /* ===== SWIPE FLIP CARD ===== */
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -2328,6 +2304,86 @@ document.addEventListener("DOMContentLoaded",()=>{
   });
 
 });
+<script>
+
+let html5Qr = null;
+
+function openQRLogin(){
+
+  const scanner = document.getElementById("qrScanner");
+  scanner.style.display="flex";
+
+  html5Qr = new Html5Qrcode("qrVideo");
+
+  Html5Qrcode.getCameras().then(devices => {
+
+    if(devices && devices.length){
+
+      const camId = devices[0].id;
+
+      html5Qr.start(
+        camId,
+        { fps:10, qrbox:250 },
+        qrSuccess
+      );
+
+    }
+
+  }).catch(err=>{
+    alert("Kamera tidak tersedia / izin belum diberikan");
+  });
+}
+
+function closeQRLogin(){
+  if(html5Qr){
+    html5Qr.stop().catch(()=>{});
+  }
+  document.getElementById("qrScanner").style.display="none";
+}
+
+async function qrSuccess(decodedText){
+
+  try{
+
+    const url = new URL(decodedText);
+
+    const scan = url.searchParams.get("scan");
+    const issue = url.searchParams.get("issue");
+    const sig = url.searchParams.get("sig");
+
+    if(!scan || !issue || !sig){
+      alert("QR tidak valid");
+      return;
+    }
+
+    const fd = new URLSearchParams();
+    fd.append("action","qr_login");
+    fd.append("member_id",scan);
+    fd.append("issue",issue);
+    fd.append("sig",sig);
+
+    const res = await fetch(SERVER,{
+      method:"POST",
+      body:fd
+    });
+
+    const data = await res.json();
+
+    if(data.status==="ok"){
+
+      localStorage.setItem("gtoken",data.token);
+
+      closeQRLogin();
+      location.reload();
+
+    }else{
+      alert(data.message);
+    }
+
+  }catch(e){
+    alert("QR tidak dikenali");
+  }
+}
 
 </script>
 
