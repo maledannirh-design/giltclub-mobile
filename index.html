@@ -887,10 +887,11 @@ async function checkSession(){
   const card = document.querySelector(".card");
   const token = localStorage.getItem("gtoken");
 
-  // default: sembunyikan login dulu
+  if(!card) return;
+
+  // sembunyikan login dulu
   card.style.display = "none";
 
-  // kalau tidak ada token → langsung tampilkan login
   if(!token){
     card.style.display = "block";
     return;
@@ -898,34 +899,48 @@ async function checkSession(){
 
   try{
 
-    const formData = new URLSearchParams();
-    formData.append("action","session");
-    formData.append("token",token);
+    const fd = new URLSearchParams();
+    fd.append("action","session");
+    fd.append("token",token);
 
     const res = await fetch(SERVER,{
       method:"POST",
-      body:formData
+      body:fd
     });
 
-    const data = await res.json();
+    const text = await res.text();
 
-    if(data.status==="ok"){
-        // session valid → langsung dashboard
-        showDashboard(data.user);
-        return;
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch(e){
+      console.log("Session JSON parse error:", text);
+      localStorage.removeItem("gtoken");
+      localStorage.removeItem("guser");
+      card.style.display = "block";
+      return;
     }
 
-    // token invalid
-    localStorage.removeItem("gtoken");
-    localStorage.removeItem("guser");
-    card.style.display = "block";
+    if(data.status === "ok" && data.user){
+
+      localStorage.setItem("guser", JSON.stringify(data.user));
+      showDashboard(data.user);
+      return;
+
+    }else{
+
+      localStorage.removeItem("gtoken");
+      localStorage.removeItem("guser");
+      card.style.display = "block";
+    }
 
   }catch(err){
-    // server unreachable → tetap kasih login
-    console.log("session restore fail");
+
+    console.log("Session restore fail:", err);
     card.style.display = "block";
   }
 }
+
 function acceptTerms(){
 
   const check = document.getElementById("agreeTerms");
@@ -2349,7 +2364,7 @@ function closeQRLogin(){
 
   html5Qr = null;
 }
-let qrProcessing = false;
+  let qrProcessing = false;
 
 async function qrSuccess(decodedText){
 
@@ -2365,6 +2380,7 @@ async function qrSuccess(decodedText){
     const sig   = url.searchParams.get("sig");
 
     if(!scan || !issue || !sig){
+      alert("QR format tidak valid");
       qrProcessing = false;
       return;
     }
@@ -2375,35 +2391,58 @@ async function qrSuccess(decodedText){
     fd.append("issue",issue);
     fd.append("sig",sig);
 
-    const res  = await fetch(SERVER,{ method:"POST", body:fd });
-    const data = await res.json();
+    const res = await fetch(SERVER,{
+      method:"POST",
+      body:fd
+    });
 
-    if(data.status === "ok"){
+    const text = await res.text();
 
-      // STOP scanner dulu
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch(e){
+      alert("Server response invalid");
+      console.log("RAW RESPONSE:", text);
+      qrProcessing = false;
+      return;
+    }
+
+    if(data.status === "ok" && data.token){
+
+      // stop scanner
       if(html5Qr){
         await html5Qr.stop().catch(()=>{});
       }
 
       closeQRLogin();
 
-      localStorage.setItem("gtoken",data.token);
-      localStorage.setItem("guser",JSON.stringify(data.user));
+      localStorage.setItem("gtoken", data.token);
+      localStorage.setItem("guser", JSON.stringify(data.user));
 
-      // 🔥 LANGSUNG MASUK DASHBOARD TANPA RELOAD
+      // pastikan data user valid
+      if(!data.user || !data.user.name){
+        alert("Data user tidak lengkap");
+        qrProcessing = false;
+        return;
+      }
+
       showDashboard(data.user);
 
     }else{
 
+      alert(data.message || "QR tidak valid");
       qrProcessing = false;
     }
 
   }catch(err){
 
-    console.log("QR ERROR:",err);
+    console.log("QR ERROR:", err);
+    alert("QR gagal diproses");
     qrProcessing = false;
   }
 }
+
 
 function closePromo(){
 
