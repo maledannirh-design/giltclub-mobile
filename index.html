@@ -2333,20 +2333,18 @@ function closeQRLogin(){
   }
   document.getElementById("qrScanner").style.display="none";
 }
-
 async function qrSuccess(decodedText){
 
   try{
 
     const url = new URL(decodedText);
 
-    const scan = url.searchParams.get("scan");
+    const scan  = url.searchParams.get("scan");
     const issue = url.searchParams.get("issue");
-    const sig = url.searchParams.get("sig");
+    const sig   = url.searchParams.get("sig");
 
     if(!scan || !issue || !sig){
-      alert("QR tidak valid");
-      return;
+      throw new Error("QR format salah");
     }
 
     const fd = new URLSearchParams();
@@ -2355,25 +2353,35 @@ async function qrSuccess(decodedText){
     fd.append("issue",issue);
     fd.append("sig",sig);
 
-    const res = await fetch(SERVER,{
-      method:"POST",
-      body:fd
-    });
-
+    const res  = await fetch(SERVER,{ method:"POST", body:fd });
     const data = await res.json();
 
     if(data.status==="ok"){
 
       localStorage.setItem("gtoken",data.token);
 
+      await html5Qr.stop().catch(()=>{});
       closeQRLogin();
+
       location.reload();
 
     }else{
-      alert(data.message);
+
+      await html5Qr.stop().catch(()=>{});
+      closeQRLogin();
+
+      alert(data.message || "QR tidak valid");
     }
 
   }catch(e){
+
+    // 🔥 INI YANG BIKIN GAK LOOP
+    if(html5Qr){
+      await html5Qr.stop().catch(()=>{});
+    }
+
+    closeQRLogin();
+
     alert("QR tidak dikenali");
   }
 }
