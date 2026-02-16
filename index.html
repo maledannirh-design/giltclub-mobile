@@ -1251,7 +1251,7 @@ async function openBooking(){
     panel.style.display="none";
   }
 }
- async function loadSchedule(){
+  async function loadSchedule(){
 
   const token = localStorage.getItem("gtoken");
 
@@ -1336,7 +1336,7 @@ async function openBooking(){
                   </button>
                 `
                 : `
-                  <button onclick="rentRacket('${s.date}','${s.kelas}')"
+                  <button onclick="rentRacket('${s.date}','${s.kelas}','${s.start}')"
                     style="background:#f59e0b;width:100%">
                     SEWA RAKET
                   </button>
@@ -2188,7 +2188,7 @@ async function bulkRefundRain(){
     alert(data.message);
   }
 }
-async function rentRacket(date,kelas){
+async function rentRacket(date,kelas,start){
 
   if(!confirm("Sewa raket untuk sesi ini?")) return;
 
@@ -2199,12 +2199,13 @@ async function rentRacket(date,kelas){
   fd.append("token",token);
   fd.append("date",date);
   fd.append("kelas",kelas);
+  fd.append("start",start);   // 🔥 TAMBAHAN INI
 
   const res = await fetch(SERVER,{method:"POST",body:fd});
   const data = await res.json();
 
   if(data.status==="ok"){
-    playSuccessSound();   // <-- DI SINI
+    playSuccessSound();
     alert("Raket berhasil disewa");
     loadBalance();
     loadSchedule();
@@ -2212,6 +2213,7 @@ async function rentRacket(date,kelas){
     alert(data.message);
   }
 }
+
 const successSound = new Audio("sounds/gilt_success.mp3");
 successSound.preload = "auto";
 successSound.volume = 0.7;
