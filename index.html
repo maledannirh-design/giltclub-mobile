@@ -2296,9 +2296,7 @@ function showSuccessUI(){
     coin.style.animation = "none";
   },4000);
 }
-function closePromo(){
-  document.getElementById("promoOverlay").style.display="none";
-}
+
 async function adjustWallet(){
 
   const token = localStorage.getItem("gtoken");
@@ -2435,6 +2433,30 @@ async function qrSuccess(decodedText){
   }catch(e){
     alert("QR tidak dikenali");
   }
+}
+
+  document.addEventListener("DOMContentLoaded", function(){
+
+  // Jika sudah pernah ditutup di session ini, jangan tampilkan lagi
+  if(sessionStorage.getItem("promoClosed") === "yes"){
+    const promo = document.getElementById("promoOverlay");
+    if(promo) promo.remove();
+  }
+
+});
+
+function closePromo(){
+
+  const promo = document.getElementById("promoOverlay");
+  if(!promo) return;
+
+  promo.style.opacity = "0";
+  promo.style.transform = "scale(.98)";
+
+  setTimeout(()=>{
+    promo.remove();
+    sessionStorage.setItem("promoClosed","yes");
+  },400);
 }
 
 </script>
