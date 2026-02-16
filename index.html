@@ -222,13 +222,11 @@ button:hover{
   inset:0;
   background:linear-gradient(180deg,#0f172a,#020617);
   color:white;
-  z-index:999999;
+  z-index:100000;
   display:flex;
   align-items:center;
   justify-content:center;
   padding:18px;
-  opacity:1;
-  transition:opacity .4s ease, transform .4s ease;
 ">
 
   <div style="
@@ -238,15 +236,19 @@ button:hover{
     border-radius:22px;
     padding:18px;
     box-shadow:0 25px 60px rgba(0,0,0,.7);
+    animation:fadeUp .6s ease;
     max-height:95vh;
     overflow-y:auto;
   ">
 
+    <!-- HEADER -->
     <div style="text-align:center">
+
       <div style="
         font-size:18px;
         font-weight:bold;
         color:#facc15;
+        letter-spacing:1px;
       ">
         SLOT TERBATAS KESEMPATAN 1X!
       </div>
@@ -261,77 +263,20 @@ button:hover{
       ">
         Sisa 4 Slot
       </div>
+
     </div>
 
-    <div style="margin-top:18px">
-      <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp"
-           style="width:100%;border-radius:16px;">
-    </div>
 
-    <div style="margin-top:20px;font-size:13px;line-height:1.7">
-      <b style="color:#facc15">VVIP Exclusive Membership</b><br><br>
-      Deposit 1 juta — berlaku seumur hidup<br>
-      Priority booking & elite benefit
-    </div>
-
-    <hr style="margin:20px 0;border-color:rgba(255,255,255,.12)">
-
-    <div>
-      <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card.webp"
-           style="width:100%;border-radius:16px;">
-    </div>
-
-    <div style="margin-top:15px;font-size:13px;line-height:1.7">
-      Membership reguler mulai 250k<br>
-      Harga lebih murah dari guest
-    </div>
-
-    <button onclick="closePromo()"
-      style="
-        margin-top:20px;
-        width:100%;
-        padding:14px;
-        border:none;
-        border-radius:16px;
-        background:#22c55e;
-        font-weight:bold;
-        font-size:16px;
-      ">
-      JOIN PENAWARAN SEKARANG
-    </button>
-
-    <button onclick="closePromo()"
-      style="
-        margin-top:10px;
-        width:100%;
-        padding:12px;
-        border:none;
-        border-radius:14px;
-        background:#374151;
-        font-size:14px;
-      ">
-      Lewati
-    </button>
-
-  </div>
-</div>
-
-
-    <!-- ======== CARD SLIDER ======== -->
-    <div id="cardCarousel">
-
-      <!-- VVIP -->
-      <div class="promoCard">
-        <div class="card3d">
-          <div class="card-face front">
-            <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp">
-          </div>
-          <div class="card-face back">
-            <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card_back.webp">
-          </div>
+    <!-- ===== VVIP CARD ===== -->
+    <div class="promoCard" style="margin-top:18px;">
+      <div class="card3d">
+        <div class="card-face front">
+          <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp">
+        </div>
+        <div class="card-face back">
+          <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card_back.webp">
         </div>
       </div>
-
     </div>
 
     <div style="text-align:center;margin-top:8px;font-size:12px;opacity:.7">
@@ -342,81 +287,86 @@ button:hover{
     <!-- ================= VVIP PENJELASAN ================= -->
     <div style="margin-top:18px;font-size:13px;line-height:1.7;opacity:.95">
 
-      <h3 style="margin-bottom:8px;color:#facc15">VVIP Exclusive Membership</h3>
+      <h3 style="margin-bottom:8px;color:#facc15">
+        VVIP Exclusive Membership
+      </h3>
 
       <div style="text-decoration:line-through;opacity:.4">
-        Minimal join private session 1 on 1 coach
+        join 1x sesi private 1 on 1 with coach
       </div>
 
       <div style="text-decoration:line-through;opacity:.4">
-        Biaya latihan 350k – 1,2 juta per sesi
+        join minimal 1 jam per sesi 350k sampai 1,2 juta per sesi 3 jam
       </div>
 
       <br>
 
       <b style="color:#facc15">
-        Hanya deposit 1 juta — berlaku seumur hidup
+        hanya dengan deposit 1 juta 1x seumur hidup
       </b>
 
       <br><br>
 
-      Benefit:
-      <br>• Semua benefit membership-reguler
-      <br>• Prioritas reservasi court
-      <br>• Akses private session khusus
-      <br>• Elite private lounge - WA group
-      <br>• Diskon event & program khusus
-      <br>• Video review progress bermain
-      <br>• Akses perpustakaan club
-      <br>• Coffee session with coach and pengelola club
-      <br>• Pengambilan seluruh saldo hanya potong 50k
-      <br>• Minimal saldo bulanan bisa 0
-      <br>• Status eksklusif club
+      keuntungan join ekslusif vvip private member:
+      <br>• semua benefit membership reguler
+      <br>• prioritas reservasi court
+      <br>• akses private session khusus
+      <br>• elite private lounge - WA group
+      <br>• diskon event & program khusus
+      <br>• video review progress bermain
+      <br>• akses perpustakaan club
+      <br>• coffee session with coach dan pengelola club
+      <br>• pengambilan seluruh saldo hanya potong 50k
+      <br>• minimal saldo bulanan bisa 0
+      <br>• status eksklusif club
+
+      <br><br>
+
+      dengan join kepesertaan ini,
+      <br>anda telah mendukung pengembangan club anda
 
     </div>
 
 
     <hr style="margin:20px 0;border-color:rgba(255,255,255,.12)">
 
-    <!-- ======== CARD SLIDER ======== -->
-    <div id="cardCarousel">
 
-      <!-- REGULER -->
-      <div class="promoCard">
-        <div class="card3d">
-          <div class="card-face front">
-            <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card.webp">
-          </div>
-          <div class="card-face back">
-            <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card_back.webp">
-          </div>
+    <!-- ===== REGULER CARD ===== -->
+    <div class="promoCard">
+      <div class="card3d">
+        <div class="card-face front">
+          <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card.webp">
+        </div>
+        <div class="card-face back">
+          <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card_back.webp">
         </div>
       </div>
-
     </div>
 
     <div style="text-align:center;margin-top:8px;font-size:12px;opacity:.7">
       Geser kartu untuk melihat bagian belakang
     </div>
 
-<div style="font-size:13px;line-height:1.7;opacity:.95">
 
-      <h3 style="margin-bottom:8px">Membership - Reguler Club</h3>
+    <!-- ================= REGULER PENJELASAN ================= -->
+    <div style="font-size:13px;line-height:1.7;opacity:.95;margin-top:18px">
 
-      Minimal deposit 250k.
-      <br>Selanjutnya Top up pengisian sesuai pemakaian saja
+      <h3 style="margin-bottom:8px">
+        Membership - Reguler Club
+      </h3>
+
+      minimal deposit 250k
+      <br>dan hanya top up sejumlah yang anda gunakan
 
       <br><br>
 
-      Benefit:
-      <br>• Harga 10–25% lebih murah dari guest
-      <br>• Akses marketplace antar member
-      <br>• Dashboard progress bermain
-      <br>• Diskon program & produk club
-      <br>• Pengambilan seluruh saldo hanya potong 50k
-      <br>• Minimal saldo bulanan tersisa 250k di awal bulan
-      <br>• Kartu membership bisa untuk login dan check-in
-  
+      anda mendapatkan kepesertaan club:
+      <br>• harga member untuk setiap sesi yang lebih murah 10-25% dari harga guest
+      <br>• berhak mendapatkan akses penuh untuk market place dan menawarkan product serta service kepada sesama member
+      <br>• mendapatkan diskon-diskon tertentu untuk program sesi dan product club
+      <br>• pengambilan seluruh saldo hanya potong 50k
+      <br>• minimal saldo bulanan tersisa 250k di awal bulan
+      <br>• kartu membership bisa untuk login dan check-in
 
     </div>
 
