@@ -45,14 +45,9 @@ function navigate(page, el){
       break;
 
     case "profile":
-      content.innerHTML = `
-        <div style="text-align:center">
-          <img src="images/default_profile.webp"
-               style="width:90px;height:90px;border-radius:50%;object-fit:cover;">
-          <h3 style="margin-top:12px">Member Name</h3>
-        </div>
-      `;
-      break;
+  renderProfile();
+  break;
+
   }
 }
 
@@ -252,4 +247,159 @@ function addToCart(productId){
   }
 
   alert("Produk ditambahkan ke keranjang");
+}
+
+/* ===============================
+   PROFILE SYSTEM
+=================================*/
+function renderProfile(){
+
+  const content = document.getElementById("content");
+  const user = JSON.parse(localStorage.getItem("guser"));
+
+  if(!user){
+    content.innerHTML = `
+      <div style="text-align:center;margin-top:40px">
+        <img src="images/default_profile.webp"
+             style="width:90px;height:90px;border-radius:50%;">
+        <h3 style="margin-top:12px">Guest</h3>
+
+        <button onclick="goLogin()" style="margin-top:20px;width:100%">
+          Masuk Akun
+        </button>
+
+        <button onclick="goRegister()" 
+                style="margin-top:10px;width:100%;background:#64748b">
+          Daftar Akun
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  content.innerHTML = `
+    <div style="text-align:center">
+      <img src="images/default_profile.webp"
+           style="width:90px;height:90px;border-radius:50%;">
+      <h3 style="margin-top:12px">${user.name}</h3>
+      <p style="color:#64748b">${user.membership}</p>
+    </div>
+
+    <div style="margin-top:25px">
+
+      ${profileMenuItem("Akun Saya","renderAccountMenu()")}
+      ${profileMenuItem("Informasi Pribadi","renderPersonalInfo()")}
+      ${profileMenuItem("Verifikasi Informasi","renderVerificationMenu()")}
+      ${profileMenuItem("Pengaturan Privasi","renderPrivacyMenu()")}
+
+      <div onclick="logout()" 
+           style="margin-top:25px;color:#ef4444;font-weight:600;cursor:pointer">
+        Log Out
+      </div>
+
+    </div>
+  `;
+}
+function profileMenuItem(title, action){
+  return `
+    <div onclick="${action}"
+         style="
+          padding:14px;
+          border-bottom:1px solid #e2e8f0;
+          display:flex;
+          justify-content:space-between;
+          cursor:pointer">
+      <span>${title}</span>
+      <span>></span>
+    </div>
+  `;
+}
+function renderAccountMenu(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Akun Saya</h2>
+
+    ${profileMenuItem("Keamanan & Akun","renderSecurityMenu()")}
+  `;
+}
+function renderSecurityMenu(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Keamanan & Akun</h2>
+
+    ${profileMenuItem("Ganti PIN Login (4 digit)","")}
+    ${profileMenuItem("Ganti PIN Transaksi (6 digit)","")}
+    ${profileMenuItem("Ganti Username","")}
+    ${profileMenuItem("Ajukan Penghapusan Akun","")}
+  `;
+}
+function renderPersonalInfo(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Informasi Pribadi</h2>
+
+    ${profileMenuItem("Ganti Nomor HP","")}
+    ${profileMenuItem("Ganti Email","")}
+
+    <h3 style="margin-top:20px">Akun Media Sosial</h3>
+
+    ${profileMenuItem("Hubungkan Facebook","")}
+    ${profileMenuItem("Hubungkan Instagram","")}
+    ${profileMenuItem("Hubungkan TikTok","")}
+  `;
+}
+function renderVerificationMenu(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Verifikasi Informasi</h2>
+
+    ${profileMenuItem("Verifikasi Sidik Jari","")}
+    ${profileMenuItem("Login Cepat","")}
+    ${profileMenuItem("Alamat Saya","renderAddressMenu()")}
+    ${profileMenuItem("Kartu / Rekening Bank","")}
+    ${profileMenuItem("Isi Alamat Dana","")}
+    ${profileMenuItem("Isi Nomor Rekening","")}
+  `;
+}
+function renderAddressMenu(){
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Alamat Saya</h2>
+
+    ${profileMenuItem("Isi Alamat Toko","")}
+    ${profileMenuItem("Isi Alamat Rumah","")}
+  `;
+}
+function renderPrivacyMenu(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>Pengaturan Privasi</h2>
+
+    ${profileMenuItem("Kelihatan Online","")}
+    ${profileMenuItem("Daftar Blokir","")}
+    ${profileMenuItem("Daftar Teman","")}
+  `;
+}
+function goLogin(){
+  alert("Halaman login nanti sambung ke Excel backend");
+}
+
+function goRegister(){
+  alert("Halaman register nanti sambung ke Excel backend");
+}
+
+function logout(){
+  localStorage.removeItem("guser");
+  renderProfile();
 }
