@@ -257,26 +257,47 @@ function renderProfile(){
   const content = document.getElementById("content");
   const user = JSON.parse(localStorage.getItem("guser"));
 
+  content.innerHTML = `
+    <div style="text-align:center;margin-bottom:15px">
+      <img src="images/default_profile.webp"
+           style="width:90px;height:90px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:15px">
+      <button onclick="${user ? 'renderProfile()' : 'goLogin()'}"
+        style="flex:1;padding:12px;border-radius:12px;border:none;background:#16a34a;color:white;font-weight:600">
+        ${user ? user.name : "Masuk Akun"}
+      </button>
+
+      <button onclick="${user ? 'logout()' : 'goRegister()'}"
+        style="flex:1;padding:12px;border-radius:12px;border:1px solid #cbd5e1;background:white;font-weight:600">
+        ${user ? "Log Out" : "Daftar Akun"}
+      </button>
+    </div>
+
+    <div style="height:1px;background:#e2e8f0;margin:15px 0"></div>
+
+    <div class="section-title">Pengaturan Akun</div>
+    <div class="menu-card">
+      ${menuItem("Keamanan & Akun","requireLogin(renderAccountMenu)")}
+      ${menuItem("Informasi Pribadi","requireLogin(renderPersonalInfo)")}
+      ${menuItem("Verifikasi Informasi","requireLogin(renderVerificationMenu)")}
+      ${menuItem("Pengaturan Privasi","requireLogin(renderPrivacyMenu)")}
+    </div>
+  `;
+}
+function requireLogin(callback){
+
+  const user = JSON.parse(localStorage.getItem("guser"));
+
   if(!user){
-    content.innerHTML = `
-      <div style="margin-top:40px;text-align:center">
-        <img src="images/default_profile.webp"
-             style="width:90px;height:90px;border-radius:50%;">
-        <h3 style="margin-top:12px">Guest</h3>
-
-        <button onclick="goLogin()" 
-          style="margin-top:20px;width:100%;padding:12px;border-radius:12px;border:none;background:#16a34a;color:white;font-weight:600">
-          Masuk Akun
-        </button>
-
-        <button onclick="goRegister()" 
-          style="margin-top:12px;width:100%;padding:12px;border-radius:12px;border:1px solid #cbd5e1;background:white;font-weight:600">
-          Daftar Akun
-        </button>
-      </div>
-    `;
+    alert("Silakan masuk akun terlebih dahulu");
     return;
   }
+
+  callback();
+}
+
 
   content.innerHTML = `
     <div style="text-align:center;margin-bottom:20px">
