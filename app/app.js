@@ -258,10 +258,16 @@ function renderProfile(){
   const user = JSON.parse(localStorage.getItem("guser"));
 
   content.innerHTML = `
-    <div style="text-align:center;margin-bottom:15px">
-      <img src="images/woman_profile.webp"
-           style="width:90px;height:90px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.1);">
-    </div>
+    <div style="text-align:center;margin-bottom:10px">
+  <img src="images/woman_profile.webp"
+       style="width:100px;height:100px;border-radius:50%;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.15);">
+
+  <div onclick="changeProfilePhoto()"
+       style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:600;cursor:pointer">
+       Ganti Foto Profil
+  </div>
+</div>
+
 
     <div style="display:flex;gap:10px;margin-bottom:15px">
       <button onclick="${user ? 'renderProfile()' : 'goLogin()'}"
@@ -505,4 +511,8 @@ function subHeader(title, backFunction){
       <div class="sub-title">${title}</div>
     </div>
   `;
+}
+
+function changeProfilePhoto(){
+  alert("Fitur upload foto profil akan segera tersedia");
 }
