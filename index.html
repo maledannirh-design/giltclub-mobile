@@ -2333,19 +2333,11 @@ function closeQRLogin(){
   }
   document.getElementById("qrScanner").style.display="none";
 }
-  
 async function qrSuccess(decodedText){
 
   if(!decodedText) return;
 
   try{
-
-    // hentikan scanner agar tidak spam
-    if(html5Qr){
-      await html5Qr.stop().catch(()=>{});
-    }
-
-    closeQRLogin();
 
     const url = new URL(decodedText);
 
@@ -2355,7 +2347,7 @@ async function qrSuccess(decodedText){
 
     if(!scan || !issue || !sig){
       alert("QR format tidak valid");
-      return;
+      return; // scanner tetap jalan
     }
 
     const fd = new URLSearchParams();
@@ -2373,35 +2365,43 @@ async function qrSuccess(decodedText){
 
     if(!text){
       alert("Server tidak merespon");
-      return;
+      return; // scanner tetap jalan
     }
 
     let data;
-
     try{
       data = JSON.parse(text);
     }catch(e){
-      alert("Response server bukan JSON");
-      console.log(text);
+      alert("Response server tidak valid");
       return;
     }
 
     if(data.status === "ok"){
 
+      // STOP scanner hanya kalau berhasil
+      if(html5Qr){
+        await html5Qr.stop().catch(()=>{});
+      }
+
       localStorage.setItem("gtoken",data.token);
+
+      closeQRLogin();
       location.reload();
 
     }else{
 
       alert(data.message || "QR tidak valid");
+      // scanner tetap aktif
     }
 
   }catch(err){
 
     console.log("QR ERROR:",err);
     alert("QR gagal diproses");
+    // scanner tetap aktif
   }
 }
+
 
 
 function closePromo(){
