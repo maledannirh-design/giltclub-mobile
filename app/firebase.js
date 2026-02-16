@@ -16,3 +16,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
 
+import { ref, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
+const testRef = ref(db, "test_connection");
+set(testRef, {
+  status: "connected",
+  timestamp: Date.now()
+});
+
