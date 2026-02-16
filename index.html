@@ -2335,7 +2335,14 @@ function closeQRLogin(){
 }
 async function qrSuccess(decodedText){
 
+  if(!decodedText) return;
+
   try{
+
+    // stop scanner dulu supaya tidak double scan
+    if(html5Qr){
+      await html5Qr.stop().catch(()=>{});
+    }
 
     const url = new URL(decodedText);
 
@@ -2344,7 +2351,7 @@ async function qrSuccess(decodedText){
     const sig   = url.searchParams.get("sig");
 
     if(!scan || !issue || !sig){
-      throw new Error("QR format salah");
+      throw new Error("Format QR tidak valid");
     }
 
     const fd = new URLSearchParams();
@@ -2353,38 +2360,45 @@ async function qrSuccess(decodedText){
     fd.append("issue",issue);
     fd.append("sig",sig);
 
-    const res  = await fetch(SERVER,{ method:"POST", body:fd });
+    const res = await fetch(SERVER,{
+      method:"POST",
+      body:fd
+    });
+
+    if(!res.ok){
+      throw new Error("Server tidak merespon");
+    }
+
     const data = await res.json();
 
-    if(data.status==="ok"){
+    if(data.status === "ok"){
 
       localStorage.setItem("gtoken",data.token);
 
-      await html5Qr.stop().catch(()=>{});
       closeQRLogin();
 
+      // reload supaya masuk ke checkSession()
       location.reload();
 
     }else{
 
-      await html5Qr.stop().catch(()=>{});
       closeQRLogin();
-
       alert(data.message || "QR tidak valid");
     }
 
-  }catch(e){
+  }catch(err){
 
-    // 🔥 INI YANG BIKIN GAK LOOP
+    console.log("QR ERROR:",err);
+
     if(html5Qr){
       await html5Qr.stop().catch(()=>{});
     }
 
     closeQRLogin();
-
     alert("QR tidak dikenali");
   }
 }
+
 
 function closePromo(){
 
