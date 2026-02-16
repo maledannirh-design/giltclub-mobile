@@ -259,17 +259,18 @@ function renderProfile(){
 
   if(!user){
     content.innerHTML = `
-      <div style="text-align:center;margin-top:40px">
+      <div style="margin-top:40px;text-align:center">
         <img src="images/default_profile.webp"
              style="width:90px;height:90px;border-radius:50%;">
         <h3 style="margin-top:12px">Guest</h3>
 
-        <button onclick="goLogin()" style="margin-top:20px;width:100%">
+        <button onclick="goLogin()" 
+          style="margin-top:20px;width:100%;padding:12px;border-radius:12px;border:none;background:#16a34a;color:white;font-weight:600">
           Masuk Akun
         </button>
 
         <button onclick="goRegister()" 
-                style="margin-top:10px;width:100%;background:#64748b">
+          style="margin-top:12px;width:100%;padding:12px;border-radius:12px;border:1px solid #cbd5e1;background:white;font-weight:600">
           Daftar Akun
         </button>
       </div>
@@ -278,39 +279,32 @@ function renderProfile(){
   }
 
   content.innerHTML = `
-    <div style="text-align:center">
+    <div style="text-align:center;margin-bottom:20px">
       <img src="images/default_profile.webp"
            style="width:90px;height:90px;border-radius:50%;">
       <h3 style="margin-top:12px">${user.name}</h3>
-      <p style="color:#64748b">${user.membership}</p>
     </div>
 
-    <div style="margin-top:25px">
+    <div class="section-title">Akun Saya</div>
+    <div class="menu-card">
+      ${menuItem("Keamanan & Akun","renderSecurityMenu()")}
+      ${menuItem("Informasi Pribadi","renderPersonalInfo()")}
+      ${menuItem("Verifikasi Informasi","renderVerificationMenu()")}
+      ${menuItem("Pengaturan Privasi","renderPrivacyMenu()")}
+    </div>
 
-      ${profileMenuItem("Akun Saya","renderAccountMenu()")}
-      ${profileMenuItem("Informasi Pribadi","renderPersonalInfo()")}
-      ${profileMenuItem("Verifikasi Informasi","renderVerificationMenu()")}
-      ${profileMenuItem("Pengaturan Privasi","renderPrivacyMenu()")}
-
-      <div onclick="logout()" 
-           style="margin-top:25px;color:#ef4444;font-weight:600;cursor:pointer">
-        Log Out
-      </div>
-
+    <div style="margin-top:25px;text-align:center;color:#ef4444;font-weight:600;cursor:pointer"
+         onclick="logout()">
+      Log Out
     </div>
   `;
 }
-function profileMenuItem(title, action){
+
+function menuItem(title, action){
   return `
-    <div onclick="${action}"
-         style="
-          padding:14px;
-          border-bottom:1px solid #e2e8f0;
-          display:flex;
-          justify-content:space-between;
-          cursor:pointer">
+    <div class="menu-item" onclick="${action}">
       <span>${title}</span>
-      <span>></span>
+      <span>›</span>
     </div>
   `;
 }
@@ -319,22 +313,29 @@ function renderAccountMenu(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>Akun Saya</h2>
-
-    ${profileMenuItem("Keamanan & Akun","renderSecurityMenu()")}
+    <div class="section-title">Keamanan & Akun</div>
+    <div class="menu-card">
+      ${menuItem("Ganti PIN Login (4 digit)","")}
+      ${menuItem("Ganti PIN Transaksi (6 digit)","")}
+      ${menuItem("Ganti Username","")}
+      ${menuItem("Ajukan Penghapusan Akun","")}
+    </div>
   `;
 }
+
+
 function renderSecurityMenu(){
 
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>Keamanan & Akun</h2>
-
-    ${profileMenuItem("Ganti PIN Login (4 digit)","")}
-    ${profileMenuItem("Ganti PIN Transaksi (6 digit)","")}
-    ${profileMenuItem("Ganti Username","")}
-    ${profileMenuItem("Ajukan Penghapusan Akun","")}
+    <div class="section-title">Keamanan & Akun</div>
+    <div class="menu-card">
+      ${menuItem("Ganti PIN Login (4 digit)","")}
+      ${menuItem("Ganti PIN Transaksi (6 digit)","")}
+      ${menuItem("Ganti Username","")}
+      ${menuItem("Ajukan Penghapusan Akun","")}
+    </div>
   `;
 }
 function renderPersonalInfo(){
@@ -342,64 +343,78 @@ function renderPersonalInfo(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>Informasi Pribadi</h2>
+    <div class="section-title">Informasi Kontak</div>
+    <div class="menu-card">
+      ${menuItem("Ganti Nomor HP","")}
+      ${menuItem("Ganti Email","")}
+    </div>
 
-    ${profileMenuItem("Ganti Nomor HP","")}
-    ${profileMenuItem("Ganti Email","")}
-
-    <h3 style="margin-top:20px">Akun Media Sosial</h3>
-
-    ${profileMenuItem("Hubungkan Facebook","")}
-    ${profileMenuItem("Hubungkan Instagram","")}
-    ${profileMenuItem("Hubungkan TikTok","")}
+    <div class="section-title">Akun Media Sosial</div>
+    <div class="menu-card">
+      ${menuItem("Hubungkan Facebook","")}
+      ${menuItem("Hubungkan Instagram","")}
+      ${menuItem("Hubungkan TikTok","")}
+    </div>
   `;
 }
+
 function renderVerificationMenu(){
 
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>Verifikasi Informasi</h2>
+    <div class="section-title">Verifikasi & Keamanan</div>
+    <div class="menu-card">
+      ${menuItem("Verifikasi Sidik Jari","")}
+      ${menuItem("Login Cepat","")}
+    </div>
 
-    ${profileMenuItem("Verifikasi Sidik Jari","")}
-    ${profileMenuItem("Login Cepat","")}
-    ${profileMenuItem("Alamat Saya","renderAddressMenu()")}
-    ${profileMenuItem("Kartu / Rekening Bank","")}
-    ${profileMenuItem("Isi Alamat Dana","")}
-    ${profileMenuItem("Isi Nomor Rekening","")}
+    <div class="section-title">Alamat & Keuangan</div>
+    <div class="menu-card">
+      ${menuItem("Alamat Saya","renderAddressMenu()")}
+      ${menuItem("Kartu / Rekening Bank","")}
+      ${menuItem("Isi Alamat Dana","")}
+      ${menuItem("Isi Nomor Rekening","")}
+    </div>
   `;
 }
+
 function renderAddressMenu(){
+
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>Alamat Saya</h2>
-
-    ${profileMenuItem("Isi Alamat Toko","")}
-    ${profileMenuItem("Isi Alamat Rumah","")}
+    <div class="section-title">Alamat</div>
+    <div class="menu-card">
+      ${menuItem("Isi Alamat Toko","")}
+      ${menuItem("Isi Alamat Rumah","")}
+    </div>
   `;
 }
+
 function renderPrivacyMenu(){
 
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>Pengaturan Privasi</h2>
-
-    ${profileMenuItem("Kelihatan Online","")}
-    ${profileMenuItem("Daftar Blokir","")}
-    ${profileMenuItem("Daftar Teman","")}
+    <div class="section-title">Privasi</div>
+    <div class="menu-card">
+      ${menuItem("Kelihatan Online","")}
+      ${menuItem("Daftar Blokir","")}
+      ${menuItem("Daftar Teman","")}
+    </div>
   `;
 }
 function goLogin(){
-  alert("Halaman login nanti sambung ke Excel backend");
+  alert("Login page connect ke Excel backend nanti");
 }
 
 function goRegister(){
-  alert("Halaman register nanti sambung ke Excel backend");
+  alert("Register page connect ke Excel backend nanti");
 }
 
 function logout(){
   localStorage.removeItem("guser");
   renderProfile();
 }
+
