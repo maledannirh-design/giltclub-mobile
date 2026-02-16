@@ -5,15 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GILT Club App</title>
 
-  <script>
-  const VERSION = Date.now();
-  document.getElementById("main-style")
-    .href = "style.css?v=" + VERSION;
-
-  const script = document.createElement("script");
-  script.src = "app.js?v=" + VERSION;
-  document.body.appendChild(script);
-</script>
+<link rel="stylesheet" href="style.css?v=__VERSION__">
 
 </head>
 
@@ -64,6 +56,7 @@
 
 </div>
 
+<script src="app.js?v=20260217-1"></script>
 
 </body>
 </html>
