@@ -222,11 +222,13 @@ button:hover{
   inset:0;
   background:linear-gradient(180deg,#0f172a,#020617);
   color:white;
-  z-index:100000;
+  z-index:999999;
   display:flex;
   align-items:center;
   justify-content:center;
   padding:18px;
+  opacity:1;
+  transition:opacity .4s ease, transform .4s ease;
 ">
 
   <div style="
@@ -236,18 +238,15 @@ button:hover{
     border-radius:22px;
     padding:18px;
     box-shadow:0 25px 60px rgba(0,0,0,.7);
-    animation:fadeUp .6s ease;
     max-height:95vh;
     overflow-y:auto;
   ">
 
-    <!-- HEADER -->
     <div style="text-align:center">
       <div style="
         font-size:18px;
         font-weight:bold;
         color:#facc15;
-        letter-spacing:1px;
       ">
         SLOT TERBATAS KESEMPATAN 1X!
       </div>
@@ -263,6 +262,59 @@ button:hover{
         Sisa 4 Slot
       </div>
     </div>
+
+    <div style="margin-top:18px">
+      <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/vvip_card.webp"
+           style="width:100%;border-radius:16px;">
+    </div>
+
+    <div style="margin-top:20px;font-size:13px;line-height:1.7">
+      <b style="color:#facc15">VVIP Exclusive Membership</b><br><br>
+      Deposit 1 juta — berlaku seumur hidup<br>
+      Priority booking & elite benefit
+    </div>
+
+    <hr style="margin:20px 0;border-color:rgba(255,255,255,.12)">
+
+    <div>
+      <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/images/gilt_card.webp"
+           style="width:100%;border-radius:16px;">
+    </div>
+
+    <div style="margin-top:15px;font-size:13px;line-height:1.7">
+      Membership reguler mulai 250k<br>
+      Harga lebih murah dari guest
+    </div>
+
+    <button onclick="closePromo()"
+      style="
+        margin-top:20px;
+        width:100%;
+        padding:14px;
+        border:none;
+        border-radius:16px;
+        background:#22c55e;
+        font-weight:bold;
+        font-size:16px;
+      ">
+      JOIN PENAWARAN SEKARANG
+    </button>
+
+    <button onclick="closePromo()"
+      style="
+        margin-top:10px;
+        width:100%;
+        padding:12px;
+        border:none;
+        border-radius:14px;
+        background:#374151;
+        font-size:14px;
+      ">
+      Lewati
+    </button>
+
+  </div>
+</div>
 
 
     <!-- ======== CARD SLIDER ======== -->
