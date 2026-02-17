@@ -535,19 +535,52 @@ function connectToCinemaRoom() {
   console.log("Connected to Cinema:", user.name);
 }
 
-
 function openCinema(){
 
-  connectToCinemaRoom();  // ✅ ini WAJIB di sini
+  connectToCinemaRoom();
 
   const content = document.getElementById("content");
 
   content.innerHTML = `
     <h2>🎬 Cinema Room</h2>
-    <p>Connected...</p>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px">
+
+      <button onclick="takeSeat('seat1')">Seat 1</button>
+      <button onclick="takeSeat('seat2')">Seat 2</button>
+      <button onclick="takeSeat('seat3')">Seat 3</button>
+
+      <button onclick="takeSeat('seat4')">Seat 4</button>
+      <button onclick="takeSeat('seat5')">Seat 5</button>
+      <button onclick="takeSeat('seat6')">Seat 6</button>
+
+      <button onclick="takeSeat('seat7')">Seat 7</button>
+      <button onclick="takeSeat('seat8')">Seat 8</button>
+      <button onclick="takeSeat('host')">Host Seat</button>
+
+    </div>
   `;
 }
 
+
+function takeSeat(seatName){
+
+  const user = JSON.parse(localStorage.getItem("guser"));
+  if(!user){
+    alert("Login dulu");
+    return;
+  }
+
+  const seatRef = ref(db, "cinema/seats/" + seatName);
+
+  set(seatRef, {
+    userId: user.id,
+    username: user.name,
+    joinedAt: Date.now()
+  });
+
+  console.log("Duduk di", seatName);
+}
 
 
 window.navigate = navigate;
@@ -567,6 +600,12 @@ window.closeModal = closeModal;
 window.submitLogin = submitLogin;
 window.fakeRegister = fakeRegister;
 window.openChat = openChat;
+window.takeSeat = takeSeat;
+
+
+
+
+
 
 document.addEventListener("DOMContentLoaded", function(){
 
