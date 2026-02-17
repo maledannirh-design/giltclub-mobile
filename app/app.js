@@ -3,6 +3,14 @@ import { db, ref, set, remove, onDisconnect } from "./firebase.js";
 import { onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 /* ===============================
+  GLOBAL
+=================================*/
+let localStream = null;
+let peers = {};
+let myUser = null;
+
+
+/* ===============================
    NAVIGATION SYSTEM
 =================================*/
 
@@ -574,7 +582,7 @@ function openCinema(){
   listenSeats();
 }
 
-function takeSeat(seatName){
+async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
   if(!user){
@@ -582,37 +590,57 @@ function takeSeat(seatName){
     return;
   }
 
+  myUser = user;
+
+  if(!localStream){
+    localStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+  }
+
   const seatRef = ref(db, "cinema/seats/" + seatName);
 
-  set(seatRef, {
+  await set(seatRef, {
     userId: user.id,
     username: user.name,
     joinedAt: Date.now()
   });
 
-  console.log("Duduk di", seatName);
+  listenSeats();
+  listenSignaling();
+  listenAnswers();
+  listenCandidates();
+
 }
 
 function listenSeats(){
 
   const seatsRef = ref(db, "cinema/seats");
 
-  onValue(seatsRef, snapshot => {
+  onValue(seatsRef, async snapshot => {
 
-    const data = snapshot.val();
-    if(!data) return;
+    const data = snapshot.val() || {};
 
-    Object.keys(data).forEach(seatName => {
+    Object.values(data).forEach(async seat => {
 
-      const seatData = data[seatName];
-      const seatEl = document.getElementById("seat-" + seatName);
+      if(seat.userId === myUser.id) return;
 
-      if(!seatEl) return;
+      if(!peers[seat.userId]){
 
-      seatEl.innerHTML = `
-        <img src="images/default_profile.webp"
-             style="width:100%;height:100%;border-radius:50%;object-fit:cover">
-      `;
+        const pc = createPeer(seat.userId);
+
+        // 🔥 ANTI CHAOS RULE
+        if(Date.now() > seat.joinedAt){
+
+          if(pc.signalingState !== "stable") return;
+
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+
+          const offerRef = ref(db, `cinema/signaling/offers/${seat.userId}/${myUser.id}`);
+          set(offerRef, offer);
+
+        }
+
+      }
 
     });
 
@@ -620,6 +648,131 @@ function listenSeats(){
 
 }
 
+
+function createPeer(remoteId){
+
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
+
+  localStream.getTracks().forEach(track=>{
+    pc.addTrack(track, localStream);
+  });
+
+  pc.onicecandidate = event=>{
+    if(event.candidate){
+      const candRef = ref(db, `cinema/signaling/candidates/${remoteId}/${myUser.id}`);
+      set(candRef, event.candidate.toJSON());
+    }
+  };
+
+  peers[remoteId] = pc;
+  return pc;
+}
+
+
+function handleConnections(seatsData){
+
+  const user = JSON.parse(localStorage.getItem("guser"));
+  if(!user) return;
+
+  const seatedUsers = Object.values(seatsData);
+
+  seatedUsers.forEach(remote => {
+
+    if(remote.userId === user.id) return;
+
+    if(!peers[remote.userId]){
+
+      const pc = createPeerConnection(remote.userId);
+
+      if(myJoinedAt > remote.joinedAt){
+        createAndSendOffer(pc, remote.userId);
+      }
+
+    }
+
+  });
+
+}
+function listenSignaling(){
+
+  const offerRef = ref(db, `cinema/signaling/offers/${myUser.id}`);
+
+  onValue(offerRef, async snapshot=>{
+
+    const offers = snapshot.val();
+    if(!offers) return;
+
+    for(const remoteId in offers){
+
+      const offer = offers[remoteId];
+
+      if(!peers[remoteId]){
+        createPeer(remoteId);
+      }
+
+      const pc = peers[remoteId];
+
+      if(pc.signalingState !== "stable") continue;
+
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      const answerRef = ref(db, `cinema/signaling/answers/${remoteId}/${myUser.id}`);
+      set(answerRef, answer);
+
+    }
+
+  });
+
+}
+function listenAnswers(){
+
+  const ansRef = ref(db, `cinema/signaling/answers/${myUser.id}`);
+
+  onValue(ansRef, async snapshot=>{
+
+    const answers = snapshot.val();
+    if(!answers) return;
+
+    for(const remoteId in answers){
+
+      const answer = answers[remoteId];
+
+      const pc = peers[remoteId];
+      if(!pc) continue;
+
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+    }
+
+  });
+
+}
+function listenCandidates(){
+
+  const candRef = ref(db, `cinema/signaling/candidates/${myUser.id}`);
+
+  onValue(candRef, snapshot=>{
+
+    const candidates = snapshot.val();
+    if(!candidates) return;
+
+    for(const remoteId in candidates){
+
+      const pc = peers[remoteId];
+      if(!pc) continue;
+
+      pc.addIceCandidate(new RTCIceCandidate(candidates[remoteId]));
+
+    }
+
+  });
+
+}
 
 window.navigate = navigate;
 window.renderProfile = renderProfile;
