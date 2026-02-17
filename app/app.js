@@ -533,15 +533,15 @@ function subHeader(title, backFunction){
     </div>
   `;
 }
-
 function connectToCinemaRoom() {
 
   const user = JSON.parse(localStorage.getItem("guser"));
-  if (!user) return;
+  if (!user) {
+    alert("Login dulu untuk masuk Cinema");
+    return;
+  }
 
-  const userId = user.name; // pakai name dulu
-
-  const userRef = ref(db, "cinema/presence/users/" + userId);
+  const userRef = ref(db, "cinema/presence/users/" + user.id);
 
   set(userRef, {
     username: user.name,
@@ -549,7 +549,10 @@ function connectToCinemaRoom() {
   });
 
   onDisconnect(userRef).remove();
+
+  console.log("Connected to Cinema:", user.name);
 }
+
 document.addEventListener("DOMContentLoaded", function(){
 
   const photoInput = document.getElementById("photoInput");
@@ -592,7 +595,6 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
 });
-;
 
 function openCinema(){
 
