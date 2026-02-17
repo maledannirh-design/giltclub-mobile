@@ -252,26 +252,31 @@ function addToCart(productId){
 /* ===============================
    PROFILE SYSTEM
 =================================*/
+/* ===============================
+   PROFILE SYSTEM
+=================================*/
 function renderProfile(){
 
   const content = document.getElementById("content");
   const user = JSON.parse(localStorage.getItem("guser"));
 
+  const savedPhoto =
+    localStorage.getItem("profilePhoto") ||
+    "images/default_profile.webp";
+
   content.innerHTML = `
-    const savedPhoto = localStorage.getItem("profilePhoto") || "images/woman_profile.webp";
+    <div style="text-align:center;margin-bottom:15px">
 
-<div style="text-align:center;margin-bottom:10px">
-  <img id="profileAvatar"
-       src="${savedPhoto}"
-       style="width:110px;height:110px;border-radius:50%;object-fit:cover;box-shadow:0 10px 25px rgba(0,0,0,.18);cursor:pointer"
-       onclick="document.getElementById('photoInput').click()">
-  
-  <div style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:600">
-    Ganti Foto Profil
-  </div>
-</div>
+      <img id="profileAvatar"
+           src="${savedPhoto}"
+           style="width:110px;height:110px;border-radius:50%;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.15);cursor:pointer"
+           onclick="document.getElementById('photoInput').click()">
 
+      <div style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:600">
+        Ganti Foto Profil
+      </div>
 
+    </div>
 
     <div style="display:flex;gap:10px;margin-bottom:15px">
       <button onclick="${user ? 'renderProfile()' : 'goLogin()'}"
@@ -296,6 +301,7 @@ function renderProfile(){
     </div>
   `;
 }
+
 
 function requireLogin(callback){
 
@@ -556,15 +562,18 @@ function connectToCinemaRoom() {
   const user = JSON.parse(localStorage.getItem("guser"));
   if (!user) return;
 
-  const userRef = ref(db, "cinema/presence/users/" + user.user_id);
+  const userId = user.name; // pakai name dulu
+
+  const userRef = ref(db, "cinema/presence/users/" + userId);
 
   set(userRef, {
-    username: user.username,
+    username: user.name,
     joinedAt: Date.now()
   });
 
   onDisconnect(userRef).remove();
 }
+
 
 document.addEventListener("DOMContentLoaded", ()=>{
   navigate("home", document.querySelector(".nav-btn"));
