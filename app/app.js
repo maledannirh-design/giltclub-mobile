@@ -53,8 +53,6 @@ function navigate(page, el){
   }
 }
 
-
-
 /* ===============================
    CHAT
 =================================*/
@@ -252,9 +250,6 @@ function addToCart(productId){
 /* ===============================
    PROFILE SYSTEM
 =================================*/
-/* ===============================
-   PROFILE SYSTEM
-=================================*/
 function renderProfile(){
 
   const content = document.getElementById("content");
@@ -302,7 +297,6 @@ function renderProfile(){
   `;
 }
 
-
 function requireLogin(callback){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -314,7 +308,6 @@ function requireLogin(callback){
 
   callback();
 }
-
 
 function menuItem(title, action){
   return `
@@ -428,13 +421,6 @@ function renderPrivacyMenu(){
     </div>
   `;
 }
-function goLogin(){
-  alert("Login page connect ke Excel backend nanti");
-}
-
-function goRegister(){
-  alert("Register page connect ke Excel backend nanti");
-}
 
 function logout(){
   localStorage.removeItem("guser");
@@ -485,11 +471,13 @@ function goRegister(){
     </div>
   `;
 }
+
 function closeModal(){
   const modal = document.getElementById("modal-overlay");
   modal.style.display = "none";
   modal.innerHTML = "";
 }
+
 function submitLogin(){
 
   const username = document.getElementById("login-username").value;
@@ -507,6 +495,7 @@ function submitLogin(){
   closeModal();
   renderProfile();
 }
+
 function fakeRegister(){
   alert("Akun berhasil dibuat (simulasi)");
   closeModal();
@@ -522,40 +511,6 @@ function subHeader(title, backFunction){
     </div>
   `;
 }
-
-document.getElementById("photoInput").addEventListener("change", function(e){
-
-  const file = e.target.files[0];
-  if(!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = function(event){
-
-    const img = new Image();
-    img.onload = function(){
-
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      const size = 300; // output 300x300
-      canvas.width = size;
-      canvas.height = size;
-
-      ctx.drawImage(img, 0, 0, size, size);
-
-      const compressed = canvas.toDataURL("image/jpeg", 0.7);
-
-      localStorage.setItem("profilePhoto", compressed);
-
-      document.getElementById("profileAvatar").src = compressed;
-    };
-
-    img.src = event.target.result;
-  };
-
-  reader.readAsDataURL(file);
-});
 
 function connectToCinemaRoom() {
 
@@ -609,7 +564,6 @@ document.getElementById("photoInput").addEventListener("change", function(e){
   reader.readAsDataURL(file);
 });
 
-
 function connectToCinemaRoom() {
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -631,7 +585,6 @@ function connectToCinemaRoom() {
 
   console.log("Connected to Cinema:", user.name);
 }
-
 
 window.navigate = navigate;
 window.renderProfile = renderProfile;
