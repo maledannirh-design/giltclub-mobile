@@ -571,3 +571,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
   connectToCinemaRoom();   // ← tambahkan ini
 });
 
+
+window.navigate = navigate;
+window.renderProfile = renderProfile;
+window.goLogin = goLogin;
+window.goRegister = goRegister;
+window.logout = logout;
+
