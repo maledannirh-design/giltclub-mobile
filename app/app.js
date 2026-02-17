@@ -478,6 +478,7 @@ function closeModal(){
   modal.style.display = "none";
   modal.innerHTML = "";
 }
+
 function submitLogin(){
 
   const username = document.getElementById("login-username").value;
@@ -487,7 +488,7 @@ function submitLogin(){
     return;
   }
 
-  const userId = crypto.randomUUID(); // ✅ penting
+  const userId = crypto.randomUUID();
 
   localStorage.setItem("guser", JSON.stringify({
     id: userId,
@@ -498,6 +499,7 @@ function submitLogin(){
   closeModal();
   renderProfile();
 }
+
 function fakeRegister(){
   alert("Akun berhasil dibuat (simulasi)");
   closeModal();
