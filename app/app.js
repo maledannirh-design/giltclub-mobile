@@ -549,6 +549,11 @@ function subHeader(title, backFunction){
   `;
 }
 
+
+
+/* ===============================
+   FIREBASE
+=================================*/
 function connectToCinemaRoom(){
 
   let user = JSON.parse(localStorage.getItem("guser"));
@@ -575,7 +580,6 @@ function connectToCinemaRoom(){
 
   console.log("Presence OK:", user.id);
 }
-
 
 function openCinema(){
 
@@ -618,6 +622,7 @@ function openCinema(){
     listenCandidates();
   }
 }
+
 async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -689,7 +694,6 @@ function listenSeats(){
   });
 }
 
-
 async function startMic(){
 
   if(localStream) return; // jangan start dua kali
@@ -725,7 +729,6 @@ function listenCandidates(){
 
   });
 }
-
 
 function listenOffers(){
 
@@ -807,7 +810,6 @@ async function startLocalAudio(){
   catch(e){
     console.error("MIC ERROR:", e);
   }
-}
 }
 
 function attachPhotoListener(){
