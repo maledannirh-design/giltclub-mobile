@@ -595,6 +595,16 @@ window.goLogin = goLogin;
 window.goRegister = goRegister;
 window.logout = logout;
 window.openCinema = openCinema;
+window.requireLogin = requireLogin;
+window.renderAccountMenu = renderAccountMenu;
+window.renderSecurityMenu = renderSecurityMenu;
+window.renderPersonalInfo = renderPersonalInfo;
+window.renderVerificationMenu = renderVerificationMenu;
+window.renderAddressMenu = renderAddressMenu;
+window.renderPrivacyMenu = renderPrivacyMenu;
+window.closeModal = closeModal;
+window.submitLogin = submitLogin;
+window.fakeRegister = fakeRegister;
 
 document.addEventListener("DOMContentLoaded", ()=>{
   navigate("home", document.querySelector(".nav-btn"));
