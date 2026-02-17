@@ -506,6 +506,12 @@ function closeModal(){
   modal.style.display = "none";
   modal.innerHTML = "";
 }
+function generateId() {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'u-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+}
 
 function submitLogin(){
 
@@ -516,7 +522,7 @@ function submitLogin(){
     return;
   }
 
-  const userId = crypto.randomUUID();
+  const userId = generateId(); // 🔥 pakai ini
 
   localStorage.setItem("guser", JSON.stringify({
     id: userId,
