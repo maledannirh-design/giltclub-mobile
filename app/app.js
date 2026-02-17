@@ -498,26 +498,6 @@ function submitLogin(){
   closeModal();
   renderProfile();
 }
-function connectToCinemaRoom() {
-
-  const user = JSON.parse(localStorage.getItem("guser"));
-  if (!user) {
-    alert("Login dulu untuk masuk Cinema");
-    return;
-  }
-
-  const userRef = ref(db, "cinema/presence/users/" + user.id);
-
-  set(userRef, {
-    username: user.name,
-    joinedAt: Date.now()
-  });
-
-  onDisconnect(userRef).remove();
-
-  console.log("Connected to Cinema:", user.name);
-}
-
 function fakeRegister(){
   alert("Akun berhasil dibuat (simulasi)");
   closeModal();
@@ -585,6 +565,7 @@ window.closeModal = closeModal;
 window.submitLogin = submitLogin;
 window.fakeRegister = fakeRegister;
 window.openChat = openChat;
+
 document.addEventListener("DOMContentLoaded", function(){
 
   const photoInput = document.getElementById("photoInput");
