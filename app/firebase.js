@@ -1,9 +1,27 @@
-// Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getDatabase, ref, set, remove, onDisconnect } 
+// ===============================
+// FIREBASE CORE (Single Init)
+// ===============================
+
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+
+import { 
+  getDatabase, 
+  ref, 
+  set, 
+  remove, 
+  onDisconnect,
+  onValue,
+  get,
+  push
+} 
 from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-// Config kamu (sudah benar dari console)
+
+// ===============================
+// CONFIG
+// ===============================
+
 const firebaseConfig = {
   apiKey: "AIzaSyCCl9nA3a4drx9RKTHDUEf6uHM30JszRGc",
   authDomain: "gilt-club-cinema.firebaseapp.com",
@@ -14,8 +32,26 @@ const firebaseConfig = {
   appId: "1:957745588991:web:b55f8e5177b92aa7e37aca"
 };
 
+
+// ===============================
+// INIT
+// ===============================
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// EXPORT supaya bisa dipakai di app.js
-export { db, ref, set, remove, onDisconnect };
+
+// ===============================
+// EXPORT (SINGLE SOURCE)
+// ===============================
+
+export {
+  db,
+  ref,
+  set,
+  remove,
+  onDisconnect,
+  onValue,
+  get,
+  push
+};
