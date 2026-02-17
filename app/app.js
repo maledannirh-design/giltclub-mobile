@@ -478,7 +478,6 @@ function closeModal(){
   modal.style.display = "none";
   modal.innerHTML = "";
 }
-
 function submitLogin(){
 
   const username = document.getElementById("login-username").value;
@@ -488,13 +487,35 @@ function submitLogin(){
     return;
   }
 
+  const userId = crypto.randomUUID(); // ✅ penting
+
   localStorage.setItem("guser", JSON.stringify({
+    id: userId,
     name: username,
     membership: "MEMBER"
   }));
 
   closeModal();
   renderProfile();
+}
+function connectToCinemaRoom() {
+
+  const user = JSON.parse(localStorage.getItem("guser"));
+  if (!user) {
+    alert("Login dulu untuk masuk Cinema");
+    return;
+  }
+
+  const userRef = ref(db, "cinema/presence/users/" + user.id);
+
+  set(userRef, {
+    username: user.name,
+    joinedAt: Date.now()
+  });
+
+  onDisconnect(userRef).remove();
+
+  console.log("Connected to Cinema:", user.name);
 }
 
 function fakeRegister(){
@@ -575,18 +596,16 @@ document.addEventListener("DOMContentLoaded", function(){
 
 function openCinema(){
 
+  connectToCinemaRoom();  // ✅ ini WAJIB di sini
+
   const content = document.getElementById("content");
 
-  connectToCinemaRoom(); // ✅ DI SINI
-
   content.innerHTML = `
-  <div style="background:#111;color:white;min-height:80vh;padding:20px">
     <h2>🎬 Cinema Room</h2>
     <p>Connected...</p>
-  </div>
-`;
-
+  `;
 }
+
 
 
 window.navigate = navigate;
