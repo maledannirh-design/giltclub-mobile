@@ -9,23 +9,20 @@ import {
   get
 } from "./firebase.js";
 
-
-
 /* ===============================
-  GLOBAL
+   WEBRTC CLEAN ENGINE
 =================================*/
+
 let localStream = null;
-let peers = {};
-let myUser = null;
 let peerConnections = {};
-/* ===============================
-   WEBRTC GLOBAL ENGINE
-=================================*/
+let myUser = null;
+
 const rtcConfig = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" }
   ]
 };
+;
 
 
 /* ===============================
@@ -605,11 +602,12 @@ function openCinema(){
   // 🔥 WAJIB di bawah innerHTML
   // 🔥 ROOM LEVEL LISTENERS
   listenSeats();
-  listenOffers();
-  listenAnswers();
-  listenCandidates();
+  if(myUser){
+    listenOffers();
+    listenAnswers();
+    listenCandidates();
+  }
 }
-
 async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -620,7 +618,7 @@ async function takeSeat(seatName){
 
   myUser = user;
 
-  await startLocalAudio(); // 🎤 mic aktif dulu
+  await startLocalAudio();
 
   const seatRef = ref(db, "cinema/seats/" + seatName);
 
@@ -641,8 +639,8 @@ function listenSeats(){
 
     const data = snapshot.val() || {};
 
-    // Reset semua seat dulu
-    document.querySelectorAll(".seat").forEach(seat => {
+    // reset UI
+    document.querySelectorAll(".seat").forEach(seat=>{
       seat.innerHTML = `<span class="seat-icon">🪑</span>`;
       seat.classList.remove("occupied");
     });
@@ -656,13 +654,25 @@ function listenSeats(){
 
       seatEl.classList.add("occupied");
 
-      const photo = localStorage.getItem("profilePhoto") 
-        || "images/default_profile.webp";
-
       seatEl.innerHTML = `
-        <img src="${photo}"
+        <img src="images/default_profile.webp"
              style="width:100%;height:100%;border-radius:50%;object-fit:cover">
       `;
+
+      // 🔥 CONNECT ENGINE
+      if(myUser && seatData.userId !== myUser.id){
+
+        if(!peerConnections[seatData.userId]){
+
+          const pc = createPeer(seatData.userId);
+
+          // user yang join terakhir kirim offer
+          if(myUser.id > seatData.userId){
+            sendOffer(pc, seatData.userId);
+          }
+
+        }
+      }
 
     });
 
@@ -670,86 +680,6 @@ function listenSeats(){
 }
 
 
-function createPeer(remoteId){
-
-  const pc = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-  });
-
-  localStream.getTracks().forEach(track=>{
-    pc.addTrack(track, localStream);
-  });
-
-  pc.onicecandidate = event=>{
-    if(event.candidate){
-      const candRef = ref(db, `cinema/signaling/candidates/${remoteId}/${myUser.id}`);
-      set(candRef, event.candidate.toJSON());
-    }
-  };
-
-  peers[remoteId] = pc;
-  return pc;
-}
-
-
-function handleConnections(seatsData){
-
-  const user = JSON.parse(localStorage.getItem("guser"));
-  if(!user) return;
-
-  const seatedUsers = Object.values(seatsData);
-
-  seatedUsers.forEach(remote => {
-
-    if(remote.userId === user.id) return;
-
-    if(!peers[remote.userId]){
-
-      const pc = createPeerConnection(remote.userId);
-
-      if(myJoinedAt > remote.joinedAt){
-        createAndSendOffer(pc, remote.userId);
-      }
-
-    }
-
-  });
-
-}
-function listenSignaling(){
-
-  const offerRef = ref(db, `cinema/signaling/offers/${myUser.id}`);
-
-  onValue(offerRef, async snapshot=>{
-
-    const offers = snapshot.val();
-    if(!offers) return;
-
-    for(const remoteId in offers){
-
-      const offer = offers[remoteId];
-
-      if(!peers[remoteId]){
-        createPeer(remoteId);
-      }
-
-      const pc = peers[remoteId];
-
-      if(pc.signalingState !== "stable") continue;
-
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      const answerRef = ref(db, `cinema/signaling/answers/${remoteId}/${myUser.id}`);
-      set(answerRef, answer);
-
-    }
-
-  });
-
-}
 async function startMic(){
 
   if(localStream) return; // jangan start dua kali
@@ -762,99 +692,36 @@ async function startMic(){
   console.log("Mic started");
 }
 
-async function createOffer(targetUserId){
-
-  const user = JSON.parse(localStorage.getItem("guser"));
-  if(!user) return;
-
-  if(peerConnections[targetUserId]) return;
-
-  const pc = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" }
-    ]
-  });
-
-  peerConnections[targetUserId] = pc;
-
-  localStream.getTracks().forEach(track=>{
-    pc.addTrack(track, localStream);
-  });
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-
-  const offerRef = ref(db, "cinema/signaling/offers/" + targetUserId + "_" + user.id);
-
-  await set(offerRef, {
-    from: user.id,
-    to: targetUserId,
-    sdp: offer
-  });
-
-  console.log("Offer sent to", targetUserId);
-}
-
 function listenCandidates(){
 
-  const candRef = ref(db, `cinema/signaling/candidates/${myUser.id}`);
+  const candRef = ref(db,
+    "cinema/signaling/candidates/" + myUser.id
+  );
 
-  onValue(candRef, snapshot=>{
+  onValue(candRef, snapshot => {
 
     const candidates = snapshot.val();
     if(!candidates) return;
 
-    for(const remoteId in candidates){
+    for(const senderId in candidates){
 
-      const pc = peers[remoteId];
+      const pc = peerConnections[senderId];
       if(!pc) continue;
 
-      pc.addIceCandidate(new RTCIceCandidate(candidates[remoteId]));
-
+      pc.addIceCandidate(
+        new RTCIceCandidate(candidates[senderId])
+      );
     }
 
   });
-
 }
 
-function createPeerConnection(remoteUserId){
-
-  const pc = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" }
-    ]
-  });
-
-  peerConnections[remoteUserId] = pc;
-
-  // Kirim mic kita
-  if(localStream){
-    localStream.getTracks().forEach(track => {
-      pc.addTrack(track, localStream);
-    });
-  }
-
-  // Terima audio orang lain
-  pc.ontrack = event => {
-
-    let audioEl = document.getElementById("audio-" + remoteUserId);
-
-    if(!audioEl){
-      audioEl = document.createElement("audio");
-      audioEl.id = "audio-" + remoteUserId;
-      audioEl.autoplay = true;
-      document.body.appendChild(audioEl);
-    }
-
-    audioEl.srcObject = event.streams[0];
-  };
-
-  return pc;
-}
 
 function listenOffers(){
 
-  const offersRef = ref(db, "cinema/signaling/offers/" + myUser.id);
+  const offersRef = ref(db,
+    "cinema/signaling/offers/" + myUser.id
+  );
 
   onValue(offersRef, async snapshot => {
 
@@ -863,24 +730,20 @@ function listenOffers(){
 
     for(const senderId in offers){
 
-      const offer = offers[senderId];
-
       if(peerConnections[senderId]) continue;
 
-      const pc = new RTCPeerConnection(rtcConfig);
-      peerConnections[senderId] = pc;
+      const pc = createPeer(senderId);
 
-      localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
-      });
-
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      await pc.setRemoteDescription(
+        new RTCSessionDescription(offers[senderId])
+      );
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
       const answerRef = ref(db,
-        "cinema/signaling/answers/" + senderId + "/" + myUser.id
+        "cinema/signaling/answers/" +
+        senderId + "/" + myUser.id
       );
 
       await set(answerRef, answer);
@@ -893,7 +756,9 @@ function listenOffers(){
 
 function listenAnswers(){
 
-  const answersRef = ref(db, "cinema/signaling/answers/" + myUser.id);
+  const answersRef = ref(db,
+    "cinema/signaling/answers/" + myUser.id
+  );
 
   onValue(answersRef, async snapshot => {
 
@@ -917,8 +782,8 @@ function listenAnswers(){
   });
 }
 
-async function startLocalAudio(){
 
+async function startLocalAudio(){
   if(localStream) return;
 
   localStream = await navigator.mediaDevices.getUserMedia({
@@ -928,8 +793,48 @@ async function startLocalAudio(){
 
   console.log("🎤 Mic Ready");
 }
+function createPeer(remoteUserId){
 
-async function initiateOffer(pc, remoteUserId){
+  const pc = new RTCPeerConnection(rtcConfig);
+
+  peerConnections[remoteUserId] = pc;
+
+  // kirim audio kita
+  localStream.getTracks().forEach(track=>{
+    pc.addTrack(track, localStream);
+  });
+
+  // terima audio
+  pc.ontrack = event => {
+
+    let audioEl = document.getElementById("audio-" + remoteUserId);
+
+    if(!audioEl){
+      audioEl = document.createElement("audio");
+      audioEl.id = "audio-" + remoteUserId;
+      audioEl.autoplay = true;
+      document.body.appendChild(audioEl);
+    }
+
+    audioEl.srcObject = event.streams[0];
+  };
+
+  // kirim ICE
+  pc.onicecandidate = event=>{
+    if(event.candidate){
+      const candRef = ref(db,
+        "cinema/signaling/candidates/" +
+        remoteUserId + "/" + myUser.id
+      );
+
+      set(candRef, event.candidate.toJSON());
+    }
+  };
+
+  return pc;
+}
+
+async function sendOffer(pc, remoteUserId){
 
   if(pc.signalingState !== "stable") return;
 
@@ -937,13 +842,15 @@ async function initiateOffer(pc, remoteUserId){
   await pc.setLocalDescription(offer);
 
   const offerRef = ref(db,
-    "cinema/signaling/offers/" + remoteUserId + "/" + myUser.id
+    "cinema/signaling/offers/" +
+    remoteUserId + "/" + myUser.id
   );
 
   await set(offerRef, offer);
 
   console.log("📡 Offer sent to", remoteUserId);
 }
+
 
 
 window.navigate = navigate;
