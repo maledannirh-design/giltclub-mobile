@@ -1,5 +1,7 @@
 
 import { db, ref, set, remove, onDisconnect } from "./firebase.js";
+import { onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+
 /* ===============================
    NAVIGATION SYSTEM
 =================================*/
@@ -515,6 +517,7 @@ function subHeader(title, backFunction){
     </div>
   `;
 }
+
 function connectToCinemaRoom() {
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -571,8 +574,6 @@ function openCinema(){
   listenSeats();
 }
 
-
-
 function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -591,7 +592,6 @@ function takeSeat(seatName){
 
   console.log("Duduk di", seatName);
 }
-import { onValue } from "firebase/database";
 
 function listenSeats(){
 
@@ -641,57 +641,52 @@ window.openChat = openChat;
 window.takeSeat = takeSeat;
 
 
-
-
-
-
 document.addEventListener("DOMContentLoaded", function(){
 
+  // 🔹 Default page
+  navigate("home", document.querySelector(".nav-btn"));
+
+  // 🔹 Photo upload handler
   const photoInput = document.getElementById("photoInput");
-  if(!photoInput) return;
 
-  photoInput.addEventListener("change", function(e){
+  if(photoInput){
+    photoInput.addEventListener("change", function(e){
 
-    const file = e.target.files[0];
-    if(!file) return;
+      const file = e.target.files[0];
+      if(!file) return;
 
-    const reader = new FileReader();
+      const reader = new FileReader();
 
-    reader.onload = function(event){
+      reader.onload = function(event){
 
-      const img = new Image();
+        const img = new Image();
 
-      img.onload = function(){
+        img.onload = function(){
 
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
 
-        const size = 300;
-        canvas.width = size;
-        canvas.height = size;
+          const size = 300;
+          canvas.width = size;
+          canvas.height = size;
 
-        ctx.drawImage(img, 0, 0, size, size);
+          ctx.drawImage(img, 0, 0, size, size);
 
-        const compressed = canvas.toDataURL("image/jpeg", 0.7);
+          const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
-        localStorage.setItem("profilePhoto", compressed);
+          localStorage.setItem("profilePhoto", compressed);
 
-        const avatar = document.getElementById("profileAvatar");
-        if(avatar) avatar.src = compressed;
+          const avatar = document.getElementById("profileAvatar");
+          if(avatar) avatar.src = compressed;
+        };
+
+        img.src = event.target.result;
       };
 
-      img.src = event.target.result;
-    };
+      reader.readAsDataURL(file);
+    });
+  }
 
-    reader.readAsDataURL(file);
-  });
-
-});
-
-
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  navigate("home", document.querySelector(".nav-btn"));
 });
 
 
