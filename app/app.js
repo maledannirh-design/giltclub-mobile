@@ -609,6 +609,7 @@ function openCinema(){
   listenAnswers();
   listenCandidates();
 }
+
 async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
