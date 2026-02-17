@@ -266,6 +266,7 @@ function renderProfile(){
            src="${savedPhoto}"
            style="width:110px;height:110px;border-radius:50%;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.15);cursor:pointer"
            onclick="document.getElementById('photoInput').click()">
+      <input type="file" id="photoInput" accept="image/*" style="display:none">
 
       <div style="margin-top:8px;font-size:13px;color:#16a34a;font-weight:600">
         Ganti Foto Profil
@@ -528,41 +529,49 @@ function connectToCinemaRoom() {
 
   onDisconnect(userRef).remove();
 }
+document.addEventListener("DOMContentLoaded", function(){
 
-document.getElementById("photoInput").addEventListener("change", function(e){
+  const photoInput = document.getElementById("photoInput");
+  if(!photoInput) return;
 
-  const file = e.target.files[0];
-  if(!file) return;
+  photoInput.addEventListener("change", function(e){
 
-  const reader = new FileReader();
+    const file = e.target.files[0];
+    if(!file) return;
 
-  reader.onload = function(event){
+    const reader = new FileReader();
 
-    const img = new Image();
+    reader.onload = function(event){
 
-    img.onload = function(){
+      const img = new Image();
 
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
+      img.onload = function(){
 
-      const size = 300;
-      canvas.width = size;
-      canvas.height = size;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
-      ctx.drawImage(img, 0, 0, size, size);
+        const size = 300;
+        canvas.width = size;
+        canvas.height = size;
 
-      const compressed = canvas.toDataURL("image/jpeg", 0.7);
+        ctx.drawImage(img, 0, 0, size, size);
 
-      localStorage.setItem("profilePhoto", compressed);
+        const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
-      document.getElementById("profileAvatar").src = compressed;
+        localStorage.setItem("profilePhoto", compressed);
+
+        const avatar = document.getElementById("profileAvatar");
+        if(avatar) avatar.src = compressed;
+      };
+
+      img.src = event.target.result;
     };
 
-    img.src = event.target.result;
-  };
+    reader.readAsDataURL(file);
+  });
 
-  reader.readAsDataURL(file);
 });
+;
 
 function openCinema(){
 
@@ -571,8 +580,12 @@ function openCinema(){
   connectToCinemaRoom(); // ✅ DI SINI
 
   content.innerHTML = `
-    ...
-  `;
+  <div style="background:#111;color:white;min-height:80vh;padding:20px">
+    <h2>🎬 Cinema Room</h2>
+    <p>Connected...</p>
+  </div>
+`;
+
 }
 
 
@@ -586,4 +599,5 @@ window.openCinema = openCinema;
 document.addEventListener("DOMContentLoaded", ()=>{
   navigate("home", document.querySelector(".nav-btn"));
 });
+
 
