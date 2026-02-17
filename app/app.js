@@ -605,6 +605,7 @@ window.renderPrivacyMenu = renderPrivacyMenu;
 window.closeModal = closeModal;
 window.submitLogin = submitLogin;
 window.fakeRegister = fakeRegister;
+window.openChat = openChat;
 
 document.addEventListener("DOMContentLoaded", ()=>{
   navigate("home", document.querySelector(".nav-btn"));
