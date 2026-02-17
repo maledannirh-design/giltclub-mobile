@@ -18,6 +18,14 @@ let localStream = null;
 let peers = {};
 let myUser = null;
 let peerConnections = {};
+/* ===============================
+   WEBRTC GLOBAL ENGINE
+=================================*/
+const rtcConfig = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" }
+  ]
+};
 
 
 /* ===============================
@@ -603,7 +611,9 @@ async function takeSeat(seatName){
     return;
   }
 
-  await startMic();
+  myUser = user;
+
+  await startLocalAudio(); // 🎤 mic aktif dulu
 
   const seatRef = ref(db, "cinema/seats/" + seatName);
 
@@ -613,56 +623,45 @@ async function takeSeat(seatName){
     joinedAt: Date.now()
   });
 
-  // setelah duduk → kirim offer ke existing user
-  const seatsSnapshot = await get(ref(db, "cinema/seats"));
-  const seatsData = seatsSnapshot.val();
-
-  Object.values(seatsData).forEach(seat=>{
-    if(seat.userId !== user.id){
-      createOffer(seat.userId);
-    }
-  });
-
+  console.log("🪑 Duduk di", seatName);
 }
-
 
 
 function listenSeats(){
 
   const seatsRef = ref(db, "cinema/seats");
 
-  onValue(seatsRef, async snapshot => {
+  onValue(seatsRef, snapshot => {
 
-    const data = snapshot.val() || {};
+    const data = snapshot.val();
 
-    Object.values(data).forEach(async seat => {
+    if(!data) return;
 
-      if(seat.userId === myUser.id) return;
+    Object.keys(data).forEach(seatName => {
 
-      if(!peers[seat.userId]){
+      const seatData = data[seatName];
+      const seatEl = document.getElementById("seat-" + seatName);
 
-        const pc = createPeer(seat.userId);
+      if(!seatEl) return;
 
-        // 🔥 ANTI CHAOS RULE
-        if(Date.now() > seat.joinedAt){
+      // tampilkan avatar
+      seatEl.innerHTML = `
+        <img src="images/default_profile.webp"
+             style="width:100%;height:100%;border-radius:50%;object-fit:cover">
+      `;
 
-          if(pc.signalingState !== "stable") return;
+      // 🔥 JANGAN CONNECT KE DIRI SENDIRI
+      if(myUser && seatData.userId !== myUser.id){
 
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-
-          const offerRef = ref(db, `cinema/signaling/offers/${seat.userId}/${myUser.id}`);
-          set(offerRef, offer);
-
-        }
+        createPeerConnection(seatData.userId);
 
       }
 
     });
 
   });
-
 }
+
 
 
 function createPeer(remoteId){
@@ -811,87 +810,126 @@ function listenCandidates(){
   });
 
 }
-
 function listenOffers(){
 
-  const user = JSON.parse(localStorage.getItem("guser"));
-  if(!user) return;
-
-  const offersRef = ref(db, "cinema/signaling/offers");
+  const offersRef = ref(db, "cinema/signaling/offers/" + myUser.id);
 
   onValue(offersRef, async snapshot => {
 
     const offers = snapshot.val();
     if(!offers) return;
 
-    Object.values(offers).forEach(async offerData => {
+    for(const senderId in offers){
 
-      if(offerData.to !== user.id) return;
+      const offer = offers[senderId];
 
-      if(peerConnections[offerData.from]) return;
+      if(peerConnections[senderId]) continue;
 
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" }
-        ]
-      });
+      const pc = new RTCPeerConnection(rtcConfig);
+      peerConnections[senderId] = pc;
 
-      peerConnections[offerData.from] = pc;
-
-      localStream.getTracks().forEach(track=>{
+      localStream.getTracks().forEach(track => {
         pc.addTrack(track, localStream);
       });
 
-      await pc.setRemoteDescription(new RTCSessionDescription(offerData.sdp));
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      const answerRef = ref(db, "cinema/signaling/answers/" + offerData.from + "_" + user.id);
+      const answerRef = ref(db,
+        "cinema/signaling/answers/" + senderId + "/" + myUser.id
+      );
 
-      await set(answerRef, {
-        from: user.id,
-        to: offerData.from,
-        sdp: answer
-      });
+      await set(answerRef, answer);
 
-      console.log("Answer sent to", offerData.from);
-
-    });
+      console.log("📡 Answer sent to", senderId);
+    }
 
   });
 }
 
 function listenAnswers(){
 
-  const user = JSON.parse(localStorage.getItem("guser"));
-  if(!user) return;
-
-  const answersRef = ref(db, "cinema/signaling/answers");
+  const answersRef = ref(db, "cinema/signaling/answers/" + myUser.id);
 
   onValue(answersRef, async snapshot => {
 
     const answers = snapshot.val();
     if(!answers) return;
 
-    Object.values(answers).forEach(async answerData => {
+    for(const senderId in answers){
 
-      if(answerData.to !== user.id) return;
+      const pc = peerConnections[senderId];
+      if(!pc) continue;
 
-      const pc = peerConnections[answerData.from];
-      if(!pc) return;
-
-      if(pc.signalingState !== "have-local-offer") return;
+      if(pc.currentRemoteDescription) continue;
 
       await pc.setRemoteDescription(
-        new RTCSessionDescription(answerData.sdp)
+        new RTCSessionDescription(answers[senderId])
       );
 
-      console.log("Connection completed with", answerData.from);
-
-    });
+      console.log("✅ Connected to", senderId);
+    }
 
   });
+}
+
+async function startLocalAudio(){
+
+  if(localStream) return;
+
+  localStream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: false
+  });
+
+  console.log("🎤 Mic Ready");
+}
+function createPeerConnection(remoteUserId){
+
+  if(peerConnections[remoteUserId]) return;
+
+  const pc = new RTCPeerConnection(rtcConfig);
+
+  peerConnections[remoteUserId] = pc;
+
+  // Kirim mic ke remote
+  localStream.getTracks().forEach(track => {
+    pc.addTrack(track, localStream);
+  });
+
+  // ICE candidate
+  pc.onicecandidate = event => {
+    if(event.candidate){
+
+      const candidateRef = ref(db,
+        "cinema/signaling/candidates/" + remoteUserId + "/" + myUser.id
+      );
+
+      set(candidateRef, event.candidate.toJSON());
+    }
+  };
+
+  // 🔥 ANTI CHAOS RULE
+  // User yang duduk terakhir → initiate offer
+
+  initiateOffer(pc, remoteUserId);
+}
+async function initiateOffer(pc, remoteUserId){
+
+  if(pc.signalingState !== "stable") return;
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  const offerRef = ref(db,
+    "cinema/signaling/offers/" + remoteUserId + "/" + myUser.id
+  );
+
+  await set(offerRef, offer);
+
+  console.log("📡 Offer sent to", remoteUserId);
 }
 
 
