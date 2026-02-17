@@ -542,25 +542,35 @@ function openCinema(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <h2>🎬 Cinema Room</h2>
+    <div class="cinema-container">
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px">
+      <div class="cinema-video-area">
+        <div class="video-placeholder">
+          🎬 Live Stage
+        </div>
+      </div>
 
-      <button onclick="takeSeat('seat1')">Seat 1</button>
-      <button onclick="takeSeat('seat2')">Seat 2</button>
-      <button onclick="takeSeat('seat3')">Seat 3</button>
+      <div class="cinema-host" onclick="takeSeat('host')">
+        <div class="seat host-seat" id="seat-host">
+          <span class="seat-icon">🎙️</span>
+        </div>
+      </div>
 
-      <button onclick="takeSeat('seat4')">Seat 4</button>
-      <button onclick="takeSeat('seat5')">Seat 5</button>
-      <button onclick="takeSeat('seat6')">Seat 6</button>
-
-      <button onclick="takeSeat('seat7')">Seat 7</button>
-      <button onclick="takeSeat('seat8')">Seat 8</button>
-      <button onclick="takeSeat('host')">Host Seat</button>
+      <div class="cinema-seats">
+        ${[1,2,3,4,5,6,7,8].map(n => `
+          <div class="seat" id="seat-seat${n}" onclick="takeSeat('seat${n}')">
+            <span class="seat-icon">🪑</span>
+          </div>
+        `).join("")}
+      </div>
 
     </div>
   `;
+
+  // 🔥 WAJIB di bawah innerHTML
+  listenSeats();
 }
+
 
 
 function takeSeat(seatName){
@@ -580,6 +590,34 @@ function takeSeat(seatName){
   });
 
   console.log("Duduk di", seatName);
+}
+import { onValue } from "firebase/database";
+
+function listenSeats(){
+
+  const seatsRef = ref(db, "cinema/seats");
+
+  onValue(seatsRef, snapshot => {
+
+    const data = snapshot.val();
+    if(!data) return;
+
+    Object.keys(data).forEach(seatName => {
+
+      const seatData = data[seatName];
+      const seatEl = document.getElementById("seat-" + seatName);
+
+      if(!seatEl) return;
+
+      seatEl.innerHTML = `
+        <img src="images/default_profile.webp"
+             style="width:100%;height:100%;border-radius:50%;object-fit:cover">
+      `;
+
+    });
+
+  });
+
 }
 
 
