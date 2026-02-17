@@ -328,3 +328,11 @@ body{
   font-weight:600;
 }
 
+.cinema-btn{
+  background:linear-gradient(135deg,#111,#000);
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.cinema-btn.active{
+  background:#16a34a;
+  color:white;
+}
