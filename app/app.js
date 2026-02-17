@@ -553,6 +553,38 @@ function connectToCinemaRoom() {
   console.log("Connected to Cinema:", user.name);
 }
 
+
+function openCinema(){
+
+  connectToCinemaRoom();  // ✅ ini WAJIB di sini
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <h2>🎬 Cinema Room</h2>
+    <p>Connected...</p>
+  `;
+}
+
+
+
+window.navigate = navigate;
+window.renderProfile = renderProfile;
+window.goLogin = goLogin;
+window.goRegister = goRegister;
+window.logout = logout;
+window.openCinema = openCinema;
+window.requireLogin = requireLogin;
+window.renderAccountMenu = renderAccountMenu;
+window.renderSecurityMenu = renderSecurityMenu;
+window.renderPersonalInfo = renderPersonalInfo;
+window.renderVerificationMenu = renderVerificationMenu;
+window.renderAddressMenu = renderAddressMenu;
+window.renderPrivacyMenu = renderPrivacyMenu;
+window.closeModal = closeModal;
+window.submitLogin = submitLogin;
+window.fakeRegister = fakeRegister;
+window.openChat = openChat;
 document.addEventListener("DOMContentLoaded", function(){
 
   const photoInput = document.getElementById("photoInput");
@@ -596,37 +628,7 @@ document.addEventListener("DOMContentLoaded", function(){
 
 });
 
-function openCinema(){
 
-  connectToCinemaRoom();  // ✅ ini WAJIB di sini
-
-  const content = document.getElementById("content");
-
-  content.innerHTML = `
-    <h2>🎬 Cinema Room</h2>
-    <p>Connected...</p>
-  `;
-}
-
-
-
-window.navigate = navigate;
-window.renderProfile = renderProfile;
-window.goLogin = goLogin;
-window.goRegister = goRegister;
-window.logout = logout;
-window.openCinema = openCinema;
-window.requireLogin = requireLogin;
-window.renderAccountMenu = renderAccountMenu;
-window.renderSecurityMenu = renderSecurityMenu;
-window.renderPersonalInfo = renderPersonalInfo;
-window.renderVerificationMenu = renderVerificationMenu;
-window.renderAddressMenu = renderAddressMenu;
-window.renderPrivacyMenu = renderPrivacyMenu;
-window.closeModal = closeModal;
-window.submitLogin = submitLogin;
-window.fakeRegister = fakeRegister;
-window.openChat = openChat;
 
 document.addEventListener("DOMContentLoaded", ()=>{
   navigate("home", document.querySelector(".nav-btn"));
