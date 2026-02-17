@@ -340,3 +340,65 @@ body{
   color:white;
 }
 
+/* ===========================
+   CINEMA UI
+=========================== */
+
+.cinema-container{
+  padding:20px;
+  text-align:center;
+}
+
+.cinema-video-area{
+  margin-bottom:20px;
+}
+
+.video-placeholder{
+  height:150px;
+  border-radius:16px;
+  background:#0f172a;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  font-size:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,.2);
+}
+
+.cinema-host{
+  margin-bottom:20px;
+}
+
+.cinema-seats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  max-width:350px;
+  margin:0 auto;
+}
+
+.seat{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  cursor:pointer;
+  box-shadow:0 6px 15px rgba(0,0,0,.1);
+  transition:all .2s ease;
+}
+
+.seat:hover{
+  transform:scale(1.05);
+}
+
+.host-seat{
+  width:90px;
+  height:90px;
+  font-size:32px;
+  background:#facc15;
+}
