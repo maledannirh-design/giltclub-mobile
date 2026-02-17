@@ -1,3 +1,5 @@
+
+import { db, ref, set, remove, onDisconnect } from "./firebase.js";
 /* ===============================
    NAVIGATION SYSTEM
 =================================*/
@@ -51,9 +53,7 @@ function navigate(page, el){
   }
 }
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  navigate("home", document.querySelector(".nav-btn"));
-});
+
 
 /* ===============================
    CHAT
@@ -549,5 +549,25 @@ document.getElementById("photoInput").addEventListener("change", function(e){
   };
 
   reader.readAsDataURL(file);
+});
+
+function connectToCinemaRoom() {
+
+  const user = JSON.parse(localStorage.getItem("guser"));
+  if (!user) return;
+
+  const userRef = ref(db, "cinema/presence/users/" + user.user_id);
+
+  set(userRef, {
+    username: user.username,
+    joinedAt: Date.now()
+  });
+
+  onDisconnect(userRef).remove();
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  navigate("home", document.querySelector(".nav-btn"));
+  connectToCinemaRoom();   // ← tambahkan ini
 });
 
