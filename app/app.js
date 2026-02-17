@@ -626,16 +626,19 @@ async function takeSeat(seatName){
   console.log("🪑 Duduk di", seatName);
 }
 
-
 function listenSeats(){
 
   const seatsRef = ref(db, "cinema/seats");
 
   onValue(seatsRef, snapshot => {
 
-    const data = snapshot.val();
+    const data = snapshot.val() || {};
 
-    if(!data) return;
+    // Reset semua seat dulu
+    document.querySelectorAll(".seat").forEach(seat => {
+      seat.innerHTML = `<span class="seat-icon">🪑</span>`;
+      seat.classList.remove("occupied");
+    });
 
     Object.keys(data).forEach(seatName => {
 
@@ -644,24 +647,20 @@ function listenSeats(){
 
       if(!seatEl) return;
 
-      // tampilkan avatar
+      seatEl.classList.add("occupied");
+
+      const photo = localStorage.getItem("profilePhoto") 
+        || "images/default_profile.webp";
+
       seatEl.innerHTML = `
-        <img src="images/default_profile.webp"
+        <img src="${photo}"
              style="width:100%;height:100%;border-radius:50%;object-fit:cover">
       `;
-
-      // 🔥 JANGAN CONNECT KE DIRI SENDIRI
-      if(myUser && seatData.userId !== myUser.id){
-
-        createPeerConnection(seatData.userId);
-
-      }
 
     });
 
   });
 }
-
 
 
 function createPeer(remoteId){
@@ -810,6 +809,42 @@ function listenCandidates(){
   });
 
 }
+
+function createPeerConnection(remoteUserId){
+
+  const pc = new RTCPeerConnection({
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" }
+    ]
+  });
+
+  peerConnections[remoteUserId] = pc;
+
+  // Kirim mic kita
+  if(localStream){
+    localStream.getTracks().forEach(track => {
+      pc.addTrack(track, localStream);
+    });
+  }
+
+  // Terima audio orang lain
+  pc.ontrack = event => {
+
+    let audioEl = document.getElementById("audio-" + remoteUserId);
+
+    if(!audioEl){
+      audioEl = document.createElement("audio");
+      audioEl.id = "audio-" + remoteUserId;
+      audioEl.autoplay = true;
+      document.body.appendChild(audioEl);
+    }
+
+    audioEl.srcObject = event.streams[0];
+  };
+
+  return pc;
+}
+
 function listenOffers(){
 
   const offersRef = ref(db, "cinema/signaling/offers/" + myUser.id);
@@ -886,36 +921,7 @@ async function startLocalAudio(){
 
   console.log("🎤 Mic Ready");
 }
-function createPeerConnection(remoteUserId){
 
-  if(peerConnections[remoteUserId]) return;
-
-  const pc = new RTCPeerConnection(rtcConfig);
-
-  peerConnections[remoteUserId] = pc;
-
-  // Kirim mic ke remote
-  localStream.getTracks().forEach(track => {
-    pc.addTrack(track, localStream);
-  });
-
-  // ICE candidate
-  pc.onicecandidate = event => {
-    if(event.candidate){
-
-      const candidateRef = ref(db,
-        "cinema/signaling/candidates/" + remoteUserId + "/" + myUser.id
-      );
-
-      set(candidateRef, event.candidate.toJSON());
-    }
-  };
-
-  // 🔥 ANTI CHAOS RULE
-  // User yang duduk terakhir → initiate offer
-
-  initiateOffer(pc, remoteUserId);
-}
 async function initiateOffer(pc, remoteUserId){
 
   if(pc.signalingState !== "stable") return;
