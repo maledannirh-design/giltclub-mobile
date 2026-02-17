@@ -321,6 +321,8 @@ function renderProfile(){
       ${menuItem("Pengaturan Privasi","requireLogin(renderPrivacyMenu)")}
     </div>
   `;
+  attachPhotoListener();
+
 }
 
 function requireLogin(callback){
@@ -547,12 +549,19 @@ function subHeader(title, backFunction){
   `;
 }
 
-function connectToCinemaRoom() {
+function connectToCinemaRoom(){
 
-  const user = JSON.parse(localStorage.getItem("guser"));
-  if (!user) {
-    alert("Login dulu untuk masuk Cinema");
+  let user = JSON.parse(localStorage.getItem("guser"));
+
+  if(!user){
+    alert("Login dulu");
     return;
+  }
+
+  // 🔥 SAFETY FIX
+  if(!user.id){
+    user.id = generateId();
+    localStorage.setItem("guser", JSON.stringify(user));
   }
 
   const userRef = ref(db, "cinema/presence/users/" + user.id);
@@ -564,8 +573,9 @@ function connectToCinemaRoom() {
 
   onDisconnect(userRef).remove();
 
-  console.log("Connected to Cinema:", user.name);
+  console.log("Presence OK:", user.id);
 }
+
 
 function openCinema(){
 
@@ -782,17 +792,66 @@ function listenAnswers(){
   });
 }
 
-
 async function startLocalAudio(){
+
   if(localStream) return;
 
-  localStream = await navigator.mediaDevices.getUserMedia({
-    audio: true,
-    video: false
-  });
+  try{
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false
+    });
 
-  console.log("🎤 Mic Ready");
+    console.log("🎤 Mic Ready");
+  }
+  catch(e){
+    console.error("MIC ERROR:", e);
+  }
 }
+}
+
+function attachPhotoListener(){
+
+  const photoInput = document.getElementById("photoInput");
+  if(!photoInput) return;
+
+  photoInput.onchange = function(e){
+
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event){
+
+      const img = new Image();
+
+      img.onload = function(){
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const size = 300;
+        canvas.width = size;
+        canvas.height = size;
+
+        ctx.drawImage(img, 0, 0, size, size);
+
+        const compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+        localStorage.setItem("profilePhoto", compressed);
+
+        const avatar = document.getElementById("profileAvatar");
+        if(avatar) avatar.src = compressed;
+      };
+
+      img.src = event.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  };
+}
+
 function createPeer(remoteUserId){
 
   const pc = new RTCPeerConnection(rtcConfig);
@@ -872,52 +931,10 @@ window.fakeRegister = fakeRegister;
 window.openChat = openChat;
 window.takeSeat = takeSeat;
 
-
 document.addEventListener("DOMContentLoaded", function(){
 
   // 🔹 Default page
   navigate("home", document.querySelector(".nav-btn"));
-
-  // 🔹 Photo upload handler
-  const photoInput = document.getElementById("photoInput");
-
-  if(photoInput){
-    photoInput.addEventListener("change", function(e){
-
-      const file = e.target.files[0];
-      if(!file) return;
-
-      const reader = new FileReader();
-
-      reader.onload = function(event){
-
-        const img = new Image();
-
-        img.onload = function(){
-
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-
-          const size = 300;
-          canvas.width = size;
-          canvas.height = size;
-
-          ctx.drawImage(img, 0, 0, size, size);
-
-          const compressed = canvas.toDataURL("image/jpeg", 0.7);
-
-          localStorage.setItem("profilePhoto", compressed);
-
-          const avatar = document.getElementById("profileAvatar");
-          if(avatar) avatar.src = compressed;
-        };
-
-        img.src = event.target.result;
-      };
-
-      reader.readAsDataURL(file);
-    });
-  }
 
 });
 
