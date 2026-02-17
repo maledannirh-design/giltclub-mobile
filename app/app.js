@@ -574,11 +574,63 @@ function connectToCinemaRoom() {
   onDisconnect(userRef).remove();
 }
 
+document.getElementById("photoInput").addEventListener("change", function(e){
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  navigate("home", document.querySelector(".nav-btn"));
-  connectToCinemaRoom();   // ← tambahkan ini
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+
+    const img = new Image();
+
+    img.onload = function(){
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const size = 300;
+      canvas.width = size;
+      canvas.height = size;
+
+      ctx.drawImage(img, 0, 0, size, size);
+
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+      localStorage.setItem("profilePhoto", compressed);
+
+      document.getElementById("profileAvatar").src = compressed;
+    };
+
+    img.src = event.target.result;
+  };
+
+  reader.readAsDataURL(file);
 });
+
+
+function connectToCinemaRoom() {
+
+  const user = JSON.parse(localStorage.getItem("guser"));
+  if (!user) {
+    alert("Login dulu untuk masuk Cinema");
+    return;
+  }
+
+  const userId = user.name; // sementara pakai name
+
+  const userRef = ref(db, "cinema/presence/users/" + userId);
+
+  set(userRef, {
+    username: user.name,
+    joinedAt: Date.now()
+  });
+
+  onDisconnect(userRef).remove();
+
+  console.log("Connected to Cinema:", user.name);
+}
 
 
 window.navigate = navigate;
@@ -586,4 +638,11 @@ window.renderProfile = renderProfile;
 window.goLogin = goLogin;
 window.goRegister = goRegister;
 window.logout = logout;
+window.openCinema = openCinema;
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  navigate("home", document.querySelector(".nav-btn"));
+  connectToCinemaRoom();   // ← tambahkan ini
+});
+
 
