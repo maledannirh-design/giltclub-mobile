@@ -1,6 +1,7 @@
 import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { login, register, logout } from "./auth.js";
+import { followUser, unfollowUser } from "./social.js";
 
 export async function renderProfile() {
 
@@ -73,13 +74,56 @@ export async function renderProfile() {
       <p>Points: ${data.points}</p>
       <p>Followers: ${data.followersCount}</p>
       <p>Following: ${data.followingCount}</p>
+      <p><button id="openPublic">View Public Profile</button></p>
 
       <button id="logoutBtn">Logout</button>
     </div>
   `;
-
+document.getElementById("openPublic").onclick = () => {
+  viewUserProfile(user.uid);
+};
   document.getElementById("logoutBtn").onclick = async () => {
     await logout();
     renderProfile();
   };
+}
+
+export async function viewUserProfile(targetUserId) {
+
+  const content = document.getElementById("content");
+  const currentUser = auth.currentUser;
+
+  const snap = await getDoc(doc(db, "users", targetUserId));
+
+  if (!snap.exists()) {
+    content.innerHTML = "<p>User tidak ditemukan</p>";
+    return;
+  }
+
+  const data = snap.data();
+
+  const isOwnProfile =
+    currentUser && currentUser.uid === targetUserId;
+
+  content.innerHTML = `
+    <h2>${data.name}</h2>
+    <p>@${data.username}</p>
+    <p>Level: ${data.level}</p>
+    <p>Points: ${data.points}</p>
+    <p>Followers: ${data.followersCount}</p>
+    <p>Following: ${data.followingCount}</p>
+
+    ${
+      !isOwnProfile
+        ? `<button id="followBtn">Follow</button>`
+        : ""
+    }
+  `;
+
+  if (!isOwnProfile) {
+    document.getElementById("followBtn").onclick = async () => {
+      await followUser(targetUserId);
+      viewUserProfile(targetUserId);
+    };
+  }
 }
