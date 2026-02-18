@@ -395,4 +395,101 @@ export async function completeSession(sessionId) {
   alert("Session completed successfully.");
 }
 
+// =====================================================
+// CANCEL JOIN (PARTICIPANT)
+// =====================================================
+export async function cancelJoin(sessionId) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  if (session.status === "completed") {
+    alert("Cannot cancel completed session.");
+    return;
+  }
+
+  const participantRef = doc(
+    db,
+    "sessions",
+    sessionId,
+    "participants",
+    user.uid
+  );
+
+  const participantSnap = await getDoc(participantRef);
+
+  if (!participantSnap.exists()) {
+    alert("Not part of this session.");
+    return;
+  }
+
+  const participant = participantSnap.data();
+
+  // If already paid → decrease participantsCount
+  if (participant.status === "paid") {
+
+    const newCount = Math.max(session.participantsCount - 1, 0);
+
+    await updateDoc(sessionRef, {
+      participantsCount: newCount,
+      status: "open"
+    });
+  }
+
+  await updateDoc(participantRef, {
+    status: "cancelled"
+  });
+
+  alert("Join cancelled.");
+}
+// =====================================================
+// CANCEL SESSION (HOST)
+// =====================================================
+export async function cancelSession(sessionId) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  if (session.createdBy !== user.uid) {
+    alert("Only host can cancel session.");
+    return;
+  }
+
+  if (session.status === "completed") {
+    alert("Cannot cancel completed session.");
+    return;
+  }
+
+  await updateDoc(sessionRef, {
+    status: "cancelled"
+  });
+
+  alert("Session cancelled.");
+}
 
