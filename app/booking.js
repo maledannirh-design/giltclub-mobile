@@ -195,7 +195,8 @@ if (type === "coaching") {
     startTime,
     endTime,
 
-    joinMode: joinMode || "instant",
+    joinMode: joinMode === "approval" ? "approval" : "instant",
+
 
     pricePerUser,
     maxParticipants,
