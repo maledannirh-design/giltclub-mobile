@@ -190,3 +190,113 @@ export async function joinSession(sessionId) {
     alert("Join request sent. Waiting for host approval.");
   }
 }
+
+// =====================================================
+// APPROVE PARTICIPANT
+// =====================================================
+export async function approveParticipant(sessionId, targetUid) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  // Only host or admin can approve
+  if (session.createdBy !== user.uid) {
+  alert("Not authorized to approve.");
+  return;
+}
+
+
+  const participantRef = doc(
+    db,
+    "sessions",
+    sessionId,
+    "participants",
+    targetUid
+  );
+
+  const participantSnap = await getDoc(participantRef);
+
+  if (!participantSnap.exists()) {
+    alert("Participant not found.");
+    return;
+  }
+
+  const participant = participantSnap.data();
+
+  if (participant.status !== "pending") {
+    alert("Participant not pending.");
+    return;
+  }
+
+  // Capacity check
+  if (session.participantsCount >= session.maxParticipants) {
+    alert("Session already full.");
+    return;
+  }
+
+  // Update participant to paid
+  await updateDoc(participantRef, {
+    status: "paid"
+  });
+
+  // Increment participantsCount
+  await updateDoc(sessionRef, {
+    participantsCount: increment(1)
+  });
+
+  alert("Participant approved.");
+}
+// =====================================================
+// REJECT PARTICIPANT
+// =====================================================
+export async function rejectParticipant(sessionId, targetUid) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  if (session.createdBy !== user.uid) {
+    alert("Not authorized to reject.");
+    return;
+  }
+
+  const participantRef = doc(
+    db,
+    "sessions",
+    sessionId,
+    "participants",
+    targetUid
+  );
+
+  await updateDoc(participantRef, {
+    status: "cancelled"
+  });
+
+  alert("Participant rejected.");
+}
+
