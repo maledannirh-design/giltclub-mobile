@@ -16,6 +16,8 @@ import {
 let localStream = null;
 let peerConnections = {};
 let myUser = null;
+let currentSeat = null;
+
 
 const rtcConfig = {
   iceServers: [
@@ -644,6 +646,11 @@ async function takeSeat(seatName){
 
   await startLocalAudio();
 
+  // 🔥 Jika sudah duduk di seat lain, kosongkan dulu
+  if(currentSeat && currentSeat !== seatName){
+    await clearSeat(currentSeat);
+  }
+
   const seatRef = ref(db, "cinema/seats/" + seatName);
 
   await set(seatRef, {
@@ -652,42 +659,37 @@ async function takeSeat(seatName){
     joinedAt: Date.now()
   });
 
-  // 🔥 auto remove kalau koneksi drop
-  onDisconnect(seatRef).remove();
+  currentSeat = seatName;
 
   console.log("🪑 Duduk di", seatName);
 }
+async function clearSeat(seatName){
 
+  const emptySeatRef = ref(db, "cinema/seats/" + seatName);
 
-async function leaveSeat(){
-
-  if(!myUser) return;
-
-  const seatsRef = ref(db, "cinema/seats");
-
-  const snapshot = await get(seatsRef);
-  const seats = snapshot.val() || {};
-
-  for(const seatName in seats){
-    if(seats[seatName].userId === myUser.id){
-      await remove(ref(db, "cinema/seats/" + seatName));
-    }
-  }
-
-  // 🔥 Tutup semua peer
-  Object.values(peerConnections).forEach(pc=>{
-    pc.close();
+  await set(emptySeatRef, {
+    userId: "",
+    username: "",
+    joinedAt: 0
   });
 
+  console.log("Seat cleared:", seatName);
+}
+async function leaveSeat(){
+
+  if(!currentSeat) return;
+
+  await clearSeat(currentSeat);
+
+  currentSeat = null;
+
+  // 🔥 Close all peer connections
+  Object.values(peerConnections).forEach(pc => pc.close());
   peerConnections = {};
 
-  if(localStream){
-    localStream.getTracks().forEach(track => track.stop());
-    localStream = null;
-  }
-
-  console.log("🚪 Seat left & connections cleared");
+  console.log("🛑 Seat left & connections cleared");
 }
+
 
 function listenSeats(){
 
@@ -972,6 +974,10 @@ window.submitLogin = submitLogin;
 window.fakeRegister = fakeRegister;
 window.openChat = openChat;
 window.takeSeat = takeSeat;
+window.addEventListener("beforeunload", ()=>{
+  leaveSeat();
+});
+
 
 document.addEventListener("DOMContentLoaded", function(){
 
