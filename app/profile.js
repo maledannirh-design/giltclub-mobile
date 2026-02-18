@@ -1,16 +1,17 @@
 import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { logout } from "./auth.js";
 
 export async function renderProfile() {
 
   const content = document.getElementById("content");
-
   const user = auth.currentUser;
 
   if (!user) {
     content.innerHTML = `
       <h2>Profile</h2>
       <p>Anda belum login.</p>
+      <button onclick="openLogin()">Login</button>
     `;
     return;
   }
@@ -33,6 +34,13 @@ export async function renderProfile() {
       <p>Points: ${data.points}</p>
       <p>Wins: ${data.wins}</p>
       <p>Matches: ${data.matches}</p>
+
+      <button id="logoutBtn">Logout</button>
     </div>
   `;
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await logout();
+    renderProfile();
+  });
 }
