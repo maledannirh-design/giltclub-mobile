@@ -9,6 +9,7 @@ import {
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { CANCEL_POLICY } from "./config.js";
 
 // =====================================================
 // CREATE SESSION
@@ -441,13 +442,40 @@ export async function cancelJoin(sessionId) {
   // If already paid → decrease participantsCount
   if (participant.status === "paid") {
 
-    const newCount = Math.max(session.participantsCount - 1, 0);
+  const sessionDateTime = new Date(session.date + "T" + session.startTime);
+  const now = new Date();
+  const diffHours = (sessionDateTime - now) / (1000 * 60 * 60);
 
-    await updateDoc(sessionRef, {
-      participantsCount: newCount,
-      status: "open"
-    });
+  let refundPercent = 0;
+
+  if (diffHours >= CANCEL_POLICY.fullRefundHours) {
+    refundPercent = 100;
+  } else if (
+    diffHours >= CANCEL_POLICY.halfRefundStart &&
+    diffHours < CANCEL_POLICY.halfRefundEnd
+  ) {
+    refundPercent = 50;
+  } else {
+    refundPercent = 0;
   }
+
+  console.log("Refund percent:", refundPercent);
+
+  const newCount = Math.max(session.participantsCount - 1, 0);
+
+  await updateDoc(sessionRef, {
+    participantsCount: newCount,
+    status: "open"
+  });
+
+  await updateDoc(participantRef, {
+    status: "cancelled",
+    refundPercent
+  });
+
+  alert("Join cancelled. Refund: " + refundPercent + "%");
+}
+
 
   await updateDoc(participantRef, {
     status: "cancelled"
