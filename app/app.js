@@ -860,12 +860,13 @@ function createPeer(remoteUserId){
 
   peerConnections[remoteUserId] = pc;
 
-  // kirim audio kita
-  localStream.getTracks().forEach(track=>{
-    pc.addTrack(track, localStream);
-  });
+  // 🔥 SAFE CHECK
+  if(localStream){
+    localStream.getTracks().forEach(track=>{
+      pc.addTrack(track, localStream);
+    });
+  }
 
-  // terima audio
   pc.ontrack = event => {
 
     let audioEl = document.getElementById("audio-" + remoteUserId);
@@ -880,20 +881,19 @@ function createPeer(remoteUserId){
     audioEl.srcObject = event.streams[0];
   };
 
-  // kirim ICE
   pc.onicecandidate = event=>{
     if(event.candidate){
       const candRef = ref(db,
         "cinema/signaling/candidates/" +
         remoteUserId + "/" + myUser.id
       );
-
       set(candRef, event.candidate.toJSON());
     }
   };
 
   return pc;
 }
+
 
 async function sendOffer(pc, remoteUserId){
 
