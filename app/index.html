@@ -12,11 +12,21 @@
 <div id="app">
 
   <header class="header">
-    <div class="header-title">GILT Club</div>
-    <div class="header-icons">
-      <span onclick="navigate('profile')">👤</span>
+  <div class="header-title">GILT Club</div>
+
+  <div style="display:flex;gap:10px;align-items:center">
+    <span id="currentUserLabel" 
+          style="font-size:12px;color:#64748b">
+      Not logged in
+    </span>
+
+    <div onclick="navigate('profile')" 
+         style="cursor:pointer">
+      👤
     </div>
-  </header>
+  </div>
+</header>
+
 
   <main id="content" class="content"></main>
 
