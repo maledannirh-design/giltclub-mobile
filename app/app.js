@@ -488,6 +488,7 @@ function goLogin(){
     </div>
   `;
 }
+
 function goRegister(){
 
   const modal = document.getElementById("modal-overlay");
@@ -516,6 +517,7 @@ function closeModal(){
   modal.style.display = "none";
   modal.innerHTML = "";
 }
+
 function generateId() {
   if (crypto.randomUUID) {
     return crypto.randomUUID();
@@ -563,8 +565,84 @@ function subHeader(title, backFunction){
 
 
 /* ===============================
-   FIREBASE
+   FIREBASE mulai darisini
 =================================*/
+function openCinema(){
+
+  connectToCinemaRoom();
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <div class="cinema-wrapper">
+
+      <div class="cinema-box">
+
+        <div class="cinema-header">
+          <div class="cinema-title">
+            Host memilih video
+          </div>
+
+          <div class="cinema-header-icons">
+            🔍 🔊 ⏻
+          </div>
+        </div>
+
+        <div class="cinema-screen">
+          <img 
+            src="images/logo_netflix.webp"
+            class="cinema-logo"
+          />
+        </div>
+
+        <div class="cinema-seat-panel">
+
+          <div class="cinema-seats-row">
+
+            ${[1,2,3,4,5,6,7,8].map(n => `
+              <div 
+                class="seat"
+                id="seat-seat${n}"
+                onclick="takeSeat('seat${n}')">
+                <img src="images/cinema_seat.png" class="seat-img"/>
+              </div>
+            `).join("")}
+
+            <div 
+              class="seat host-seat"
+              id="seat-host"
+              onclick="takeSeat('host')">
+              <img src="images/cinema_seat.png" class="seat-img"/>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="cinema-chat-bar">
+          <input 
+            type="text" 
+            placeholder="Tulis pesan..."
+            id="chatInput"
+          />
+          <button onclick="toggleMic()" id="micBtn">
+            🎤
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  listenSeats();
+  listenOffers();
+  listenAnswers();
+  listenCandidates();
+  listenChat();
+}
+
+
 function connectToCinemaRoom(){
 
   let user = JSON.parse(localStorage.getItem("guser"));
@@ -592,53 +670,6 @@ function connectToCinemaRoom(){
   console.log("Presence OK:", user.id);
 }
 
-function openCinema(){
-
-  connectToCinemaRoom();
-
-  const content = document.getElementById("content");
-
-  content.innerHTML = `
-    <div class="cinema-wrapper">
-
-      <div class="cinema-stage">
-
-        <div class="cinema-screen">
-          🎬 Host memilih video
-        </div>
-
-        <div class="cinema-seat-row">
-
-          ${[1,2,3,4,5,6,7,8].map(n => `
-            <div class="mini-seat"
-                 id="seat-seat${n}"
-                 onclick="takeSeat('seat${n}')">
-                 <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/images/cinema_seat.png" />
-            </div>
-          `).join("")}
-
-          <div class="mini-seat host-seat"
-               id="seat-host"
-               onclick="takeSeat('host')">
-               <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/images/cinema_seat.png" />
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
-  listenSeats();
-
-  if(myUser){
-    listenOffers();
-    listenAnswers();
-    listenCandidates();
-  }
-}
-
 async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -648,24 +679,25 @@ async function takeSeat(seatName){
 
   await startLocalAudio();
 
-  // 🔥 ambil foto dari firebase
-  const userSnapshot = await get(
+  const userSnap = await get(
     ref(db, "cinema/users/" + user.id)
   );
 
-  const userData = userSnapshot.val();
+  const userData = userSnap.val() || {};
 
-  const seatRef = ref(db, "cinema/seats/" + seatName);
+  await set(
+    ref(db, "cinema/seats/" + seatName),
+    {
+      userId: user.id,
+      username: user.name,
+      photoURL: userData.photoURL || "",
+      joinedAt: Date.now()
+    }
+  );
 
-  await set(seatRef, {
-    userId: user.id,
-    username: user.name,
-    photoURL: userData?.photoURL || "",
-    joinedAt: Date.now()
-  });
-
-  console.log("🪑 Duduk di", seatName);
+  console.log("Seat updated with photo");
 }
+
 
 async function leaveSeat(){
 
@@ -695,8 +727,6 @@ async function leaveSeat(){
 
   console.log("🧹 Seat cleaned");
 }
-
-
 
 function listenSeats(){
 
@@ -742,19 +772,6 @@ function listenSeats(){
     });
 
   });
-}
-
-
-async function startMic(){
-
-  if(localStream) return; // jangan start dua kali
-
-  localStream = await navigator.mediaDevices.getUserMedia({
-    audio: true,
-    video: false
-  });
-
-  console.log("Mic started");
 }
 
 function listenCandidates(){
@@ -846,6 +863,18 @@ function listenAnswers(){
   });
 }
 
+async function startMic(){
+
+  if(localStream) return; // jangan start dua kali
+
+  localStream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: false
+  });
+
+  console.log("Mic started");
+}
+
 async function startLocalAudio(){
 
   if(localStream) return;
@@ -862,6 +891,7 @@ async function startLocalAudio(){
     console.error("MIC ERROR:", e);
   }
 }
+
 function attachPhotoListener(){
 
   const photoInput = document.getElementById("photoInput");
@@ -960,7 +990,6 @@ function createPeer(remoteUserId){
   return pc;
 }
 
-
 async function sendOffer(pc, remoteUserId){
 
   if(pc.signalingState !== "stable") return;
@@ -977,6 +1006,7 @@ async function sendOffer(pc, remoteUserId){
 
   console.log("📡 Offer sent to", remoteUserId);
 }
+
 function toggleMic(){
 
   if(!localStream) return;
@@ -996,8 +1026,6 @@ function toggleMic(){
     btn.style.background = "#dc2626";
   }
 }
-
-
 
 window.navigate = navigate;
 window.renderProfile = renderProfile;
