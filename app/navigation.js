@@ -19,6 +19,10 @@ export function navigate(page){
     case "cinema":
       import("./cinema.js").then(m=>m.renderCinema());
       break;
+    case "members":
+      import("./profile.js").then(m => m.renderMembers());
+      break;
+
 
     default:
       content.innerHTML = "<h2>Page not found</h2>";
