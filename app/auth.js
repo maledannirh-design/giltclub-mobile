@@ -48,3 +48,8 @@ export function logout() {
 export function watchAuth(callback) {
   onAuthStateChanged(auth, callback);
 }
+
+
+export async function quickLogin() {
+  await signInWithEmailAndPassword(auth, "test1@email.com", "123456");
+}
