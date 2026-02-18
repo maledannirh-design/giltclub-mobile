@@ -1,8 +1,38 @@
-export function renderProfile(){
+import { auth, db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+export async function renderProfile() {
+
   const content = document.getElementById("content");
 
+  const user = auth.currentUser;
+
+  if (!user) {
+    content.innerHTML = `
+      <h2>Profile</h2>
+      <p>Anda belum login.</p>
+    `;
+    return;
+  }
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+
+  if (!snap.exists()) {
+    content.innerHTML = "<p>User data tidak ditemukan.</p>";
+    return;
+  }
+
+  const data = snap.data();
+
   content.innerHTML = `
-    <h2>Profile</h2>
-    <p>Social identity coming soon...</p>
+    <div class="profile-card">
+      <h2>${data.name}</h2>
+      <p>@${data.username}</p>
+      <p>Membership: ${data.membership}</p>
+      <p>Level: ${data.level}</p>
+      <p>Points: ${data.points}</p>
+      <p>Wins: ${data.wins}</p>
+      <p>Matches: ${data.matches}</p>
+    </div>
   `;
 }
