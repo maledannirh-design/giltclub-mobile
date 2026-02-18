@@ -22,6 +22,10 @@ export function navigate(page){
     case "members":
       import("./profile.js").then(m => m.renderMembers());
       break;
+      case "ranking":
+  import("./profile.js").then(m => m.renderRanking());
+  break;
+
 
 
     default:
