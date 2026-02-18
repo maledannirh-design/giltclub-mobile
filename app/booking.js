@@ -117,8 +117,6 @@ export async function createSession(sessionData) {
   alert("Session created successfully.");
 }
 
-
-
 // =====================================================
 // JOIN SESSION
 // =====================================================
@@ -145,6 +143,11 @@ export async function joinSession(sessionId) {
     return;
   }
 
+  if (session.participantsCount >= session.maxParticipants) {
+    alert("Session is full");
+    return;
+  }
+
   const participantRef = doc(
     db,
     "sessions",
@@ -160,12 +163,12 @@ export async function joinSession(sessionId) {
     return;
   }
 
-  if (session.participantsCount >= session.maxParticipants) {
-    alert("Session is full");
-    return;
-  }
-
+  // ==========================
+  // INSTANT MODE
+  // ==========================
   if (session.joinMode === "instant") {
+
+    const newCount = session.participantsCount + 1;
 
     await setDoc(participantRef, {
       status: "paid",
@@ -174,13 +177,17 @@ export async function joinSession(sessionId) {
     });
 
     await updateDoc(sessionRef, {
-      participantsCount: increment(1)
+      participantsCount: newCount,
+      status: newCount >= session.maxParticipants ? "full" : "open"
     });
 
     alert("Successfully joined session");
 
   } else {
 
+    // ==========================
+    // APPROVAL MODE
+    // ==========================
     await setDoc(participantRef, {
       status: "pending",
       joinedAt: new Date(),
@@ -190,6 +197,8 @@ export async function joinSession(sessionId) {
     alert("Join request sent. Waiting for host approval.");
   }
 }
+
+
 
 // =====================================================
 // APPROVE PARTICIPANT
@@ -212,12 +221,21 @@ export async function approveParticipant(sessionId, targetUid) {
 
   const session = sessionSnap.data();
 
-  // Only host or admin can approve
+  // Only host can approve
   if (session.createdBy !== user.uid) {
-  alert("Not authorized to approve.");
-  return;
-}
+    alert("Not authorized to approve.");
+    return;
+  }
 
+  if (session.status !== "open") {
+    alert("Session not open.");
+    return;
+  }
+
+  if (session.participantsCount >= session.maxParticipants) {
+    alert("Session already full.");
+    return;
+  }
 
   const participantRef = doc(
     db,
@@ -241,24 +259,20 @@ export async function approveParticipant(sessionId, targetUid) {
     return;
   }
 
-  // Capacity check
-  if (session.participantsCount >= session.maxParticipants) {
-    alert("Session already full.");
-    return;
-  }
+  const newCount = session.participantsCount + 1;
 
-  // Update participant to paid
   await updateDoc(participantRef, {
     status: "paid"
   });
 
-  // Increment participantsCount
   await updateDoc(sessionRef, {
-    participantsCount: increment(1)
+    participantsCount: newCount,
+    status: newCount >= session.maxParticipants ? "full" : "open"
   });
 
   alert("Participant approved.");
 }
+
 // =====================================================
 // REJECT PARTICIPANT
 // =====================================================
