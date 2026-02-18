@@ -592,7 +592,6 @@ function connectToCinemaRoom(){
   console.log("Presence OK:", user.id);
 }
 
-
 function openCinema(){
 
   connectToCinemaRoom();
@@ -600,34 +599,39 @@ function openCinema(){
   const content = document.getElementById("content");
 
   content.innerHTML = `
-    <div class="cinema-container">
+    <div class="cinema-wrapper">
 
-      <div class="cinema-video-area">
-        <div class="video-placeholder">
-          🎬 Live Stage
+      <div class="cinema-stage">
+
+        <div class="cinema-screen">
+          🎬 Host memilih video
         </div>
-      </div>
 
-      <div class="cinema-host" onclick="takeSeat('host')">
-        <div class="seat host-seat" id="seat-host">
-          <span class="seat-icon">🎙️</span>
-        </div>
-      </div>
+        <div class="cinema-seat-row">
 
-      <div class="cinema-seats">
-        ${[1,2,3,4,5,6,7,8].map(n => `
-          <div class="seat" id="seat-seat${n}" onclick="takeSeat('seat${n}')">
-            <span class="seat-icon">🪑</span>
+          ${[1,2,3,4,5,6,7,8].map(n => `
+            <div class="mini-seat"
+                 id="seat-seat${n}"
+                 onclick="takeSeat('seat${n}')">
+                 <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/images/cinema_seat.png" />
+            </div>
+          `).join("")}
+
+          <div class="mini-seat host-seat"
+               id="seat-host"
+               onclick="takeSeat('host')">
+               <img src="https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/images/cinema_seat.png" />
           </div>
-        `).join("")}
+
+        </div>
+
       </div>
 
     </div>
   `;
 
-  // 🔥 WAJIB di bawah innerHTML
-  // 🔥 ROOM LEVEL LISTENERS
   listenSeats();
+
   if(myUser){
     listenOffers();
     listenAnswers();
