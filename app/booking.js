@@ -46,24 +46,32 @@ export async function createSession(sessionData) {
 
   if (type === "fun") {
 
-    if (userData.role !== "verified") {
-      alert("Only verified members can create fun sessions.");
-      return;
-    }
-
+  if (
+    userData.role !== "verified" &&
+    userData.role !== "coach" &&
+    userData.role !== "admin"
+  ) {
+    alert("Only verified members or coaches can create fun sessions.");
+    return;
   }
 
-  if (type === "coaching") {
+}
 
-    if (
+if (type === "coaching") {
+
+  if (
+    userData.role !== "admin" &&
+    (
       userData.role !== "coach" ||
       userData.coachApproved !== true
-    ) {
-      alert("Only approved coaches can create coaching sessions.");
-      return;
-    }
-
+    )
+  ) {
+    alert("Only approved coaches or admin can create coaching sessions.");
+    return;
   }
+
+}
+
 
   // ==============================
   // BASIC VALIDATION
