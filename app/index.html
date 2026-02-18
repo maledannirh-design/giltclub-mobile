@@ -1,1 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GILT Club App v2</title>
 
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <header class="header">
+    <div class="header-title">GILT Club</div>
+    <div class="header-icons">
+      <span onclick="navigate('profile')">👤</span>
+    </div>
+  </header>
+
+  <main id="content" class="content"></main>
+
+  <nav class="bottom-nav">
+    <button onclick="navigate('home')">Home</button>
+    <button onclick="navigate('booking')">Booking</button>
+    <button onclick="navigate('profile')">Profile</button>
+  </nav>
+
+</div>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="main.js"></script>
+
+</body>
+</html>
