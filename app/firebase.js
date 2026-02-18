@@ -1,6 +1,6 @@
-// Firebase init placeholder
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAI2Xn2CbfE9m78n8uDGzccr9mron0scaI",
@@ -12,5 +12,6 @@ const firebaseConfig = {
   };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
 
+export const db = getFirestore(app);
+export const auth = getAuth(app);
