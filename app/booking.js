@@ -9,7 +9,6 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
 // =====================================================
 // CREATE SESSION
 // =====================================================
@@ -313,4 +312,86 @@ export async function rejectParticipant(sessionId, targetUid) {
 
   alert("Participant rejected.");
 }
+
+
+// =====================================================
+// COMPLETE SESSION
+// =====================================================
+export async function completeSession(sessionId) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  if (session.createdBy !== user.uid) {
+    alert("Only host can complete session.");
+    return;
+  }
+
+  if (session.status !== "open" && session.status !== "full") {
+    alert("Session cannot be completed.");
+    return;
+  }
+
+  const participantsRef = collection(
+    db,
+    "sessions",
+    sessionId,
+    "participants"
+  );
+
+  const participantsSnap = await getDocs(participantsRef);
+
+  let paidParticipants = [];
+
+  participantsSnap.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.status === "paid") {
+      paidParticipants.push(docSnap.id);
+    }
+  });
+
+  const totalParticipants = paidParticipants.length;
+
+  const totalRevenue =
+    totalParticipants * session.pricePerUser;
+
+  const platformRevenue =
+    totalRevenue * (session.platformFeePercent / 100);
+
+  const hostRevenue =
+    totalRevenue - platformRevenue;
+
+  // Update attendance per user
+  for (const uid of paidParticipants) {
+
+    const userRef = doc(db, "users", uid);
+
+    await updateDoc(userRef, {
+      attendanceCount: increment(1)
+    });
+  }
+
+  await updateDoc(sessionRef, {
+    totalRevenue,
+    platformRevenue,
+    hostRevenue,
+    status: "completed"
+  });
+
+  alert("Session completed successfully.");
+}
+
 
