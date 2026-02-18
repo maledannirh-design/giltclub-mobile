@@ -138,7 +138,7 @@ export async function joinSession(sessionId) {
   }
 
   const session = sessionSnap.data();
-
+  
   if (session.status !== "open") {
     alert("Session not open");
     return;
@@ -337,6 +337,12 @@ export async function completeSession(sessionId) {
 
   const session = sessionSnap.data();
 
+  // 🔒 Financial lock guard
+  if (session.financialLocked === true) {
+    alert("Session already completed and locked.");
+    return;
+  }
+
   if (session.createdBy !== user.uid) {
     alert("Only host can complete session.");
     return;
@@ -344,6 +350,18 @@ export async function completeSession(sessionId) {
 
   if (session.status !== "open" && session.status !== "full") {
     alert("Session cannot be completed.");
+    return;
+  }
+
+  // =============================
+  // 60 MINUTES RULE
+  // =============================
+  const sessionStart = new Date(session.date + "T" + session.startTime);
+  const now = new Date();
+  const minutesPassed = (now - sessionStart) / (1000 * 60);
+
+  if (minutesPassed < 60) {
+    alert("Session must run at least 60 minutes before completion.");
     return;
   }
 
@@ -356,16 +374,18 @@ export async function completeSession(sessionId) {
 
   const participantsSnap = await getDocs(participantsRef);
 
-  let paidParticipants = [];
+  let validParticipants = [];
 
   participantsSnap.forEach(docSnap => {
     const data = docSnap.data();
-    if (data.status === "paid") {
-      paidParticipants.push(docSnap.id);
+
+    // ✅ C-level rule: must be paid AND checked-in
+    if (data.status === "paid" && data.checkedIn === true) {
+      validParticipants.push(docSnap.id);
     }
   });
 
-  const totalParticipants = paidParticipants.length;
+  const totalParticipants = validParticipants.length;
 
   const totalRevenue =
     totalParticipants * session.pricePerUser;
@@ -376,8 +396,8 @@ export async function completeSession(sessionId) {
   const hostRevenue =
     totalRevenue - platformRevenue;
 
-  // Update attendance per user
-  for (const uid of paidParticipants) {
+  // Update attendance
+  for (const uid of validParticipants) {
 
     const userRef = doc(db, "users", uid);
 
@@ -390,7 +410,8 @@ export async function completeSession(sessionId) {
     totalRevenue,
     platformRevenue,
     hostRevenue,
-    status: "completed"
+    status: "completed",
+    financialLocked: true   // 🔒 snapshot lock
   });
 
   alert("Session completed successfully.");
@@ -519,5 +540,52 @@ export async function cancelSession(sessionId) {
   });
 
   alert("Session cancelled.");
+}
+
+// =====================================================
+// CHECK IN PARTICIPANT
+// =====================================================
+export async function checkIn(sessionId) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  const sessionStart = new Date(session.date + "T" + session.startTime);
+  const now = new Date();
+
+  const diffMinutes = (now - sessionStart) / (1000 * 60);
+
+  // Check-in window: -30 min to +60 min
+  if (diffMinutes < -30 || diffMinutes > 60) {
+    alert("Check-in not allowed at this time.");
+    return;
+  }
+
+  const participantRef = doc(
+    db,
+    "sessions",
+    sessionId,
+    "participants",
+    user.uid
+  );
+
+  await updateDoc(participantRef, {
+    checkedIn: true
+  });
+
+  alert("Check-in successful.");
 }
 
