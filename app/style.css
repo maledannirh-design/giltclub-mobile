@@ -402,3 +402,22 @@ body{
   font-size:32px;
   background:#facc15;
 }
+
+.cinema-bottom-bar{
+  position:fixed;
+  bottom:70px;
+  left:0;
+  right:0;
+  display:flex;
+  justify-content:center;
+}
+
+#micToggleBtn{
+  padding:12px 20px;
+  border:none;
+  border-radius:20px;
+  background:#16a34a;
+  color:white;
+  font-weight:600;
+}
+
