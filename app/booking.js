@@ -3,7 +3,10 @@ import {
   doc,
   setDoc,
   getDoc,
+  updateDoc,
   collection,
+  query,
+  where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -39,6 +42,88 @@ export async function createSession(sessionData) {
     maxParticipants,
     joinMode
   } = sessionData;
+
+// ==============================
+// JOIN SESSION (HYBRID)
+// ==============================
+export async function joinSession(sessionId) {
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Login required");
+    return;
+  }
+
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+
+  if (!sessionSnap.exists()) {
+    alert("Session not found");
+    return;
+  }
+
+  const session = sessionSnap.data();
+
+  if (session.status !== "open") {
+    alert("Session not open");
+    return;
+  }
+
+  // Check if already joined
+  const participantRef = doc(
+    db,
+    "sessions",
+    sessionId,
+    "participants",
+    user.uid
+  );
+
+  const participantSnap = await getDoc(participantRef);
+
+  if (participantSnap.exists()) {
+    alert("Already joined this session");
+    return;
+  }
+
+  // Check capacity
+  if (session.participantsCount >= session.maxParticipants) {
+    alert("Session is full");
+    return;
+  }
+
+  // ==============================
+  // HYBRID MODE
+  // ==============================
+
+  if (session.joinMode === "instant") {
+
+    // Create participant as paid
+    await setDoc(participantRef, {
+      status: "paid",
+      joinedAt: new Date(),
+      attendanceRecorded: false
+    });
+
+    // Increment participantsCount
+    await updateDoc(sessionRef, {
+      participantsCount: increment(1)
+    });
+
+    alert("Successfully joined session");
+
+  } else {
+
+    // Approval mode
+    await setDoc(participantRef, {
+      status: "pending",
+      joinedAt: new Date(),
+      attendanceRecorded: false
+    });
+
+    alert("Join request sent. Waiting for host approval.");
+  }
+
+}
 
   // ==============================
   // GOVERNANCE CHECK
