@@ -1,8 +1,7 @@
 import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { login, register, logout } from "./auth.js";
 import { followUser, unfollowUser, isFollowing } from "./social.js";
-
+import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function renderProfile() {
 
@@ -151,3 +150,44 @@ export async function viewUserProfile(targetUserId) {
   };
 }
 
+export async function renderMembers() {
+
+  const content = document.getElementById("content");
+
+  const snap = await getDocs(collection(db, "users"));
+
+  if (snap.empty) {
+    content.innerHTML = "<p>Belum ada member.</p>";
+    return;
+  }
+
+  let html = `
+    <h2>Members</h2>
+    <div class="members-list">
+  `;
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const uid = docSnap.id;
+
+    html += `
+      <div class="member-card" data-uid="${uid}">
+        <p><strong>${data.name}</strong></p>
+        <p>@${data.username}</p>
+        <p>Level ${data.level ?? 0}</p>
+      </div>
+    `;
+  });
+
+  html += "</div>";
+
+  content.innerHTML = html;
+
+  // Attach click events
+  document.querySelectorAll(".member-card").forEach(card => {
+    card.onclick = () => {
+      const uid = card.getAttribute("data-uid");
+      viewUserProfile(uid);
+    };
+  });
+}
