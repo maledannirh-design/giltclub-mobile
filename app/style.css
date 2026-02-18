@@ -47,3 +47,32 @@ body{
   font-size:14px;
 }
 
+.auth-box{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:15px;
+}
+
+.auth-box input{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.auth-box button{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#16a34a;
+  color:white;
+  cursor:pointer;
+}
+
+.profile-card{
+  margin-top:15px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
