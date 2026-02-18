@@ -19,13 +19,20 @@ export function navigate(page){
     case "cinema":
       import("./cinema.js").then(m=>m.renderCinema());
       break;
+      
     case "members":
       import("./profile.js").then(m => m.renderMembers());
       break;
-      case "ranking":
-  import("./profile.js").then(m => m.renderRanking());
-  break;
-
+    
+    case "ranking":
+      import("./profile.js").then(m => m.renderRanking());
+      break;
+    
+    case "leaderboard":
+      import("./leaderboard.js").then(m =>
+      m.renderAttendanceLeaderboard()
+        );
+      break;
 
 
     default:
