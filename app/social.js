@@ -14,7 +14,6 @@ export async function followUser(targetUserId) {
   if (!currentUser) return;
 
   const myId = currentUser.uid;
-
   if (myId === targetUserId) return;
 
   await setDoc(doc(db, "users", targetUserId, "followers", myId), {
@@ -32,8 +31,6 @@ export async function followUser(targetUserId) {
   await updateDoc(doc(db, "users", myId), {
     followingCount: increment(1)
   });
-
-  console.log("Follow success");
 }
 
 export async function unfollowUser(targetUserId) {
@@ -53,6 +50,18 @@ export async function unfollowUser(targetUserId) {
   await updateDoc(doc(db, "users", myId), {
     followingCount: increment(-1)
   });
+}
 
-  console.log("Unfollow success");
+export async function isFollowing(targetUserId) {
+
+  const currentUser = auth.currentUser;
+  if (!currentUser) return false;
+
+  const myId = currentUser.uid;
+
+  const snap = await getDoc(
+    doc(db, "users", targetUserId, "followers", myId)
+  );
+
+  return snap.exists();
 }
