@@ -19,19 +19,33 @@ export async function register(email, password, username) {
   const user = userCredential.user;
 
   await setDoc(doc(db, "users", user.uid), {
-    name: username,
-    username: username.toLowerCase(),
-    membership: "MEMBER",
-    level: 1,
-    points: 0,
-    wins: 0,
-    matches: 0,
-    followersCount: 0,
-    followingCount: 0,
-    attendanceCount: 0,
-    isPublic: true,
-    createdAt: new Date()
-  });
+  name: username,
+  username: username.toLowerCase(),
+
+  role: "member",                 // DEFAULT ROLE
+  coachApproved: false,
+  coachLevel: null,
+
+  verifiedApproved: false,
+  verifiedEligible: false,
+
+  monthlyContribution: 0,
+  attendanceCount: 0,
+
+  membership: "MEMBER",
+
+  level: 1,
+  points: 0,
+  wins: 0,
+  matches: 0,
+
+  followersCount: 0,
+  followingCount: 0,
+
+  isPublic: true,
+  createdAt: new Date()
+});
+
 }
 
 export async function login(email, password) {
