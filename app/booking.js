@@ -6,3 +6,14 @@ export function renderBooking(){
     <p>Booking system ready for Firebase integration.</p>
   `;
 }
+
+
+createSession()
+
+joinSession()
+
+completeSession()
+
+cancelSession()
+
+autoCompleteCheck()
