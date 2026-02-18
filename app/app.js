@@ -639,62 +639,63 @@ function openCinema(){
   }
 }
 
-
-
 async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
-  if(!user){
-    alert("Login dulu");
-    return;
-  }
+  if(!user) return;
 
   myUser = user;
 
-  // 🔥 Auto leave seat lama dulu
-  await leaveSeat();
-
   await startLocalAudio();
+
+  // 🔥 ambil foto dari firebase
+  const userSnapshot = await get(
+    ref(db, "cinema/users/" + user.id)
+  );
+
+  const userData = userSnapshot.val();
 
   const seatRef = ref(db, "cinema/seats/" + seatName);
 
   await set(seatRef, {
     userId: user.id,
     username: user.name,
+    photoURL: userData?.photoURL || "",
     joinedAt: Date.now()
   });
 
   console.log("🪑 Duduk di", seatName);
 }
 
-async function clearSeat(seatName){
-
-  const emptySeatRef = ref(db, "cinema/seats/" + seatName);
-
-  await set(emptySeatRef, {
-    userId: "",
-    username: "",
-    joinedAt: 0
-  });
-
-  console.log("Seat cleared:", seatName);
-}
-
-
 async function leaveSeat(){
 
-  if(!currentSeat) return;
+  if(!myUser) return;
 
-  await clearSeat(currentSeat);
+  const seatsRef = ref(db, "cinema/seats");
 
-  currentSeat = null;
+  const snapshot = await get(seatsRef);
+  const data = snapshot.val();
+  if(!data) return;
 
-  // 🔥 Close all peer connections
-  Object.values(peerConnections).forEach(pc => pc.close());
-  peerConnections = {};
+  for(const seatName in data){
 
-  console.log("🛑 Seat left & connections cleared");
+    if(data[seatName].userId === myUser.id){
+
+      await set(
+        ref(db, "cinema/seats/" + seatName),
+        {
+          joinedAt: 0,
+          userId: "",
+          username: "",
+          photoURL: ""
+        }
+      );
+    }
+  }
+
+  console.log("🧹 Seat cleaned");
 }
+
 
 
 function listenSeats(){
@@ -712,19 +713,21 @@ function listenSeats(){
 
     Object.keys(data).forEach(seatName => {
 
-      const seatData = data[seatName];
-      const seatEl = document.getElementById("seat-" + seatName);
+  const seatData = data[seatName];
+  const seatEl = document.getElementById("seat-" + seatName);
 
-      if(!seatEl) return;
-      if(!seatData.userId) return;
-      if(myUser && seatData.userId === myUser.id) return;
+  if(!seatEl) return;
 
-      seatEl.classList.add("occupied");
+  if(!seatData.userId) return;
 
-      seatEl.innerHTML = `
-        <img src="images/default_profile.webp"
-             style="width:100%;height:100%;border-radius:50%;object-fit:cover">
-      `;
+  seatEl.classList.add("occupied");
+
+  seatEl.innerHTML = `
+    <img src="${seatData.photoURL || 'images/default_profile.webp'}"
+         style="width:100%;height:100%;border-radius:50%;object-fit:cover">
+  `;
+});
+
 
       if(myUser && !peerConnections[seatData.userId]){
 
@@ -859,24 +862,23 @@ async function startLocalAudio(){
     console.error("MIC ERROR:", e);
   }
 }
-
 function attachPhotoListener(){
 
   const photoInput = document.getElementById("photoInput");
   if(!photoInput) return;
 
-  photoInput.onchange = function(e){
+  photoInput.onchange = async function(e){
 
     const file = e.target.files[0];
     if(!file) return;
 
     const reader = new FileReader();
 
-    reader.onload = function(event){
+    reader.onload = async function(event){
 
       const img = new Image();
 
-      img.onload = function(){
+      img.onload = async function(){
 
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -889,10 +891,26 @@ function attachPhotoListener(){
 
         const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
+        // 🔥 simpan local preview
         localStorage.setItem("profilePhoto", compressed);
 
         const avatar = document.getElementById("profileAvatar");
         if(avatar) avatar.src = compressed;
+
+        // 🔥 SIMPAN KE FIREBASE
+        const user = JSON.parse(localStorage.getItem("guser"));
+        if(!user) return;
+
+        const userRef = ref(db, "cinema/users/" + user.id);
+
+        await set(userRef, {
+          username: user.name,
+          photoURL: compressed,
+          updatedAt: Date.now()
+        });
+
+        console.log("✅ Photo saved to Firebase");
+
       };
 
       img.src = event.target.result;
