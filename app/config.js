@@ -1,1 +1,5 @@
-export const APP_NAME = "GILT Club v2";
+export const CANCEL_POLICY = {
+  fullRefundHours: 48,
+  halfRefundStart: 36,
+  halfRefundEnd: 48
+};
