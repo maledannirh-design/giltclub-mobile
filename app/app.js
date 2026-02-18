@@ -31,8 +31,13 @@ const rtcConfig = {
 
 function navigate(page, el){
 
+  // 🔥 AUTO LEAVE CINEMA IF MOVING AWAY
+  if(page !== "cinema"){
+    leaveSeat();
+  }
+
   document.querySelectorAll(".nav-btn")
-    .forEach(btn=>btn.classList.remove("active"));
+    .forEach(btn => btn.classList.remove("active"));
 
   if(el) el.classList.add("active");
 
@@ -42,9 +47,9 @@ function navigate(page, el){
 
     case "home":
       content.innerHTML = `
-        <h2>Welcome to GILT Club</h2>
+        <h2>Selamat datang di Sistem GILT</h2>
         <p style="margin-top:10px;color:#64748b">
-          Modern tennis community experience.
+          Modern tennis community experience. Sistem ini sedang dalam tahap pengembangan, silahkan berkleling dan cek fungsi-fungsi baru setiap harinya, kami terbuka untuk pemsaukan dan kenyamanan para pengguna dan pemain tenis
         </p>
       `;
       break;
@@ -53,7 +58,7 @@ function navigate(page, el){
       content.innerHTML = `
         <h2>Booking</h2>
         <p style="margin-top:10px;color:#64748b">
-          jadwal mabar dan pemesanan sesi latihan.
+          Ini nanti ada calendar , dan informasi di setiap tanggalnya, untuk jadwal mabar dan pemesanan sesi latihan. Di setiap tanggal sesi jika pengguna bergabung di sesi tersebut, maka akan ada tambahan catatan kecil dari coach yang nantinya hanya ada yang bisa tau dan bisa digunakan jika ada coaching drill di luaran. sebagai referensi latian apa yang selanjutya cocok sesuai proress pengguna.
         </p>
       `;
       break;
@@ -62,7 +67,7 @@ function navigate(page, el){
       content.innerHTML = `
         <h2>Wallet</h2>
         <p style="margin-top:10px;color:#64748b">
-          kelola saldo dan atur transaksimu.
+          Menu untuk kelola saldo, transfer saldo, hasil penjualan anda, hasil konseling jasa konsultasi anda, dan bisa juga untuk atur  transaksi yang berjalan
         </p>
       `;
       break;
@@ -72,8 +77,12 @@ function navigate(page, el){
       break;
 
     case "profile":
-  renderProfile();
-  break;
+      renderProfile();
+      break;
+
+    case "cinema":
+      openCinema();
+      break;
 
   }
 }
@@ -643,7 +652,41 @@ async function takeSeat(seatName){
     joinedAt: Date.now()
   });
 
+  // 🔥 auto remove kalau koneksi drop
+  onDisconnect(seatRef).remove();
+
   console.log("🪑 Duduk di", seatName);
+}
+
+
+async function leaveSeat(){
+
+  if(!myUser) return;
+
+  const seatsRef = ref(db, "cinema/seats");
+
+  const snapshot = await get(seatsRef);
+  const seats = snapshot.val() || {};
+
+  for(const seatName in seats){
+    if(seats[seatName].userId === myUser.id){
+      await remove(ref(db, "cinema/seats/" + seatName));
+    }
+  }
+
+  // 🔥 Tutup semua peer
+  Object.values(peerConnections).forEach(pc=>{
+    pc.close();
+  });
+
+  peerConnections = {};
+
+  if(localStream){
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+
+  console.log("🚪 Seat left & connections cleared");
 }
 
 function listenSeats(){
@@ -654,7 +697,6 @@ function listenSeats(){
 
     const data = snapshot.val() || {};
 
-    // reset UI
     document.querySelectorAll(".seat").forEach(seat=>{
       seat.innerHTML = `<span class="seat-icon">🪑</span>`;
       seat.classList.remove("occupied");
@@ -666,6 +708,8 @@ function listenSeats(){
       const seatEl = document.getElementById("seat-" + seatName);
 
       if(!seatEl) return;
+      if(!seatData.userId) return;
+      if(myUser && seatData.userId === myUser.id) return;
 
       seatEl.classList.add("occupied");
 
@@ -674,25 +718,21 @@ function listenSeats(){
              style="width:100%;height:100%;border-radius:50%;object-fit:cover">
       `;
 
-      // 🔥 CONNECT ENGINE
-      if(myUser && seatData.userId !== myUser.id){
+      if(myUser && !peerConnections[seatData.userId]){
 
-        if(!peerConnections[seatData.userId]){
+        const pc = createPeer(seatData.userId);
 
-          const pc = createPeer(seatData.userId);
-
-          // user yang join terakhir kirim offer
-          if(myUser.id > seatData.userId){
-            sendOffer(pc, seatData.userId);
-          }
-
+        if(myUser.joinedAt > seatData.joinedAt){
+          sendOffer(pc, seatData.userId);
         }
+
       }
 
     });
 
   });
 }
+
 
 async function startMic(){
 
