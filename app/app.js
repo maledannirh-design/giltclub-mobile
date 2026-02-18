@@ -592,6 +592,7 @@ function connectToCinemaRoom(){
   console.log("Presence OK:", user.id);
 }
 
+
 function openCinema(){
 
   connectToCinemaRoom();
@@ -634,6 +635,8 @@ function openCinema(){
   }
 }
 
+
+
 async function takeSeat(seatName){
 
   const user = JSON.parse(localStorage.getItem("guser"));
@@ -644,12 +647,10 @@ async function takeSeat(seatName){
 
   myUser = user;
 
-  await startLocalAudio();
+  // 🔥 Auto leave seat lama dulu
+  await leaveSeat();
 
-  // 🔥 Jika sudah duduk di seat lain, kosongkan dulu
-  if(currentSeat && currentSeat !== seatName){
-    await clearSeat(currentSeat);
-  }
+  await startLocalAudio();
 
   const seatRef = ref(db, "cinema/seats/" + seatName);
 
@@ -659,10 +660,9 @@ async function takeSeat(seatName){
     joinedAt: Date.now()
   });
 
-  currentSeat = seatName;
-
   console.log("🪑 Duduk di", seatName);
 }
+
 async function clearSeat(seatName){
 
   const emptySeatRef = ref(db, "cinema/seats/" + seatName);
@@ -675,6 +675,8 @@ async function clearSeat(seatName){
 
   console.log("Seat cleared:", seatName);
 }
+
+
 async function leaveSeat(){
 
   if(!currentSeat) return;
@@ -952,6 +954,25 @@ async function sendOffer(pc, remoteUserId){
   await set(offerRef, offer);
 
   console.log("📡 Offer sent to", remoteUserId);
+}
+function toggleMic(){
+
+  if(!localStream) return;
+
+  const track = localStream.getAudioTracks()[0];
+  if(!track) return;
+
+  track.enabled = !track.enabled;
+
+  const btn = document.getElementById("micToggleBtn");
+
+  if(track.enabled){
+    btn.innerText = "🎤 Mic ON";
+    btn.style.background = "#16a34a";
+  } else {
+    btn.innerText = "🔇 Mic OFF";
+    btn.style.background = "#dc2626";
+  }
 }
 
 
