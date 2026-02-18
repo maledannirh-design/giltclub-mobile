@@ -1,13 +1,27 @@
-import { db } from "./firebase.js";
-import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { auth, db } from "./firebase.js";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-export async function createTestUser(){
+import {
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const userId = "test_user_1";
+export async function register(email, password, username) {
 
-  await setDoc(doc(db, "users", userId), {
-    name: "Test User",
-    username: "testuser",
+  const userCredential =
+    await createUserWithEmailAndPassword(auth, email, password);
+
+  const user = userCredential.user;
+
+  await setDoc(doc(db, "users", user.uid), {
+    name: username,
+    username: username.toLowerCase(),
     membership: "MEMBER",
     level: 1,
     points: 0,
@@ -19,16 +33,18 @@ export async function createTestUser(){
     createdAt: new Date()
   });
 
-  console.log("User created!");
+  console.log("User registered & profile created");
 }
 
-export async function readTestUser(){
+export async function login(email, password) {
+  await signInWithEmailAndPassword(auth, email, password);
+  console.log("Logged in");
+}
 
-  const snap = await getDoc(doc(db, "users", "test_user_1"));
+export function logout() {
+  return signOut(auth);
+}
 
-  if(snap.exists()){
-    console.log("User data:", snap.data());
-  } else {
-    console.log("User not found");
-  }
+export function watchAuth(callback) {
+  onAuthStateChanged(auth, callback);
 }
