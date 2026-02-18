@@ -51,7 +51,7 @@ function navigate(page, el){
       content.innerHTML = `
         <h2>Selamat datang di Sistem GILT</h2>
         <p style="margin-top:10px;color:#64748b">
-          Modern tennis community experience. Sistem ini sedang dalam tahap pengembangan, silahkan berkleling dan cek fungsi-fungsi baru setiap harinya, kami terbuka untuk pemsaukan dan kenyamanan para pengguna dan pemain tenis
+          Modern tennis community experience. Sistem ini sedang dalam tahap pengembangan, anda diajak berkeliling dan cek fungsi-fungsi baru setiap harinya, kami terbuka untuk pemsaukan dan kenyamanan para pengguna dan pemain tenis
         </p>
       `;
       break;
