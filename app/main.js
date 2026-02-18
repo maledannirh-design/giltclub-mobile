@@ -1,13 +1,18 @@
-import { createTestUser, readTestUser } from "./auth.js";
 import { navigate } from "./navigation.js";
+import { watchAuth } from "./auth.js";
 
 window.navigate = navigate;
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   console.log("App loaded");
 
-  navigate("home");
+  watchAuth((user) => {
+    if (user) {
+      console.log("User logged in:", user.uid);
+    } else {
+      console.log("No user logged in");
+    }
+  });
 
-  await createTestUser();
-  await readTestUser();
+  navigate("home");
 });
