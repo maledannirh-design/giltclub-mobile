@@ -2,6 +2,16 @@ import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { logout } from "./auth.js";
 
+import { login } from "./auth.js";
+
+window.openLogin = async function () {
+  const email = prompt("Email:");
+  const pass = prompt("Password:");
+  await login(email, pass);
+  renderProfile();
+};
+
+
 export async function renderProfile() {
 
   const content = document.getElementById("content");
