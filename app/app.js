@@ -694,10 +694,16 @@ async function takeSeat(seatName){
       joinedAt: Date.now()
     }
   );
+const snap = await get(seatRef);
+const seat = snap.val();
+
+if(seat.userId){
+  alert("Seat sudah terisi");
+  return;
+}
 
   console.log("Seat updated with photo");
 }
-
 
 async function leaveSeat(){
 
@@ -752,10 +758,10 @@ function listenSeats(){
 
   seatEl.classList.add("occupied");
 
-  seatEl.innerHTML = `
-    <img src="${seatData.photoURL || 'images/default_profile.webp'}"
-         style="width:100%;height:100%;border-radius:50%;object-fit:cover">
-  `;
+ seatEl.innerHTML = seatData.photoURL
+  ? `<img src="${seatData.photoURL}" class="seat-img"/>`
+  : `<img src="images/cinema_seat.png" class="seat-img"/>`;
+
 });
 
 
