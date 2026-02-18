@@ -28,6 +28,7 @@ export async function register(email, password, username) {
     matches: 0,
     followersCount: 0,
     followingCount: 0,
+    attendanceCount: 0,
     isPublic: true,
     createdAt: new Date()
   });
