@@ -56,12 +56,7 @@ h3 {
 
 body,
 .header,
-.schedule-card,
-.profile-card,
-.rank-item {
-  transition: background-color .25s ease,
-              border-color .25s ease,
-              color .25s ease;
+        color .25s ease;
 }
 .content {
   padding: var(--space-lg);
@@ -77,6 +72,9 @@ body,
   margin-bottom: 12px;
   margin-bottom: var(--space-md);
   box-shadow: var(--shadow-card);
+  transition: background-color .25s ease,
+              border-color .25s ease,
+              color .25s ease;
 }
 .btn {
   padding: 10px 16px;
@@ -400,6 +398,13 @@ body,
   border:none;
   font-size:12px;
 }
+
+.schedule-card:hover {
+  transform: translateY(-2px);
+  transition: transform .15s ease;
+}
+
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
