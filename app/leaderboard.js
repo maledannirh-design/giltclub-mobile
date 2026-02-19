@@ -13,116 +13,82 @@ import {
   getDocs
 } from "./firestore.js";
 
-
+import { getMonthlyTopUsers } from "./services/leaderboardService.js";
 
 // ======================================
 // INCREMENT ATTENDANCE
 // ======================================
 export async function recordAttendance() {
 
+  const user = auth.currentUser;
+  if (!user) return;
+
   try {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const uid = user.uid;
-
-    // Ensure user doc exists before update
-    const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) return;
-
-    const userData = userSnap.data() || {};
-
-    // Update lifetime attendance safely
-    await setDoc(
-      userRef,
-      {
-        attendanceCount: increment(1)
-      },
-      { merge: true }
-    );
-
-    // Monthly leaderboard key: YYYY-MM
-    const currentMonth = new Date().toISOString().slice(0, 7);
-
-    const leaderboardRef = doc(
-      db,
-      "leaderboards",
-      currentMonth,
-      "attendance",
-      uid
-    );
-
-    // Update leaderboard safely with merge
-    await setDoc(
-      leaderboardRef,
-      {
-        total: increment(1),
-        name: userData.name || "Member"
-      },
-      { merge: true }
-    );
-
-  } catch (error) {
-    console.error("recordAttendance error:", error);
+    await incrementAttendance(user.uid);
+  } catch(e){
+    console.error(e);
   }
 }
+
 
 
 // ======================================
 // RENDER LEADERBOARD
 // ======================================
-export async function renderAttendanceLeaderboard() {
+export async function renderAttendanceLeaderboard(){
 
-  try {
-    const content = document.getElementById("content");
-    if (!content) return;
+  const content = document.getElementById("content");
+  if(!content) return;
 
-    const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentMonth = new Date().toISOString().slice(0,7);
 
-    const leaderboardCol = collection(
-      db,
-      "leaderboards",
-      currentMonth,
-      "attendance"
-    );
+  const users = await getMonthlyTopUsers(currentMonth, 20);
 
-    const q = query(
-      leaderboardCol,
-      orderBy("total", "desc"),
-      limit(20)
-    );
+  if(!users.length){
+    content.innerHTML = `
+      <h2>Attendance Leaderboard</h2>
+      <p>Belum ada data bulan ini.</p>
+    `;
+    return;
+  }
 
-    const snap = await getDocs(q);
+  let html = `<h2>Most Active Members</h2>`;
+  let rank = 1;
 
-    if (snap.empty) {
-      content.innerHTML = `
-        <h2>Attendance Leaderboard</h2>
-        <p>Belum ada data bulan ini.</p>
-      `;
-      return;
-    }
+  users.forEach(user=>{
+    html += `
+      <div class="rank-item">
+        <strong>#${rank}</strong> - ${user.name || "Member"}
+        (${user.total || 0} sessions)
+      </div>
+    `;
+    rank++;
+  });
 
-    let html = `<h2>Most Active Members</h2>`;
-    let rank = 1;
+  content.innerHTML = html;
+}
 
-    snap.forEach(docSnap => {
-      const data = docSnap.data() || {};
+async function loadLeaderboard(){
 
-      html += `
-        <div class="rank-item">
-          <strong>#${rank}</strong> - ${data.name || "Member"} 
-          (${data.total || 0} sessions)
-        </div>
-      `;
+  const currentMonth = new Date().toISOString().slice(0,7);
 
-      rank++;
-    });
+  const users = await getMonthlyTopUsers(currentMonth, 10);
 
-    content.innerHTML = html;
+  let html = "";
+  let position = 1;
 
-  } catch (error) {
-    console.error("renderAttendanceLeaderboard error:", error);
+  users.forEach(user => {
+    html += `
+      <div class="leader-item">
+        <div>#${position} ${user.name || "-"}</div>
+        <div>${user.attendance || 0} sessions</div>
+      </div>
+    `;
+    position++;
+  });
+
+  const leaderboardList = document.getElementById("leaderboardList");
+  if(leaderboardList){
+    leaderboardList.innerHTML = html || `<div style="opacity:.6;font-size:13px;">No data</div>`;
   }
 }
