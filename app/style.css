@@ -31,6 +31,28 @@ body {
 html {
   transition: background-color .25s ease, color .25s ease;
 }
+h1, h2, h3 {
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+}
+
+h2 {
+  font-size: 18px;
+}
+
+h3 {
+  font-size: 15px;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.metric-number {
+  font-size: 22px;
+  font-weight: 600;
+}
 
 body,
 .header,
@@ -41,6 +63,9 @@ body,
               border-color .25s ease,
               color .25s ease;
 }
+.content {
+  padding: var(--space-lg);
+}
 
 .schedule-card,
 .profile-card,
@@ -50,6 +75,7 @@ body,
   border-radius: var(--radius-md);
   padding: 16px;
   margin-bottom: 12px;
+  margin-bottom: var(--space-md);
   box-shadow: var(--shadow-card);
 }
 .btn {
@@ -344,6 +370,26 @@ body,
   background: var(--color-border);
 }
 
+.metric-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 600;
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
