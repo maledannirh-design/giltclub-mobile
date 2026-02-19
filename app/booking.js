@@ -169,11 +169,17 @@ async function handleBookingClick(scheduleId){
 
   const user = auth.currentUser;
   if (!user){
-    showToast("Please login first.");
+    showToast("Please login first.", "warning");
     return;
   }
 
   bookingLock = true;
+
+  const button = document.querySelector(`.book-btn[data-id="${scheduleId}"]`);
+  if (button){
+    button.disabled = true;
+    button.innerText = "Processing...";
+  }
 
   try {
 
@@ -182,19 +188,18 @@ async function handleBookingClick(scheduleId){
       scheduleId
     });
 
-    showToast("Berhasil bergabung!");
-
+    showToast("Booking successful!", "success");
 
   } catch (error) {
 
-    showToast(error.message);
+    showToast(error.message, "error");
 
   } finally {
 
     bookingLock = false;
-
   }
 }
+
 
 
 /* ===============================
@@ -204,26 +209,30 @@ async function handleCancelClick(bookingId){
 
   if (bookingLock) return;
 
+  const confirmed = await showConfirm("Are you sure you want to cancel?");
+  if (!confirmed) return;
+
   bookingLock = true;
+
+  const button = document.querySelector(`.cancel-btn[data-id="${bookingId}"]`);
+  if (button){
+    button.disabled = true;
+    button.innerText = "Processing...";
+  }
 
   try {
 
-    const confirmed = await showConfirm("Are you sure you want to cancel?");
+    await cancelBooking({ bookingId });
 
-if (!confirmed) return;
-
-await cancelBooking({ bookingId });
-
-showToast("Booking cancelled!", "success");
-
+    showToast("Booking cancelled!", "success");
 
   } catch (error) {
 
-    showToast(error.message);
+    showToast(error.message, "error");
 
   } finally {
 
     bookingLock = false;
-
   }
 }
+
