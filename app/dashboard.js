@@ -16,7 +16,7 @@ import { db } from "./firebase.js";
 // DASHBOARD MODULE
 // ============================
 
-async function loadDashboard(){
+export async function loadDashboard(){
 
   const content = document.getElementById("content");
 
@@ -59,6 +59,7 @@ async function loadDashboard(){
   await loadMiniLedger();
   await loadAttendanceChart();
 }
+
 
 
 async function loadUserSummary(){
