@@ -2,6 +2,8 @@ import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "./firestore.js";
 
+import { initTheme } from "./theme.js";
+initTheme();
 
 
 // Expose navigate ke global (untuk onclick di HTML)
