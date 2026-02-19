@@ -315,7 +315,6 @@ export async function rejectParticipant(sessionId, targetUid) {
   alert("Participant rejected.");
 }
 
-
 // =====================================================
 // COMPLETE SESSION
 // =====================================================
@@ -337,7 +336,6 @@ export async function completeSession(sessionId) {
 
   const session = sessionSnap.data();
 
-  // 🔒 Financial lock guard
   if (session.financialLocked === true) {
     alert("Session already completed and locked.");
     return;
@@ -353,9 +351,7 @@ export async function completeSession(sessionId) {
     return;
   }
 
-  // =============================
   // 60 MINUTES RULE
-  // =============================
   const sessionStart = new Date(session.date + "T" + session.startTime);
   const now = new Date();
   const minutesPassed = (now - sessionStart) / (1000 * 60);
@@ -378,8 +374,6 @@ export async function completeSession(sessionId) {
 
   participantsSnap.forEach(docSnap => {
     const data = docSnap.data();
-
-    // ✅ C-level rule: must be paid AND checked-in
     if (data.status === "paid" && data.checkedIn === true) {
       validParticipants.push(docSnap.id);
     }
@@ -396,7 +390,7 @@ export async function completeSession(sessionId) {
   const hostRevenue =
     totalRevenue - platformRevenue;
 
-  // Update attendance
+  // Update lifetime attendance
   for (const uid of validParticipants) {
 
     const userRef = doc(db, "users", uid);
@@ -406,17 +400,41 @@ export async function completeSession(sessionId) {
     });
   }
 
+  // =============================
+  // MONTHLY LEADERBOARD UPDATE
+  // =============================
+  const nowDate = new Date();
+  const year = nowDate.getFullYear();
+  const month = String(nowDate.getMonth() + 1).padStart(2, "0");
+  const leaderboardMonthId = `${year}-${month}`;
+
+  for (const uid of validParticipants) {
+
+    const leaderboardRef = doc(
+      db,
+      "leaderboards",
+      leaderboardMonthId,
+      "attendance",
+      uid
+    );
+
+    await setDoc(
+      leaderboardRef,
+      { attendance: increment(1) },
+      { merge: true }
+    );
+  }
+
   await updateDoc(sessionRef, {
     totalRevenue,
     platformRevenue,
     hostRevenue,
     status: "completed",
-    financialLocked: true   // 🔒 snapshot lock
+    financialLocked: true
   });
 
   alert("Session completed successfully.");
 }
-
 // =====================================================
 // CANCEL JOIN (PARTICIPANT)
 // =====================================================
@@ -460,50 +478,47 @@ export async function cancelJoin(sessionId) {
 
   const participant = participantSnap.data();
 
-  // If already paid → decrease participantsCount
   if (participant.status === "paid") {
 
-  const sessionDateTime = new Date(session.date + "T" + session.startTime);
-  const now = new Date();
-  const diffHours = (sessionDateTime - now) / (1000 * 60 * 60);
+    const sessionDateTime = new Date(session.date + "T" + session.startTime);
+    const now = new Date();
+    const diffHours = (sessionDateTime - now) / (1000 * 60 * 60);
 
-  let refundPercent = 0;
+    let refundPercent = 0;
 
-  if (diffHours >= CANCEL_POLICY.fullRefundHours) {
-    refundPercent = 100;
-  } else if (
-    diffHours >= CANCEL_POLICY.halfRefundStart &&
-    diffHours < CANCEL_POLICY.halfRefundEnd
-  ) {
-    refundPercent = 50;
+    if (diffHours >= CANCEL_POLICY.fullRefundHours) {
+      refundPercent = 100;
+    } else if (
+      diffHours >= CANCEL_POLICY.halfRefundStart &&
+      diffHours < CANCEL_POLICY.halfRefundEnd
+    ) {
+      refundPercent = 50;
+    }
+
+    const newCount = Math.max(session.participantsCount - 1, 0);
+
+    await updateDoc(sessionRef, {
+      participantsCount: newCount,
+      status: "open"
+    });
+
+    await updateDoc(participantRef, {
+      status: "cancelled",
+      refundPercent
+    });
+
+    alert("Join cancelled. Refund: " + refundPercent + "%");
+
   } else {
-    refundPercent = 0;
+
+    await updateDoc(participantRef, {
+      status: "cancelled"
+    });
+
+    alert("Join cancelled.");
   }
-
-  console.log("Refund percent:", refundPercent);
-
-  const newCount = Math.max(session.participantsCount - 1, 0);
-
-  await updateDoc(sessionRef, {
-    participantsCount: newCount,
-    status: "open"
-  });
-
-  await updateDoc(participantRef, {
-    status: "cancelled",
-    refundPercent
-  });
-
-  alert("Join cancelled. Refund: " + refundPercent + "%");
 }
 
-
-  await updateDoc(participantRef, {
-    status: "cancelled"
-  });
-
-  alert("Join cancelled.");
-}
 // =====================================================
 // CANCEL SESSION (HOST)
 // =====================================================
