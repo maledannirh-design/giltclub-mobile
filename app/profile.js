@@ -1,222 +1,89 @@
-import { auth, db } from "./firebase.js";
+import { auth } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
-import { followUser, unfollowUser, isFollowing } from "./social.js";
-import { doc, getDoc, collection, getDocs } from "./firestore.js"
 import { showToast } from "./ui.js";
-
 
 let currentUserData = null;
 
-export async function renderProfile() {
-
-  const content = document.getElementById("content");
-  const user = auth.currentUser;
-
-  // ======================
-  // JIKA BELUM LOGIN
-  // ======================
-  if (!user) {
-
-    content.innerHTML = `
-      <div class="page-fade">
-      <h2>Login / Register</h2>
-
-      <div class="auth-box">
-        <input id="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Password">
-        <input id="username" placeholder="Username (untuk daftar saja)">
-        
-        <button id="loginBtn">Login</button>
-        <button id="registerBtn">Register</button>
-      </div>
-      </div>
-    `;
-
-    document.getElementById("loginBtn").onclick = async () => {
-      try {
-        const email = document.getElementById("email").value;
-        const pass = document.getElementById("password").value;
-        await login(email, pass);
-        renderProfile();
-      } catch (err) {
-        showToast(err.message);
-      }
-    };
-
-    document.getElementById("registerBtn").onclick = async () => {
-      try {
-        const email = document.getElementById("email").value;
-        const pass = document.getElementById("password").value;
-        const username = document.getElementById("username").value;
-
-        if (!username) {
-          showToast("Isi username untuk daftar");
-          return;
-        }
-
-        await register(email, pass, username);
-        renderProfile();
-      } catch (err) {
-        showToast(err.message);
-      }
-    };
-
-    return;
-  }
-
-  // ======================
-  // JIKA SUDAH LOGIN
-  // ======================
-  let data;
-
-if (currentUserData) {
-  data = currentUserData;
-} else {
-  const snap = await getDoc(doc(db, "users", user.uid));
-  data = snap.data();
-  currentUserData = data;
-}
-
-
-  content.innerHTML = `
-    <h2>Profile</h2>
-
-    <div class="profile-card">
-      <p><strong>${data.name}</strong></p>
-      <p>Email: ${user.email}</p>
-      <p>Level: ${data.level}</p>
-      <p>Points: ${data.points}</p>
-      <p>Followers: ${data.followersCount}</p>
-      <p>Following: ${data.followingCount}</p>
-      <p><button id="openPublic">View Public Profile</button></p>
-
-      <button id="logoutBtn">Logout</button>
-    </div>
-  `;
-document.getElementById("openPublic").onclick = () => {
-  viewUserProfile(user.uid);
-};
-  document.getElementById("logoutBtn").onclick = async () => {
-    await logout();
-currentUserData = null;
-renderProfile();
-
-  };
-}
-
-export async function viewUserProfile(targetUserId) {
-
-  const content = document.getElementById("content");
-  const currentUser = auth.currentUser;
-
-  const snap = await getDoc(doc(db, "users", targetUserId));
-
-  if (!snap.exists()) {
-    content.innerHTML = "<p>User tidak ditemukan</p>";
-    return;
-  }
-
-  const data = snap.data();
-
-  const isOwnProfile =
-    currentUser && currentUser.uid === targetUserId;
-
-  let followButtonHTML = "";
-
-  if (!isOwnProfile && currentUser) {
-    const alreadyFollowing = await isFollowing(targetUserId);
-
-    followButtonHTML = alreadyFollowing
-      ? `<button id="followBtn">Unfollow</button>`
-      : `<button id="followBtn">Follow</button>`;
-  }
-
-  content.innerHTML = `
-    <h2>${data.name}</h2>
-    <p>@${data.username}</p>
-    <p>Level: ${data.level ?? 0}</p>
-    <p>Points: ${data.points ?? 0}</p>
-    <p>Followers: ${data.followersCount ?? 0}</p>
-    <p>Following: ${data.followingCount ?? 0}</p>
-
-    ${followButtonHTML}
-
-    <br><br>
-    <button id="backBtn">Back</button>
-  `;
-
-  if (!isOwnProfile && currentUser) {
-    const btn = document.getElementById("followBtn");
-
-    btn.onclick = async () => {
-      const alreadyFollowing = await isFollowing(targetUserId);
-
-      if (alreadyFollowing) {
-        await unfollowUser(targetUserId);
-      } else {
-        await followUser(targetUserId);
-      }
-
-      viewUserProfile(targetUserId);
-    };
-  }
-
-  document.getElementById("backBtn").onclick = () => {
-    renderProfile();
-  };
-}
-
-export async function renderMembers() {
-
-  const content = document.getElementById("content");
-
-  const snap = await getDocs(collection(db, "users"));
-
-  if (snap.empty) {
-    content.innerHTML = "<p>Belum ada member.</p>";
-    return;
-  }
-
-  let html = `
-    <h2>Members</h2>
-    <div class="members-list">
-  `;
-
-  snap.forEach(docSnap => {
-    const data = docSnap.data();
-    const uid = docSnap.id;
-
-    html += `
-      <div class="member-card" data-uid="${uid}">
-        <p><strong>${data.name}</strong></p>
-        <p>@${data.username}</p>
-        <p>Level ${data.level ?? 0}</p>
-      </div>
-    `;
-  });
-
-  html += "</div>";
-
-  content.innerHTML = html;
-
-  // Attach click events
-  document.querySelectorAll(".member-card").forEach(card => {
-    card.onclick = () => {
-      const uid = card.getAttribute("data-uid");
-      viewUserProfile(uid);
-    };
-  });
-}
-
-export function renderAccountUI(){
+/* =========================================
+   ENTRY POINT
+========================================= */
+export async function renderAccountUI(){
 
   const content = document.getElementById("content");
   if(!content) return;
 
+  const user = auth.currentUser;
+
+  if(!user){
+    renderLoginUI();
+    return;
+  }
+
+  renderAccountLayout(user);
+}
+
+/* =========================================
+   LOGIN UI
+========================================= */
+function renderLoginUI(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+  <div class="page-fade">
+    <h2>Login / Register</h2>
+
+    <div class="auth-box">
+      <input id="email" placeholder="Email">
+      <input id="password" type="password" placeholder="Password">
+      <input id="username" placeholder="Username (untuk daftar saja)">
+      
+      <button id="loginBtn" class="btn btn-primary">Login</button>
+      <button id="registerBtn" class="btn btn-outline">Register</button>
+    </div>
+  </div>
+  `;
+
+  document.getElementById("loginBtn").onclick = async () => {
+    try{
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      await login(email, pass);
+      renderAccountUI();
+    }catch(err){
+      showToast(err.message, "error");
+    }
+  };
+
+  document.getElementById("registerBtn").onclick = async () => {
+    try{
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
+      const username = document.getElementById("username").value;
+
+      if(!username){
+        showToast("Isi username untuk daftar", "warning");
+        return;
+      }
+
+      await register(email, pass, username);
+      renderAccountUI();
+    }catch(err){
+      showToast(err.message, "error");
+    }
+  };
+}
+
+/* =========================================
+   ACCOUNT LAYOUT
+========================================= */
+function renderAccountLayout(user){
+
+  const content = document.getElementById("content");
+
   content.innerHTML = `
   <div class="account-page">
 
-    <!-- STICKY HEADER -->
     <div class="account-header">
 
       <div class="account-header-top">
@@ -226,22 +93,21 @@ export function renderAccountUI(){
         </div>
 
         <div class="account-info">
-          <div class="account-username">gambit</div>
-          <div class="account-tier">Elite Member +12</div>
-          <div class="account-playing">Playing: Intermediate</div>
-          <div class="account-membership">VVIP</div>
+          <div class="account-username">${user.email.split("@")[0]}</div>
+          <div class="account-tier">Level 1</div>
+          <div class="account-playing">Playing: Beginner</div>
+          <div class="account-membership">Member</div>
         </div>
 
       </div>
 
       <div class="account-actions">
-        <button class="btn btn-primary">Kelola Membership</button>
-        <button class="btn btn-outline">Logout</button>
+        <button id="manageBtn" class="btn btn-primary">Kelola Membership</button>
+        <button id="logoutBtn" class="btn btn-outline">Logout</button>
       </div>
 
     </div>
 
-    <!-- SETTINGS -->
     <div class="account-body">
 
       <div class="group">
@@ -255,5 +121,11 @@ export function renderAccountUI(){
 
   </div>
   `;
-}
 
+  document.getElementById("logoutBtn").onclick = async ()=>{
+    await logout();
+    currentUserData = null;
+    renderAccountUI();
+  };
+
+}
