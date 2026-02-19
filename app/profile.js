@@ -3,6 +3,7 @@ import { login, register, logout } from "./auth.js";
 import { followUser, unfollowUser, isFollowing } from "./social.js";
 import { doc, getDoc, collection, getDocs } from "./firestore.js"
 
+let currentUserData = null;
 
 export async function renderProfile() {
 
@@ -62,8 +63,16 @@ export async function renderProfile() {
   // ======================
   // JIKA SUDAH LOGIN
   // ======================
+  let data;
+
+if (currentUserData) {
+  data = currentUserData;
+} else {
   const snap = await getDoc(doc(db, "users", user.uid));
-  const data = snap.data();
+  data = snap.data();
+  currentUserData = data;
+}
+
 
   content.innerHTML = `
     <h2>Profile</h2>
@@ -85,7 +94,9 @@ document.getElementById("openPublic").onclick = () => {
 };
   document.getElementById("logoutBtn").onclick = async () => {
     await logout();
-    renderProfile();
+currentUserData = null;
+renderProfile();
+
   };
 }
 
