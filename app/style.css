@@ -133,3 +133,31 @@ body{
   border-radius:12px;
 }
 
+.ledger-item{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+
+.ledger-desc{
+  font-size:13px;
+}
+
+.ledger-date{
+  font-size:11px;
+  opacity:.6;
+}
+
+.ledger-amount.credit{
+  color:#4caf50;
+}
+
+.ledger-amount.debit{
+  color:#f44336;
+}
+
+.admin-only{
+  background:#1c1c2e;
+}
+
