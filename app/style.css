@@ -391,32 +391,50 @@ body,
   bottom: 0;
   left: 0;
   right: 0;
+
   display: flex;
   justify-content: space-around;
+  align-items: center;
+
   background: var(--color-card);
   border-top: 1px solid var(--color-border);
-  padding: 8px 0;
+
+  padding: 6px 0;
+  z-index: 100;
 }
 
 .bottom-nav button {
+  flex: 1;
+
   background: transparent;
   border: none;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 18px;
+  justify-content: center;
+
+  gap: 2px;
+
+  font-size: 20px;
   color: var(--color-text-muted);
+
+  padding: 6px 0;
   cursor: pointer;
+
+  transition: all .2s ease;
 }
 
 .bottom-nav button span {
   font-size: 11px;
-  margin-top: 2px;
+  line-height: 1;
 }
 
 .bottom-nav button.active {
   color: var(--color-primary);
+  transform: translateY(-2px);
 }
+
 
 
 @keyframes fadeIn {
