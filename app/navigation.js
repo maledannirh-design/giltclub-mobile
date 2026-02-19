@@ -1,8 +1,9 @@
 import { loadDashboard } from "./dashboard.js";
 import { renderBooking } from "./booking.js";
-import { renderProfile, renderMembers, renderRanking } from "./profile.js";
+import { renderProfile, renderMembers } from "./profile.js";
 import { renderCinema } from "./cinema.js";
 import { renderAttendanceLeaderboard } from "./leaderboard.js";
+
 
 export function navigate(page){
 
@@ -31,8 +32,9 @@ export function navigate(page){
       break;
     
     case "ranking":
-      renderRanking();
+      renderAttendanceLeaderboard();
       break;
+
     
     case "leaderboard":
       renderAttendanceLeaderboard();
