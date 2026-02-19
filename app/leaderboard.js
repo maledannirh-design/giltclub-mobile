@@ -14,6 +14,7 @@ import {
 } from "./firestore.js";
 
 import { getMonthlyTopUsers } from "./services/leaderboardService.js";
+import { getCache, setCache } from "../cache.js";
 
 // ======================================
 // INCREMENT ATTENDANCE
