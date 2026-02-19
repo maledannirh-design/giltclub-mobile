@@ -19,6 +19,12 @@ async function loadDashboard(){
         <div class="card" id="cardWallet"></div>
         <div class="card" id="cardRank"></div>
         <div class="card" id="cardSessions"></div>
+        <div class="card admin-only" id="cardRevenue"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Attendance Trend</h3>
+        <canvas id="attendanceChart" height="120"></canvas>
       </div>
 
       <div class="panel">
@@ -26,12 +32,20 @@ async function loadDashboard(){
         <div id="leaderboardList"></div>
       </div>
 
+      <div class="panel">
+        <h3>Recent Wallet Activity</h3>
+        <div id="walletMiniLedger"></div>
+      </div>
+
     </div>
   `;
 
   await loadUserSummary();
   await loadLeaderboard();
+  await loadMiniLedger();
+  await loadAttendanceChart();
 }
+
 
 async function loadUserSummary(){
 
@@ -118,3 +132,43 @@ async function loadLeaderboard(){
 
   document.getElementById("leaderboardList").innerHTML = html;
 }
+
+async function loadMiniLedger(){
+
+  const user = JSON.parse(localStorage.getItem("g_user"));
+  if(!user) return;
+
+  const ledgerRef = collection(db,"wallet_ledger");
+
+  const q = query(
+    ledgerRef,
+    where("uid","==",user.uid),
+    orderBy("createdAt","desc"),
+    limit(5)
+  );
+
+  const snap = await getDocs(q);
+
+  let html = "";
+
+  snap.forEach(doc=>{
+    const data = doc.data();
+
+    const sign = data.type === "credit" ? "+" : "-";
+
+    html += `
+      <div class="ledger-item">
+        <div>
+          <div class="ledger-desc">${data.description}</div>
+          <div class="ledger-date">${new Date(data.createdAt.seconds*1000).toLocaleDateString()}</div>
+        </div>
+        <div class="ledger-amount ${data.type}">
+          ${sign} Rp ${formatCurrency(data.amount)}
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById("walletMiniLedger").innerHTML = html;
+}
+
