@@ -61,8 +61,6 @@ export async function loadDashboard(){
   await loadAttendanceChart();
 }
 
-
-
 async function loadUserSummary(){
 
   const user = JSON.parse(localStorage.getItem("g_user"));
