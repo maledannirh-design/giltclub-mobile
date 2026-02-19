@@ -251,3 +251,134 @@ html, body {
   from { opacity: 0; transform: translate(-50%, 6px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
+
+/* ================= ACCOUNT PAGE ================= */
+
+.account-page{
+  padding-bottom:90px;
+}
+
+/* Sticky elevated header */
+.account-header{
+  position:sticky;
+  top:0;
+  z-index:10;
+
+  background:var(--color-card);
+  padding:24px 16px 20px;
+
+  border-bottom-left-radius:24px;
+  border-bottom-right-radius:24px;
+
+  box-shadow:0 8px 20px rgba(0,0,0,.04);
+  transition:box-shadow .2s ease;
+}
+
+.account-header-top{
+  display:flex;
+  gap:16px;
+  align-items:center;
+}
+
+/* Avatar */
+.avatar{
+  width:88px;
+  height:88px;
+  border-radius:50%;
+
+  background:linear-gradient(135deg,#eef2ff,#e0f2fe);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow:0 4px 14px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+
+.avatar-icon{
+  font-size:36px;
+  opacity:.7;
+}
+
+/* Info */
+.account-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.account-username{
+  font-size:18px;
+  font-weight:600;
+}
+
+.account-tier{
+  font-size:14px;
+  font-weight:500;
+}
+
+.account-playing{
+  font-size:12px;
+  color:var(--color-text-muted);
+}
+
+.account-membership{
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--color-border);
+  width:fit-content;
+}
+
+/* Buttons */
+.account-actions{
+  display:flex;
+  gap:12px;
+  margin-top:18px;
+}
+
+.account-actions .btn{
+  flex:1;
+  height:46px;
+  border-radius:16px;
+  font-size:14px;
+}
+
+/* Body */
+.account-body{
+  margin-top:20px;
+  padding:0 16px;
+}
+
+/* iOS grouped style */
+.group{
+  background:var(--color-card);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.03);
+}
+
+.group-row{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+  font-size:14px;
+  cursor:pointer;
+  transition:background .15s ease;
+}
+
+.group-row:not(:last-child){
+  border-bottom:1px solid var(--color-border);
+}
+
+.group-row:hover{
+  background:rgba(0,0,0,.03);
+}
+
+.group-row span{
+  font-size:18px;
+  opacity:.5;
+}
+
