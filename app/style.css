@@ -9,6 +9,20 @@ body{
   background:#f4f6f9;
 }
 
+button {
+  transition: transform .08s ease, opacity .15s ease;
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+
 #app{
   max-width:480px;
   margin:auto;
