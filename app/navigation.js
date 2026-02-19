@@ -1,11 +1,9 @@
-import { loadDashboard } from "./dashboard.js";
 import { renderBooking } from "./booking.js";
 import { renderProfile, renderMembers } from "./profile.js";
 import { renderCinema } from "./cinema.js";
 import { renderAttendanceLeaderboard } from "./leaderboard.js";
 
-
-export function navigate(page){
+export async function navigate(page){
 
   const content = document.getElementById("content");
 
@@ -26,28 +24,23 @@ export function navigate(page){
     case "cinema":
       renderCinema();
       break;
-      
+
     case "members":
       renderMembers();
       break;
-    
+
     case "ranking":
       renderAttendanceLeaderboard();
       break;
 
-    
-    case "leaderboard":
-      renderAttendanceLeaderboard();
-      break;
-
     case "dashboard":
-      loadDashboard();
+      const dashboardModule = await import("./dashboard.js");
+      dashboardModule.loadDashboard();
       break;
 
     default:
       content.innerHTML = "<h2>Page not found</h2>";
   }
 }
-
 
 window.navigate = navigate;
