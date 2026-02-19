@@ -314,7 +314,6 @@ export async function rejectParticipant(sessionId, targetUid) {
 
   alert("Participant rejected.");
 }
-
 // =====================================================
 // COMPLETE SESSION
 // =====================================================
@@ -379,6 +378,23 @@ export async function completeSession(sessionId) {
     }
   });
 
+  // =============================
+  // ANTI FARMING RULES
+  // =============================
+
+  if (validParticipants.length < 2) {
+    alert("Session invalid. Minimum 2 participants required.");
+    return;
+  }
+
+  if (
+    validParticipants.length === 1 &&
+    validParticipants[0] === session.createdBy
+  ) {
+    alert("Host cannot farm attendance alone.");
+    return;
+  }
+
   const totalParticipants = validParticipants.length;
 
   const totalRevenue =
@@ -390,19 +406,50 @@ export async function completeSession(sessionId) {
   const hostRevenue =
     totalRevenue - platformRevenue;
 
-  // Update lifetime attendance
+  // =============================
+  // ATTENDANCE + DAILY CAP
+  // =============================
+
+  const todayId = session.date;
+
   for (const uid of validParticipants) {
 
-    const userRef = doc(db, "users", uid);
+    const dailyRef = doc(
+      db,
+      "users",
+      uid,
+      "dailyAttendance",
+      todayId
+    );
 
-    await updateDoc(userRef, {
+    const dailySnap = await getDoc(dailyRef);
+
+    let todayCount = 0;
+
+    if (dailySnap.exists()) {
+      todayCount = dailySnap.data().count || 0;
+    }
+
+    if (todayCount >= 2) {
+      console.log("Daily cap reached for", uid);
+      continue;
+    }
+
+    await setDoc(
+      dailyRef,
+      { count: increment(1) },
+      { merge: true }
+    );
+
+    await updateDoc(doc(db, "users", uid), {
       attendanceCount: increment(1)
     });
   }
 
   // =============================
-  // MONTHLY LEADERBOARD UPDATE
+  // MONTHLY LEADERBOARD
   // =============================
+
   const nowDate = new Date();
   const year = nowDate.getFullYear();
   const month = String(nowDate.getMonth() + 1).padStart(2, "0");
@@ -435,6 +482,7 @@ export async function completeSession(sessionId) {
 
   alert("Session completed successfully.");
 }
+
 // =====================================================
 // CANCEL JOIN (PARTICIPANT)
 // =====================================================
