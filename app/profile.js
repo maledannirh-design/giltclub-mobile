@@ -2,6 +2,8 @@ import { auth, db } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { followUser, unfollowUser, isFollowing } from "./social.js";
 import { doc, getDoc, collection, getDocs } from "./firestore.js"
+import { showToast } from "./ui.js";
+
 
 let currentUserData = null;
 
@@ -37,7 +39,7 @@ export async function renderProfile() {
         await login(email, pass);
         renderProfile();
       } catch (err) {
-        alert(err.message);
+        showToast(err.message);
       }
     };
 
@@ -48,14 +50,14 @@ export async function renderProfile() {
         const username = document.getElementById("username").value;
 
         if (!username) {
-          alert("Isi username untuk daftar");
+          showToast("Isi username untuk daftar");
           return;
         }
 
         await register(email, pass, username);
         renderProfile();
       } catch (err) {
-        alert(err.message);
+        showToast(err.message);
       }
     };
 
