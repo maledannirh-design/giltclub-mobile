@@ -5,61 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GILT Club App - Modern Tennis</title>
 
+  <!-- Styles -->
   <link rel="stylesheet" href="theme.css" />
-<link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" />
 
-  <link rel="icon" type="image/webp" href="./image/logo_giltclub.webp">
-
-
+  <!-- Favicon -->
+  <link rel="icon" type="image/webp" href="./image/logo_giltclub.webp" />
 </head>
+
 <body>
 
-<div id="app">
+  <div id="app">
 
- <header class="header">
-  <div class="header-title">GILT Club</div>
+    <!-- ================= HEADER ================= -->
+    <header class="header">
+      <div class="header-title">GILT Club</div>
 
-  <div class="header-actions">
+      <div class="header-actions">
+        <span id="currentUserLabel" class="user-label">
+          Not logged in
+        </span>
 
-    <span id="currentUserLabel" class="user-label">
-      Not logged in
-    </span>
+        <button class="theme-toggle" onclick="toggleTheme()">
+          🌙
+        </button>
 
-    <button onclick="toggleTheme()" class="theme-toggle">
-      🌙
-    </button>
+        <button class="profile-icon" onclick="navigate('profile')">
+          👤
+        </button>
+      </div>
+    </header>
 
-    <div onclick="navigate('profile')" class="profile-icon">
-      👤
-    </div>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main id="content" class="content"></main>
+
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <nav class="bottom-nav">
+      <button data-page="home" onclick="navigate('home')">
+        🏠
+        <span>Home</span>
+      </button>
+
+      <button data-page="booking" onclick="navigate('booking')">
+        🎾
+        <span>Book</span>
+      </button>
+
+      <button data-page="dashboard" onclick="navigate('dashboard')">
+        📊
+        <span>Stats</span>
+      </button>
+
+      <button data-page="ranking" onclick="navigate('ranking')">
+        🏆
+        <span>Rank</span>
+      </button>
+
+      <button data-page="profile" onclick="navigate('profile')">
+        👤
+        <span>Profile</span>
+      </button>
+    </nav>
 
   </div>
-</header>
 
 
-
-  <main id="content" class="content"></main>
-
-<nav class="bottom-nav">
-  <button data-page="home" onclick="navigate('home')">🏠<span>Home</span></button>
-  <button data-page="booking" onclick="navigate('booking')">🎾<span>Book</span></button>
-  <button data-page="dashboard" onclick="navigate('dashboard')">📊<span>Stats</span></button>
-  <button data-page="ranking" onclick="navigate('ranking')">🏆<span>Rank</span></button>
-  <button data-page="profile" onclick="navigate('profile')">👤<span>Profile</span></button>
-</nav>
-
-
-
-</div>
-    <!-- External Library -->
+  <!-- ================= LIBRARIES ================= -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Firebase & App Scripts -->
-
+  <!-- ================= MAIN APP ================= -->
   <script type="module" src="main.js"></script>
-
-
 
 </body>
 </html>
-
