@@ -8,6 +8,7 @@ import {
   where,
   getDocs
 } from "../firestore.js";
+import { CANCEL_POLICY } from "../config.js";
 
 
 export async function createBooking({ userId, scheduleId }){
@@ -70,7 +71,6 @@ export async function cancelBooking({ bookingId }){
   await runTransaction(db, async (transaction) => {
 
     const bookingSnap = await transaction.get(bookingRef);
-
     if (!bookingSnap.exists()){
       throw new Error("Booking not found");
     }
@@ -82,7 +82,6 @@ export async function cancelBooking({ bookingId }){
     }
 
     const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
-
     const scheduleSnap = await transaction.get(scheduleRef);
 
     if (!scheduleSnap.exists()){
@@ -91,14 +90,71 @@ export async function cancelBooking({ bookingId }){
 
     const scheduleData = scheduleSnap.data();
 
-    // 1️⃣ Update booking status
+    const userRef = doc(db, "users", bookingData.userId);
+    const userSnap = await transaction.get(userRef);
+
+    if (!userSnap.exists()){
+      throw new Error("User not found");
+    }
+
+    const userData = userSnap.data();
+
+    // ============================
+    // 1️⃣ CANCEL DEADLINE CHECK
+    // ============================
+
+    const scheduleDate = new Date(scheduleData.date);
+    const now = new Date();
+
+    const diffHours = (scheduleDate - now) / (1000 * 60 * 60);
+
+    if (diffHours < CANCEL_POLICY.deadlineHours){
+      throw new Error("Cancel deadline passed");
+    }
+
+    // ============================
+    // 2️⃣ PENALTY LOGIC
+    // ============================
+
+    let refundAmount = scheduleData.price || 0;
+
+    if (diffHours < CANCEL_POLICY.penaltyWindowHours){
+      refundAmount = refundAmount * (1 - CANCEL_POLICY.penaltyRate);
+    }
+
+    // ============================
+    // 3️⃣ UPDATE BOOKING STATUS
+    // ============================
+
     transaction.update(bookingRef, {
-      status: "cancelled"
+      status: "cancelled",
+      cancelledAt: serverTimestamp()
     });
 
-    // 2️⃣ Restore slot
+    // ============================
+    // 4️⃣ RESTORE SLOT
+    // ============================
+
     transaction.update(scheduleRef, {
       slots: (scheduleData.slots || 0) + 1
+    });
+
+    // ============================
+    // 5️⃣ ATTENDANCE DECREMENT
+    // ============================
+
+    if (bookingData.attendanceRecorded){
+      transaction.update(userRef, {
+        attendanceCount: (userData.attendanceCount || 1) - 1
+      });
+    }
+
+    // ============================
+    // 6️⃣ WALLET REFUND
+    // ============================
+
+    transaction.update(userRef, {
+      walletBalance: (userData.walletBalance || 0) + refundAmount
     });
 
   });
