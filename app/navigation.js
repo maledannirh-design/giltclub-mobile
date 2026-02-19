@@ -1,5 +1,8 @@
 let navLock = false;
 let currentPage = null;
+import { toggleTheme } from "./theme.js";
+
+
 
 export async function navigate(page){
 
@@ -71,5 +74,7 @@ export async function navigate(page){
     navLock = false;
   }
 }
+
+window.toggleTheme = toggleTheme;
 
 window.navigate = navigate;
