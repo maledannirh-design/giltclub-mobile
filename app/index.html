@@ -40,28 +40,14 @@
 
   <main id="content" class="content"></main>
 
- <nav class="bottom-nav">
-  <button onclick="navigate('home')">
-    🏠
-    <span>Home</span>
-  </button>
-  <button onclick="navigate('booking')">
-    🎾
-    <span>Book</span>
-  </button>
-  <button onclick="navigate('dashboard')">
-    📊
-    <span>Stats</span>
-  </button>
-  <button onclick="navigate('leaderboard')">
-    🏆
-    <span>Rank</span>
-  </button>
-  <button onclick="navigate('profile')">
-    👤
-    <span>Profile</span>
-  </button>
+<nav class="bottom-nav">
+  <button data-page="home" onclick="navigate('home')">🏠<span>Home</span></button>
+  <button data-page="booking" onclick="navigate('booking')">🎾<span>Book</span></button>
+  <button data-page="dashboard" onclick="navigate('dashboard')">📊<span>Stats</span></button>
+  <button data-page="ranking" onclick="navigate('ranking')">🏆<span>Rank</span></button>
+  <button data-page="profile" onclick="navigate('profile')">👤<span>Profile</span></button>
 </nav>
+
 
 
 </div>
