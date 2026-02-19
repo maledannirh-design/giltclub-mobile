@@ -1,14 +1,11 @@
 import { db, auth } from "./firebase.js";
-import { collection, getDocs, query, where } from "./firestore.js";
+import { collection, query, where, getDocs, onSnapshot } from "./firestore.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
 
 /* ===============================
-   CACHE
+   REALTIME LISTENER CONTROL
 ================================= */
-let scheduleCache = null;
-let scheduleCacheTime = 0;
-const SCHEDULE_TTL = 60000;
-
+let unsubscribeSchedules = null;
 let bookingLock = false;
 
 
@@ -20,6 +17,12 @@ export async function renderBooking(){
   const content = document.getElementById("content");
   if (!content) return;
 
+  // Stop previous listener if exists
+  if (unsubscribeSchedules) {
+    unsubscribeSchedules();
+    unsubscribeSchedules = null;
+  }
+
   content.innerHTML = `
     <div style="padding:20px;text-align:center;opacity:.6;">
       Loading...
@@ -29,75 +32,23 @@ export async function renderBooking(){
   try {
 
     const user = auth.currentUser;
-    const schedules = await loadSchedules();
-    const userBookings = user ? await loadUserBookings(user.uid) : [];
 
-    const bookingMap = {};
-    userBookings.forEach(b => {
-      bookingMap[b.scheduleId] = b;
-    });
+    unsubscribeSchedules = onSnapshot(
+      collection(db, "schedules"),
+      async (snapshot) => {
 
-    if (!schedules.length){
-      content.innerHTML = "<p>No schedules available.</p>";
-      return;
-    }
+        const schedules = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
 
-    let html = `<h2>Book Session</h2>`;
+        const userBookings = user
+          ? await loadUserBookings(user.uid)
+          : [];
 
-    schedules.forEach(schedule => {
-
-      const existingBooking = bookingMap[schedule.id];
-
-      html += `
-        <div class="schedule-card">
-          <div><strong>${schedule.title || "Session"}</strong></div>
-          <div>Date: ${schedule.date}</div>
-          <div>Slots: ${schedule.slots}</div>
-          <div>Price: ${schedule.price || 0}</div>
-      `;
-
-      if (!user) {
-
-        html += `<div style="opacity:.6;">Login to join</div>`;
-
-      } else if (existingBooking) {
-
-        html += `
-          <button class="cancel-btn" data-id="${existingBooking.id}">
-            Batalkan
-          </button>
-        `;
-
-      } else {
-
-        html += `
-          <button class="book-btn" data-id="${schedule.id}">
-            Gabung
-          </button>
-        `;
+        renderScheduleUI(schedules, userBookings);
       }
-
-      html += `</div>`;
-    });
-
-    content.innerHTML = html;
-
-    // EVENT DELEGATION
-    content.addEventListener("click", async (e) => {
-
-      const bookBtn = e.target.closest(".book-btn");
-      if (bookBtn) {
-        await handleBookingClick(bookBtn.dataset.id);
-        return;
-      }
-
-      const cancelBtn = e.target.closest(".cancel-btn");
-      if (cancelBtn) {
-        await handleCancelClick(cancelBtn.dataset.id);
-        return;
-      }
-
-    });
+    );
 
   } catch (error) {
 
@@ -105,31 +56,6 @@ export async function renderBooking(){
     content.innerHTML = "<p>Error loading schedules.</p>";
 
   }
-}
-
-
-/* ===============================
-   LOAD SCHEDULES (CACHE)
-================================= */
-async function loadSchedules(){
-
-  const now = Date.now();
-
-  if (scheduleCache && (now - scheduleCacheTime) < SCHEDULE_TTL){
-    return scheduleCache;
-  }
-
-  const snap = await getDocs(collection(db, "schedules"));
-
-  const schedules = snap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-
-  scheduleCache = schedules;
-  scheduleCacheTime = now;
-
-  return schedules;
 }
 
 
@@ -150,6 +76,78 @@ async function loadUserBookings(userId){
     id: doc.id,
     ...doc.data()
   }));
+}
+
+
+/* ===============================
+   RENDER UI
+================================= */
+function renderScheduleUI(schedules, userBookings){
+
+  const content = document.getElementById("content");
+  if (!content) return;
+
+  const bookingMap = {};
+  userBookings.forEach(b => {
+    bookingMap[b.scheduleId] = b;
+  });
+
+  let html = `<h2>Book Session</h2>`;
+
+  schedules.forEach(schedule => {
+
+    const existingBooking = bookingMap[schedule.id];
+
+    html += `
+      <div class="schedule-card">
+        <div><strong>${schedule.title || "Session"}</strong></div>
+        <div>Date: ${schedule.date}</div>
+        <div>Slots: ${schedule.slots}</div>
+        <div>Price: ${schedule.price || 0}</div>
+    `;
+
+    if (!auth.currentUser) {
+
+      html += `<div style="opacity:.6;">Login to join</div>`;
+
+    } else if (existingBooking) {
+
+      html += `
+        <button class="cancel-btn" data-id="${existingBooking.id}">
+          Batalkan
+        </button>
+      `;
+
+    } else {
+
+      html += `
+        <button class="book-btn" data-id="${schedule.id}">
+          Gabung
+        </button>
+      `;
+    }
+
+    html += `</div>`;
+  });
+
+  content.innerHTML = html;
+
+  // Single event delegation
+  content.onclick = async (e) => {
+
+    const bookBtn = e.target.closest(".book-btn");
+    if (bookBtn) {
+      await handleBookingClick(bookBtn.dataset.id);
+      return;
+    }
+
+    const cancelBtn = e.target.closest(".cancel-btn");
+    if (cancelBtn) {
+      await handleCancelClick(cancelBtn.dataset.id);
+      return;
+    }
+
+  };
 }
 
 
@@ -175,10 +173,7 @@ async function handleBookingClick(scheduleId){
       scheduleId
     });
 
-    scheduleCache = null;
-
     alert("Booking successful!");
-    renderBooking();
 
   } catch (error) {
 
@@ -205,10 +200,7 @@ async function handleCancelClick(bookingId){
 
     await cancelBooking({ bookingId });
 
-    scheduleCache = null;
-
     alert("Booking cancelled!");
-    renderBooking();
 
   } catch (error) {
 
