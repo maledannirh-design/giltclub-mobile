@@ -10,7 +10,10 @@ import {
 } from "../firestore.js";
 import { CANCEL_POLICY } from "../config.js";
 
-export async function createBooking({ userId, scheduleId }){
+/* =====================================================
+   CREATE BOOKING (FULL ATOMIC + WALLET LEDGER)
+===================================================== */
+export async function createBooking({ userId, scheduleId }) {
 
   const scheduleRef = doc(db, "schedules", scheduleId);
   const bookingsCol = collection(db, "bookings");
@@ -19,42 +22,34 @@ export async function createBooking({ userId, scheduleId }){
 
   await runTransaction(db, async (transaction) => {
 
-    // ============================
-    // 1️⃣ GET SCHEDULE
-    // ============================
+    // 1️⃣ Get Schedule
     const scheduleSnap = await transaction.get(scheduleRef);
-
-    if (!scheduleSnap.exists()){
+    if (!scheduleSnap.exists()) {
       throw new Error("Schedule not found");
     }
 
     const scheduleData = scheduleSnap.data();
+    const availableSlots = scheduleData.slots || 0;
+    const price = scheduleData.price || 0;
 
-    if ((scheduleData.slots || 0) <= 0){
+    if (availableSlots <= 0) {
       throw new Error("Slot full");
     }
 
-    const price = scheduleData.price || 0;
-
-    // ============================
-    // 2️⃣ GET USER
-    // ============================
+    // 2️⃣ Get User
     const userSnap = await transaction.get(userRef);
-
-    if (!userSnap.exists()){
+    if (!userSnap.exists()) {
       throw new Error("User not found");
     }
 
     const userData = userSnap.data();
     const currentBalance = userData.walletBalance || 0;
 
-    if (currentBalance < price){
+    if (currentBalance < price) {
       throw new Error("Insufficient balance");
     }
 
-    // ============================
-    // 3️⃣ CHECK DUPLICATE BOOKING
-    // ============================
+    // 3️⃣ Duplicate Booking Guard
     const duplicateQuery = query(
       bookingsCol,
       where("userId", "==", userId),
@@ -63,14 +58,11 @@ export async function createBooking({ userId, scheduleId }){
     );
 
     const duplicateSnap = await getDocs(duplicateQuery);
-
-    if (!duplicateSnap.empty){
+    if (!duplicateSnap.empty) {
       throw new Error("You already booked this schedule");
     }
 
-    // ============================
-    // 4️⃣ CREATE BOOKING
-    // ============================
+    // 4️⃣ Create Booking
     const bookingRef = doc(bookingsCol);
 
     transaction.set(bookingRef, {
@@ -81,25 +73,19 @@ export async function createBooking({ userId, scheduleId }){
       price
     });
 
-    // ============================
-    // 5️⃣ REDUCE SLOT
-    // ============================
+    // 5️⃣ Reduce Slot
     transaction.update(scheduleRef, {
-      slots: scheduleData.slots - 1
+      slots: availableSlots - 1
     });
 
-    // ============================
-    // 6️⃣ WALLET DEBIT
-    // ============================
+    // 6️⃣ Wallet Debit
     const newBalance = currentBalance - price;
 
     transaction.update(userRef, {
       walletBalance: newBalance
     });
 
-    // ============================
-    // 7️⃣ LEDGER ENTRY
-    // ============================
+    // 7️⃣ Ledger Entry
     const ledgerRef = doc(ledgerCol);
 
     transaction.set(ledgerRef, {
@@ -116,64 +102,63 @@ export async function createBooking({ userId, scheduleId }){
   return { success: true };
 }
 
-export async function cancelBooking({ bookingId }){
+
+/* =====================================================
+   CANCEL BOOKING (TIER REFUND + LEDGER + ATOMIC)
+===================================================== */
+export async function cancelBooking({ bookingId }) {
 
   const bookingRef = doc(db, "bookings", bookingId);
   const ledgerCol = collection(db, "wallet_transactions");
 
   await runTransaction(db, async (transaction) => {
 
-    // ============================
-    // 1️⃣ GET BOOKING
-    // ============================
+    // 1️⃣ Get Booking
     const bookingSnap = await transaction.get(bookingRef);
-
-    if (!bookingSnap.exists()){
+    if (!bookingSnap.exists()) {
       throw new Error("Booking not found");
     }
 
     const bookingData = bookingSnap.data();
 
-    if (bookingData.status !== "active"){
+    if (bookingData.status !== "active") {
       throw new Error("Booking already cancelled");
     }
 
+    // 2️⃣ Get Schedule
     const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
     const scheduleSnap = await transaction.get(scheduleRef);
 
-    if (!scheduleSnap.exists()){
+    if (!scheduleSnap.exists()) {
       throw new Error("Schedule not found");
     }
 
     const scheduleData = scheduleSnap.data();
 
+    // 3️⃣ Get User
     const userRef = doc(db, "users", bookingData.userId);
     const userSnap = await transaction.get(userRef);
 
-    if (!userSnap.exists()){
+    if (!userSnap.exists()) {
       throw new Error("User not found");
     }
 
     const userData = userSnap.data();
 
-    // ============================
-    // 2️⃣ DEADLINE CHECK
-    // ============================
+    // 4️⃣ Deadline Check
     const scheduleDate = new Date(scheduleData.date);
     const now = new Date();
     const diffHours = (scheduleDate - now) / (1000 * 60 * 60);
 
-    if (diffHours < CANCEL_POLICY.deadlineHours){
+    if (diffHours < CANCEL_POLICY.deadlineHours) {
       throw new Error("Cancel deadline passed");
     }
 
-    // ============================
-    // 3️⃣ TIER REFUND CALCULATION
-    // ============================
+    // 5️⃣ Tier Refund Calculation
     let refundRate = 0;
 
-    for (const tier of CANCEL_POLICY.tiers){
-      if (diffHours >= tier.minHoursBefore){
+    for (const tier of CANCEL_POLICY.tiers) {
+      if (diffHours >= tier.minHoursBefore) {
         refundRate = tier.refundRate;
         break;
       }
@@ -182,9 +167,7 @@ export async function cancelBooking({ bookingId }){
     const price = bookingData.price || scheduleData.price || 0;
     const refundAmount = price * refundRate;
 
-    // ============================
-    // 4️⃣ UPDATE BOOKING STATUS
-    // ============================
+    // 6️⃣ Update Booking Status
     transaction.update(bookingRef, {
       status: "cancelled",
       cancelledAt: serverTimestamp(),
@@ -192,28 +175,23 @@ export async function cancelBooking({ bookingId }){
       refundAmount
     });
 
-    // ============================
-    // 5️⃣ RESTORE SLOT
-    // ============================
+    // 7️⃣ Restore Slot
+    const currentSlots = scheduleData.slots || 0;
+
     transaction.update(scheduleRef, {
-      slots: (scheduleData.slots || 0) + 1
+      slots: currentSlots + 1
     });
 
-    // ============================
-    // 6️⃣ WALLET REFUND (LEDGER SYSTEM)
-    // ============================
-
-    if (refundAmount > 0){
+    // 8️⃣ Wallet Refund + Ledger
+    if (refundAmount > 0) {
 
       const currentBalance = userData.walletBalance || 0;
       const newBalance = currentBalance + refundAmount;
 
-      // Update balance
       transaction.update(userRef, {
         walletBalance: newBalance
       });
 
-      // Create ledger entry
       const ledgerRef = doc(ledgerCol);
 
       transaction.set(ledgerRef, {
@@ -224,11 +202,9 @@ export async function cancelBooking({ bookingId }){
         referenceId: bookingId,
         createdAt: serverTimestamp()
       });
-
     }
 
   });
 
   return { success: true };
 }
-
