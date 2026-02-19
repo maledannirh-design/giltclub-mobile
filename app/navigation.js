@@ -1,8 +1,7 @@
-let navLock = false;
-let currentPage = null;
 import { toggleTheme } from "./theme.js";
 
-
+let navLock = false;
+let currentPage = null;
 
 export async function navigate(page){
 
@@ -13,11 +12,12 @@ export async function navigate(page){
   currentPage = page;
 
   const content = document.getElementById("content");
-  if (!content) {
+  if (!content){
     navLock = false;
     return;
   }
 
+  // Loading state
   content.innerHTML = `
     <div style="padding:20px;text-align:center;opacity:.6;">
       Loading...
@@ -60,7 +60,9 @@ export async function navigate(page){
         content.innerHTML = "<h2>Page not found</h2>";
     }
 
-  } catch (error) {
+    updateActiveNav(page);
+
+  } catch (error){
 
     console.error("Navigation error:", error);
 
@@ -75,6 +77,24 @@ export async function navigate(page){
   }
 }
 
-window.toggleTheme = toggleTheme;
+/* ============================
+   ACTIVE NAV HIGHLIGHT
+============================ */
+function updateActiveNav(page){
 
+  const buttons = document.querySelectorAll(".bottom-nav button");
+
+  buttons.forEach(btn => {
+    btn.classList.remove("active");
+
+    if (btn.dataset.page === page){
+      btn.classList.add("active");
+    }
+  });
+}
+
+/* ============================
+   GLOBAL BIND
+============================ */
 window.navigate = navigate;
+window.toggleTheme = toggleTheme;
