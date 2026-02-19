@@ -1,6 +1,8 @@
 import { db, auth } from "./firebase.js";
 import { collection, query, where, getDocs, onSnapshot } from "./firestore.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
+import { showToast } from "./ui.js";
+
 
 /* ===============================
    REALTIME LISTENER CONTROL
@@ -165,7 +167,7 @@ async function handleBookingClick(scheduleId){
 
   const user = auth.currentUser;
   if (!user){
-    alert("Please login first.");
+    showToast("Please login first.");
     return;
   }
 
@@ -178,11 +180,12 @@ async function handleBookingClick(scheduleId){
       scheduleId
     });
 
-    alert("Booking successful!");
+    showToast("Berhasil bergabung!");
+
 
   } catch (error) {
 
-    alert(error.message);
+    showToast(error.message);
 
   } finally {
 
@@ -205,11 +208,11 @@ async function handleCancelClick(bookingId){
 
     await cancelBooking({ bookingId });
 
-    alert("Booking cancelled!");
+    showToast("Booking cancelled!");
 
   } catch (error) {
 
-    alert(error.message);
+    showToast(error.message);
 
   } finally {
 
