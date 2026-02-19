@@ -90,7 +90,7 @@ export async function cancelBooking({ bookingId }){
 
     const scheduleData = scheduleSnap.data();
 
-    const userRef = doc(db, bookingData.userId ? "users" : "", bookingData.userId);
+    const userRef = doc(db, "users", bookingData.userId);
     const userSnap = await transaction.get(userRef);
 
     if (!userSnap.exists()){
