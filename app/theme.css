@@ -23,9 +23,15 @@
   --radius-md: 14px;
   --radius-lg: 20px;
 
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  
+
   /* Shadow */
   --shadow-card: 0 4px 12px rgba(0,0,0,.04);
-}
 
 [data-theme="dark"] {
 
