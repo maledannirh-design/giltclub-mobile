@@ -181,6 +181,51 @@ body{
 .toast-success { background: #16a34a; }
 .toast-error { background: #dc2626; }
 .toast-warning { background: #f59e0b; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 320px;
+  animation: fadeIn .2s ease;
+}
+
+.modal-message {
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions button {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-cancel {
+  background: #e5e7eb;
+}
+
+.modal-confirm {
+  background: #dc2626;
+  color: white;
+}
 
 
 @keyframes fadeIn {
