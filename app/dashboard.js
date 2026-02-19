@@ -1,3 +1,17 @@
+import { 
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { db } from "./firebase.js";
+
+
 // ============================
 // DASHBOARD MODULE
 // ============================
@@ -88,6 +102,25 @@ async function loadUserSummary(){
     attendance = stat.attendance || 0;
     rank = stat.rank || "-";
   }
+  
+  if(userData.role === "admin"){
+
+  const revenueRef = doc(db,"monthly_revenue",currentMonth);
+  const revenueSnap = await getDoc(revenueRef);
+
+  let revenue = 0;
+  if(revenueSnap.exists()){
+    revenue = revenueSnap.data().total || 0;
+  }
+
+  document.getElementById("cardRevenue").innerHTML = `
+    <div class="label">Monthly Revenue</div>
+    <div class="value">Rp ${formatCurrency(revenue)}</div>
+  `;
+
+}else{
+  document.getElementById("cardRevenue")?.remove();
+}
 
   document.getElementById("cardAttendance").innerHTML = `
     <div class="label">Attendance (Month)</div>
@@ -151,24 +184,101 @@ async function loadMiniLedger(){
 
   let html = "";
 
-  snap.forEach(doc=>{
-    const data = doc.data();
+  snap.forEach(docSnap=>{
+
+    const data = docSnap.data();
 
     const sign = data.type === "credit" ? "+" : "-";
+
+    // SAFE DATE PARSING
+    const date = data.createdAt?.seconds
+      ? new Date(data.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+      : "-";
 
     html += `
       <div class="ledger-item">
         <div>
-          <div class="ledger-desc">${data.description}</div>
-          <div class="ledger-date">${new Date(data.createdAt.seconds*1000).toLocaleDateString()}</div>
+          <div class="ledger-desc">${data.description || "-"}</div>
+          <div class="ledger-date">${date}</div>
         </div>
         <div class="ledger-amount ${data.type}">
-          ${sign} Rp ${formatCurrency(data.amount)}
+          ${sign} Rp ${formatCurrency(data.amount || 0)}
         </div>
       </div>
     `;
   });
 
+  if(html === ""){
+    html = `<div style="opacity:.6;font-size:13px;">No recent activity</div>`;
+  }
+
   document.getElementById("walletMiniLedger").innerHTML = html;
 }
+
+
+async function loadAttendanceChart(){
+
+  const user = JSON.parse(localStorage.getItem("g_user"));
+  if(!user) return;
+
+  const monthsSnap = await getDocs(collection(db,"monthly_stats"));
+
+  let labels = [];
+  let dataPoints = [];
+
+  for(const monthDoc of monthsSnap.docs){
+
+    const month = monthDoc.id;
+
+    const statRef = doc(db,"monthly_stats",month,"users",user.uid);
+    const statSnap = await getDoc(statRef);
+
+    if(statSnap.exists()){
+      labels.push(month);
+      dataPoints.push(statSnap.data().attendance || 0);
+    }
+  }
+
+  // SORT BY MONTH ASCENDING (YYYY-MM format)
+  labels = labels.sort();
+  dataPoints = labels.map((m,i)=>dataPoints[i]);
+
+  const ctx = document.getElementById("attendanceChart");
+  if(!ctx) return;
+
+  // 🔥 DESTROY OLD INSTANCE (ANTI DUPLICATE)
+  if(window.attendanceChartInstance){
+    window.attendanceChartInstance.destroy();
+  }
+
+  window.attendanceChartInstance = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels:labels,
+      datasets:[{
+        label:"Attendance",
+        data:dataPoints,
+        borderColor:"#4caf50",
+        backgroundColor:"rgba(76,175,80,.2)",
+        tension:0.3,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false}
+      },
+      scales:{
+        y:{
+          beginAtZero:true,
+          ticks:{precision:0}
+        }
+      }
+    }
+  });
+}
+
+
 
