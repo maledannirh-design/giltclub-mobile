@@ -7,6 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { doc, setDoc } from "./firestore.js";
+import { showToast } from "./ui.js";
 
 
 export async function register(email, password, username) {
