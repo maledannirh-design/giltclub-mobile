@@ -1,4 +1,5 @@
 import { auth, db } from "./firebase.js";
+
 import {
   doc,
   setDoc,
@@ -8,8 +9,10 @@ import {
   getDocs,
   increment,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "./firestore.js";
+
 import { CANCEL_POLICY } from "./config.js";
+
 
 // =====================================================
 // CREATE SESSION
