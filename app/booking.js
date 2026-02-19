@@ -686,3 +686,15 @@ export async function checkIn(sessionId) {
   alert("Check-in successful.");
 }
 
+export function renderBooking() {
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <div style="padding:16px">
+      <h2>Booking</h2>
+      <p>Booking UI coming here...</p>
+    </div>
+  `;
+}
+
