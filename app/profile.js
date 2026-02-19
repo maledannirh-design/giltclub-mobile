@@ -207,3 +207,53 @@ export async function renderMembers() {
     };
   });
 }
+
+export function renderAccountUI(){
+
+  const content = document.getElementById("content");
+  if(!content) return;
+
+  content.innerHTML = `
+  <div class="account-page">
+
+    <!-- STICKY HEADER -->
+    <div class="account-header">
+
+      <div class="account-header-top">
+
+        <div class="avatar">
+          <div class="avatar-icon">👩</div>
+        </div>
+
+        <div class="account-info">
+          <div class="account-username">gambit</div>
+          <div class="account-tier">Elite Member +12</div>
+          <div class="account-playing">Playing: Intermediate</div>
+          <div class="account-membership">VVIP</div>
+        </div>
+
+      </div>
+
+      <div class="account-actions">
+        <button class="btn btn-primary">Kelola Membership</button>
+        <button class="btn btn-outline">Logout</button>
+      </div>
+
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="account-body">
+
+      <div class="group">
+        <div class="group-row">Akun & Keamanan <span>›</span></div>
+        <div class="group-row">Informasi Pribadi <span>›</span></div>
+        <div class="group-row">Sosial Media <span>›</span></div>
+        <div class="group-row">Pengaturan Privasi <span>›</span></div>
+      </div>
+
+    </div>
+
+  </div>
+  `;
+}
+
