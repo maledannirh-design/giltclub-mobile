@@ -6,7 +6,13 @@ import {
   query,
   orderBy,
   limit,
-  where
+  where,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  increment,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export {
@@ -17,7 +23,13 @@ export {
   query,
   orderBy,
   limit,
-  where
+  where,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  increment,
+  serverTimestamp
 };
 
 
