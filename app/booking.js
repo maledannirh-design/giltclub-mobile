@@ -31,3 +31,14 @@ export async function handleBooking(scheduleId){
 
   }
 }
+import { cancelBooking } from "./services/bookingService.js";
+
+async function handleCancel(bookingId){
+
+  try {
+    await cancelBooking({ bookingId });
+    alert("Booking cancelled");
+  } catch(e){
+    alert(e.message);
+  }
+}
