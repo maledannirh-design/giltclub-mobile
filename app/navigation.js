@@ -46,3 +46,6 @@ export function navigate(page){
       content.innerHTML = "<h2>Page not found</h2>";
   }
 }
+
+
+window.navigate = navigate;
