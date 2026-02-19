@@ -43,9 +43,10 @@ export async function renderBooking(){
           <div>Date: ${schedule.date}</div>
           <div>Slots: ${schedule.slots}</div>
           <div>Price: ${schedule.price || 0}</div>
-          <button onclick="handleBookingClick('${schedule.id}')">
-            Book
-          </button>
+          <button class="book-btn" data-id="${schedule.id}">
+  Gabung
+</button>
+
         </div>
       `;
     });
