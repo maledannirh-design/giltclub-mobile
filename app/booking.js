@@ -2,6 +2,8 @@ import { db, auth } from "./firebase.js";
 import { collection, query, where, getDocs, onSnapshot } from "./firestore.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
 import { showToast } from "./ui.js";
+import { showToast, showConfirm } from "./ui.js";
+
 
 
 /* ===============================
@@ -206,9 +208,14 @@ async function handleCancelClick(bookingId){
 
   try {
 
-    await cancelBooking({ bookingId });
+    const confirmed = await showConfirm("Are you sure you want to cancel?");
 
-    showToast("Booking cancelled!");
+if (!confirmed) return;
+
+await cancelBooking({ bookingId });
+
+showToast("Booking cancelled!", "success");
+
 
   } catch (error) {
 
