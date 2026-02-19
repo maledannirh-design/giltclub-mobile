@@ -1,13 +1,15 @@
 import { db, auth } from "./firebase.js";
-import { collection, getDocs } from "./firestore.js";
+import { collection, getDocs, query, where } from "./firestore.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
 
 /* ===============================
-   SCHEDULE CACHE
+   CACHE
 ================================= */
 let scheduleCache = null;
 let scheduleCacheTime = 0;
-const SCHEDULE_TTL = 60000; // 1 menit
+const SCHEDULE_TTL = 60000;
+
+let bookingLock = false;
 
 
 /* ===============================
@@ -20,13 +22,20 @@ export async function renderBooking(){
 
   content.innerHTML = `
     <div style="padding:20px;text-align:center;opacity:.6;">
-      Loading schedules...
+      Loading...
     </div>
   `;
 
   try {
 
+    const user = auth.currentUser;
     const schedules = await loadSchedules();
+    const userBookings = user ? await loadUserBookings(user.uid) : [];
+
+    const bookingMap = {};
+    userBookings.forEach(b => {
+      bookingMap[b.scheduleId] = b;
+    });
 
     if (!schedules.length){
       content.innerHTML = "<p>No schedules available.</p>";
@@ -37,21 +46,58 @@ export async function renderBooking(){
 
     schedules.forEach(schedule => {
 
+      const existingBooking = bookingMap[schedule.id];
+
       html += `
         <div class="schedule-card">
           <div><strong>${schedule.title || "Session"}</strong></div>
           <div>Date: ${schedule.date}</div>
           <div>Slots: ${schedule.slots}</div>
           <div>Price: ${schedule.price || 0}</div>
-          <button class="book-btn" data-id="${schedule.id}">
-  Gabung
-</button>
-
-        </div>
       `;
+
+      if (!user) {
+
+        html += `<div style="opacity:.6;">Login to join</div>`;
+
+      } else if (existingBooking) {
+
+        html += `
+          <button class="cancel-btn" data-id="${existingBooking.id}">
+            Batalkan
+          </button>
+        `;
+
+      } else {
+
+        html += `
+          <button class="book-btn" data-id="${schedule.id}">
+            Gabung
+          </button>
+        `;
+      }
+
+      html += `</div>`;
     });
 
     content.innerHTML = html;
+
+    // EVENT DELEGATION
+    content.addEventListener("click", async (e) => {
+
+      const bookBtn = e.target.closest(".book-btn");
+      if (bookBtn) {
+        await handleBookingClick(bookBtn.dataset.id);
+        return;
+      }
+
+      const cancelBtn = e.target.closest(".cancel-btn");
+      if (cancelBtn) {
+        await handleCancelClick(cancelBtn.dataset.id);
+        return;
+      }
+
+    });
 
   } catch (error) {
 
@@ -63,7 +109,7 @@ export async function renderBooking(){
 
 
 /* ===============================
-   LOAD SCHEDULES WITH CACHE
+   LOAD SCHEDULES (CACHE)
 ================================= */
 async function loadSchedules(){
 
@@ -88,11 +134,29 @@ async function loadSchedules(){
 
 
 /* ===============================
+   LOAD USER BOOKINGS
+================================= */
+async function loadUserBookings(userId){
+
+  const q = query(
+    collection(db, "bookings"),
+    where("userId", "==", userId),
+    where("status", "==", "active")
+  );
+
+  const snap = await getDocs(q);
+
+  return snap.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+}
+
+
+/* ===============================
    HANDLE BOOKING
 ================================= */
-let bookingLock = false;
-
-export async function handleBookingClick(scheduleId){
+async function handleBookingClick(scheduleId){
 
   if (bookingLock) return;
 
@@ -111,11 +175,9 @@ export async function handleBookingClick(scheduleId){
       scheduleId
     });
 
-    // invalidate cache
     scheduleCache = null;
 
     alert("Booking successful!");
-
     renderBooking();
 
   } catch (error) {
@@ -133,7 +195,7 @@ export async function handleBookingClick(scheduleId){
 /* ===============================
    HANDLE CANCEL
 ================================= */
-export async function handleCancelClick(bookingId){
+async function handleCancelClick(bookingId){
 
   if (bookingLock) return;
 
@@ -146,7 +208,6 @@ export async function handleCancelClick(bookingId){
     scheduleCache = null;
 
     alert("Booking cancelled!");
-
     renderBooking();
 
   } catch (error) {
@@ -159,7 +220,3 @@ export async function handleCancelClick(bookingId){
 
   }
 }
-
-
-window.handleBookingClick = handleBookingClick;
-window.handleCancelClick = handleCancelClick;
