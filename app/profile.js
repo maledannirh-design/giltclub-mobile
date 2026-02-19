@@ -123,6 +123,7 @@ function bindAccountEvents(user){
         }
       };
     }
+     enableSheetDrag();
   }
 
   if(user){
@@ -153,3 +154,44 @@ function closeSheet(){
   document.getElementById("loginSheet")?.classList.remove("active");
   document.getElementById("sheetOverlay")?.classList.remove("active");
 }
+
+function enableSheetDrag(){
+
+  const sheet = document.getElementById("loginSheet");
+  const handle = sheet?.querySelector(".sheet-handle");
+
+  if(!sheet || !handle) return;
+
+  let startY = 0;
+  let currentY = 0;
+  let isDragging = false;
+
+  handle.addEventListener("touchstart", (e)=>{
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    sheet.style.transition = "none";
+  });
+
+  handle.addEventListener("touchmove", (e)=>{
+    if(!isDragging) return;
+
+    currentY = e.touches[0].clientY;
+    const diff = currentY - startY;
+
+    if(diff > 0){
+      sheet.style.transform = `translateY(${diff}px)`;
+    }
+  });
+
+  handle.addEventListener("touchend", ()=>{
+    isDragging = false;
+    sheet.style.transition = ".35s cubic-bezier(.22,1,.36,1)";
+
+    if(currentY - startY > 120){
+      closeSheet();
+    }else{
+      sheet.classList.add("active");
+    }
+  });
+}
+
