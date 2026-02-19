@@ -6,7 +6,8 @@ import {
   getDoc,
   updateDoc,
   increment
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "./firestore.js"
+
 
 export async function followUser(targetUserId) {
 
