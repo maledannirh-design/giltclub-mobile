@@ -315,7 +315,7 @@ export async function rejectParticipant(sessionId, targetUid) {
   alert("Participant rejected.");
 }
 // =====================================================
-// COMPLETE SESSION
+// COMPLETE SESSION (FINAL CORE VERSION)
 // =====================================================
 export async function completeSession(sessionId) {
 
@@ -335,6 +335,9 @@ export async function completeSession(sessionId) {
 
   const session = sessionSnap.data();
 
+  // =============================
+  // FINANCIAL LOCK GUARD
+  // =============================
   if (session.financialLocked === true) {
     alert("Session already completed and locked.");
     return;
@@ -350,7 +353,9 @@ export async function completeSession(sessionId) {
     return;
   }
 
+  // =============================
   // 60 MINUTES RULE
+  // =============================
   const sessionStart = new Date(session.date + "T" + session.startTime);
   const now = new Date();
   const minutesPassed = (now - sessionStart) / (1000 * 60);
@@ -360,6 +365,9 @@ export async function completeSession(sessionId) {
     return;
   }
 
+  // =============================
+  // COLLECT VALID PARTICIPANTS
+  // =============================
   const participantsRef = collection(
     db,
     "sessions",
@@ -373,6 +381,7 @@ export async function completeSession(sessionId) {
 
   participantsSnap.forEach(docSnap => {
     const data = docSnap.data();
+
     if (data.status === "paid" && data.checkedIn === true) {
       validParticipants.push(docSnap.id);
     }
@@ -383,22 +392,15 @@ export async function completeSession(sessionId) {
   // =============================
 
   if (validParticipants.length < 2) {
-    alert("Session invalid. Minimum 2 participants required.");
+    alert("Minimum 2 checked-in participants required.");
     return;
   }
 
-  if (
-    validParticipants.length === 1 &&
-    validParticipants[0] === session.createdBy
-  ) {
-    alert("Host cannot farm attendance alone.");
-    return;
-  }
-
+  // =============================
+  // REVENUE CALCULATION
+  // =============================
   const totalParticipants = validParticipants.length;
-
-  const totalRevenue =
-    totalParticipants * session.pricePerUser;
+  const totalRevenue = totalParticipants * session.pricePerUser;
 
   const platformRevenue =
     totalRevenue * (session.platformFeePercent / 100);
@@ -409,7 +411,6 @@ export async function completeSession(sessionId) {
   // =============================
   // ATTENDANCE + DAILY CAP
   // =============================
-
   const todayId = session.date;
 
   for (const uid of validParticipants) {
@@ -430,26 +431,23 @@ export async function completeSession(sessionId) {
       todayCount = dailySnap.data().count || 0;
     }
 
-    if (todayCount >= 2) {
-      console.log("Daily cap reached for", uid);
-      continue;
+    if (todayCount < 2) {
+
+      await setDoc(
+        dailyRef,
+        { count: increment(1) },
+        { merge: true }
+      );
+
+      await updateDoc(doc(db, "users", uid), {
+        attendanceCount: increment(1)
+      });
     }
-
-    await setDoc(
-      dailyRef,
-      { count: increment(1) },
-      { merge: true }
-    );
-
-    await updateDoc(doc(db, "users", uid), {
-      attendanceCount: increment(1)
-    });
   }
 
   // =============================
-  // MONTHLY LEADERBOARD
+  // MONTHLY LEADERBOARD UPDATE
   // =============================
-
   const nowDate = new Date();
   const year = nowDate.getFullYear();
   const month = String(nowDate.getMonth() + 1).padStart(2, "0");
@@ -472,6 +470,41 @@ export async function completeSession(sessionId) {
     );
   }
 
+  // =============================
+  // WALLET ENGINE (SEPARATED)
+  // =============================
+  const hostWalletRef = doc(db, "wallets", session.createdBy);
+  const platformWalletRef = doc(db, "wallets", "platform");
+
+  await setDoc(hostWalletRef, {
+    balance: increment(hostRevenue)
+  }, { merge: true });
+
+  await setDoc(platformWalletRef, {
+    balance: increment(platformRevenue)
+  }, { merge: true });
+
+  // =============================
+  // IMMUTABLE AUDIT TRAIL
+  // =============================
+  const transactionRef = doc(collection(db, "transactions"));
+
+  await setDoc(transactionRef, {
+    sessionId,
+    hostId: session.createdBy,
+    totalRevenue,
+    platformRevenue,
+    hostRevenue,
+    participantsCount: totalParticipants,
+    pricePerUser: session.pricePerUser,
+    platformFeePercent: session.platformFeePercent,
+    createdAt: serverTimestamp(),
+    locked: true
+  });
+
+  // =============================
+  // FINAL SESSION LOCK
+  // =============================
   await updateDoc(sessionRef, {
     totalRevenue,
     platformRevenue,
@@ -482,6 +515,7 @@ export async function completeSession(sessionId) {
 
   alert("Session completed successfully.");
 }
+
 
 // =====================================================
 // CANCEL JOIN (PARTICIPANT)
