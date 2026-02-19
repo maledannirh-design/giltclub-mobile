@@ -379,16 +379,19 @@ html, body {
   background:rgba(0,0,0,.04);
 }
 
-/* ================= BOTTOM SHEET ================= */
+/* ==============================
+   BOTTOM SHEET (iOS STYLE)
+============================== */
 
 .sheet-overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.4);
-  backdrop-filter:blur(4px);
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);
   opacity:0;
   pointer-events:none;
-  transition:.25s ease;
+  transition:opacity .3s ease;
+  z-index:9998;
 }
 
 .sheet-overlay.active{
@@ -396,42 +399,66 @@ html, body {
   pointer-events:auto;
 }
 
+/* === SHEET CONTAINER === */
 .sheet{
   position:fixed;
-  bottom:-100%;
   left:0;
   right:0;
+  bottom:0;
+
   background:var(--color-card);
-  border-radius:24px 24px 0 0;
-  padding:20px;
-  box-shadow:0 -10px 30px rgba(0,0,0,.15);
-  transition:.35s ease;
+  border-radius:28px 28px 0 0;
+
+  padding:24px 20px calc(40px + env(safe-area-inset-bottom));
+
+  max-height:90vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+
+  box-shadow:
+    0 -20px 40px rgba(0,0,0,.25);
+
+  z-index:9999;
 }
 
 .sheet.active{
-  bottom:0;
+  transform:translateY(0);
 }
 
+/* === DRAG HANDLE === */
 .sheet-handle{
-  width:40px;
+  width:48px;
   height:5px;
   border-radius:10px;
   background:var(--color-border);
-  margin:0 auto 16px auto;
+  margin:0 auto 20px auto;
+  cursor:grab;
 }
 
+.sheet-handle:active{
+  cursor:grabbing;
+}
+
+/* === INPUT STYLE === */
 .sheet input{
   width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:14px;
+
+  border-radius:16px;
   border:1px solid var(--color-border);
-  background:var(--color-card);
+
+  background:var(--color-bg);
   color:var(--color-text);
+
+  font-size:16px; /* prevent iOS zoom */
 }
 
+/* === FULL WIDTH BUTTON === */
 .full{
   width:100%;
 }
-
 
