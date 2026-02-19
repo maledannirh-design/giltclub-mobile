@@ -1,7 +1,8 @@
 import { auth, db } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { followUser, unfollowUser, isFollowing } from "./social.js";
-import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs } from "./firestore.js"
+
 
 export async function renderProfile() {
 
