@@ -130,7 +130,12 @@ function renderScheduleUI(schedules, userBookings){
     html += `</div>`;
   });
 
-  content.innerHTML = html;
+  content.innerHTML = `
+  <div class="page-fade">
+    ${html}
+  </div>
+`;
+
 
   // Single event delegation
   content.onclick = async (e) => {
