@@ -33,6 +33,9 @@ export function navigate(page){
       m.renderAttendanceLeaderboard()
         );
       break;
+    case "dashboard":
+      loadDashboard();
+      break;
 
 
     default:
