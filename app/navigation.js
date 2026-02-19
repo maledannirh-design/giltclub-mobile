@@ -32,10 +32,9 @@ export async function navigate(page){
         content.innerHTML = "<h2>Home</h2>";
         break;
 
-     case "account":
-  (await import("./profile.js")).renderAccountUI();
-  break;
-
+      case "account":
+        (await import("./profile.js")).renderAccountUI();
+        break;
 
       case "members":
         (await import("./profile.js")).renderMembers();
