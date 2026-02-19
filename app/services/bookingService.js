@@ -3,13 +3,16 @@ import {
   doc,
   collection,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where,
+  getDocs
 } from "../firestore.js";
 
 export async function createBooking({ userId, scheduleId }){
 
   const scheduleRef = doc(db, "schedules", scheduleId);
-  const bookingRef = doc(collection(db, "bookings"));
+  const bookingsCol = collection(db, "bookings");
 
   await runTransaction(db, async (transaction) => {
 
@@ -25,12 +28,28 @@ export async function createBooking({ userId, scheduleId }){
       throw new Error("Slot full");
     }
 
-    // reduce slot atomically
+    // 🔥 CHECK DUPLICATE BOOKING
+    const duplicateQuery = query(
+      bookingsCol,
+      where("userId", "==", userId),
+      where("scheduleId", "==", scheduleId),
+      where("status", "==", "active")
+    );
+
+    const duplicateSnap = await getDocs(duplicateQuery);
+
+    if (!duplicateSnap.empty){
+      throw new Error("You already booked this schedule");
+    }
+
+    // Reduce slot atomically
     transaction.update(scheduleRef, {
       slots: scheduleData.slots - 1
     });
 
-    // create booking
+    // Create booking
+    const bookingRef = doc(bookingsCol);
+
     transaction.set(bookingRef, {
       userId,
       scheduleId,
