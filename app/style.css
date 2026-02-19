@@ -176,7 +176,9 @@ body{
   border-radius: 12px;
   font-size: 14px;
   opacity: .95;
+  z-index: 9999;
 }
+
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
