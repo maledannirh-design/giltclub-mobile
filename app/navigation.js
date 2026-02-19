@@ -1,3 +1,9 @@
+import { loadDashboard } from "./dashboard.js";
+import { renderBooking } from "./booking.js";
+import { renderProfile, renderMembers, renderRanking } from "./profile.js";
+import { renderCinema } from "./cinema.js";
+import { renderAttendanceLeaderboard } from "./leaderboard.js";
+
 export function navigate(page){
 
   const content = document.getElementById("content");
@@ -9,37 +15,34 @@ export function navigate(page){
       break;
 
     case "profile":
-      import("./profile.js").then(m=>m.renderProfile());
+      renderProfile();
       break;
 
     case "booking":
-      import("./booking.js").then(m=>m.renderBooking());
+      renderBooking();
       break;
 
     case "cinema":
-      import("./cinema.js").then(m=>m.renderCinema());
+      renderCinema();
       break;
       
     case "members":
-      import("./profile.js").then(m => m.renderMembers());
+      renderMembers();
       break;
     
     case "ranking":
-      import("./profile.js").then(m => m.renderRanking());
+      renderRanking();
       break;
     
     case "leaderboard":
-      import("./leaderboard.js").then(m =>
-      m.renderAttendanceLeaderboard()
-        );
+      renderAttendanceLeaderboard();
       break;
+
     case "dashboard":
       loadDashboard();
       break;
-
 
     default:
       content.innerHTML = "<h2>Page not found</h2>";
   }
 }
-
