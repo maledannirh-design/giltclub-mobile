@@ -94,3 +94,42 @@ body{
 .member-card:hover{
   background:#f5f5f5;
 }
+
+/* ================= DASHBOARD ================= */
+
+.dashboard-wrapper{
+  padding:16px;
+}
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.card{
+  background:#111;
+  border-radius:12px;
+  padding:14px;
+  color:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+.card .label{
+  font-size:12px;
+  opacity:.7;
+}
+
+.card .value{
+  font-size:20px;
+  font-weight:bold;
+  margin-top:6px;
+}
+
+.panel{
+  background:#111;
+  padding:16px;
+  border-radius:12px;
+}
+
