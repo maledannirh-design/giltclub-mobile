@@ -1,8 +1,3 @@
-import { renderBooking } from "./booking.js";
-import { renderProfile, renderMembers } from "./profile.js";
-import { renderCinema } from "./cinema.js";
-import { renderAttendanceLeaderboard } from "./leaderboard.js";
-
 export async function navigate(page){
 
   const content = document.getElementById("content");
@@ -14,23 +9,28 @@ export async function navigate(page){
       break;
 
     case "profile":
-      renderProfile();
-      break;
-
-    case "booking":
-      renderBooking();
-      break;
-
-    case "cinema":
-      renderCinema();
+      const profileModule = await import("./profile.js");
+      profileModule.renderProfile();
       break;
 
     case "members":
-      renderMembers();
+      const membersModule = await import("./profile.js");
+      membersModule.renderMembers();
+      break;
+
+    case "booking":
+      const bookingModule = await import("./booking.js");
+      bookingModule.renderBooking();
+      break;
+
+    case "cinema":
+      const cinemaModule = await import("./cinema.js");
+      cinemaModule.renderCinema();
       break;
 
     case "ranking":
-      renderAttendanceLeaderboard();
+      const leaderboardModule = await import("./leaderboard.js");
+      leaderboardModule.renderAttendanceLeaderboard();
       break;
 
     case "dashboard":
