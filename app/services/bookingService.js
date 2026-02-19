@@ -90,7 +90,7 @@ export async function cancelBooking({ bookingId }){
 
     const scheduleData = scheduleSnap.data();
 
-    const userRef = doc(db, "users", bookingData.userId);
+    const userRef = doc(db, bookingData.userId ? "users" : "", bookingData.userId);
     const userSnap = await transaction.get(userRef);
 
     if (!userSnap.exists()){
@@ -100,12 +100,11 @@ export async function cancelBooking({ bookingId }){
     const userData = userSnap.data();
 
     // ============================
-    // 1️⃣ CANCEL DEADLINE CHECK
+    // 1️⃣ DEADLINE CHECK
     // ============================
 
     const scheduleDate = new Date(scheduleData.date);
     const now = new Date();
-
     const diffHours = (scheduleDate - now) / (1000 * 60 * 60);
 
     if (diffHours < CANCEL_POLICY.deadlineHours){
@@ -113,14 +112,20 @@ export async function cancelBooking({ bookingId }){
     }
 
     // ============================
-    // 2️⃣ PENALTY LOGIC
+    // 2️⃣ TIER REFUND CALCULATION
     // ============================
 
-    let refundAmount = scheduleData.price || 0;
+    let refundRate = 0;
 
-    if (diffHours < CANCEL_POLICY.penaltyWindowHours){
-      refundAmount = refundAmount * (1 - CANCEL_POLICY.penaltyRate);
+    for (const tier of CANCEL_POLICY.tiers){
+      if (diffHours >= tier.minHoursBefore){
+        refundRate = tier.refundRate;
+        break;
+      }
     }
+
+    const price = scheduleData.price || 0;
+    const refundAmount = price * refundRate;
 
     // ============================
     // 3️⃣ UPDATE BOOKING STATUS
@@ -128,7 +133,9 @@ export async function cancelBooking({ bookingId }){
 
     transaction.update(bookingRef, {
       status: "cancelled",
-      cancelledAt: serverTimestamp()
+      cancelledAt: serverTimestamp(),
+      refundRate,
+      refundAmount
     });
 
     // ============================
@@ -140,22 +147,14 @@ export async function cancelBooking({ bookingId }){
     });
 
     // ============================
-    // 5️⃣ ATTENDANCE DECREMENT
+    // 5️⃣ WALLET REFUND
     // ============================
 
-    if (bookingData.attendanceRecorded){
+    if (refundAmount > 0){
       transaction.update(userRef, {
-        attendanceCount: (userData.attendanceCount || 1) - 1
+        walletBalance: (userData.walletBalance || 0) + refundAmount
       });
     }
-
-    // ============================
-    // 6️⃣ WALLET REFUND
-    // ============================
-
-    transaction.update(userRef, {
-      walletBalance: (userData.walletBalance || 0) + refundAmount
-    });
 
   });
 
