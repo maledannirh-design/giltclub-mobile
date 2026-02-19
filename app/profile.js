@@ -98,6 +98,9 @@ function bindAccountEvents(user){
 
   if(!overlay || !sheet) return;
 
+  /* =========================
+     GUEST EVENTS
+  ========================== */
   if(!user){
 
     const loginBtn = document.getElementById("loginBtn");
@@ -123,20 +126,25 @@ function bindAccountEvents(user){
         }
       };
     }
-     enableSheetDrag();
   }
 
+  /* =========================
+     USER EVENTS
+  ========================== */
   if(user){
     const logoutBtn = document.getElementById("logoutBtn");
-
     if(logoutBtn){
       logoutBtn.onclick = async ()=>{
         await logout();
-        currentUserData = null;
         renderAccountUI();
       };
     }
   }
+
+  /* =========================
+     ALWAYS ENABLE DRAG
+  ========================== */
+  enableSheetDrag();
 
   overlay.onclick = closeSheet;
 }
