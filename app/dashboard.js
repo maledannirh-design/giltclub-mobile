@@ -11,6 +11,7 @@ export async function loadDashboard(){
   if(!content) return;
 
   content.innerHTML = `
+  <div class="page-fade">
     <div class="dashboard-wrapper">
 
       <div class="dashboard-header">
@@ -41,6 +42,7 @@ export async function loadDashboard(){
         <div id="walletMiniLedger"></div>
       </div>
 
+    </div>
     </div>
   `;
 
