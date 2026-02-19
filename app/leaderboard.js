@@ -1,4 +1,5 @@
 import { auth, db } from "./firebase.js";
+
 import {
   doc,
   updateDoc,
@@ -10,7 +11,8 @@ import {
   query,
   collection,
   getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "./firestore.js";
+
 
 
 // ======================================
