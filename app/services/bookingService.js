@@ -1,44 +1,43 @@
 import { db } from "../firebase.js";
 import {
   doc,
-  setDoc,
-  getDoc,
-  updateDoc,
   collection,
-  increment,
+  runTransaction,
   serverTimestamp
 } from "../firestore.js";
 
 export async function createBooking({ userId, scheduleId }){
 
   const scheduleRef = doc(db, "schedules", scheduleId);
-  const scheduleSnap = await getDoc(scheduleRef);
+  const bookingRef = doc(collection(db, "bookings"));
 
-  if (!scheduleSnap.exists()){
-    throw new Error("Schedule not found");
-  }
+  await runTransaction(db, async (transaction) => {
 
-  const scheduleData = scheduleSnap.data();
+    const scheduleSnap = await transaction.get(scheduleRef);
 
-  if ((scheduleData.slots || 0) <= 0){
-    throw new Error("Slot full");
-  }
+    if (!scheduleSnap.exists()){
+      throw new Error("Schedule not found");
+    }
 
-  // Reduce slot safely
-  await updateDoc(scheduleRef, {
-    slots: increment(-1)
-  });
+    const scheduleData = scheduleSnap.data();
 
-  // Create booking record
-  const bookingRef = doc(
-    collection(db, "bookings")
-  );
+    if ((scheduleData.slots || 0) <= 0){
+      throw new Error("Slot full");
+    }
 
-  await setDoc(bookingRef, {
-    userId,
-    scheduleId,
-    createdAt: serverTimestamp(),
-    status: "active"
+    // reduce slot atomically
+    transaction.update(scheduleRef, {
+      slots: scheduleData.slots - 1
+    });
+
+    // create booking
+    transaction.set(bookingRef, {
+      userId,
+      scheduleId,
+      createdAt: serverTimestamp(),
+      status: "active"
+    });
+
   });
 
   return { success: true };
