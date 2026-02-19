@@ -3,7 +3,10 @@ import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "./firestore.js";
 
 import { initTheme } from "./theme.js";
+import { toggleTheme } from "./theme.js";
+
 initTheme();
+window.toggleTheme = toggleTheme;
 
 
 // Expose navigate ke global (untuk onclick di HTML)
