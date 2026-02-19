@@ -1,7 +1,7 @@
-export function showToast(message){
+export function showToast(message, type = "default"){
 
   const toast = document.createElement("div");
-  toast.className = "toast";
+  toast.className = `toast toast-${type}`;
   toast.innerText = message;
 
   document.body.appendChild(toast);
