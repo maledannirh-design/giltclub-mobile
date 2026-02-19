@@ -117,17 +117,17 @@ function renderScheduleUI(schedules, userBookings){
     } else if (existingBooking) {
 
       html += `
-        <button class="cancel-btn" data-id="${existingBooking.id}">
-          Batalkan
-        </button>
+        <button class="btn btn-danger cancel-btn" data-id="...">
+  Batalkan
+</button>
       `;
 
     } else {
 
       html += `
-        <button class="book-btn" data-id="${schedule.id}">
-          Gabung
-        </button>
+        <button class="btn btn-primary book-btn" data-id="...">
+  Gabung
+</button>
       `;
     }
 
