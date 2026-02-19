@@ -19,6 +19,7 @@ import { db } from "./firebase.js";
 export async function loadDashboard(){
 
   const content = document.getElementById("content");
+  if(!content) return;
 
   content.innerHTML = `
     <div class="dashboard-wrapper">
@@ -69,27 +70,34 @@ async function loadUserSummary(){
 
   const userRef = doc(db,"users",user.uid);
   const userSnap = await getDoc(userRef);
-
   if(!userSnap.exists()) return;
 
   const userData = userSnap.data();
 
   // ROLE
-  document.getElementById("roleBadge").innerText = userData.role || "member";
+  const roleBadge = document.getElementById("roleBadge");
+  if(roleBadge){
+    roleBadge.innerText = userData.role || "member";
+  }
 
   // WALLET
-  document.getElementById("cardWallet").innerHTML = `
-    <div class="label">Wallet Balance</div>
-    <div class="value">Rp ${formatCurrency(userData.balance || 0)}</div>
-  `;
+  const cardWallet = document.getElementById("cardWallet");
+  if(cardWallet){
+    cardWallet.innerHTML = `
+      <div class="label">Wallet Balance</div>
+      <div class="value">Rp ${formatCurrency(userData.balance || 0)}</div>
+    `;
+  }
 
   // TOTAL SESSION
-  document.getElementById("cardSessions").innerHTML = `
-    <div class="label">Total Sessions</div>
-    <div class="value">${userData.totalSessions || 0}</div>
-  `;
+  const cardSessions = document.getElementById("cardSessions");
+  if(cardSessions){
+    cardSessions.innerHTML = `
+      <div class="label">Total Sessions</div>
+      <div class="value">${userData.totalSessions || 0}</div>
+    `;
+  }
 
-  // MONTHLY STATS
   const currentMonth = new Date().toISOString().slice(0,7);
 
   const statRef = doc(db,"monthly_stats",currentMonth,"users",user.uid);
@@ -103,41 +111,54 @@ async function loadUserSummary(){
     attendance = stat.attendance || 0;
     rank = stat.rank || "-";
   }
-  
+
   if(userData.role === "admin"){
 
-  const revenueRef = doc(db,"monthly_revenue",currentMonth);
-  const revenueSnap = await getDoc(revenueRef);
+    const revenueRef = doc(db,"monthly_revenue",currentMonth);
+    const revenueSnap = await getDoc(revenueRef);
 
-  let revenue = 0;
-  if(revenueSnap.exists()){
-    revenue = revenueSnap.data().total || 0;
+    let revenue = 0;
+    if(revenueSnap.exists()){
+      revenue = revenueSnap.data().total || 0;
+    }
+
+    const cardRevenue = document.getElementById("cardRevenue");
+    if(cardRevenue){
+      cardRevenue.innerHTML = `
+        <div class="label">Monthly Revenue</div>
+        <div class="value">Rp ${formatCurrency(revenue)}</div>
+      `;
+    }
+
+  }else{
+    const cardRevenue = document.getElementById("cardRevenue");
+    if(cardRevenue){
+      cardRevenue.remove();
+    }
   }
 
-  document.getElementById("cardRevenue").innerHTML = `
-    <div class="label">Monthly Revenue</div>
-    <div class="value">Rp ${formatCurrency(revenue)}</div>
-  `;
+  const cardAttendance = document.getElementById("cardAttendance");
+  if(cardAttendance){
+    cardAttendance.innerHTML = `
+      <div class="label">Attendance (Month)</div>
+      <div class="value">${attendance}</div>
+    `;
+  }
 
-}else{
-  document.getElementById("cardRevenue")?.remove();
+  const cardRank = document.getElementById("cardRank");
+  if(cardRank){
+    cardRank.innerHTML = `
+      <div class="label">Rank</div>
+      <div class="value">${rank}</div>
+    `;
+  }
 }
 
-  document.getElementById("cardAttendance").innerHTML = `
-    <div class="label">Attendance (Month)</div>
-    <div class="value">${attendance}</div>
-  `;
 
-  document.getElementById("cardRank").innerHTML = `
-    <div class="label">Rank</div>
-    <div class="value">${rank}</div>
-  `;
-}
 
 async function loadLeaderboard(){
 
   const currentMonth = new Date().toISOString().slice(0,7);
-
   const leaderboardRef = collection(db,"monthly_stats",currentMonth,"users");
 
   const q = query(
@@ -151,21 +172,26 @@ async function loadLeaderboard(){
   let html = "";
   let position = 1;
 
-  snap.forEach(doc=>{
-    const data = doc.data();
+  snap.forEach(docSnap=>{
+    const data = docSnap.data();
 
     html += `
       <div class="leader-item">
-        <div>#${position} ${data.name}</div>
-        <div>${data.attendance} sessions</div>
+        <div>#${position} ${data.name || "-"}</div>
+        <div>${data.attendance || 0} sessions</div>
       </div>
     `;
 
     position++;
   });
 
-  document.getElementById("leaderboardList").innerHTML = html;
+  const leaderboardList = document.getElementById("leaderboardList");
+  if(leaderboardList){
+    leaderboardList.innerHTML = html || `<div style="opacity:.6;font-size:13px;">No data</div>`;
+  }
 }
+
+
 
 async function loadMiniLedger(){
 
@@ -188,10 +214,8 @@ async function loadMiniLedger(){
   snap.forEach(docSnap=>{
 
     const data = docSnap.data();
-
     const sign = data.type === "credit" ? "+" : "-";
 
-    // SAFE DATE PARSING
     const date = data.createdAt?.seconds
       ? new Date(data.createdAt.seconds * 1000).toLocaleDateString("id-ID")
       : "-";
@@ -202,7 +226,7 @@ async function loadMiniLedger(){
           <div class="ledger-desc">${data.description || "-"}</div>
           <div class="ledger-date">${date}</div>
         </div>
-        <div class="ledger-amount ${data.type}">
+        <div class="ledger-amount ${data.type || ""}">
           ${sign} Rp ${formatCurrency(data.amount || 0)}
         </div>
       </div>
@@ -213,8 +237,12 @@ async function loadMiniLedger(){
     html = `<div style="opacity:.6;font-size:13px;">No recent activity</div>`;
   }
 
-  document.getElementById("walletMiniLedger").innerHTML = html;
+  const walletMiniLedger = document.getElementById("walletMiniLedger");
+  if(walletMiniLedger){
+    walletMiniLedger.innerHTML = html;
+  }
 }
+
 
 
 async function loadAttendanceChart(){
@@ -224,8 +252,7 @@ async function loadAttendanceChart(){
 
   const monthsSnap = await getDocs(collection(db,"monthly_stats"));
 
-  let labels = [];
-  let dataPoints = [];
+  let monthData = [];
 
   for(const monthDoc of monthsSnap.docs){
 
@@ -235,19 +262,21 @@ async function loadAttendanceChart(){
     const statSnap = await getDoc(statRef);
 
     if(statSnap.exists()){
-      labels.push(month);
-      dataPoints.push(statSnap.data().attendance || 0);
+      monthData.push({
+        month,
+        attendance: statSnap.data().attendance || 0
+      });
     }
   }
 
-  // SORT BY MONTH ASCENDING (YYYY-MM format)
-  labels = labels.sort();
-  dataPoints = labels.map((m,i)=>dataPoints[i]);
+  monthData.sort((a,b)=>a.month.localeCompare(b.month));
+
+  const labels = monthData.map(m=>m.month);
+  const dataPoints = monthData.map(m=>m.attendance);
 
   const ctx = document.getElementById("attendanceChart");
-  if(!ctx) return;
+  if(!ctx || typeof Chart === "undefined") return;
 
-  // 🔥 DESTROY OLD INSTANCE (ANTI DUPLICATE)
   if(window.attendanceChartInstance){
     window.attendanceChartInstance.destroy();
   }
@@ -283,3 +312,10 @@ async function loadAttendanceChart(){
 
 
 
+// ============================
+// UTIL
+// ============================
+
+function formatCurrency(num){
+  return Number(num).toLocaleString("id-ID");
+}
