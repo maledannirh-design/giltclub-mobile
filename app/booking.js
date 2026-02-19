@@ -2,6 +2,10 @@ import { createBooking } from "./services/bookingService.js";
 import { auth } from "./firebase.js";
 
 let bookingLock = false;
+let scheduleCache = null;
+let scheduleCacheTime = 0;
+const SCHEDULE_TTL = 60000; // 1 menit
+
 
 export async function handleBooking(scheduleId){
 
