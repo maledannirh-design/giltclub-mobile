@@ -9,6 +9,7 @@ import {
   getDocs
 } from "../firestore.js";
 
+
 export async function createBooking({ userId, scheduleId }){
 
   const scheduleRef = doc(db, "schedules", scheduleId);
@@ -55,6 +56,49 @@ export async function createBooking({ userId, scheduleId }){
       scheduleId,
       createdAt: serverTimestamp(),
       status: "active"
+    });
+
+  });
+
+  return { success: true };
+}
+
+export async function cancelBooking({ bookingId }){
+
+  const bookingRef = doc(db, "bookings", bookingId);
+
+  await runTransaction(db, async (transaction) => {
+
+    const bookingSnap = await transaction.get(bookingRef);
+
+    if (!bookingSnap.exists()){
+      throw new Error("Booking not found");
+    }
+
+    const bookingData = bookingSnap.data();
+
+    if (bookingData.status !== "active"){
+      throw new Error("Booking already cancelled");
+    }
+
+    const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
+
+    const scheduleSnap = await transaction.get(scheduleRef);
+
+    if (!scheduleSnap.exists()){
+      throw new Error("Schedule not found");
+    }
+
+    const scheduleData = scheduleSnap.data();
+
+    // 1️⃣ Update booking status
+    transaction.update(bookingRef, {
+      status: "cancelled"
+    });
+
+    // 2️⃣ Restore slot
+    transaction.update(scheduleRef, {
+      slots: (scheduleData.slots || 0) + 1
     });
 
   });
