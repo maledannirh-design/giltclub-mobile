@@ -16,6 +16,7 @@ export async function renderProfile() {
   if (!user) {
 
     content.innerHTML = `
+      <div class="page-fade">
       <h2>Login / Register</h2>
 
       <div class="auth-box">
@@ -25,6 +26,7 @@ export async function renderProfile() {
         
         <button id="loginBtn">Login</button>
         <button id="registerBtn">Register</button>
+      </div>
       </div>
     `;
 
