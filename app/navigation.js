@@ -1,10 +1,20 @@
+let navLock = false;
+let currentPage = null;
+
 export async function navigate(page){
 
+  if (navLock) return;
+  if (page === currentPage) return;
+
+  navLock = true;
+  currentPage = page;
+
   const content = document.getElementById("content");
+  if (!content) {
+    navLock = false;
+    return;
+  }
 
-  if (!content) return;
-
-  // Loading state
   content.innerHTML = `
     <div style="padding:20px;text-align:center;opacity:.6;">
       Loading...
@@ -20,33 +30,27 @@ export async function navigate(page){
         break;
 
       case "profile":
-        const profileModule = await import("./profile.js");
-        profileModule.renderProfile();
+        (await import("./profile.js")).renderProfile();
         break;
 
       case "members":
-        const membersModule = await import("./profile.js");
-        membersModule.renderMembers();
+        (await import("./profile.js")).renderMembers();
         break;
 
       case "booking":
-        const bookingModule = await import("./booking.js");
-        bookingModule.renderBooking();
+        (await import("./booking.js")).renderBooking();
         break;
 
       case "cinema":
-        const cinemaModule = await import("./cinema.js");
-        cinemaModule.renderCinema();
+        (await import("./cinema.js")).renderCinema();
         break;
 
       case "ranking":
-        const leaderboardModule = await import("./leaderboard.js");
-        leaderboardModule.renderAttendanceLeaderboard();
+        (await import("./leaderboard.js")).renderAttendanceLeaderboard();
         break;
 
       case "dashboard":
-        const dashboardModule = await import("./dashboard.js");
-        dashboardModule.loadDashboard();
+        (await import("./dashboard.js")).loadDashboard();
         break;
 
       default:
@@ -62,6 +66,9 @@ export async function navigate(page){
         Something went wrong.
       </div>
     `;
+
+  } finally {
+    navLock = false;
   }
 }
 
