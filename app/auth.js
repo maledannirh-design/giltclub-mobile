@@ -137,8 +137,8 @@ document.addEventListener("click", async (e) => {
       const phoneFull   = countryCode + phoneNumber;
 
       const email    = sheet.querySelector('input[type="email"]').value.trim();
-      const pinLogin = sheet.querySelector('input[placeholder="Buat PIN Login (4 digit)"]').value.trim();
-      const pinTrx   = sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]').value.trim();
+      const pinLogin = document.getElementById("pinLogin").value.trim();
+      const pinTrx   = document.getElementById("pinTrx").value.trim();
 
       const terms = sheet.querySelector('.terms-row input').checked;
 
