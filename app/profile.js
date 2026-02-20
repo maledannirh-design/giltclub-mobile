@@ -194,7 +194,10 @@ function renderSheetContent(mode){
       <input type="text" placeholder="Username" required>
       <input type="text" placeholder="Tempat Lahir" required>
 
-      <input type="date" required>
+      <div class="field-group">
+  <label>Tanggal Lahir</label>
+  <input type="date" required>
+</div>
 
       <div class="phone-row">
         <select required>
