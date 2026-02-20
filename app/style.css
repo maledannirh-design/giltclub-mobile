@@ -857,6 +857,10 @@ html, body {
   width: 100%;
   margin-top: 12px;
 }
+
+.follow-btn.following {
+  background: #4caf50;
+}
 @keyframes splashFade{
   from { opacity: 0; }
   to   { opacity: 1; }
