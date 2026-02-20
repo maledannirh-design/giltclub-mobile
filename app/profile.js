@@ -289,7 +289,8 @@ export function renderMembers(){
 
       const data = userDoc.data;
       const uid  = userDoc.id;
-
+      
+        if(currentUser && uid === currentUser.uid) return;
       const isFollowing = followingSet.has(uid);
       const followsYou  = followersSet.has(uid);
       const mutual      = isFollowing && followsYou;
