@@ -35,7 +35,7 @@ html, body {
   justify-content: space-between;
   align-items: center;
 
-  padding: 16px;
+  padding: 14px 12px;
 
   background: var(--color-card);
   border-bottom: 1px solid var(--color-border);
@@ -85,8 +85,7 @@ html, body {
 
 .content {
   flex: 1;
-  padding: 20px;
-  padding-bottom: 90px;
+  padding: 0 12px 90px;
 }
 
 /* ================= CARDS ================= */
@@ -259,7 +258,7 @@ html, body {
 /* ================= ACCOUNT ================= */
 
 .account-container{
-  padding: var(--account-gap);
+  padding: 0;
   max-width:430px;
   margin:0 auto;
 }
