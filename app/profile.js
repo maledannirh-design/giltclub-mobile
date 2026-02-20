@@ -268,8 +268,10 @@ export function renderMembers(){
   const currentUser = auth.currentUser;
   let followingSet = new Set();
   let usersCache = [];
+   let followersSet = new Set();
 
- function renderUI(){
+   
+   function renderUI(){
 
   if(!usersCache.length){
     listEl.innerHTML = "Belum ada member.";
@@ -362,7 +364,7 @@ export function renderMembers(){
 
   listEl.innerHTML = html;
 }
-
+}
 /* =========================================
    EVENTS
 ========================================= */
