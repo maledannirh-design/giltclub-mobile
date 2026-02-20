@@ -30,6 +30,25 @@
   --color-border:rgba(255,255,255,.08);
 }
 
+/* ================= DARK MODE INPUT FIX ================= */
+
+[data-theme="dark"] .sheet input,
+[data-theme="dark"] .sheet select{
+
+  background:#3A413A;        /* lebih gelap & solid */
+  color:#FFFFFF;             /* text putih jelas */
+
+  border:1px solid rgba(255,255,255,.12);
+}
+
+[data-theme="dark"] .sheet input::placeholder{
+  color:rgba(255,255,255,.55);
+}
+
+[data-theme="dark"] .sheet input:focus{
+  border-color:var(--color-highlight);
+  box-shadow:0 0 0 3px rgba(212,178,79,.25);
+}
 
 /* ================= RESET ================= */
 
