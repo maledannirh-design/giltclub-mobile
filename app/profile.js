@@ -186,18 +186,7 @@ export async function renderMembers(){
                 onclick="toggleFriend('${uid}')">
                 Add Friend
               </button>
-   <div class="member-actions">
-  <button class="follow-btn"
-    onclick="toggleFollow('${uid}')">
-    Follow
-  </button>
-
-  <button class="friend-btn"
-    onclick="toggleFriend('${uid}')">
-    Add Friend
-  </button>
-
-  <button class="chat-btn"
+              <button class="chat-btn"
     onclick="handleChat('${uid}')">
     💬
   </button>
