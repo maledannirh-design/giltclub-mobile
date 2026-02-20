@@ -179,9 +179,9 @@ function renderSheetContent(mode){
        placeholder="PIN Login (4 digit)" 
        required>
 
-      <button class="form-submit">
-        Login
-      </button>
+      <button id="submitLogin" class="form-submit">
+  Login
+</button>
     `;
   }
 
@@ -213,9 +213,9 @@ function renderSheetContent(mode){
         <span>Saya setuju syarat & ketentuan</span>
       </label>
 
-      <button class="form-submit">
-        Daftar Member
-      </button>
+      <button id="submitRegister" class="form-submit">
+  Daftar Member
+</button>
     `;
   }
 
