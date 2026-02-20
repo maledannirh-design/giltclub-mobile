@@ -1,38 +1,35 @@
 import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "./firestore.js";
-
 import { initTheme, toggleTheme } from "./theme.js";
-;
 
-
-
-// Expose navigate ke global (untuk onclick di HTML)
+// Expose navigate ke global
 window.navigate = navigate;
 
+// ================= SPLASH CONTROL =================
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    const splash = document.getElementById("splashScreen");
+    if (splash) splash.classList.add("hide");
+  }, 900); // lebih cepat & premium feel
+});
 
+// ================= APP INIT =================
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Default page
   navigate("home");
 
-  // ==============================
-  // AUTH STATE LISTENER
-  // ==============================
   auth.onAuthStateChanged(async (user) => {
 
     const label = document.getElementById("currentUserLabel");
-
     if (!label) return;
 
-    // Jika belum login
     if (!user) {
       label.innerText = "Not logged in";
       return;
     }
 
     try {
-
       const snap = await getDoc(doc(db, "users", user.uid));
 
       if (!snap.exists()) {
@@ -41,21 +38,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const data = snap.data();
-
-      // Tampilkan username + role
       label.innerText = `${data.username} (${data.role})`;
 
     } catch (error) {
-
       console.error("Error loading user data:", error);
       label.innerText = "Error loading user";
-
     }
 
   });
 
 });
 
-
 initTheme();
-window.toggleTheme = toggleTheme
+window.toggleTheme = toggleTheme;
