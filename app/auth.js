@@ -115,3 +115,65 @@ export async function login(email, pinLogin){
 export function logout(){
   return signOut(auth);
 }
+
+// ================= BUTTON HANDLER =================
+
+document.addEventListener("click", async (e) => {
+
+  // REGISTER
+  if(e.target.id === "submitRegister"){
+
+    try{
+
+      const sheet = document.getElementById("loginSheet");
+      const inputs = sheet.querySelectorAll("input, select");
+
+      const fullName   = inputs[0].value.trim();
+      const username   = inputs[1].value.trim();
+      const birthPlace = inputs[2].value.trim();
+      const birthDate  = inputs[3].value;
+      const country    = inputs[4].value;
+      const phone      = inputs[5].value.trim();
+      const email      = inputs[6].value.trim();
+      const pinLogin   = inputs[7].value.trim();
+      const pinTrx     = inputs[8].value.trim();
+      const terms      = inputs[9].checked;
+
+      if(!terms){
+        throw new Error("Setujui syarat & ketentuan");
+      }
+
+      await register(email, pinLogin, pinTrx, username);
+
+    }catch(err){
+      showToast(err.message, "error");
+    }
+
+  }
+
+  // LOGIN
+  if(e.target.id === "submitLogin"){
+
+    try{
+
+      const sheet = document.getElementById("loginSheet");
+      const inputs = sheet.querySelectorAll("input");
+
+      const email    = inputs[0].value.trim();
+      const pinLogin = inputs[1].value.trim();
+
+      await login(email, pinLogin);
+
+      const sheetEl = document.getElementById("loginSheet");
+      const overlay = document.querySelector(".sheet-overlay");
+
+      sheetEl.classList.remove("active");
+      overlay.classList.remove("active");
+
+    }catch(err){
+      showToast(err.message, "error");
+    }
+
+  }
+
+});
