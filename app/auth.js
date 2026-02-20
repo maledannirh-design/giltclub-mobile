@@ -10,46 +10,69 @@ import { doc, setDoc } from "./firestore.js";
 import { showToast } from "./ui.js";
 
 
-export async function register(email, password, username) {
+export async function register(email, pinLogin, pinTrx, username) {
 
+  if(pinLogin.length !== 4 || !/^\d+$/.test(pinLogin)){
+    throw new Error("PIN login harus 4 digit angka");
+  }
+
+  if(pinTrx.length !== 6 || !/^\d+$/.test(pinTrx)){
+    throw new Error("PIN transaksi harus 6 digit angka");
+  }
+
+  // Firebase tetap butuh password → kita pakai PIN login
   const userCredential =
-    await createUserWithEmailAndPassword(auth, email, password);
+    await createUserWithEmailAndPassword(auth, email, pinLogin);
 
   const user = userCredential.user;
 
   await setDoc(doc(db, "users", user.uid), {
-  name: username,
-  username: username.toLowerCase(),
 
-  role: "member",                 // DEFAULT ROLE
-  coachApproved: false,
-  coachLevel: null,
+    name: username,
+    username: username.toLowerCase(),
 
-  verifiedApproved: false,
-  verifiedEligible: false,
+    role: "member",
+    coachApproved: false,
+    coachLevel: null,
 
-  monthlyContribution: 0,
-  attendanceCount: 0,
+    verifiedApproved: false,
+    verifiedEligible: false,
 
-  membership: "MEMBER",
+    monthlyContribution: 0,
+    attendanceCount: 0,
 
-  level: 1,
-  points: 0,
-  wins: 0,
-  matches: 0,
+    membership: "MEMBER",
 
-  followersCount: 0,
-  followingCount: 0,
+    level: 1,
+    points: 0,
+    wins: 0,
+    matches: 0,
 
-  isPublic: true,
-  createdAt: new Date()
-});
+    followersCount: 0,
+    followingCount: 0,
 
+    isPublic: true,
+
+    pinTrx,              // simpan PIN transaksi
+    createdAt: new Date()
+
+  });
+
+  showToast("Pendaftaran berhasil", "success");
 }
 
-export async function login(email, password) {
-  await signInWithEmailAndPassword(auth, email, password);
+
+export async function login(email, pinLogin) {
+
+  if(pinLogin.length !== 4){
+    throw new Error("PIN login tidak valid");
+  }
+
+  await signInWithEmailAndPassword(auth, email, pinLogin);
+
+  showToast("Login berhasil", "success");
 }
+
 
 export function logout() {
   return signOut(auth);
