@@ -6,6 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from "./storage.js";
 
 
 let currentUserData = null;
+let unsubscribeFollowers = null;
 
 /* =========================================
    PHOTO UPLOAD
@@ -314,9 +315,16 @@ export function renderMembers(){
           <div class="member-right">
 
             <div class="member-username">
-              ${data.username || "User"}
-              ${data.verifiedApproved ? `<span class="verified-badge">✔</span>` : ``}
-            </div>
+  ${data.username || "User"}
+  ${data.verifiedApproved ? `<span class="verified-badge">✔</span>` : ``}
+  ${
+    mutual
+      ? `<span class="mutual-badge">Mutual</span>`
+      : followsYou
+        ? `<span class="follows-you-badge">Follows You</span>`
+        : ``
+  }
+</div>
 
             <div>
               <span class="role-badge ${badgeClass}">
@@ -330,6 +338,8 @@ export function renderMembers(){
             <div>Status: ${data.status || "active"}</div>
 
             <div class="member-actions">
+            const followsYou = followersSet.has(uid);
+const mutual = followsYou && isFollowing;
               <button class="follow-btn ${isFollowing ? 'following' : ''}"
                 onclick="toggleFollow('${uid}')">
                 ${isFollowing ? 'Following' : 'Follow'}
@@ -386,6 +396,23 @@ export function renderMembers(){
       }
     );
   }
+   // 3️⃣ FOLLOWERS REALTIME (siapa yang follow kamu)
+let followersSet = new Set();
+
+if(currentUser){
+  unsubscribeFollowers = onSnapshot(
+    collection(db,"users",currentUser.uid,"followers"),
+    (snapshot)=>{
+
+      followersSet = new Set();
+      snapshot.forEach(doc=>{
+        followersSet.add(doc.id);
+      });
+
+      renderUI();
+    }
+  );
+}
 }
 
 /* =========================================
