@@ -252,8 +252,8 @@ html, body {
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 :root{
-  --account-gap: 6px;
-  --card-padding: 10px;
+  --account-gap: 18px;
+  --card-padding: 16px;
 }
 
 /* ================= ACCOUNT ================= */
