@@ -275,11 +275,19 @@ export async function renderMembers(){
 
     let html = "";
 
-    snap.forEach(docSnap => {
+    for (const docSnap of snap.docs) {
 
       const data = docSnap.data();
       const uid  = docSnap.id;
+      const currentUser = auth.currentUser;
+      let isFollowing = false;
 
+      if(currentUser){
+      const followCheck = await getDoc(
+      doc(db,"users",currentUser.uid,"following",uid)
+      );
+      isFollowing = followCheck.exists();
+      }
       let badgeClass = "badge-member";
       if(data.role === "admin") badgeClass = "badge-admin";
       if(data.role === "supercoach") badgeClass = "badge-supercoach";
