@@ -5,7 +5,7 @@ import { collection, getDocs, query, orderBy } from "./firestore.js";
 
 let currentUserData = null;
 
-Tambah verified icon kecil ✔ di samping username
+//Tambah verified icon kecil ✔ di samping username
 
 /* =========================================
    ENTRY POINT
