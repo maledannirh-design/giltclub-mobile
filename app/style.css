@@ -836,6 +836,27 @@ html, body {
 .chat-btn:hover {
   background: #cfd4d8;
 }
+
+.btn-primary {
+  background: #d97a82; /* pink kamu sebelumnya */
+  border: none;
+  color: white;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.full {
+  width: 100%;
+  margin-top: 12px;
+}
 @keyframes splashFade{
   from { opacity: 0; }
   to   { opacity: 1; }
