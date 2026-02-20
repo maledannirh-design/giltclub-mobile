@@ -258,7 +258,7 @@ html, body {
 /* ================= ACCOUNT ================= */
 
 .account-container{
-  padding: 0;
+  padding-top: 12px;
   max-width:430px;
   margin:0 auto;
 }
@@ -272,7 +272,7 @@ html, body {
     0 8px 24px rgba(0,0,0,.08),
     inset 0 1px 0 rgba(255,255,255,.3);
 
-  margin-bottom: var(--account-gap);
+  margin-bottom: 12px;
 }
 
 .account-top{
