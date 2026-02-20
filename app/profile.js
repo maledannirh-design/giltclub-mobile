@@ -245,7 +245,12 @@ export async function renderAccountUI(){
 
   bindAccountEvents(user);
 }
-export async function renderMembers(){
+import { onSnapshot } from "./firestore.js";
+
+let unsubscribeMembers = null;
+let unsubscribeFollowing = null;
+
+export function renderMembers(){
 
   const content = document.getElementById("content");
   if(!content) return;
@@ -259,35 +264,23 @@ export async function renderMembers(){
 
   const listEl = document.getElementById("memberList");
 
-  try{
+  const currentUser = auth.currentUser;
+  let followingSet = new Set();
+  let usersCache = [];
 
-    const q = query(collection(db, "users"), orderBy("createdAt","desc"));
-    const snap = await getDocs(q);
+  function renderUI(){
 
-    if(snap.empty){
+    if(!usersCache.length){
       listEl.innerHTML = "Belum ada member.";
       return;
     }
 
-    const currentUser = auth.currentUser;
-    let followingSet = new Set();
-
-    if(currentUser){
-      const followingSnap = await getDocs(
-        collection(db,"users",currentUser.uid,"following")
-      );
-
-      followingSnap.forEach(doc=>{
-        followingSet.add(doc.id);
-      });
-    }
-
     let html = "";
 
-    for (const docSnap of snap.docs) {
+    usersCache.forEach(userDoc=>{
 
-      const data = docSnap.data();
-      const uid  = docSnap.id;
+      const data = userDoc.data;
+      const uid  = userDoc.id;
 
       const isFollowing = followingSet.has(uid);
 
@@ -332,11 +325,8 @@ export async function renderMembers(){
             </div>
 
             <div>Level: ${data.level || 1}</div>
-
             <div>Playing: ${data.playingLevel || "newbie"}</div>
-
             <div>${data.membership || "MEMBER"}</div>
-
             <div>Status: ${data.status || "active"}</div>
 
             <div class="member-actions">
@@ -358,13 +348,43 @@ export async function renderMembers(){
 
         </div>
       `;
-    }
+    });
 
     listEl.innerHTML = html;
+  }
 
-  }catch(err){
-    console.error(err);
-    listEl.innerHTML = "Error loading members.";
+  // CLEAN OLD SNAPSHOT
+  if(unsubscribeMembers) unsubscribeMembers();
+  if(unsubscribeFollowing) unsubscribeFollowing();
+
+  // 1️⃣ USERS REALTIME
+  unsubscribeMembers = onSnapshot(
+    query(collection(db,"users"), orderBy("createdAt","desc")),
+    (snapshot)=>{
+
+      usersCache = snapshot.docs.map(doc=>({
+        id: doc.id,
+        data: doc.data()
+      }));
+
+      renderUI();
+    }
+  );
+
+  // 2️⃣ FOLLOWING REALTIME
+  if(currentUser){
+    unsubscribeFollowing = onSnapshot(
+      collection(db,"users",currentUser.uid,"following"),
+      (snapshot)=>{
+
+        followingSet = new Set();
+        snapshot.forEach(doc=>{
+          followingSet.add(doc.id);
+        });
+
+        renderUI();
+      }
+    );
   }
 }
 
