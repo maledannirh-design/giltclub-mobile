@@ -1,7 +1,7 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { doc, updateDoc, collection, query, orderBy, getDocs } from "./firestore.js";
+import { doc, updateDoc, collection, query, orderBy, getDocs, getDoc } from "./firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "./storage.js";
 
 let currentUserData = null;
@@ -58,6 +58,16 @@ export async function renderAccountUI(){
 
   const user = auth.currentUser;
 
+  let username = "Guest";
+
+  if(user){
+    const snap = await getDoc(doc(db,"users",user.uid));
+    if(snap.exists()){
+      currentUserData = snap.data();
+      username = currentUserData.username || user.email;
+    }
+  }
+
   content.innerHTML = `
   <div class="account-container page-fade">
 
@@ -65,18 +75,18 @@ export async function renderAccountUI(){
 
       <div class="account-top">
         <div class="account-avatar" id="avatarTrigger">
-          <div class="avatar-icon">👩</div>
+          ${
+            currentUserData?.photoURL
+              ? `<img src="${currentUserData.photoURL}" class="account-avatar-img">`
+              : `<div class="avatar-icon">👩</div>`
+          }
         </div>
 
         <input type="file" id="photoInput" accept="image/*" hidden>
 
-        <button onclick="document.getElementById('photoInput').click()">
-          Change Photo
-        </button>
-
         <div class="account-info">
           <div class="account-username">
-            ${user ? user.email : "Guest"}
+            ${username}
           </div>
           <div class="account-level">
             ${user ? "Level 1" : "-"}
@@ -132,6 +142,14 @@ export async function renderAccountUI(){
   `;
 
   bindPhotoUpload();
+
+  const avatarTrigger = document.getElementById("avatarTrigger");
+  if(avatarTrigger){
+    avatarTrigger.onclick = ()=>{
+      document.getElementById("photoInput").click();
+    };
+  }
+
   bindAccountEvents(user);
 }
 
@@ -228,6 +246,10 @@ export async function renderMembers(){
                 Follow
               </button>
 
+              <button class="friend-btn" onclick="toggleFriend('${uid}')">
+                Add Friend
+              </button>
+
               <button class="chat-btn" onclick="handleChat('${uid}')">
                 💬
               </button>
@@ -304,25 +326,20 @@ function bindAccountEvents(user){
    SHEET CONTROL
 ========================================= */
 function openSheet(){
-  const sheet = document.getElementById("loginSheet");
-  const overlay = document.getElementById("sheetOverlay");
-
-  overlay.classList.add("active");
-  sheet.classList.add("active");
+  document.getElementById("sheetOverlay").classList.add("active");
+  document.getElementById("loginSheet").classList.add("active");
 }
 
 function closeSheet(){
-  const sheet = document.getElementById("loginSheet");
-  const overlay = document.getElementById("sheetOverlay");
-
-  sheet.classList.remove("active");
-  overlay.classList.remove("active");
+  document.getElementById("sheetOverlay").classList.remove("active");
+  document.getElementById("loginSheet").classList.remove("active");
 }
 
 /* =========================================
    STUBS
 ========================================= */
 window.toggleFollow = (uid)=> alert("Follow logic for " + uid);
+window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 window.handleChat = (uid)=> alert("Chat logic for " + uid);
 window.blockUser = (uid)=>{
   if(confirm("Konfirmasi blokir user ini?")){
