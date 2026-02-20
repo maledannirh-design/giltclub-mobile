@@ -52,6 +52,98 @@ export function bindPhotoUpload() {
 /* =========================================
    ENTRY POINT
 ========================================= */
+
+function renderSheetContent(mode){
+
+  const sheet = document.getElementById("loginSheet");
+
+  if(mode === "login"){
+    sheet.innerHTML = `
+      <div class="sheet-handle"></div>
+      <h3>Login</h3>
+
+      <input id="sheetEmail" type="email" placeholder="Email">
+
+      <input id="sheetPinLogin"
+        type="password"
+        maxlength="6"
+        inputmode="numeric"
+        placeholder="PIN Login (6 digit)">
+
+      <button class="btn-primary full" id="submitLogin">
+        Login
+      </button>
+    `;
+
+    document.getElementById("submitLogin").onclick = async ()=>{
+      try{
+        const email = document.getElementById("sheetEmail").value.trim();
+        const pinLogin = document.getElementById("sheetPinLogin").value.replace(/\s/g,'');
+
+        if(!/^\d{6}$/.test(pinLogin)){
+          throw new Error("PIN harus 6 digit");
+        }
+
+        await login(email, pinLogin);
+        closeSheet();
+        renderAccountUI();
+
+      }catch(err){
+        showToast(err.message, "error");
+      }
+    };
+  }
+
+  if(mode === "register"){
+    sheet.innerHTML = `
+      <div class="sheet-handle"></div>
+      <h3>Pendaftaran Member</h3>
+
+      <input id="regFullName" type="text" placeholder="Nama Lengkap">
+      <input id="regUsername" type="text" placeholder="Username">
+      <input id="regEmail" type="email" placeholder="Email">
+
+      <input id="regPinLogin"
+        type="password"
+        maxlength="6"
+        inputmode="numeric"
+        placeholder="Buat PIN Login (6 digit)">
+
+      <input id="regPinTrx"
+        type="password"
+        maxlength="6"
+        inputmode="numeric"
+        placeholder="Buat PIN Transaksi (6 digit)">
+
+      <button class="btn-primary full" id="submitRegister">
+        Daftar
+      </button>
+    `;
+
+    document.getElementById("submitRegister").onclick = async ()=>{
+      try{
+
+        const fullName = document.getElementById("regFullName").value.trim();
+        const username = document.getElementById("regUsername").value.trim();
+        const email = document.getElementById("regEmail").value.trim();
+        const pinLogin = document.getElementById("regPinLogin").value.trim();
+        const pinTrx = document.getElementById("regPinTrx").value.trim();
+
+        if(!/^\d{6}$/.test(pinLogin) || !/^\d{6}$/.test(pinTrx)){
+          throw new Error("PIN harus 6 digit");
+        }
+
+        await register(email, pinLogin, pinTrx, username);
+
+        closeSheet();
+        renderAccountUI();
+
+      }catch(err){
+        showToast(err.message, "error");
+      }
+    };
+  }
+}
 export async function renderAccountUI(){
 
   const content = document.getElementById("content");
@@ -282,37 +374,16 @@ function bindAccountEvents(user){
   if(!overlay || !sheet) return;
 
   if(!user){
-   const registerBtn = document.getElementById("registerBtn");
 
-if(registerBtn){
-  registerBtn.onclick = ()=>{
-    showToast("Register flow belum diaktifkan", "error");
-  };
-}
     const loginBtn = document.getElementById("loginBtn");
-    const sheetLoginBtn = document.getElementById("sheetLoginBtn");
+    const registerBtn = document.getElementById("registerBtn");
 
-    if(loginBtn) loginBtn.onclick = ()=> openSheet();
+    if(loginBtn){
+      loginBtn.onclick = ()=> openSheet("login");
+    }
 
-    if(sheetLoginBtn){
-      sheetLoginBtn.onclick = async ()=>{
-        try{
-          const email = document.getElementById("sheetEmail").value.trim();
-          const pinLogin = document.getElementById("sheetPinLogin").value.replace(/\s/g,'');
-
-          if(!/^\d{6}$/.test(pinLogin)){
-            throw new Error("PIN harus 6 digit");
-          }
-
-          await login(email, pinLogin);
-
-          closeSheet();
-          renderAccountUI();
-
-        }catch(err){
-          showToast(err.message, "error");
-        }
-      };
+    if(registerBtn){
+      registerBtn.onclick = ()=> openSheet("register");
     }
   }
 
@@ -332,11 +403,16 @@ if(registerBtn){
 /* =========================================
    SHEET CONTROL
 ========================================= */
-function openSheet(){
-  document.getElementById("sheetOverlay").classList.add("active");
-  document.getElementById("loginSheet").classList.add("active");
-}
+function openSheet(mode="login"){
 
+  const sheet = document.getElementById("loginSheet");
+  const overlay = document.getElementById("sheetOverlay");
+
+  overlay.classList.add("active");
+  sheet.classList.add("active");
+
+  renderSheetContent(mode);
+}
 function closeSheet(){
   document.getElementById("sheetOverlay").classList.remove("active");
   document.getElementById("loginSheet").classList.remove("active");
@@ -410,6 +486,8 @@ window.toggleFollow = async function(targetUid){
   }
 
 }
+
+
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 window.handleChat = (uid)=> alert("Chat logic for " + uid);
 window.blockUser = (uid)=>{
