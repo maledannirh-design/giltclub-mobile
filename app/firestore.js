@@ -12,7 +12,10 @@ import {
   deleteDoc,
   setDoc,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  runTransaction,
+  onSnapshot,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export {
@@ -29,7 +32,10 @@ export {
   deleteDoc,
   setDoc,
   increment,
-  serverTimestamp
+  serverTimestamp,
+  runTransaction,
+  onSnapshot,
+  Timestamp
 };
 
 import {
