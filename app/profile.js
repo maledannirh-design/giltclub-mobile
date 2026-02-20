@@ -163,6 +163,10 @@ function openSheet(mode="login"){
 
   renderSheetContent(mode);
 }
+
+/* =========================================
+   RENDER SHEET CONTENT
+========================================= */
 function renderSheetContent(mode){
 
   const sheet = document.getElementById("loginSheet");
@@ -180,8 +184,8 @@ function renderSheetContent(mode){
        required>
 
       <button id="submitLogin" class="form-submit">
-  Login
-</button>
+        Login
+      </button>
     `;
   }
 
@@ -195,15 +199,19 @@ function renderSheetContent(mode){
       <input type="text" placeholder="Tempat Lahir" required>
 
       <div class="field-group">
-  <label>Tanggal Lahir</label>
-  <input type="date" required>
-</div>
+        <label>Tanggal Lahir</label>
+        <input type="date" required>
+      </div>
 
       <input id="phoneInput" type="tel" placeholder="Nomor HP" required>
 
       <input type="email" placeholder="Alamat Email" required>
-      <input type="password" maxlength="4" inputmode="numeric"
-             placeholder="Buat PIN Login (4 digit)" required>
+
+      <input type="password"
+             maxlength="4"
+             inputmode="numeric"
+             placeholder="Buat PIN Login (4 digit)"
+             required>
 
       <label class="terms-row">
         <input type="checkbox" required>
@@ -211,9 +219,23 @@ function renderSheetContent(mode){
       </label>
 
       <button id="submitRegister" class="form-submit">
-  Daftar Member
-</button>
+        Daftar Member
+      </button>
     `;
+
+    /* ============================
+       INIT intl-tel-input DI SINI
+    ============================ */
+
+    const phoneInput = document.getElementById("phoneInput");
+
+    if (phoneInput && window.intlTelInput) {
+      window.intlTelInput(phoneInput, {
+        initialCountry: "id",
+        separateDialCode: true,
+        preferredCountries: ["id", "sg", "my", "au"]
+      });
+    }
   }
 
   enableSheetDrag();
