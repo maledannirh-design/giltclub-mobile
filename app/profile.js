@@ -269,150 +269,98 @@ export function renderMembers(){
   let followingSet = new Set();
   let usersCache = [];
 
-  function renderUI(){
+ function renderUI(){
 
-    if(!usersCache.length){
-      listEl.innerHTML = "Belum ada member.";
-      return;
-    }
+  if(!usersCache.length){
+    listEl.innerHTML = "Belum ada member.";
+    return;
+  }
 
-    let html = "";
+  let html = "";
 
-    usersCache.forEach(userDoc=>{
+  usersCache.forEach(userDoc=>{
 
-      const data = userDoc.data;
-      const uid  = userDoc.id;
+    const data = userDoc.data;
+    const uid  = userDoc.id;
 
-      const isFollowing = followingSet.has(uid);
+    const isFollowing = followingSet.has(uid);
+    const followsYou  = followersSet.has(uid);
+    const mutual      = isFollowing && followsYou;
 
-      let badgeClass = "badge-member";
-      if(data.role === "admin") badgeClass = "badge-admin";
-      if(data.role === "supercoach") badgeClass = "badge-supercoach";
-      if(data.role === "coach") badgeClass = "badge-coach";
+    let badgeClass = "badge-member";
+    if(data.role === "admin") badgeClass = "badge-admin";
+    if(data.role === "supercoach") badgeClass = "badge-supercoach";
+    if(data.role === "coach") badgeClass = "badge-coach";
 
-      const avatar = data.photoURL
-        ? `<img src="${data.photoURL}" class="member-avatar-img">`
-        : `👤`;
+    const avatar = data.photoURL
+      ? `<img src="${data.photoURL}" class="member-avatar-img">`
+      : `👤`;
 
-      html += `
-        <div class="member-card">
+    html += `
+      <div class="member-card">
 
-          <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
+        <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
 
-          <div class="member-left">
-            <div class="member-avatar">${avatar}</div>
+        <div class="member-left">
+          <div class="member-avatar">${avatar}</div>
 
-            <div class="follow-stats">
-              <div>${data.followersCount || 0} Followers</div>
-              <div>${data.followingCount || 0} Following</div>
-            </div>
-
-            <div class="member-bio">
-              ${data.bio || "No bio yet"}
-            </div>
+          <div class="follow-stats">
+            <div>${data.followersCount || 0} Followers</div>
+            <div>${data.followingCount || 0} Following</div>
           </div>
 
-          <div class="member-right">
+          <div class="member-bio">
+            ${data.bio || "No bio yet"}
+          </div>
+        </div>
 
-            <div class="member-username">
-  ${data.username || "User"}
-  ${data.verifiedApproved ? `<span class="verified-badge">✔</span>` : ``}
-  ${
-    mutual
-      ? `<span class="mutual-badge">Mutual</span>`
-      : followsYou
-        ? `<span class="follows-you-badge">Follows You</span>`
-        : ``
-  }
-</div>
+        <div class="member-right">
 
-            <div>
-              <span class="role-badge ${badgeClass}">
-                ${data.role}
-              </span>
-            </div>
+          <div class="member-username">
+            ${data.username || "User"}
+            ${data.verifiedApproved ? `<span class="verified-badge">✔</span>` : ``}
+            ${
+              mutual
+                ? `<span class="mutual-badge">Mutual</span>`
+                : followsYou
+                  ? `<span class="follows-you-badge">Follows You</span>`
+                  : ``
+            }
+          </div>
 
-            <div>Level: ${data.level || 1}</div>
-            <div>Playing: ${data.playingLevel || "newbie"}</div>
-            <div>${data.membership || "MEMBER"}</div>
-            <div>Status: ${data.status || "active"}</div>
+          <div>
+            <span class="role-badge ${badgeClass}">
+              ${data.role}
+            </span>
+          </div>
 
-            <div class="member-actions">
-            const followsYou = followersSet.has(uid);
-const mutual = followsYou && isFollowing;
-              <button class="follow-btn ${isFollowing ? 'following' : ''}"
-                onclick="toggleFollow('${uid}')">
-                ${isFollowing ? 'Following' : 'Follow'}
-              </button>
+          <div>Level: ${data.level || 1}</div>
+          <div>Playing: ${data.playingLevel || "newbie"}</div>
+          <div>${data.membership || "MEMBER"}</div>
+          <div>Status: ${data.status || "active"}</div>
 
-              <button class="friend-btn" onclick="toggleFriend('${uid}')">
-                Add Friend
-              </button>
+          <div class="member-actions">
+            <button class="follow-btn ${isFollowing ? 'following' : ''}"
+              onclick="toggleFollow('${uid}')">
+              ${isFollowing ? 'Following' : 'Follow'}
+            </button>
 
-              <button class="chat-btn" onclick="handleChat('${uid}')">
-                💬
-              </button>
-            </div>
+            <button class="friend-btn" onclick="toggleFriend('${uid}')">
+              Add Friend
+            </button>
 
+            <button class="chat-btn" onclick="handleChat('${uid}')">
+              💬
+            </button>
           </div>
 
         </div>
-      `;
-    });
 
-    listEl.innerHTML = html;
-  }
+      </div>
+    `;
+  });
 
-  // CLEAN OLD SNAPSHOT
-  if(unsubscribeMembers) unsubscribeMembers();
-  if(unsubscribeFollowing) unsubscribeFollowing();
-
-  // 1️⃣ USERS REALTIME
-  unsubscribeMembers = onSnapshot(
-    query(collection(db,"users"), orderBy("createdAt","desc")),
-    (snapshot)=>{
-
-      usersCache = snapshot.docs.map(doc=>({
-        id: doc.id,
-        data: doc.data()
-      }));
-
-      renderUI();
-    }
-  );
-
-  // 2️⃣ FOLLOWING REALTIME
-  if(currentUser){
-    unsubscribeFollowing = onSnapshot(
-      collection(db,"users",currentUser.uid,"following"),
-      (snapshot)=>{
-
-        followingSet = new Set();
-        snapshot.forEach(doc=>{
-          followingSet.add(doc.id);
-        });
-
-        renderUI();
-      }
-    );
-  }
-   // 3️⃣ FOLLOWERS REALTIME (siapa yang follow kamu)
-let followersSet = new Set();
-
-if(currentUser){
-  unsubscribeFollowers = onSnapshot(
-    collection(db,"users",currentUser.uid,"followers"),
-    (snapshot)=>{
-
-      followersSet = new Set();
-      snapshot.forEach(doc=>{
-        followersSet.add(doc.id);
-      });
-
-      renderUI();
-    }
-  );
-}
+  listEl.innerHTML = html;
 }
 
 /* =========================================
