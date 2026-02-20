@@ -549,7 +549,8 @@ html, body {
 }
 
 .phone-row select{
-  width:95px;
+  min-width:110px;
+  padding:0 10px;
 }
 
 .phone-row input{
