@@ -523,8 +523,8 @@ window.toggleFollow = async function(targetUid){
 
       }else{
 
-        transaction.set(myFollowingRef,{ createdAt: new Date() });
-        transaction.set(targetFollowerRef,{ createdAt: new Date() });
+        transaction.set(myFollowingRef,{ createdAt: serverTimestamp() });
+        transaction.set(targetFollowerRef,{ createdAt: serverTimestamp() });
 
         transaction.update(myUserRef,{
           followingCount: increment(1)
@@ -573,8 +573,8 @@ window.handleChat = async function(targetUid){
     if(!roomSnap.exists()){
       await setDoc(roomRef,{
         participants: [myUid, targetUid],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         lastMessage: ""
       });
     }
@@ -650,7 +650,7 @@ async function renderChatUI(roomId, targetUid){
       {
         senderId: user.uid,
         text: text,
-        createdAt: new Date()
+        createdAt: serverTimestamp()
       }
     );
 
@@ -658,7 +658,7 @@ async function renderChatUI(roomId, targetUid){
       doc(db,"chatRooms",roomId),
       {
         lastMessage: text,
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       }
     );
 
