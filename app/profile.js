@@ -293,35 +293,66 @@ handle.addEventListener("touchmove", ()=>{
    let tapTimeout;
 }
 
+function getFlagEmoji(countryCode) {
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, char =>
+      String.fromCodePoint(127397 + char.charCodeAt())
+    );
+}
+
 function populateCountryCodes(){
 
   const select = document.getElementById("countryCode");
   if(!select) return;
 
   const countries = [
-    { code: "+1",  name: "US" },
-    { code: "+44", name: "UK" },
-    { code: "+61", name: "AU" },
-    { code: "+65", name: "SG" },
-    { code: "+60", name: "MY" },
-    { code: "+62", name: "ID" },
-    { code: "+81", name: "JP" },
-    { code: "+82", name: "KR" },
-    { code: "+971", name: "UAE" },
-    { code: "+49", name: "DE" },
-    { code: "+33", name: "FR" },
-    { code: "+39", name: "IT" },
-    { code: "+91", name: "IN" }
+    { iso:"ID", dial:"+62" },
+    { iso:"SG", dial:"+65" },
+    { iso:"MY", dial:"+60" },
+    { iso:"TH", dial:"+66" },
+    { iso:"VN", dial:"+84" },
+    { iso:"PH", dial:"+63" },
+    { iso:"JP", dial:"+81" },
+    { iso:"KR", dial:"+82" },
+    { iso:"CN", dial:"+86" },
+    { iso:"IN", dial:"+91" },
+
+    { iso:"AU", dial:"+61" },
+    { iso:"NZ", dial:"+64" },
+
+    { iso:"US", dial:"+1" },
+    { iso:"CA", dial:"+1" },
+    { iso:"MX", dial:"+52" },
+
+    { iso:"GB", dial:"+44" },
+    { iso:"DE", dial:"+49" },
+    { iso:"FR", dial:"+33" },
+    { iso:"IT", dial:"+39" },
+    { iso:"ES", dial:"+34" },
+    { iso:"NL", dial:"+31" },
+    { iso:"SE", dial:"+46" },
+    { iso:"NO", dial:"+47" },
+    { iso:"CH", dial:"+41" },
+
+    { iso:"AE", dial:"+971" },
+    { iso:"SA", dial:"+966" },
+    { iso:"QA", dial:"+974" },
+    { iso:"TR", dial:"+90" },
+
+    { iso:"BR", dial:"+55" },
+    { iso:"AR", dial:"+54" },
+    { iso:"ZA", dial:"+27" }
   ];
 
   select.innerHTML = "";
 
   countries.forEach(c => {
     const opt = document.createElement("option");
-    opt.value = c.code;
-    opt.textContent = `${c.name} ${c.code}`;
+    opt.value = c.dial;
+    opt.textContent = `${getFlagEmoji(c.iso)} ${c.dial}`;
     select.appendChild(opt);
   });
 
-  select.value = "+62"; // default Indonesia
+  select.value = "+62";
 }
