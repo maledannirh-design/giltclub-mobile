@@ -171,9 +171,13 @@ function renderSheetContent(mode){
     sheet.innerHTML = `
       <div class="sheet-handle"></div>
       <h3>Login</h3>
-      <input id="sheetEmail" placeholder="Email">
-      <input id="sheetPassword" type="password" placeholder="Password">
-      <button class="btn-primary full">Login</button>
+
+      <input id="sheetEmail" type="email" placeholder="Email" required>
+      <input id="sheetPassword" type="password" placeholder="Password" required>
+
+      <button class="form-submit">
+        Login
+      </button>
     `;
   }
 
@@ -182,28 +186,30 @@ function renderSheetContent(mode){
       <div class="sheet-handle"></div>
       <h3>Pendaftaran Member</h3>
 
-      <input placeholder="Nama Lengkap">
-      <input placeholder="Username">
-      <input placeholder="Tempat Lahir">
+      <input type="text" placeholder="Nama Lengkap" required>
+      <input type="text" placeholder="Username" required>
+      <input type="text" placeholder="Tempat Lahir" required>
 
-      <input type="date">
+      <input type="date" required>
 
-      <div style="display:flex;gap:8px;">
-        <select style="width:40%;">
-          <option>🇮🇩 +62</option>
-          <option>🇸🇬 +65</option>
+      <div class="phone-row">
+        <select required>
+          <option value="+62">🇮🇩 +62</option>
+          <option value="+65">🇸🇬 +65</option>
         </select>
-        <input style="width:60%;" placeholder="8xxxxxxx">
+        <input type="tel" placeholder="8xxxxxxx" required>
       </div>
 
-      <input placeholder="Alamat Email">
-      <input type="password" placeholder="Buat PIN Login (4 digit)">
+      <input type="email" placeholder="Alamat Email" required>
+      <input type="password" maxlength="4" inputmode="numeric"
+             placeholder="Buat PIN Login (4 digit)" required>
 
-      <label style="font-size:12px;">
-        <input type="checkbox"> Saya setuju syarat & ketentuan
+      <label class="terms-row">
+        <input type="checkbox" required>
+        <span>Saya setuju syarat & ketentuan</span>
       </label>
 
-      <button class="btn-primary full">
+      <button class="form-submit">
         Kirim Pendaftaran
       </button>
     `;
