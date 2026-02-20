@@ -767,11 +767,6 @@ html, body {
 }
 
 /* ACTION BUTTONS */
-.member-actions{
-  margin-top:10px;
-  display:flex;
-  gap:8px;
-}
 
 .follow-btn,
 .friend-btn{
@@ -819,7 +814,28 @@ html, body {
   background:#E3C565;
   color:#2E5D3A;
 }
+.member-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
+.chat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dfe3e6;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.chat-btn:hover {
+  background: #cfd4d8;
+}
 @keyframes splashFade{
   from { opacity: 0; }
   to   { opacity: 1; }
