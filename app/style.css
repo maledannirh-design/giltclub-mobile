@@ -50,6 +50,20 @@
   box-shadow:0 0 0 3px rgba(212,178,79,.25);
 }
 
+.field-group{
+  margin-bottom:16px;
+}
+
+.field-group label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+  color:var(--color-text-muted);
+}
+
+[data-theme="dark"] .field-group label{
+  color:rgba(255,255,255,.7);
+}
 /* ================= RESET ================= */
 
 * {
