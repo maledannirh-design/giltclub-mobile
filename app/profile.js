@@ -245,10 +245,6 @@ export async function renderAccountUI(){
 
   bindAccountEvents(user);
 }
-
-/* =========================================
-   MEMBER LIST
-========================================= */
 export async function renderMembers(){
 
   const content = document.getElementById("content");
@@ -273,21 +269,28 @@ export async function renderMembers(){
       return;
     }
 
+    const currentUser = auth.currentUser;
+    let followingSet = new Set();
+
+    if(currentUser){
+      const followingSnap = await getDocs(
+        collection(db,"users",currentUser.uid,"following")
+      );
+
+      followingSnap.forEach(doc=>{
+        followingSet.add(doc.id);
+      });
+    }
+
     let html = "";
 
     for (const docSnap of snap.docs) {
 
       const data = docSnap.data();
       const uid  = docSnap.id;
-      const currentUser = auth.currentUser;
-      let isFollowing = false;
 
-      if(currentUser){
-      const followCheck = await getDoc(
-      doc(db,"users",currentUser.uid,"following",uid)
-      );
-      isFollowing = followCheck.exists();
-      }
+      const isFollowing = followingSet.has(uid);
+
       let badgeClass = "badge-member";
       if(data.role === "admin") badgeClass = "badge-admin";
       if(data.role === "supercoach") badgeClass = "badge-supercoach";
@@ -330,23 +333,17 @@ export async function renderMembers(){
 
             <div>Level: ${data.level || 1}</div>
 
-            <div>
-              Playing: ${data.playingLevel || "newbie"}
-            </div>
+            <div>Playing: ${data.playingLevel || "newbie"}</div>
 
-            <div>
-              ${data.membership || "MEMBER"}
-            </div>
+            <div>${data.membership || "MEMBER"}</div>
 
-            <div>
-              Status: ${data.status || "active"}
-            </div>
+            <div>Status: ${data.status || "active"}</div>
 
             <div class="member-actions">
               <button class="follow-btn ${isFollowing ? 'following' : ''}"
-  onclick="toggleFollow('${uid}')">
-  ${isFollowing ? 'Following' : 'Follow'}
-</button>
+                onclick="toggleFollow('${uid}')">
+                ${isFollowing ? 'Following' : 'Follow'}
+              </button>
 
               <button class="friend-btn" onclick="toggleFriend('${uid}')">
                 Add Friend
@@ -369,7 +366,6 @@ export async function renderMembers(){
     console.error(err);
     listEl.innerHTML = "Error loading members.";
   }
-
 }
 
 /* =========================================
