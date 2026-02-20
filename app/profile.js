@@ -343,9 +343,10 @@ export async function renderMembers(){
             </div>
 
             <div class="member-actions">
-              <button class="follow-btn" onclick="toggleFollow('${uid}')">
-                Follow
-              </button>
+              <button class="follow-btn ${isFollowing ? 'following' : ''}"
+  onclick="toggleFollow('${uid}')">
+  ${isFollowing ? 'Following' : 'Follow'}
+</button>
 
               <button class="friend-btn" onclick="toggleFriend('${uid}')">
                 Add Friend
