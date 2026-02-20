@@ -199,13 +199,7 @@ function renderSheetContent(mode){
   <input type="date" required>
 </div>
 
-      <div class="phone-row">
-        <select required>
-          <option value="+62">🇮🇩 +62</option>
-          <option value="+65">🇸🇬 +65</option>
-        </select>
-        <input type="tel" placeholder="8xxxxxxx" required>
-      </div>
+      <input id="phoneInput" type="tel" placeholder="Nomor HP" required>
 
       <input type="email" placeholder="Alamat Email" required>
       <input type="password" maxlength="4" inputmode="numeric"
