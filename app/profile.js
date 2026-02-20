@@ -488,7 +488,6 @@ window.toggleFollow = async function(targetUid){
     console.error(err);
   }
 }
-
 window.handleChat = async function(targetUid){
 
   const user = auth.currentUser;
@@ -518,10 +517,10 @@ window.handleChat = async function(targetUid){
   }catch(err){
     console.error(err);
   }
-}
+};
 
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
-window.handleChat = (uid)=> alert("Chat logic for " + uid);
+
 window.blockUser = (uid)=>{
   if(confirm("Konfirmasi blokir user ini?")){
     alert("User blocked: " + uid);
