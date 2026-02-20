@@ -1,8 +1,63 @@
-import { auth } from "./firebase.js";
+import { auth, db } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
+import { collection, getDocs, query, orderBy } from "./firestore.js";
 
 let currentUserData = null;
+
+export async function renderMembers(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <div class="member-container">
+      <h2>Member List</h2>
+      <div id="memberList">Loading...</div>
+    </div>
+  `;
+
+  const listEl = document.getElementById("memberList");
+
+  try{
+
+    const q = query(collection(db, "users"), orderBy("createdAt","desc"));
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+      listEl.innerHTML = "Belum ada member.";
+      return;
+    }
+
+    let html = "";
+
+    snap.forEach(docSnap => {
+
+      const data = docSnap.data();
+
+      html += `
+        <div class="member-card">
+          <div class="member-left">
+            <div class="member-avatar">👤</div>
+            <div>
+              <div class="member-name">${data.username}</div>
+              <div class="member-role">
+                ${data.role} • ${data.membership}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+    });
+
+    listEl.innerHTML = html;
+
+  }catch(err){
+    console.error(err);
+    listEl.innerHTML = "Error loading members.";
+  }
+
+}
 
 /* =========================================
    ENTRY POINT
