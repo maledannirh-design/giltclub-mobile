@@ -58,8 +58,12 @@ export async function renderMembers(){
           <div class="member-right-large">
 
             <div class="member-username">
-              ${data.username}
-            </div>
+  ${data.username}
+</div>
+
+<div class="member-role-badge">
+  ${data.role}
+</div>
 
             <div class="member-level">
               Level: ${data.level || 1}
