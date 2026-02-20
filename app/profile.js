@@ -449,19 +449,26 @@ function closeSheet(){
 window.toggleFollow = async function(targetUid){
 
   const user = auth.currentUser;
-  if(!user){
-    alert("Login dulu");
-    return;
-  }
+  if(!user) return;
 
-  const myUid = user.uid;
+  const button = document.querySelector(
+    `button[onclick="toggleFollow('${targetUid}')"]`
+  );
 
-  if(myUid === targetUid){
-    alert("Tidak bisa follow diri sendiri");
-    return;
+  const isCurrentlyFollowing = button.classList.contains("following");
+
+  // 🔥 Optimistic UI update
+  if(isCurrentlyFollowing){
+    button.classList.remove("following");
+    button.innerText = "Follow";
+  }else{
+    button.classList.add("following");
+    button.innerText = "Following";
   }
 
   try{
+
+    const myUid = user.uid;
 
     const myFollowingRef = doc(db,"users",myUid,"following",targetUid);
     const targetFollowerRef = doc(db,"users",targetUid,"followers",myUid);
@@ -498,18 +505,13 @@ window.toggleFollow = async function(targetUid){
         transaction.update(targetUserRef,{
           followersCount: increment(1)
         });
-
       }
 
     });
 
-    renderMembers();
-
   }catch(err){
     console.error(err);
-    alert("Follow error");
   }
-
 }
 
 
