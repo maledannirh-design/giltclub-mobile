@@ -1,8 +1,9 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { doc, updateDoc, collection, query, orderBy, getDocs, getDoc } from "./firestore.js";
+import { doc, updateDoc, collection, query, ,increment, orderBy, getDocs, getDoc } from "./firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "./storage.js";
+import { runTransaction } from "./firestore.js";
 
 let currentUserData = null;
 
@@ -338,7 +339,71 @@ function closeSheet(){
 /* =========================================
    STUBS
 ========================================= */
-window.toggleFollow = (uid)=> alert("Follow logic for " + uid);
+window.toggleFollow = async function(targetUid){
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login dulu");
+    return;
+  }
+
+  const myUid = user.uid;
+
+  if(myUid === targetUid){
+    alert("Tidak bisa follow diri sendiri");
+    return;
+  }
+
+  try{
+
+    const myFollowingRef = doc(db,"users",myUid,"following",targetUid);
+    const targetFollowerRef = doc(db,"users",targetUid,"followers",myUid);
+
+    const myUserRef = doc(db,"users",myUid);
+    const targetUserRef = doc(db,"users",targetUid);
+
+    await runTransaction(db, async (transaction)=>{
+
+      const followSnap = await transaction.get(myFollowingRef);
+
+      if(followSnap.exists()){
+
+        transaction.delete(myFollowingRef);
+        transaction.delete(targetFollowerRef);
+
+        transaction.update(myUserRef,{
+          followingCount: increment(-1)
+        });
+
+        transaction.update(targetUserRef,{
+          followersCount: increment(-1)
+        });
+
+      }else{
+
+        transaction.set(myFollowingRef,{ createdAt: new Date() });
+        transaction.set(targetFollowerRef,{ createdAt: new Date() });
+
+        transaction.update(myUserRef,{
+          followingCount: increment(1)
+        });
+
+        transaction.update(targetUserRef,{
+          followersCount: increment(1)
+        });
+
+      }
+
+    });
+
+    renderMembers();
+
+  }catch(err){
+    console.error(err);
+    alert("Follow error");
+  }
+
+}
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 window.handleChat = (uid)=> alert("Chat logic for " + uid);
 window.blockUser = (uid)=>{
