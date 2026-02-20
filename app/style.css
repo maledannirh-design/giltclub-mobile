@@ -98,7 +98,7 @@ html, body {
   background: var(--color-card);
   border-radius: 20px;
   padding: 18px;
-  margin-bottom: 16px;
+  margin: 0 0 var(--edge-gap) 0;
 
   box-shadow:
     0 4px 16px rgba(0,0,0,.04),
