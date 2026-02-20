@@ -554,7 +554,6 @@ window.handleChat = async function(targetUid){
 
   try{
 
-    // cek mutual dulu
     const myFollowing = await getDoc(
       doc(db,"users",myUid,"following",targetUid)
     );
@@ -580,8 +579,7 @@ window.handleChat = async function(targetUid){
       });
     }
 
-    // nanti redirect ke chat UI
-    navigate("chat", { roomId });
+    renderChatUI(roomId, targetUid);
 
   }catch(err){
     console.error(err);
