@@ -8,6 +8,7 @@ import {
 
 import { doc, setDoc, serverTimestamp } from "./firestore.js";
 import { showToast } from "./ui.js";
+import { navigate } from "./navigation.js";
 
 /* ================= REGISTER ================= */
 
@@ -61,6 +62,7 @@ export async function register(email, pinLogin, pinTrx, username){
   // AUTO LOGIN SUDAH TERJADI DI SINI
 
   showToast("Akun berhasil dibuat", "success");
+  navigate("home");
 
   // Tutup sheet
   const sheet = document.getElementById("loginSheet");
