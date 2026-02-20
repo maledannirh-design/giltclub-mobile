@@ -1,12 +1,18 @@
 import { auth, db } from "./firebase.js";
-
+import { 
+  doc, 
+  setDoc, 
+  serverTimestamp, 
+  collection, 
+  query, 
+  where, 
+  getDocs 
+} from "./firestore.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import { doc, setDoc, serverTimestamp } from "./firestore.js";
 import { showToast } from "./ui.js";
 import { navigate } from "./navigation.js";
 
@@ -22,15 +28,37 @@ export async function register(email, pinLogin, pinTrx, username){
     throw new Error("PIN Transaksi harus 6 digit angka");
   }
 
+  const cleanUsername = username.toLowerCase();
+
+  // ==============================
+  // CEK USERNAME UNIK
+  // ==============================
+  const q = query(
+    collection(db, "users"),
+    where("username", "==", cleanUsername)
+  );
+
+  const snap = await getDocs(q);
+
+  if(!snap.empty){
+    throw new Error("Username sudah digunakan");
+  }
+
+  // ==============================
+  // BUAT USER AUTH
+  // ==============================
   const userCredential =
     await createUserWithEmailAndPassword(auth, email, pinLogin);
 
   const user = userCredential.user;
 
+  // ==============================
+  // SIMPAN DATA PROFILE
+  // ==============================
   await setDoc(doc(db, "users", user.uid), {
 
     name: username,
-    username: username.toLowerCase(),
+    username: cleanUsername,
 
     role: "member",
     membership: "MEMBER",
@@ -59,17 +87,14 @@ export async function register(email, pinLogin, pinTrx, username){
 
   });
 
-  // AUTO LOGIN SUDAH TERJADI DI SINI
-
   showToast("Akun berhasil dibuat", "success");
   navigate("home");
-
-  // Tutup sheet
+  
   const sheet = document.getElementById("loginSheet");
   const overlay = document.querySelector(".sheet-overlay");
   sheet.classList.remove("active");
   overlay.classList.remove("active");
-
+}
 }
 
 /* ================= LOGIN ================= */
