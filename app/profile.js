@@ -107,8 +107,8 @@ function bindAccountEvents(user){
     const registerBtn = document.getElementById("registerBtn");
     const sheetLoginBtn = document.getElementById("sheetLoginBtn");
 
-    if(loginBtn) loginBtn.onclick = openSheet;
-    if(registerBtn) registerBtn.onclick = openSheet;
+    if(loginBtn) loginBtn.onclick = ()=> openSheet("login");
+if(registerBtn) registerBtn.onclick = ()=> openSheet("register");
 
     if(sheetLoginBtn){
       sheetLoginBtn.onclick = async ()=>{
@@ -153,15 +153,63 @@ function bindAccountEvents(user){
 /* =========================================
    SHEET CONTROL
 ========================================= */
-function openSheet(){
+function openSheet(mode="login"){
+
   const sheet = document.getElementById("loginSheet");
   const overlay = document.getElementById("sheetOverlay");
 
-  if(!sheet || !overlay) return;
-
-  sheet.style.transform = ""; // reset
-  sheet.classList.add("active");
   overlay.classList.add("active");
+  sheet.classList.add("active");
+
+  renderSheetContent(mode);
+}
+function renderSheetContent(mode){
+
+  const sheet = document.getElementById("loginSheet");
+
+  if(mode === "login"){
+    sheet.innerHTML = `
+      <div class="sheet-handle"></div>
+      <h3>Login</h3>
+      <input id="sheetEmail" placeholder="Email">
+      <input id="sheetPassword" type="password" placeholder="Password">
+      <button class="btn-primary full">Login</button>
+    `;
+  }
+
+  if(mode === "register"){
+    sheet.innerHTML = `
+      <div class="sheet-handle"></div>
+      <h3>Pendaftaran Member</h3>
+
+      <input placeholder="Nama Lengkap">
+      <input placeholder="Username">
+      <input placeholder="Tempat Lahir">
+
+      <input type="date">
+
+      <div style="display:flex;gap:8px;">
+        <select style="width:40%;">
+          <option>🇮🇩 +62</option>
+          <option>🇸🇬 +65</option>
+        </select>
+        <input style="width:60%;" placeholder="8xxxxxxx">
+      </div>
+
+      <input placeholder="Alamat Email">
+      <input type="password" placeholder="Buat PIN Login (4 digit)">
+
+      <label style="font-size:12px;">
+        <input type="checkbox"> Saya setuju syarat & ketentuan
+      </label>
+
+      <button class="btn-primary full">
+        Kirim Pendaftaran
+      </button>
+    `;
+  }
+
+  enableSheetDrag();
 }
 
 function closeSheet(){
