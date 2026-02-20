@@ -6,41 +6,39 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { doc, setDoc } from "./firestore.js";
+import { doc, setDoc, serverTimestamp } from "./firestore.js";
 import { showToast } from "./ui.js";
 
+/* ================= REGISTER ================= */
 
-export async function register(email, pinLogin, pinTrx, username) {
+export async function register(email, pinLogin, pinTrx, username){
 
-  if(pinLogin.length !== 4 || !/^\d+$/.test(pinLogin)){
-    throw new Error("PIN login harus 4 digit angka");
+  // VALIDASI DASAR
+  if(!/^\d{4}$/.test(pinLogin)){
+    throw new Error("PIN Login harus 4 digit angka");
   }
 
-  if(pinTrx.length !== 6 || !/^\d+$/.test(pinTrx)){
-    throw new Error("PIN transaksi harus 6 digit angka");
+  if(!/^\d{6}$/.test(pinTrx)){
+    throw new Error("PIN Transaksi harus 6 digit angka");
   }
 
-  // Firebase tetap butuh password → kita pakai PIN login
+  if(!email || !username){
+    throw new Error("Data tidak lengkap");
+  }
+
+  // Firebase tetap butuh password → kita pakai PIN Login
   const userCredential =
     await createUserWithEmailAndPassword(auth, email, pinLogin);
 
   const user = userCredential.user;
 
+  // Simpan profil di Firestore
   await setDoc(doc(db, "users", user.uid), {
 
     name: username,
     username: username.toLowerCase(),
 
     role: "member",
-    coachApproved: false,
-    coachLevel: null,
-
-    verifiedApproved: false,
-    verifiedEligible: false,
-
-    monthlyContribution: 0,
-    attendanceCount: 0,
-
     membership: "MEMBER",
 
     level: 1,
@@ -48,24 +46,35 @@ export async function register(email, pinLogin, pinTrx, username) {
     wins: 0,
     matches: 0,
 
+    monthlyContribution: 0,
+    attendanceCount: 0,
+
     followersCount: 0,
     followingCount: 0,
 
+    coachApproved: false,
+    coachLevel: null,
+
+    verifiedApproved: false,
+    verifiedEligible: false,
+
     isPublic: true,
 
-    pinTrx,              // simpan PIN transaksi
-    createdAt: new Date()
+    pinTrx, // ⚠ sementara plain text (nanti kita secure)
+
+    createdAt: serverTimestamp()
 
   });
 
   showToast("Pendaftaran berhasil", "success");
 }
 
+/* ================= LOGIN ================= */
 
-export async function login(email, pinLogin) {
+export async function login(email, pinLogin){
 
-  if(pinLogin.length !== 4){
-    throw new Error("PIN login tidak valid");
+  if(!/^\d{4}$/.test(pinLogin)){
+    throw new Error("PIN tidak valid");
   }
 
   await signInWithEmailAndPassword(auth, email, pinLogin);
@@ -73,7 +82,8 @@ export async function login(email, pinLogin) {
   showToast("Login berhasil", "success");
 }
 
+/* ================= LOGOUT ================= */
 
-export function logout() {
+export function logout(){
   return signOut(auth);
 }
