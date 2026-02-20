@@ -13,7 +13,6 @@ import { showToast } from "./ui.js";
 
 export async function register(email, pinLogin, pinTrx, username){
 
-  // VALIDASI DASAR
   if(!/^\d{4}$/.test(pinLogin)){
     throw new Error("PIN Login harus 4 digit angka");
   }
@@ -22,17 +21,11 @@ export async function register(email, pinLogin, pinTrx, username){
     throw new Error("PIN Transaksi harus 6 digit angka");
   }
 
-  if(!email || !username){
-    throw new Error("Data tidak lengkap");
-  }
-
-  // Firebase tetap butuh password → kita pakai PIN Login
   const userCredential =
     await createUserWithEmailAndPassword(auth, email, pinLogin);
 
   const user = userCredential.user;
 
-  // Simpan profil di Firestore
   await setDoc(doc(db, "users", user.uid), {
 
     name: username,
@@ -60,13 +53,21 @@ export async function register(email, pinLogin, pinTrx, username){
 
     isPublic: true,
 
-    pinTrx, // ⚠ sementara plain text (nanti kita secure)
-
+    pinTrx,
     createdAt: serverTimestamp()
 
   });
 
-  showToast("Pendaftaran berhasil", "success");
+  // AUTO LOGIN SUDAH TERJADI DI SINI
+
+  showToast("Akun berhasil dibuat", "success");
+
+  // Tutup sheet
+  const sheet = document.getElementById("loginSheet");
+  const overlay = document.querySelector(".sheet-overlay");
+  sheet.classList.remove("active");
+  overlay.classList.remove("active");
+
 }
 
 /* ================= LOGIN ================= */
