@@ -361,7 +361,7 @@ export async function renderMembers(){
 
         </div>
       `;
-    });
+    }
 
     listEl.innerHTML = html;
 
