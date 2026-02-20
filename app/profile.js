@@ -177,11 +177,12 @@ function renderSheetContent(mode){
       <h3>Login</h3>
 
       <input id="sheetEmail" type="email" placeholder="Email" required>
+
       <input type="password" 
-       maxlength="4" 
-       inputmode="numeric"
-       placeholder="PIN Login (4 digit)" 
-       required>
+        maxlength="4" 
+        inputmode="numeric"
+        placeholder="PIN Login (4 digit)" 
+        required>
 
       <button id="submitLogin" class="form-submit">
         Login
@@ -203,18 +204,25 @@ function renderSheetContent(mode){
         <input type="date" required>
       </div>
 
+      <!-- PHONE ROW (2 COLUMN CLEAN) -->
       <div class="phone-row">
-  <select id="countryCode" required></select>
-  <input id="phoneNumber" type="tel" placeholder="8xxxxxxx" required>
-</div>
+        <select id="countryCode" required></select>
+        <input id="phoneNumber" type="tel" placeholder="8xxxxxxx" required>
+      </div>
 
       <input type="email" placeholder="Alamat Email" required>
 
       <input type="password"
-             maxlength="4"
-             inputmode="numeric"
-             placeholder="Buat PIN Login (4 digit)"
-             required>
+        maxlength="4"
+        inputmode="numeric"
+        placeholder="Buat PIN Login (4 digit)"
+        required>
+
+      <input type="password"
+        maxlength="6"
+        inputmode="numeric"
+        placeholder="Buat PIN Transaksi (6 digit)"
+        required>
 
       <label class="terms-row">
         <input type="checkbox" required>
@@ -226,19 +234,8 @@ function renderSheetContent(mode){
       </button>
     `;
 
-    /* ============================
-       INIT intl-tel-input DI SINI
-    ============================ */
-
-    const phoneInput = document.getElementById("phoneInput");
-
-    if (phoneInput && window.intlTelInput) {
-      window.intlTelInput(phoneInput, {
-        initialCountry: "id",
-        separateDialCode: true,
-        preferredCountries: ["id", "sg", "my", "au"]
-      });
-    }
+    // Populate country dropdown
+    populateCountryCodes();
   }
 
   enableSheetDrag();
@@ -294,6 +291,37 @@ handle.addEventListener("touchmove", ()=>{
   closeSheet();
 });
    let tapTimeout;
+}
 
+function populateCountryCodes(){
 
+  const select = document.getElementById("countryCode");
+  if(!select) return;
+
+  const countries = [
+    { code: "+1",  name: "US" },
+    { code: "+44", name: "UK" },
+    { code: "+61", name: "AU" },
+    { code: "+65", name: "SG" },
+    { code: "+60", name: "MY" },
+    { code: "+62", name: "ID" },
+    { code: "+81", name: "JP" },
+    { code: "+82", name: "KR" },
+    { code: "+971", name: "UAE" },
+    { code: "+49", name: "DE" },
+    { code: "+33", name: "FR" },
+    { code: "+39", name: "IT" },
+    { code: "+91", name: "IN" }
+  ];
+
+  select.innerHTML = "";
+
+  countries.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.code;
+    opt.textContent = `${c.name} ${c.code}`;
+    select.appendChild(opt);
+  });
+
+  select.value = "+62"; // default Indonesia
 }
