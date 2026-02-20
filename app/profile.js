@@ -1,7 +1,7 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { doc, updateDoc, collection, query, ,increment, orderBy, getDocs, runTransaction, getDoc } from "./firestore.js";
+import { doc, updateDoc, collection, query, increment, orderBy, getDocs, runTransaction, getDoc } from "./firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "./storage.js";
 
 
