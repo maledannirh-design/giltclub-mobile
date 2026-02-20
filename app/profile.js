@@ -212,17 +212,17 @@ function renderSheetContent(mode){
 
       <input type="email" placeholder="Alamat Email" required>
 
-      <input type="password"
-        maxlength="6"
-        inputmode="numeric"
-        placeholder="Buat PIN Login (6 digit)"
-        required>
+      <input id="pinLogin" type="password"
+  maxlength="6"
+  inputmode="numeric"
+  placeholder="Buat PIN Login (6 digit)"
+  required>
 
-      <input type="password"
-        maxlength="6"
-        inputmode="numeric"
-        placeholder="Buat PIN Transaksi (6 digit)"
-        required>
+<input id="pinTrx" type="password"
+  maxlength="6"
+  inputmode="numeric"
+  placeholder="Buat PIN Transaksi (6 digit)"
+  required>
 
       <label class="terms-row">
         <input type="checkbox" required>
