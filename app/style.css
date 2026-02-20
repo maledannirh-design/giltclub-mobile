@@ -599,3 +599,29 @@ html, body {
   background:var(--color-highlight);
   transform:scale(.97);
 }
+
+
+/* ================= FIX INTL TEL INPUT ================= */
+
+.sheet .iti {
+  width:100%;
+  margin-bottom:16px;
+}
+
+.sheet .iti input {
+  width:100%;
+  height:52px;
+  padding-left:60px !important; /* ruang untuk flag */
+  border-radius:18px;
+  background:inherit;
+  color:var(--color-text);
+  border:1px solid var(--color-border);
+}
+
+.iti__country-list {
+  z-index: 99999 !important;
+}
+
+.iti__flag-container{
+  left:12px;
+}
