@@ -158,44 +158,52 @@ html, body {
   font-weight: 600;
 }
 
-/* ================= BUTTONS ================= */
-
-.btn {
-  padding: 12px 18px;
-  border-radius: 14px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .15s ease;
+/* ACTION BUTTONS */
+.account-actions{
+  margin-top:18px;
+  display:flex;
+  gap:12px;
 }
 
-.btn:active {
-  transform: scale(.95);
+.account-actions .btn-primary,
+.account-actions .btn-secondary{
+  flex:1;
+  height:48px;
+  border-radius:16px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.btn-primary {
-  background: var(--color-primary);
-  color: var(--color-text);
-  box-shadow: 0 4px 14px rgba(229,169,169,.35);
+/* PRIMARY */
+.account-actions .btn-primary{
+  background:var(--color-primary);
+  color:var(--color-text);
+  border:none;
+  transition:all .2s ease;
 }
 
-.btn-primary:hover {
-  background: var(--color-primary-hover);
+.account-actions .btn-primary:hover{
+  background:var(--color-primary-hover);
 }
 
-.btn-primary:active {
-  background: var(--color-highlight);
+.account-actions .btn-primary:active{
+  background:var(--color-highlight);
+  transform:scale(.97);
 }
 
-.btn-danger {
-  background: #c76b6b;
-  color: #fff;
+/* SECONDARY */
+.account-actions .btn-secondary{
+  background:transparent;
+  border:1px solid var(--color-border);
+  color:var(--color-text);
+  transition:all .2s ease;
 }
 
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+.account-actions .btn-secondary:active{
+  background:var(--color-highlight);
+  transform:scale(.97);
 }
 
 /* ================= LEDGER ================= */
