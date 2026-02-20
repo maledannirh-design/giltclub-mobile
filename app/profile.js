@@ -74,7 +74,7 @@ export async function renderMembers(){
             </div>
 
             <div class="member-status">
-              Status: ${data.status}
+              Status: ${data.status || "active"}
             </div>
 
             <div class="member-actions">
