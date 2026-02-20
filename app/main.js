@@ -11,7 +11,7 @@ window.addEventListener("load", () => {
   setTimeout(() => {
     const splash = document.getElementById("splashScreen");
     if (splash) splash.classList.add("hide");
-  }, 900); // lebih cepat & premium feel
+  }, 1200); // lebih cepat & premium feel
 });
 
 // ================= APP INIT =================
