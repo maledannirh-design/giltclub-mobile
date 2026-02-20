@@ -179,9 +179,9 @@ function renderSheetContent(mode){
       <input id="sheetEmail" type="email" placeholder="Email" required>
 
       <input type="password" 
-        maxlength="4" 
+        maxlength="6" 
         inputmode="numeric"
-        placeholder="PIN Login (4 digit)" 
+        placeholder="PIN Login (6 digit)" 
         required>
 
       <button id="submitLogin" class="form-submit">
@@ -213,9 +213,9 @@ function renderSheetContent(mode){
       <input type="email" placeholder="Alamat Email" required>
 
       <input type="password"
-        maxlength="4"
+        maxlength="6"
         inputmode="numeric"
-        placeholder="Buat PIN Login (4 digit)"
+        placeholder="Buat PIN Login (6 digit)"
         required>
 
       <input type="password"
