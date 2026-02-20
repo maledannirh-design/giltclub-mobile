@@ -173,7 +173,11 @@ function renderSheetContent(mode){
       <h3>Login</h3>
 
       <input id="sheetEmail" type="email" placeholder="Email" required>
-      <input id="sheetPassword" type="password" placeholder="Password" required>
+      <input type="password" 
+       maxlength="4" 
+       inputmode="numeric"
+       placeholder="PIN Login (4 digit)" 
+       required>
 
       <button class="form-submit">
         Login
@@ -210,7 +214,7 @@ function renderSheetContent(mode){
       </label>
 
       <button class="form-submit">
-        Kirim Pendaftaran
+        Daftar Member
       </button>
     `;
   }
