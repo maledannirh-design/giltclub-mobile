@@ -95,7 +95,6 @@ export async function register(email, pinLogin, pinTrx, username){
   sheet.classList.remove("active");
   overlay.classList.remove("active");
 }
-}
 
 /* ================= LOGIN ================= */
 
