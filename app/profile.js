@@ -1,12 +1,8 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-
-import { doc, updateDoc } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import { ref, uploadBytes, getDownloadURL } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import { doc, updateDoc } from "./firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "./storage.js";
 
 let currentUserData = null;
 
