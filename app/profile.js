@@ -463,3 +463,19 @@ function populateCountryCodes(){
 window.editMember = function(uid){
   alert("Edit member: " + uid);
 };
+
+// ================= MEMBER ACTION STUB =================
+
+window.toggleFollow = function(uid){
+  alert("Follow logic for " + uid);
+}
+
+window.toggleFriend = function(uid){
+  alert("Friend logic for " + uid);
+}
+
+window.blockUser = function(uid){
+  if(confirm("Konfirmasi blokir user ini?")){
+    alert("User blocked: " + uid);
+  }
+}
