@@ -21,8 +21,8 @@ export function bindPhotoUpload() {
 
     try {
 
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Max 2MB only");
+      if (file.size > 1/4 * 1024 * 1024) {
+        alert("Max 500kb only");
         return;
       }
 
