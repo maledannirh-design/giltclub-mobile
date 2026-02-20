@@ -171,7 +171,7 @@ const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
       const sheet = document.getElementById("loginSheet");
 
       const email    = sheet.querySelector('#sheetEmail').value.trim();
-      const pinLogin = sheet.querySelector('input[placeholder="PIN Login (4 digit)"]').value.trim();
+      const pinLogin = sheet.querySelector('input[placeholder="PIN Login (6 digit)"]').value.trim();
 
       await login(email, pinLogin);
 
