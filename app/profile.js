@@ -258,9 +258,6 @@ export async function renderMembers(){
   }
 
 }
-/* =========================================
-   EVENT BINDING
-========================================= */
 function bindAccountEvents(user){
 
   const overlay = document.getElementById("sheetOverlay");
@@ -268,9 +265,6 @@ function bindAccountEvents(user){
 
   if(!overlay || !sheet) return;
 
-  /* =========================
-     GUEST EVENTS
-  ========================== */
   if(!user){
 
     const loginBtn = document.getElementById("loginBtn");
@@ -278,26 +272,50 @@ function bindAccountEvents(user){
     const sheetLoginBtn = document.getElementById("sheetLoginBtn");
 
     if(loginBtn) loginBtn.onclick = ()=> openSheet("login");
-if(registerBtn) registerBtn.onclick = ()=> openSheet("register");
+    if(registerBtn) registerBtn.onclick = ()=> openSheet("register");
 
     if(sheetLoginBtn){
       sheetLoginBtn.onclick = async ()=>{
         try{
-          const email = document.getElementById("sheetEmail").value;
-          const pass = document.getElementById("sheetPassword").value;
 
-          await login(email, pass);
+          const email = document
+            .getElementById("sheetEmail")
+            .value.trim();
+
+          const pinLogin = document
+            .getElementById("sheetPinLogin")
+            .value.replace(/\s/g,'');
+
+          if(!/^\d{6}$/.test(pinLogin)){
+            throw new Error("PIN harus 6 digit");
+          }
+
+          await login(email, pinLogin);
 
           closeSheet();
           renderAccountUI();
 
         }catch(err){
+          console.error(err);
           showToast(err.message, "error");
         }
       };
     }
   }
 
+  if(user){
+    const logoutBtn = document.getElementById("logoutBtn");
+    if(logoutBtn){
+      logoutBtn.onclick = async ()=>{
+        await logout();
+        renderAccountUI();
+      };
+    }
+  }
+
+  enableSheetDrag();
+  overlay.onclick = closeSheet;
+}
   /* =========================
      USER EVENTS
   ========================== */
