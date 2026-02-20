@@ -153,8 +153,6 @@ const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
       if(!phoneNumber){
         throw new Error("Nomor HP tidak valid");
       }
-      console.log("PIN LOGIN:", pinLogin, pinLogin.length);
-      console.log("PIN TRX:", pinTrx, pinTrx.length);
       await register(email, pinLogin, pinTrx, username);
 
     }catch(err){
@@ -170,8 +168,11 @@ const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
 
       const sheet = document.getElementById("loginSheet");
 
-      const email    = sheet.querySelector('#sheetEmail').value.trim();
-      const pinLogin = sheet.querySelector('input[placeholder="PIN Login (6 digit)"]').value.trim();
+     const email = sheet.querySelector('#sheetEmail').value.trim();
+
+const pinLogin = sheet
+  .querySelector('#sheetPinLogin')
+  .value.replace(/\s/g,'');
 
       await login(email, pinLogin);
 
