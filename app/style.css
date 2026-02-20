@@ -411,17 +411,20 @@ html, body {
 
   padding:24px 20px calc(40px + env(safe-area-inset-bottom));
 
-  max-height:90vh;
+  max-height:85vh;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
 
   transform:translateY(100%);
   transition:transform .35s cubic-bezier(.22,1,.36,1);
 
-  box-shadow:
-    0 -20px 40px rgba(0,0,0,.25);
+  box-shadow:0 -20px 40px rgba(0,0,0,.25);
 
   z-index:9999;
+}
+
+.sheet.active{
+  transform:translateY(0);
 }
 
 /* === DRAG HANDLE === */
