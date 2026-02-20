@@ -131,15 +131,12 @@ document.addEventListener("click", async (e) => {
       const birthPlace = sheet.querySelector('input[placeholder="Tempat Lahir"]').value.trim();
       const birthDate  = sheet.querySelector('input[type="date"]').value;
 
-      // PHONE (intl-tel-input)
       const phoneInput = document.getElementById("phoneInput");
       const iti = window.intlTelInputGlobals.getInstance(phoneInput);
       const phoneFull = iti ? iti.getNumber() : phoneInput.value.trim();
 
       const email    = sheet.querySelector('input[type="email"]').value.trim();
-
       const pinLogin = sheet.querySelector('input[placeholder="Buat PIN Login (4 digit)"]').value.trim();
-
       const pinTrx   = sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]')
                         ? sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]').value.trim()
                         : "";
@@ -162,9 +159,7 @@ document.addEventListener("click", async (e) => {
 
   }
 
-});
-
-  // LOGIN
+  // ================= LOGIN =================
   if(e.target.id === "submitLogin"){
 
     try{
@@ -188,5 +183,7 @@ document.addEventListener("click", async (e) => {
     }
 
   }
+
+});
 
 });
