@@ -55,37 +55,41 @@ export async function register(email, pinLogin, pinTrx, username){
   // ==============================
   // SIMPAN DATA PROFILE
   // ==============================
-  await setDoc(doc(db, "users", user.uid), {
+ await setDoc(doc(db, "users", user.uid), {
 
-    name: username,
-    username: cleanUsername,
+  name: username,
+  username: cleanUsername,
+  bio: "",
 
-    role: "member",
-    membership: "MEMBER",
+  role: "member",            // member | admin | supercoach
+  membership: "MEMBER",      // MEMBER | VVIP | COACH
+  playingLevel: "newbie",
 
-    level: 1,
-    points: 0,
-    wins: 0,
-    matches: 0,
+  status: "active",          // active | suspended | deactivated
 
-    monthlyContribution: 0,
-    attendanceCount: 0,
+  followersCount: 0,
+  followingCount: 0,
 
-    followersCount: 0,
-    followingCount: 0,
+  level: 1,
+  points: 0,
+  wins: 0,
+  matches: 0,
 
-    coachApproved: false,
-    coachLevel: null,
+  monthlyContribution: 0,
+  attendanceCount: 0,
 
-    verifiedApproved: false,
-    verifiedEligible: false,
+  coachApproved: false,
+  coachLevel: null,
 
-    isPublic: true,
+  verifiedApproved: false,
+  verifiedEligible: false,
 
-    pinTrx,
-    createdAt: serverTimestamp()
+  isPublic: true,
 
-  });
+  pinTrx,
+  createdAt: serverTimestamp()
+
+});
 
   showToast("Akun berhasil dibuat", "success");
   navigate("home");
