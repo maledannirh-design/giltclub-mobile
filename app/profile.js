@@ -1,10 +1,54 @@
-import { auth, db } from "./firebase.js";
+import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { collection, getDocs, query, orderBy } from "./firestore.js";
+
+import { doc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { ref, uploadBytes, getDownloadURL } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 let currentUserData = null;
 
+export function bindPhotoUpload() {
+
+  const photoInput = document.getElementById("photoInput");
+  if (!photoInput) return;
+
+  photoInput.addEventListener("change", async (e) => {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Max 2MB only");
+        return;
+      }
+
+      const storageRef = ref(storage, `profilePhotos/${user.uid}`);
+
+      await uploadBytes(storageRef, file);
+
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await updateDoc(doc(db, "users", user.uid), {
+        photoURL: downloadURL
+      });
+
+      location.reload();
+
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed");
+    }
+
+  });
+}
 //Tambah verified icon kecil ✔ di samping username
 
 /* =========================================
@@ -27,7 +71,11 @@ export async function renderAccountUI(){
         <div class="account-avatar" id="avatarTrigger">
           <div class="avatar-icon">👩</div>
         </div>
+         <input type="file" id="photoInput" accept="image/*" hidden>
 
+<button onclick="document.getElementById('photoInput').click()">
+  Change Photo
+</button>
         <div class="account-info">
           <div class="account-username">
             ${user ? "jackdim" : "Guest"}
