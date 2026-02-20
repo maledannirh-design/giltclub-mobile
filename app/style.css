@@ -861,6 +861,24 @@ html, body {
 .follow-btn.following {
   background: #4caf50;
 }
+
+.mutual-badge {
+  background: #4caf50;
+  color: white;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+}
+
+.follows-you-badge {
+  background: #2196f3;
+  color: white;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+}
 @keyframes splashFade{
   from { opacity: 0; }
   to   { opacity: 1; }
