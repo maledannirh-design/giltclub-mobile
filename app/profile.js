@@ -1,7 +1,7 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { doc, updateDoc, collection, query, increment, orderBy, getDocs, runTransaction, getDoc } from "./firestore.js";
+import { doc, updateDoc, collection, query, increment, orderBy, getDocs, runTransaction, getDoc, setDoc, addDoc } from "./firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "./storage.js";
 
 
@@ -585,7 +585,86 @@ window.handleChat = async function(targetUid){
     console.error(err);
   }
 };
+let unsubscribeMessages = null;
 
+async function renderChatUI(roomId, targetUid){
+
+  const content = document.getElementById("content");
+  const user = auth.currentUser;
+
+  content.innerHTML = `
+    <div class="chat-container">
+
+      <div class="chat-header">
+        <button onclick="renderMembers()">← Back</button>
+        <div>Chat</div>
+      </div>
+
+      <div id="chatMessages" class="chat-messages"></div>
+
+      <div class="chat-input">
+        <input id="chatText" placeholder="Type message...">
+        <button id="sendMessageBtn">Send</button>
+      </div>
+
+    </div>
+  `;
+
+  const messagesEl = document.getElementById("chatMessages");
+
+  if(unsubscribeMessages) unsubscribeMessages();
+
+  unsubscribeMessages = onSnapshot(
+    query(
+      collection(db,"chatRooms",roomId,"messages"),
+      orderBy("createdAt","asc")
+    ),
+    (snapshot)=>{
+
+      messagesEl.innerHTML = "";
+
+      snapshot.forEach(doc=>{
+
+        const data = doc.data();
+        const isMine = data.senderId === user.uid;
+
+        messagesEl.innerHTML += `
+          <div class="chat-bubble ${isMine ? "mine" : "theirs"}">
+            ${data.text}
+          </div>
+        `;
+      });
+
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  );
+
+  document.getElementById("sendMessageBtn").onclick = async ()=>{
+
+    const input = document.getElementById("chatText");
+    const text = input.value.trim();
+    if(!text) return;
+
+    await addDoc(
+      collection(db,"chatRooms",roomId,"messages"),
+      {
+        senderId: user.uid,
+        text: text,
+        createdAt: new Date()
+      }
+    );
+
+    await updateDoc(
+      doc(db,"chatRooms",roomId),
+      {
+        lastMessage: text,
+        updatedAt: new Date()
+      }
+    );
+
+    input.value = "";
+  };
+}
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
 window.blockUser = (uid)=>{
