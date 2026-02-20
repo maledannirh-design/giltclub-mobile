@@ -21,7 +21,7 @@ import { navigate } from "./navigation.js";
 export async function register(email, pinLogin, pinTrx, username){
 
   if(!/^\d{4}$/.test(pinLogin)){
-    throw new Error("PIN Login harus 4 digit angka");
+    throw new Error("PIN Login harus 6 digit angka");
   }
 
   if(!/^\d{6}$/.test(pinTrx)){
@@ -101,7 +101,7 @@ export async function register(email, pinLogin, pinTrx, username){
 export async function login(email, pinLogin){
 
   if(!/^\d{4}$/.test(pinLogin)){
-    throw new Error("PIN tidak valid");
+    throw new Error("PIN harus 6 digit");
   }
 
   await signInWithEmailAndPassword(auth, email, pinLogin);
