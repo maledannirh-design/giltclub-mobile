@@ -251,16 +251,15 @@ html, body {
   from { opacity: 0; transform: translate(-50%, 6px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
-
-
 :root{
-  --account-gap: 14px; /* ini jarak referensi (seperti yg kamu lingkari) */
+  --account-gap: 6px;
+  --card-padding: 10px;
 }
+
 /* ================= ACCOUNT ================= */
 
 .account-container{
   padding: var(--account-gap);
-  padding-top: calc(var(--account-gap) - 0px);
   max-width:430px;
   margin:0 auto;
 }
@@ -269,17 +268,18 @@ html, body {
 .account-card{
   background:var(--color-card);
   border-radius:24px;
-  padding:0px;
+  padding: var(--card-padding);
   box-shadow:
     0 8px 24px rgba(0,0,0,.08),
     inset 0 1px 0 rgba(255,255,255,.3);
 
   margin-bottom: var(--account-gap);
 }
+
 .account-top{
   display:flex;
   align-items:center;
-  gap:0px;
+  gap:16px; /* jarak avatar ke text */
 }
 
 .account-avatar{
@@ -292,6 +292,7 @@ html, body {
   justify-content:center;
   font-size:34px;
   cursor:pointer;
+  flex-shrink:0;
 }
 
 .account-info{
@@ -307,11 +308,13 @@ html, body {
 .account-level{
   font-size:13px;
   opacity:.8;
+  margin-top:2px;
 }
 
 .account-playing{
   font-size:12px;
   opacity:.7;
+  margin-top:2px;
 }
 
 .account-membership{
@@ -321,7 +324,7 @@ html, body {
   font-size:12px;
   background:rgba(37,99,235,.15);
   color:var(--color-primary);
-  margin-top:6px;
+  margin-top:8px;
 }
 
 /* ACTION BUTTONS */
