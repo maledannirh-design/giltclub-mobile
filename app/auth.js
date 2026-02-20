@@ -131,15 +131,14 @@ document.addEventListener("click", async (e) => {
       const birthPlace = sheet.querySelector('input[placeholder="Tempat Lahir"]').value.trim();
       const birthDate  = sheet.querySelector('input[type="date"]').value;
 
-      const phoneInput = document.getElementById("phoneInput");
-      const iti = window.intlTelInputGlobals.getInstance(phoneInput);
-      const phoneFull = iti ? iti.getNumber() : phoneInput.value.trim();
+      // ===== PHONE (2 COLUMN SYSTEM) =====
+      const countryCode = document.getElementById("countryCode").value;
+      const phoneNumber = document.getElementById("phoneNumber").value.trim();
+      const phoneFull   = countryCode + phoneNumber;
 
       const email    = sheet.querySelector('input[type="email"]').value.trim();
       const pinLogin = sheet.querySelector('input[placeholder="Buat PIN Login (4 digit)"]').value.trim();
-      const pinTrx   = sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]')
-                        ? sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]').value.trim()
-                        : "";
+      const pinTrx   = sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]').value.trim();
 
       const terms = sheet.querySelector('.terms-row input').checked;
 
@@ -147,7 +146,7 @@ document.addEventListener("click", async (e) => {
         throw new Error("Setujui syarat & ketentuan");
       }
 
-      if(!phoneFull){
+      if(!phoneNumber){
         throw new Error("Nomor HP tidak valid");
       }
 
@@ -165,10 +164,9 @@ document.addEventListener("click", async (e) => {
     try{
 
       const sheet = document.getElementById("loginSheet");
-      const inputs = sheet.querySelectorAll("input");
 
-      const email    = inputs[0].value.trim();
-      const pinLogin = inputs[1].value.trim();
+      const email    = sheet.querySelector('#sheetEmail').value.trim();
+      const pinLogin = sheet.querySelector('input[placeholder="PIN Login (4 digit)"]').value.trim();
 
       await login(email, pinLogin);
 
