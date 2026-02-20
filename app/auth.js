@@ -119,27 +119,39 @@ export function logout(){
 
 document.addEventListener("click", async (e) => {
 
-  // REGISTER
+  // ================= REGISTER =================
   if(e.target.id === "submitRegister"){
 
     try{
 
       const sheet = document.getElementById("loginSheet");
-      const inputs = sheet.querySelectorAll("input, select");
 
-      const fullName   = inputs[0].value.trim();
-      const username   = inputs[1].value.trim();
-      const birthPlace = inputs[2].value.trim();
-      const birthDate  = inputs[3].value;
-      const country    = inputs[4].value;
-      const phone      = inputs[5].value.trim();
-      const email      = inputs[6].value.trim();
-      const pinLogin   = inputs[7].value.trim();
-      const pinTrx     = inputs[8].value.trim();
-      const terms      = inputs[9].checked;
+      const fullName   = sheet.querySelector('input[placeholder="Nama Lengkap"]').value.trim();
+      const username   = sheet.querySelector('input[placeholder="Username"]').value.trim();
+      const birthPlace = sheet.querySelector('input[placeholder="Tempat Lahir"]').value.trim();
+      const birthDate  = sheet.querySelector('input[type="date"]').value;
+
+      // PHONE (intl-tel-input)
+      const phoneInput = document.getElementById("phoneInput");
+      const iti = window.intlTelInputGlobals.getInstance(phoneInput);
+      const phoneFull = iti ? iti.getNumber() : phoneInput.value.trim();
+
+      const email    = sheet.querySelector('input[type="email"]').value.trim();
+
+      const pinLogin = sheet.querySelector('input[placeholder="Buat PIN Login (4 digit)"]').value.trim();
+
+      const pinTrx   = sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]')
+                        ? sheet.querySelector('input[placeholder="Buat PIN Transaksi (6 digit)"]').value.trim()
+                        : "";
+
+      const terms = sheet.querySelector('.terms-row input').checked;
 
       if(!terms){
         throw new Error("Setujui syarat & ketentuan");
+      }
+
+      if(!phoneFull){
+        throw new Error("Nomor HP tidak valid");
       }
 
       await register(email, pinLogin, pinTrx, username);
@@ -149,6 +161,8 @@ document.addEventListener("click", async (e) => {
     }
 
   }
+
+});
 
   // LOGIN
   if(e.target.id === "submitLogin"){
