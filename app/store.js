@@ -7,7 +7,7 @@ export function renderStore(){
     <div class="page-fade">
       <h2>Toko</h2>
       <div class="panel">
-        <p>Segera hadir..../p>
+        <p>Segera hadir/p>
       </div>
     </div>
   `;
