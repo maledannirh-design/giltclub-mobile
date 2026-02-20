@@ -550,9 +550,11 @@ window.handleChat = async function(targetUid){
   }
 
   const myUid = user.uid;
+  const roomId = [myUid, targetUid].sort().join("_");
 
   try{
 
+    // cek mutual dulu
     const myFollowing = await getDoc(
       doc(db,"users",myUid,"following",targetUid)
     );
@@ -561,11 +563,25 @@ window.handleChat = async function(targetUid){
       doc(db,"users",targetUid,"following",myUid)
     );
 
-    if(myFollowing.exists() && theirFollowing.exists()){
-      alert("Open chat room (next step)");
-    }else{
+    if(!(myFollowing.exists() && theirFollowing.exists())){
       alert("Perlu saling follow untuk chat");
+      return;
     }
+
+    const roomRef = doc(db,"chatRooms",roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if(!roomSnap.exists()){
+      await setDoc(roomRef,{
+        participants: [myUid, targetUid],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastMessage: ""
+      });
+    }
+
+    // nanti redirect ke chat UI
+    navigate("chat", { roomId });
 
   }catch(err){
     console.error(err);
