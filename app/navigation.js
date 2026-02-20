@@ -52,6 +52,10 @@ export async function navigate(page){
         (await import("./leaderboard.js")).renderAttendanceLeaderboard();
         break;
 
+      case "store":
+        (await import("./store.js")).renderStore();
+        break;
+
       case "dashboard":
         (await import("./dashboard.js")).loadDashboard();
         break;
