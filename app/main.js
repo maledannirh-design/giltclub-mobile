@@ -2,6 +2,7 @@ import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "./firestore.js";
 import { initTheme, toggleTheme } from "./theme.js";
+import { renderAccountUI, renderMembers } from "./profile.js";
 
 // Expose navigate ke global
 window.navigate = navigate;
