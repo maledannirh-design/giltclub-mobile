@@ -20,7 +20,7 @@ import { navigate } from "./navigation.js";
 
 export async function register(email, pinLogin, pinTrx, username){
 
-  if(!/^\d{4}$/.test(pinLogin)){
+  if(!/^\d{6}$/.test(pinLogin)){
     throw new Error("PIN Login harus 6 digit angka");
   }
 
@@ -137,8 +137,8 @@ document.addEventListener("click", async (e) => {
       const phoneFull   = countryCode + phoneNumber;
 
       const email    = sheet.querySelector('input[type="email"]').value.trim();
-      const pinLogin = document.getElementById("pinLogin").value.trim();
-      const pinTrx   = document.getElementById("pinTrx").value.trim();
+      const pinLogin = sheet.querySelector("#pinLogin").value.replace(/\s/g,'');
+const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
 
       const terms = sheet.querySelector('.terms-row input').checked;
 
@@ -149,7 +149,8 @@ document.addEventListener("click", async (e) => {
       if(!phoneNumber){
         throw new Error("Nomor HP tidak valid");
       }
-
+      console.log("PIN LOGIN:", pinLogin, pinLogin.length);
+      console.log("PIN TRX:", pinTrx, pinTrx.length);
       await register(email, pinLogin, pinTrx, username);
 
     }catch(err){
