@@ -424,10 +424,6 @@ html, body {
   z-index:9999;
 }
 
-.sheet.active{
-  transform:translateY(0);
-}
-
 /* === DRAG HANDLE === */
 .sheet-handle{
   width:48px;
@@ -462,3 +458,17 @@ html, body {
   width:100%;
 }
 
+/* Snap states */
+.sheet{
+  height:90vh; /* maksimum */
+}
+
+/* posisi collapsed (45%) */
+.sheet.collapsed{
+  transform:translateY(55%);
+}
+
+/* posisi expanded (0%) */
+.sheet.expanded{
+  transform:translateY(0);
+}
