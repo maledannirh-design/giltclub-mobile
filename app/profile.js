@@ -90,7 +90,119 @@ export async function renderAccountUI(){
   bindAccountEvents(user);
 }
 
+export async function renderMembers(){
 
+  const content = document.getElementById("content");
+  if(!content) return;
+
+  content.innerHTML = `
+    <div class="member-container">
+      <h2>Member List</h2>
+      <div id="memberList">Loading...</div>
+    </div>
+  `;
+
+  const listEl = document.getElementById("memberList");
+
+  try{
+
+    const q = query(collection(db, "users"), orderBy("createdAt","desc"));
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+      listEl.innerHTML = "Belum ada member.";
+      return;
+    }
+
+    let html = "";
+
+    snap.forEach(docSnap => {
+
+      const data = docSnap.data();
+      const uid  = docSnap.id;
+
+      // Role badge class
+      let badgeClass = "badge-member";
+      if(data.role === "admin") badgeClass = "badge-admin";
+      if(data.role === "supercoach") badgeClass = "badge-supercoach";
+      if(data.role === "coach") badgeClass = "badge-coach";
+
+      html += `
+        <div class="member-card">
+
+          <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
+
+          <div class="member-left">
+            <div class="member-avatar">👤</div>
+
+            <div class="follow-stats">
+              <div>${data.followersCount || 0} Followers</div>
+              <div>${data.followingCount || 0} Following</div>
+            </div>
+
+            <div class="member-bio">
+              ${data.bio || "No bio yet"}
+            </div>
+          </div>
+
+          <div class="member-right">
+
+            <div class="member-username">
+              ${data.username}
+              ${
+                data.verifiedApproved
+                  ? `<span class="verified-badge">✔</span>`
+                  : ``
+              }
+            </div>
+
+            <div>
+              <span class="role-badge ${badgeClass}">
+                ${data.role}
+              </span>
+            </div>
+
+            <div>Level: ${data.level || 1}</div>
+
+            <div>
+              Playing: ${data.playingLevel || "newbie"}
+            </div>
+
+            <div>
+              ${data.membership || "MEMBER"}
+            </div>
+
+            <div>
+              Status: ${data.status || "active"}
+            </div>
+
+            <div class="member-actions">
+              <button class="follow-btn"
+                onclick="toggleFollow('${uid}')">
+                Follow
+              </button>
+
+              <button class="friend-btn"
+                onclick="toggleFriend('${uid}')">
+                Add Friend
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      `;
+
+    });
+
+    listEl.innerHTML = html;
+
+  }catch(err){
+    console.error(err);
+    listEl.innerHTML = "Error loading members.";
+  }
+
+}
 /* =========================================
    EVENT BINDING
 ========================================= */
