@@ -158,15 +158,15 @@ html, body {
   font-weight: 600;
 }
 
-/* ACTION BUTTONS */
+/* ================= ACCOUNT ACTION FIX ================= */
+
 .account-actions{
   margin-top:18px;
   display:flex;
   gap:12px;
 }
 
-.account-actions .btn-primary,
-.account-actions .btn-secondary{
+.account-actions button{
   flex:1;
   height:48px;
   border-radius:16px;
@@ -174,14 +174,15 @@ html, body {
   display:flex;
   align-items:center;
   justify-content:center;
+  cursor:pointer;
+  transition:all .2s ease;
+  border:none;
 }
 
 /* PRIMARY */
 .account-actions .btn-primary{
   background:var(--color-primary);
   color:var(--color-text);
-  border:none;
-  transition:all .2s ease;
 }
 
 .account-actions .btn-primary:hover{
@@ -189,6 +190,18 @@ html, body {
 }
 
 .account-actions .btn-primary:active{
+  background:var(--color-highlight);
+  transform:scale(.97);
+}
+
+/* SECONDARY */
+.account-actions .btn-secondary{
+  background:transparent;
+  border:1px solid var(--color-border);
+  color:var(--color-text);
+}
+
+.account-actions .btn-secondary:active{
   background:var(--color-highlight);
   transform:scale(.97);
 }
