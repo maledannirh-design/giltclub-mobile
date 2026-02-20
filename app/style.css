@@ -648,19 +648,19 @@ html, body {
 /* ================= SPLASH SCREEN ================= */
 
 #splashScreen{
-  position:fixed;
-  inset:0;
-  background:var(--color-bg);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:99999;
-  transition:opacity .4s ease, visibility .4s ease;
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity .5s ease, visibility .5s ease;
 }
 
 #splashScreen.hide{
-  opacity:0;
-  visibility:hidden;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .splash-content{
@@ -669,11 +669,14 @@ html, body {
 }
 
 .splash-logo{
-  width:120px;
-  margin-bottom:20px;
-  animation:float 2s ease-in-out infinite;
+  width: 320px;          /* besar */
+  max-width: 70vw;       /* tetap responsive */
+  height: auto;
+  object-fit: contain;
+  opacity: 0;
+  transform: scale(.92);
+  animation: splashIn 0.9s ease forwards;
 }
-
 .splash-loader{
   width:40px;
   height:40px;
@@ -683,6 +686,20 @@ html, body {
   animation:spin 1s linear infinite;
 }
 
+@keyframes splashIn{
+  0%{
+    opacity: 0;
+    transform: scale(.92);
+  }
+  60%{
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 /* Animations */
 @keyframes spin{
   to{ transform:rotate(360deg); }
