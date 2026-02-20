@@ -172,11 +172,13 @@ const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
       await login(email, pinLogin);
 
       const sheetEl = document.getElementById("loginSheet");
-      const overlay = document.querySelector(".sheet-overlay");
+const overlay = document.querySelector(".sheet-overlay");
 
-      sheetEl.classList.remove("active");
-      overlay.classList.remove("active");
-
+if (sheetEl) sheetEl.classList.remove("active");
+if (overlay) overlay.classList.remove("active");
+// Baru pindah halaman
+navigate("home");
+      
     }catch(err){
       showToast(err.message, "error");
     }
