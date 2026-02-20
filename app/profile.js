@@ -282,7 +282,13 @@ function bindAccountEvents(user){
   if(!overlay || !sheet) return;
 
   if(!user){
+   const registerBtn = document.getElementById("registerBtn");
 
+if(registerBtn){
+  registerBtn.onclick = ()=>{
+    showToast("Register flow belum diaktifkan", "error");
+  };
+}
     const loginBtn = document.getElementById("loginBtn");
     const sheetLoginBtn = document.getElementById("sheetLoginBtn");
 
