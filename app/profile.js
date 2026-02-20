@@ -235,22 +235,15 @@ function enableSheetDrag(){
   let currentY = 0;
   let isDragging = false;
 
-  handle.addEventListener("touchstart", (e)=>{
-    startY = e.touches[0].clientY;
-    isDragging = true;
-    sheet.style.transition = "none";
-  });
+handle.addEventListener("touchstart", ()=>{
+  tapTimeout = setTimeout(()=>{
+    closeSheet();
+  },150);
+});
 
-  handle.addEventListener("touchmove", (e)=>{
-    if(!isDragging) return;
-
-    currentY = e.touches[0].clientY;
-    const diff = currentY - startY;
-
-    if(diff > 0){
-      sheet.style.transform = `translateY(${diff}px)`;
-    }
-  });
+handle.addEventListener("touchmove", ()=>{
+  clearTimeout(tapTimeout);
+});
 
   handle.addEventListener("touchend", ()=>{
     isDragging = false;
@@ -265,4 +258,10 @@ function enableSheetDrag(){
       sheet.classList.add("active");
     }
   });
+   handle.addEventListener("click", ()=>{
+  closeSheet();
+});
+   let tapTimeout;
+
+
 }
