@@ -673,91 +673,25 @@ html, body {
   opacity: 0;
   animation: splashFade 1s ease forwards;
 }
+/* ================= MEMBER PAGE ================= */
 
 .member-container{
   padding:16px 0;
 }
 
+/* CARD */
 .member-card{
   background:var(--color-card);
-  padding:14px;
-  border-radius:18px;
-  margin-bottom:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.member-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.member-avatar{
-  width:44px;
-  height:44px;
-  border-radius:50%;
-  background:var(--color-primary);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:20px;
-  color:white;
-}
-
-.member-name{
-  font-weight:600;
-}
-
-.member-role{
-  font-size:12px;
-  opacity:.7;
-}
-
-.role-badge{
-  padding:4px 8px;
-  border-radius:12px;
-  font-size:11px;
-  font-weight:600;
-  text-transform:capitalize;
-}
-
-.badge-member{
-  background:#ddd;
-  color:#333;
-}
-
-.badge-admin{
-  background:#E3C565;
-  color:#2E5D3A;
-}
-
-.badge-supercoach{
-  background:#2E5D3A;
-  color:white;
-}
-
-.edit-btn{
-  padding:6px 10px;
-  border-radius:12px;
-  border:none;
-  background:var(--color-primary);
-  color:white;
-  font-size:12px;
-  cursor:pointer;
-}
-.member-card-large{
-  background:var(--color-card);
-  padding:18px;
+  padding:20px;
   border-radius:22px;
-  margin-bottom:18px;
+  margin-bottom:20px;
   display:flex;
   gap:20px;
   position:relative;
 }
 
-.member-left-large{
+/* LEFT SIDE */
+.member-left{
   width:35%;
   display:flex;
   flex-direction:column;
@@ -765,7 +699,7 @@ html, body {
   gap:10px;
 }
 
-.member-avatar-large{
+.member-avatar{
   width:90px;
   height:90px;
   border-radius:50%;
@@ -789,7 +723,8 @@ html, body {
   opacity:.7;
 }
 
-.member-right-large{
+/* RIGHT SIDE */
+.member-right{
   width:65%;
   display:flex;
   flex-direction:column;
@@ -801,18 +736,50 @@ html, body {
   font-size:18px;
 }
 
+/* ROLE BADGE */
+.role-badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:600;
+  text-transform:capitalize;
+}
+
+.badge-member{
+  background:#ddd;
+  color:#333;
+}
+
+.badge-admin{
+  background:#E3C565;
+  color:#2E5D3A;
+}
+
+.badge-supercoach{
+  background:#2E5D3A;
+  color:white;
+}
+
+.badge-coach{
+  background:#3b82f6;
+  color:white;
+}
+
+/* ACTION BUTTONS */
 .member-actions{
-  margin-top:8px;
+  margin-top:10px;
   display:flex;
   gap:8px;
 }
 
 .follow-btn,
 .friend-btn{
-  padding:6px 10px;
-  border-radius:12px;
+  padding:6px 12px;
+  border-radius:14px;
   border:none;
   cursor:pointer;
+  font-size:12px;
 }
 
 .follow-btn{
@@ -822,16 +789,22 @@ html, body {
 
 .friend-btn{
   background:#ccc;
+  color:#333;
 }
 
+/* BLOCK BUTTON */
 .block-btn{
   position:absolute;
   top:10px;
   right:14px;
   cursor:pointer;
   font-size:14px;
+  opacity:.8;
 }
 
+.block-btn:hover{
+  opacity:1;
+}
 
 @keyframes splashFade{
   from { opacity: 0; }
