@@ -8,10 +8,19 @@ window.navigate = navigate;
 
 // ================= SPLASH CONTROL =================
 window.addEventListener("load", () => {
+  const splash = document.getElementById("splashScreen");
+
+  if (!splash) return;
+
+  // Tambah class fadeOut setelah 1.5 detik
   setTimeout(() => {
-    const splash = document.getElementById("splashScreen");
-    if (splash) splash.classList.add("hide");
-  }, 1200); // lebih cepat & premium feel
+    splash.classList.add("fade-out");
+  }, 1500);
+
+  // Hapus total setelah 2.5 detik
+  setTimeout(() => {
+    splash.classList.add("hide");
+  }, 2500);
 });
 
 // ================= APP INIT =================
