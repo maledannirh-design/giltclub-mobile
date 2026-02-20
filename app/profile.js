@@ -514,6 +514,36 @@ window.toggleFollow = async function(targetUid){
   }
 }
 
+window.handleChat = async function(targetUid){
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login dulu");
+    return;
+  }
+
+  const myUid = user.uid;
+
+  try{
+
+    const myFollowing = await getDoc(
+      doc(db,"users",myUid,"following",targetUid)
+    );
+
+    const theirFollowing = await getDoc(
+      doc(db,"users",targetUid,"following",myUid)
+    );
+
+    if(myFollowing.exists() && theirFollowing.exists()){
+      alert("Open chat room (next step)");
+    }else{
+      alert("Perlu saling follow untuk chat");
+    }
+
+  }catch(err){
+    console.error(err);
+  }
+}
 
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 window.handleChat = (uid)=> alert("Chat logic for " + uid);
