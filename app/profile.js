@@ -29,14 +29,6 @@ export async function renderMembers(){
     }
 
     const currentUid = auth.currentUser?.uid;
-    let currentUserRole = "member";
-
-    // cari role user yang sedang login
-    snap.forEach(docSnap => {
-      if(docSnap.id === currentUid){
-        currentUserRole = docSnap.data().role;
-      }
-    });
 
     let html = "";
 
@@ -45,36 +37,61 @@ export async function renderMembers(){
       const data = docSnap.data();
       const uid  = docSnap.id;
 
-      // Tentukan warna badge
-      let badgeClass = "badge-member";
-      if(data.role === "admin") badgeClass = "badge-admin";
-      if(data.role === "supercoach") badgeClass = "badge-supercoach";
-
       html += `
-        <div class="member-card">
+        <div class="member-card-large">
 
-          <div class="member-left">
-            <div class="member-avatar">👤</div>
+          <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
 
-            <div>
-              <div class="member-name">${data.username}</div>
+          <div class="member-left-large">
+            <div class="member-avatar-large">👤</div>
 
-              <div class="member-role">
-                <span class="role-badge ${badgeClass}">
-                  ${data.role}
-                </span>
-                <span class="membership-text">
-                  • ${data.membership}
-                </span>
-              </div>
+            <div class="follow-stats">
+              <div>${data.followersCount || 0} Followers</div>
+              <div>${data.followingCount || 0} Following</div>
+            </div>
+
+            <div class="member-bio">
+              ${data.bio || "No bio yet"}
             </div>
           </div>
 
-          ${
-            (currentUserRole === "admin" || currentUserRole === "supercoach")
-            ? `<button class="edit-btn" onclick="editMember('${uid}')">Edit</button>`
-            : ``
-          }
+          <div class="member-right-large">
+
+            <div class="member-username">
+              ${data.username}
+            </div>
+
+            <div class="member-level">
+              Level: ${data.level || 1}
+            </div>
+
+            <div class="member-playing">
+              Playing: ${data.playingLevel || "newbie"}
+            </div>
+
+            <div class="member-membership">
+              ${data.membership}
+            </div>
+
+            <div class="member-status">
+              Status: ${data.status}
+            </div>
+
+            <div class="member-actions">
+
+              <button class="follow-btn"
+                onclick="toggleFollow('${uid}')">
+                Follow
+              </button>
+
+              <button class="friend-btn"
+                onclick="toggleFriend('${uid}')">
+                Add Friend
+              </button>
+
+            </div>
+
+          </div>
 
         </div>
       `;
