@@ -715,6 +715,39 @@ html, body {
   opacity:.7;
 }
 
+.role-badge{
+  padding:4px 8px;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:600;
+  text-transform:capitalize;
+}
+
+.badge-member{
+  background:#ddd;
+  color:#333;
+}
+
+.badge-admin{
+  background:#E3C565;
+  color:#2E5D3A;
+}
+
+.badge-supercoach{
+  background:#2E5D3A;
+  color:white;
+}
+
+.edit-btn{
+  padding:6px 10px;
+  border-radius:12px;
+  border:none;
+  background:var(--color-primary);
+  color:white;
+  font-size:12px;
+  cursor:pointer;
+}
+
 @keyframes splashFade{
   from { opacity: 0; }
   to   { opacity: 1; }
