@@ -203,7 +203,10 @@ function renderSheetContent(mode){
         <input type="date" required>
       </div>
 
-      <input id="phoneInput" type="tel" placeholder="Nomor HP" required>
+      <div class="phone-row">
+  <select id="countryCode" required></select>
+  <input id="phoneNumber" type="tel" placeholder="8xxxxxxx" required>
+</div>
 
       <input type="email" placeholder="Alamat Email" required>
 
