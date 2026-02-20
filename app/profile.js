@@ -157,18 +157,23 @@ function openSheet(){
   const sheet = document.getElementById("loginSheet");
   const overlay = document.getElementById("sheetOverlay");
 
+  if(!sheet || !overlay) return;
+
+  sheet.style.transform = ""; // reset
+  sheet.classList.add("active");
   overlay.classList.add("active");
-  sheet.classList.add("collapsed"); // default buka 45%
 }
 
 function closeSheet(){
   const sheet = document.getElementById("loginSheet");
   const overlay = document.getElementById("sheetOverlay");
 
-  sheet.classList.remove("collapsed","expanded");
-  sheet.style.transform = "translateY(100%)";
+  if(!sheet || !overlay) return;
 
+  sheet.classList.remove("active");
   overlay.classList.remove("active");
+
+  sheet.style.transform = ""; // penting reset
 }
 
 function enableSheetDrag(){
@@ -200,26 +205,16 @@ function enableSheetDrag(){
   });
 
   handle.addEventListener("touchend", ()=>{
-
     isDragging = false;
     sheet.style.transition = ".35s cubic-bezier(.22,1,.36,1)";
 
     const diff = currentY - startY;
 
-    if(diff > 180){
+    if(diff > 150){
       closeSheet();
-      return;
+    } else {
+      sheet.style.transform = "";
+      sheet.classList.add("active");
     }
-
-    if(diff < -120){
-      sheet.classList.remove("collapsed");
-      sheet.classList.add("expanded");
-      return;
-    }
-
-    // snap back to collapsed
-    sheet.classList.remove("expanded");
-    sheet.classList.add("collapsed");
   });
 }
-
