@@ -546,15 +546,34 @@ html, body {
 .phone-row{
   display:flex;
   gap:10px;
+  margin-bottom:16px;
 }
 
 .phone-row select{
-  min-width:110px;
-  padding:0 10px;
+  width:120px;
+  height:52px;
+  border-radius:18px;
+  border:1px solid var(--color-border);
+  background:var(--color-bg);
+  color:var(--color-text);
+  padding:0 12px;
 }
 
 .phone-row input{
   flex:1;
+  height:52px;
+  border-radius:18px;
+  border:1px solid var(--color-border);
+  background:var(--color-bg);
+  color:var(--color-text);
+  padding:0 16px;
+}
+
+/* DARK MODE FIX */
+[data-theme="dark"] .phone-row select,
+[data-theme="dark"] .phone-row input{
+  background:#3A413A;
+  color:#fff;
 }
 
 /* ================= TERMS ================= */
