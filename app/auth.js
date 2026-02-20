@@ -104,7 +104,7 @@ export async function register(email, pinLogin, pinTrx, username){
 
 export async function login(email, pinLogin){
 
-  if(!/^\d{4}$/.test(pinLogin)){
+  if(!/^\d{6}$/.test(pinLogin)){
     throw new Error("PIN harus 6 digit");
   }
 
