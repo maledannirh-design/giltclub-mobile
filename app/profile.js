@@ -123,7 +123,7 @@ export async function renderAccountUI(){
     <h3>Login</h3>
 
     <input id="sheetEmail" placeholder="Email">
-    <input id="sheetPassword" type="password" placeholder="Password">
+<input id="sheetPinLogin" type="password" placeholder="PIN Login (6 digit)" maxlength="6" inputmode="numeric">
 
     <button class="btn-primary full" id="sheetLoginBtn">
       Login
