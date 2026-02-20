@@ -28,23 +28,54 @@ export async function renderMembers(){
       return;
     }
 
+    const currentUid = auth.currentUser?.uid;
+    let currentUserRole = "member";
+
+    // cari role user yang sedang login
+    snap.forEach(docSnap => {
+      if(docSnap.id === currentUid){
+        currentUserRole = docSnap.data().role;
+      }
+    });
+
     let html = "";
 
     snap.forEach(docSnap => {
 
       const data = docSnap.data();
+      const uid  = docSnap.id;
+
+      // Tentukan warna badge
+      let badgeClass = "badge-member";
+      if(data.role === "admin") badgeClass = "badge-admin";
+      if(data.role === "supercoach") badgeClass = "badge-supercoach";
 
       html += `
         <div class="member-card">
+
           <div class="member-left">
             <div class="member-avatar">👤</div>
+
             <div>
               <div class="member-name">${data.username}</div>
+
               <div class="member-role">
-                ${data.role} • ${data.membership}
+                <span class="role-badge ${badgeClass}">
+                  ${data.role}
+                </span>
+                <span class="membership-text">
+                  • ${data.membership}
+                </span>
               </div>
             </div>
           </div>
+
+          ${
+            (currentUserRole === "admin" || currentUserRole === "supercoach")
+            ? `<button class="edit-btn" onclick="editMember('${uid}')">Edit</button>`
+            : ``
+          }
+
         </div>
       `;
 
@@ -411,3 +442,7 @@ function populateCountryCodes(){
 
   select.value = "+62";
 }
+
+window.editMember = function(uid){
+  alert("Edit member: " + uid);
+};
