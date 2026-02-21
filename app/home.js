@@ -153,29 +153,34 @@ export async function renderHome(){
 
       </div>
     `;
-
- /* =============================
+/* =============================
    RENDER UNREAD PREVIEW
 ============================= */
 const scroll = document.getElementById("homeUnreadScroll");
 
 if (scroll) {
 
-  scroll.innerHTML = ""; // reset dulu biar tidak dobel render
+  scroll.innerHTML = "";
 
-  unreadRooms.slice(0,5).forEach(room=>{
+  for (const room of unreadRooms.slice(0,5)) {
 
     const otherUid = room.participants.find(p => p !== user.uid);
-    const otherUser = room.userMap?.[otherUid] || {};
-    const username = otherUser.username || otherUser.name || "User";
-    const lastMessage = room.lastMessage || "";
+
+    let username = "User";
+
+    if (otherUid) {
+      const otherSnap = await getDoc(doc(db,"users",otherUid));
+      if (otherSnap.exists()) {
+        username = otherSnap.data().username || "User";
+      }
+    }
 
     const item = document.createElement("div");
     item.className = "home-unread-item";
 
     item.innerHTML = `
       <div class="unread-name">${username}</div>
-      <div class="unread-text">${lastMessage}</div>
+      <div class="unread-text">${room.lastMessage || ""}</div>
     `;
 
     item.onclick = ()=>{
@@ -183,7 +188,7 @@ if (scroll) {
     };
 
     scroll.appendChild(item);
-  });
+  }
 
 }
 
