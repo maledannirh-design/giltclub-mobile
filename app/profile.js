@@ -595,7 +595,12 @@ async function renderChatUI(roomId, targetUid){
 
   // ===== SEND MESSAGE =====
   sendBtn.onclick = async ()=>{
-
+   chatInput.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
     const text = chatInput.value.trim();
     if(!text) return;
 
