@@ -540,18 +540,25 @@ async function renderChatUI(roomId, targetUid){
   // Render UI
   content.innerHTML = `
     <div class="chat-container">
-      <div class="chat-header">
-        <div class="chat-back" onclick="renderMembers()">←</div>
+      <<div class="chat-header">
 
-        <div class="chat-user-info">
-          <div class="chat-avatar">${photo}</div>
-          <div class="chat-user-text">
-            <div class="chat-username">${username}</div>
-            <div class="chat-status">Loading...</div>
-          </div>
-        </div>
+  <div class="chat-left">
+    <div class="chat-back" onclick="renderMembers()">←</div>
 
-        <div class="chat-clear" id="clearChatBtn">🗑</div>
+    <div class="chat-user-info">
+      <div class="chat-avatar">${photo}</div>
+      <div class="chat-user-text">
+        <div class="chat-username">${username}</div>
+        <div class="chat-status">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-actions">
+    <div class="chat-clear" id="clearChatBtn">🗑</div>
+  </div>
+
+</div>
       </div>
 
       <div id="chatMessages" class="chat-messages"></div>
