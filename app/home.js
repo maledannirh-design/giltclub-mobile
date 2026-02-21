@@ -97,14 +97,20 @@ export async function renderHome(){
             </div>
           </div>
 
-          <div class="home-unread-icon">
-            <div class="mail-icon">✉️</div>
-            ${
-              totalUnread > 0
-                ? `<div class="home-unread-badge">${totalUnread}</div>`
-                : ``
-            }
-          </div>
+          <div class="home-right-section">
+  
+  <div class="home-unread-icon">
+    <div class="mail-icon">✉️</div>
+    ${
+      totalUnread > 0
+        ? `<div class="home-unread-badge">${totalUnread}</div>`
+        : ``
+    }
+  </div>
+
+  <div id="homeUnreadPreview" class="home-unread-preview"></div>
+
+</div>
         </div>
 
         <!-- UNREAD SCROLL -->
