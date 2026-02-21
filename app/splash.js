@@ -17,20 +17,15 @@ function runSplash(){
     if(index < text.length){
       splashText.innerHTML += text.charAt(index);
       index++;
-      setTimeout(typeWriter, 100); // lebih lambat
+      setTimeout(typeWriter, 40); // 🔥 lebih cepat
     } else {
 
-      // tunggu setelah selesai ngetik
+      splashScreen.classList.add("fade-out");
+
       setTimeout(() => {
-
-        splashScreen.classList.add("fade-out");
-
-        setTimeout(() => {
-          splashScreen.style.display = "none";
-          app.style.opacity = "1";
-        }, 1000);
-
-      }, 2000); // delay 2 detik setelah selesai
+        splashScreen.style.display = "none";
+        app.style.opacity = "1";
+      }, 500); // 🔥 fade cepat
     }
   }
 
