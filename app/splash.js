@@ -16,7 +16,7 @@ function runSplash(){
     if(index < text.length){
       splashText.innerHTML += text.charAt(index);
       index++;
-      setTimeout(typeWriter, 35);
+      setTimeout(typeWriter, 250);
     } else {
 
       setTimeout(() => {
@@ -26,7 +26,7 @@ function runSplash(){
           splashScreen.classList.add("hide");
         }, 800);
 
-      }, 900);
+      }, 2500);
     }
   }
 
