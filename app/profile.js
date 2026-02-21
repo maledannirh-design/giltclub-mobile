@@ -592,61 +592,63 @@ onValue(statusRef, (snapshot)=>{
     });
   }
 
-  // ===== LISTENER CHAT =====
-  if(unsubscribeMessages) unsubscribeMessages();
+ // ===== LISTENER CHAT =====
+if(unsubscribeMessages) unsubscribeMessages();
 
-  unsubscribeMessages = onSnapshot(
-    query(
-      collection(db,"chatRooms",roomId,"messages"),
-      orderBy("createdAt","asc")
-    ),
-    (snapshot)=>{
+unsubscribeMessages = onSnapshot(
+  query(
+    collection(db,"chatRooms",roomId,"messages"),
+    orderBy("createdAt","asc")
+  ),
+  (snapshot)=>{
 
-      const shouldScroll = isUserNearBottom();
+    const shouldScroll = isUserNearBottom();
 
-      messagesEl.innerHTML = "";
+    messagesEl.innerHTML = "";
 
-      let lastSender = null;
-      let currentGroup = null;
+    let lastSender = null;
+    let currentGroup = null;
 
-      snapshot.forEach(doc=>{
+    snapshot.forEach(docSnap=>{
 
-        const data = doc.data();
-        const isMine = data.senderId === user.uid;
-        const senderType = isMine ? "mine" : "theirs";
+      const data = docSnap.data();
+      const isMine = data.senderId === user.uid;
+      const senderType = isMine ? "mine" : "theirs";
 
-        if(lastSender !== data.senderId){
-          currentGroup = document.createElement("div");
-          currentGroup.className = `chat-group ${senderType}`;
-          messagesEl.appendChild(currentGroup);
-        }
-
-        const bubble = document.createElement("div");
-        bubble.className = `chat-bubble ${senderType}`;
-        bubble.textContent = data.text;
-
-        currentGroup.appendChild(bubble);
-        lastSender = data.senderId;
-         if(isMine){
-  const seenIcon = document.createElement("div");
-  seenIcon.className = "seen-indicator";
-  seenIcon.textContent = data.seen ? "✔✔" : "✔";
-  bubble.appendChild(seenIcon);
-}
-      });
-
-      if(shouldScroll){
-        scrollToBottom(true);
+      // grouping
+      if(lastSender !== data.senderId){
+        currentGroup = document.createElement("div");
+        currentGroup.className = `chat-group ${senderType}`;
+        messagesEl.appendChild(currentGroup);
       }
-    }
-     snapshot.forEach(doc=>{
-  const data = doc.data();
 
-  if(data.senderId !== user.uid && !data.seen){
-    updateDoc(doc.ref,{ seen:true });
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${senderType}`;
+      bubble.textContent = data.text;
+
+      currentGroup.appendChild(bubble);
+      lastSender = data.senderId;
+
+      // seen indicator
+      if(isMine){
+        const seenIcon = document.createElement("div");
+        seenIcon.className = "seen-indicator";
+        seenIcon.textContent = data.seen ? "✔✔" : "✔";
+        bubble.appendChild(seenIcon);
+      }
+
+      // auto mark as seen (untuk message orang lain)
+      if(!isMine && !data.seen){
+        updateDoc(docSnap.ref, { seen: true });
+      }
+
+    });
+
+    if(shouldScroll){
+      scrollToBottom(true);
+    }
   }
-});
-  );
+);
 
   // ===== SEND MESSAGE =====
   sendBtn.onclick = async ()=>{
