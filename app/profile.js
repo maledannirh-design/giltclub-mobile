@@ -332,6 +332,7 @@ auth.onAuthStateChanged(user=>{
     lastSeen: Date.now()
   });
 });
+
 /* =========================================
    SECTION B TAMPILAN MEMBER LIST
 ========================================= */
@@ -505,94 +506,9 @@ export function renderMembers(){
   }
 }
 
-// ===== FUNGI RENDER CHAT =====
-
-let unsubscribeMessages = null;
-let unsubscribeTyping = null;
-
-async function renderChatUI(roomId, targetUid){
-   
-const statusRef = ref(rtdb, "status/" + targetUid);
-
-onValue(statusRef, (snapshot)=>{
-  const status = snapshot.val();
-  const statusEl = document.querySelector(".chat-status");
-
-  if(status?.online){
-    statusEl.textContent = "Online";
-  }else{
-    statusEl.textContent = "Last seen recently";
-  }
-});
-  const content = document.getElementById("content");
-  const user = auth.currentUser;
-  if(!user) return;
-
-  // ===== UPDATE LAST READ =====
-  await updateDoc(
-    doc(db,"chatRooms",roomId),
-    {
-      [`lastRead.${user.uid}`]: serverTimestamp()
-    }
-  );
-
-  // ===== GET TARGET USER =====
-  const userSnap = await getDoc(doc(db,"users",targetUid));
-  const targetData = userSnap.exists() ? userSnap.data() : null;
-
-  const username = targetData?.username || "User";
-  const photo = targetData?.photoURL 
-      ? `<img src="${targetData.photoURL}" class="chat-avatar-img">`
-      : `<div class="chat-avatar-placeholder">👤</div>`;
-
-  // ===== RENDER UI =====
-  content.innerHTML = `
-    <div class="chat-container">
-
-      <div class="chat-header">
-        <div class="chat-back" onclick="renderMembers()">←</div>
-
-        <div class="chat-user-info">
-          <div class="chat-avatar">${photo}</div>
-          <div class="chat-user-text">
-            <div class="chat-username">${username}</div>
-            <div class="chat-status">Online</div>
-          </div>
-        </div>
-      </div>
-
-      <div id="chatMessages" class="chat-messages"></div>
-      <div id="typingIndicator"></div>
-
-      <div class="chat-input">
-        <input id="chatText" placeholder="Type message...">
-        <button id="sendMessageBtn">Send</button>
-      </div>
-
-    </div>
-  `;
-
-  const messagesEl = document.getElementById("chatMessages");
-  const typingEl   = document.getElementById("typingIndicator");
-  const chatInput  = document.getElementById("chatText");
-  const sendBtn    = document.getElementById("sendMessageBtn");
-
-  // ===== HELPER FUNCTIONS =====
-  function isUserNearBottom(){
-    const threshold = 120;
-    return (
-      messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight
-    ) < threshold;
-  }
-
-  function scrollToBottom(smooth = true){
-    messagesEl.scrollTo({
-      top: messagesEl.scrollHeight,
-      behavior: smooth ? "smooth" : "auto"
-    });
-  }
-
-// ===== CHAT LISTENERS SAFE VERSION =====
+/* =========================================
+   SECTION C TAMPILAN CHAT
+========================================= */
 
 let unsubscribeMessages = null;
 let unsubscribeTyping = null;
@@ -604,13 +520,37 @@ async function renderChatUI(roomId, targetUid){
   const user = auth.currentUser;
   if(!user || !content) return;
 
+  // stop old listeners
+  if(unsubscribeMessages) unsubscribeMessages();
+  if(unsubscribeTyping) unsubscribeTyping();
+  if(unsubscribeStatus) unsubscribeStatus();
+
+  // ===== UPDATE LAST READ =====
+  await updateDoc(
+    doc(db,"chatRooms",roomId),
+    { [`lastRead.${user.uid}`]: serverTimestamp() }
+  );
+
+  // ===== GET TARGET USER =====
+  const userSnap = await getDoc(doc(db,"users",targetUid));
+  const targetData = userSnap.exists() ? userSnap.data() : null;
+
+  const username = targetData?.username || "User";
+  const photo = targetData?.photoURL
+    ? `<img src="${targetData.photoURL}" class="chat-avatar-img">`
+    : `<div class="chat-avatar-placeholder">👤</div>`;
+
+  // ===== RENDER UI =====
   content.innerHTML = `
     <div class="chat-container">
       <div class="chat-header">
-        <div onclick="renderMembers()">←</div>
-        <div>
-          <div class="chat-username">Chat</div>
-          <div class="chat-status">Loading...</div>
+        <div class="chat-back" onclick="renderMembers()">←</div>
+        <div class="chat-user-info">
+          <div class="chat-avatar">${photo}</div>
+          <div class="chat-user-text">
+            <div class="chat-username">${username}</div>
+            <div class="chat-status">Loading...</div>
+          </div>
         </div>
       </div>
 
@@ -618,7 +558,7 @@ async function renderChatUI(roomId, targetUid){
       <div id="typingIndicator"></div>
 
       <div class="chat-input">
-        <input id="chatText" placeholder="Type message...">
+        <input id="chatText" placeholder="Type message..." enterkeyhint="send">
         <button id="sendMessageBtn">Send</button>
       </div>
     </div>
@@ -632,17 +572,14 @@ async function renderChatUI(roomId, targetUid){
   if(!messagesEl || !typingEl || !chatInput || !sendBtn) return;
 
   // =============================
-  // ONLINE STATUS (WITH GUARD)
+  // ONLINE STATUS
   // =============================
-
-  if(unsubscribeStatus) unsubscribeStatus();
 
   const statusRef = ref(rtdb, "status/" + targetUid);
 
   unsubscribeStatus = onValue(statusRef, (snapshot)=>{
-
     const statusEl = document.querySelector(".chat-status");
-    if(!statusEl) return; // 🔥 guard
+    if(!statusEl) return;
 
     const status = snapshot.val();
 
@@ -653,19 +590,19 @@ async function renderChatUI(roomId, targetUid){
 
     if(status.online){
       statusEl.textContent = "Online";
-    }else{
+    }else if(status.lastSeen){
       const date = new Date(status.lastSeen);
       statusEl.textContent =
         "Last seen " +
         date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }else{
+      statusEl.textContent = "Offline";
     }
   });
 
   // =============================
-  // MESSAGE LISTENER (WITH GUARD)
+  // MESSAGE LISTENER
   // =============================
-
-  if(unsubscribeMessages) unsubscribeMessages();
 
   unsubscribeMessages = onSnapshot(
     query(
@@ -674,7 +611,7 @@ async function renderChatUI(roomId, targetUid){
     ),
     (snapshot)=>{
 
-      if(!document.getElementById("chatMessages")) return; // 🔥 guard
+      if(!document.getElementById("chatMessages")) return;
 
       messagesEl.innerHTML = "";
 
@@ -684,19 +621,24 @@ async function renderChatUI(roomId, targetUid){
         const isMine = data.senderId === user.uid;
 
         const bubble = document.createElement("div");
-        bubble.className = `chat-bubble ${isMine?"mine":"theirs"}`;
+        bubble.className = `chat-bubble ${isMine ? "mine" : "theirs"}`;
 
         const textEl = document.createElement("div");
+        textEl.className = "bubble-content";
         textEl.textContent = data.text;
         bubble.appendChild(textEl);
 
-        // timestamp
         if(data.createdAt?.seconds){
           const date = new Date(data.createdAt.seconds * 1000);
           const footer = document.createElement("div");
           footer.className = "bubble-footer";
-          footer.textContent =
-            date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+          const time = date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+
+          footer.textContent = time;
 
           if(isMine){
             footer.textContent += data.seen ? " ✔✔" : " ✔";
@@ -712,107 +654,79 @@ async function renderChatUI(roomId, targetUid){
           updateDoc(docSnap.ref,{ seen:true });
         }
       });
+
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
   );
 
   // =============================
-  // TYPING LISTENER (WITH GUARD)
+  // SEND MESSAGE
   // =============================
 
-  if(unsubscribeTyping) unsubscribeTyping();
+  async function sendMessage(){
+    const text = chatInput.value.trim();
+    if(!text) return;
 
-  unsubscribeTyping = onSnapshot(
-    collection(db,"chatRooms",roomId,"typing"),
-    (snapshot)=>{
+    await addDoc(
+      collection(db,"chatRooms",roomId,"messages"),
+      {
+        senderId: user.uid,
+        text,
+        createdAt: serverTimestamp(),
+        seen: false
+      }
+    );
 
-      if(!document.getElementById("typingIndicator")) return; // 🔥 guard
+    await updateDoc(
+      doc(db,"chatRooms",roomId),
+      {
+        lastMessage: text,
+        lastMessageAt: serverTimestamp(),
+        lastSender: user.uid
+      }
+    );
 
-      let someoneTyping = false;
-
-      snapshot.forEach(doc=>{
-        if(doc.id !== user.uid && doc.data().isTyping){
-          someoneTyping = true;
-        }
-      });
-
-      typingEl.innerHTML = someoneTyping
-        ? `<div class="typing-indicator"><span></span><span></span><span></span></div>`
-        : "";
-    }
-  );
-// ===== SEND MESSAGE =====
-
-async function sendMessage(){
-
-  const text = chatInput.value.trim();
-  if(!text) return;
-
-  await addDoc(
-    collection(db,"chatRooms",roomId,"messages"),
-    {
-      senderId: user.uid,
-      text,
-      createdAt: serverTimestamp(),
-      seen: false
-    }
-  );
-
-  await updateDoc(
-    doc(db,"chatRooms",roomId),
-    {
-      lastMessage: text,
-      lastMessageAt: serverTimestamp(),
-      lastSender: user.uid
-    }
-  );
-
-  chatInput.value = "";
-}
-
-// klik tombol
-sendBtn.onclick = sendMessage;
-
-// ENTER = SEND
-chatInput.addEventListener("keydown", (e)=>{
-  if(e.key === "Enter"){
-    e.preventDefault();
-    sendMessage();
+    chatInput.value = "";
   }
-});
-  
-  // ===== TYPING INDICATOR =====
+
+  sendBtn.onclick = sendMessage;
+
+  chatInput.addEventListener("keydown",(e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // =============================
+  // TYPING SYSTEM
+  // =============================
+
   let typingTimeout = null;
 
   chatInput.addEventListener("input", async ()=>{
-
     const typingRef = doc(db,"chatRooms",roomId,"typing",user.uid);
 
     await setDoc(typingRef,{
-      isTyping: true,
-      updatedAt: serverTimestamp()
+      isTyping:true,
+      updatedAt:serverTimestamp()
     });
 
     clearTimeout(typingTimeout);
 
     typingTimeout = setTimeout(async ()=>{
       await setDoc(typingRef,{
-        isTyping: false,
-        updatedAt: serverTimestamp()
+        isTyping:false,
+        updatedAt:serverTimestamp()
       });
     },1500);
   });
-
-  // =============================
-  // TYPING LISTENER (WITH GUARD)
-  // =============================
-
-  if(unsubscribeTyping) unsubscribeTyping();
 
   unsubscribeTyping = onSnapshot(
     collection(db,"chatRooms",roomId,"typing"),
     (snapshot)=>{
 
-      if(!document.getElementById("typingIndicator")) return; // 🔥 guard
+      if(!document.getElementById("typingIndicator")) return;
 
       let someoneTyping = false;
 
@@ -827,6 +741,7 @@ chatInput.addEventListener("keydown", (e)=>{
         : "";
     }
   );
+}
 
 /* =========================================
    STUBS - WINDOW SECTION B
