@@ -7,7 +7,7 @@ let unsubscribeFollowers = null;
 import {
   doc, updateDoc, collection, query, increment,
   orderBy, onSnapshot, getDocs, runTransaction,
-  getDoc, setDoc, addDoc, serverTimestamp, writheBatch } from "./firestore.js";
+  getDoc, setDoc, addDoc, serverTimestamp, writeBatch } from "./firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "./storage.js";
 import {
   getDatabase, ref, set, onDisconnect, onValue
