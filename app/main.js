@@ -1,86 +1,110 @@
+/* =========================================
+   IMPORTS
+========================================= */
+
 import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "./firestore.js";
 import { initTheme, toggleTheme } from "./theme.js";
-import { renderAccountUI, renderMembers } from "./profile.js";
+import { doc, getDoc } from "./firestore.js";
 
-import { getDatabase, ref, set, onDisconnect, serverTimestamp } 
+import { getDatabase, ref, set, onDisconnect }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+import { onAuthStateChanged }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+/* =========================================
+   GLOBAL INIT
+========================================= */
+
+// Init theme once
+initTheme();
+
+// Expose to window
+window.navigate = navigate;
+window.toggleTheme = toggleTheme;
+
+// Init Realtime Database
 const rtdb = getDatabase();
 
-auth.onAuthStateChanged(user=>{
-  if(!user) return;
 
-  const statusRef = ref(rtdb, "status/" + user.uid);
+/* =========================================
+   SPLASH SCREEN CONTROL
+========================================= */
 
-  set(statusRef,{
-    online: true,
-    lastSeen: serverTimestamp()
-  });
-
-  onDisconnect(statusRef).set({
-    online: false,
-    lastSeen: serverTimestamp()
-  });
-});
-
-
-
-// Expose navigate ke global
-window.navigate = navigate;
-
-// ================= SPLASH CONTROL =================
 window.addEventListener("load", () => {
-  const splash = document.getElementById("splashScreen");
 
+  const splash = document.getElementById("splashScreen");
   if (!splash) return;
 
-  // Tambah class fadeOut setelah 1.5 detik
   setTimeout(() => {
     splash.classList.add("fade-out");
-  }, 1500);
+  }, 1200);
 
-  // Hapus total setelah 2.5 detik
   setTimeout(() => {
     splash.classList.add("hide");
-  }, 2500);
+  }, 2000);
+
 });
 
-// ================= APP INIT =================
-document.addEventListener("DOMContentLoaded", () => {
 
-  navigate("home");
+/* =========================================
+   AUTH STATE (SINGLE SOURCE OF TRUTH)
+========================================= */
 
-  auth.onAuthStateChanged(async (user) => {
+onAuthStateChanged(auth, async (user)=>{
 
-    const label = document.getElementById("currentUserLabel");
-    if (!label) return;
+  const label = document.getElementById("currentUserLabel");
 
-    if (!user) {
-      label.innerText = "Not logged in";
-      return;
-    }
+  if(user){
 
-    try {
-      const snap = await getDoc(doc(db, "users", user.uid));
+    // Navigate once
+    navigate("home");
 
-      if (!snap.exists()) {
-        label.innerText = "User data missing";
-        return;
+    // =============================
+    // PRESENCE SYSTEM
+    // =============================
+    const statusRef = ref(rtdb, "status/" + user.uid);
+
+    set(statusRef,{
+      online: true,
+      lastSeen: Date.now()
+    });
+
+    onDisconnect(statusRef).set({
+      online: false,
+      lastSeen: Date.now()
+    });
+
+    // =============================
+    // LOAD USER LABEL
+    // =============================
+    if(label){
+      try{
+        const snap = await getDoc(doc(db, "users", user.uid));
+
+        if(snap.exists()){
+          const data = snap.data();
+          label.innerText = `${data.username || "User"} (${data.role || "-"})`;
+        }else{
+          label.innerText = "User data missing";
+        }
+
+      }catch(error){
+        console.error("User label error:", error);
+        label.innerText = "Error loading user";
       }
-
-      const data = snap.data();
-      label.innerText = `${data.username} (${data.role})`;
-
-    } catch (error) {
-      console.error("Error loading user data:", error);
-      label.innerText = "Error loading user";
     }
 
-  });
+  }else{
+
+    navigate("account");
+
+    if(label){
+      label.innerText = "Not logged in";
+    }
+
+  }
 
 });
-
-initTheme();
-window.toggleTheme = toggleTheme;
