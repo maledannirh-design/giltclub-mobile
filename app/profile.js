@@ -208,6 +208,47 @@ export async function renderAccountUI(){
   bindAccountEvents(user);
 }
 /* =========================================
+   PHOTO UPLOAD
+========================================= */
+export function bindPhotoUpload() {
+
+  const photoInput = document.getElementById("photoInput");
+  if (!photoInput) return;
+
+  photoInput.addEventListener("change", async (e) => {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+
+      if (file.size > 500 * 1024) {
+        alert("Max 500kb only");
+        return;
+      }
+
+      const storageRef = ref(storage, `profilePhotos/${user.uid}`);
+
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      await updateDoc(doc(db, "users", user.uid), {
+        photoURL: downloadURL
+      });
+
+      location.reload();
+
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed");
+    }
+
+  });
+}
+/* =========================================
    EVENTS - LEMBAR AKUN LOG OUT AND REGISTER
 ========================================= */
 function bindAccountEvents(user){
@@ -436,47 +477,6 @@ export function renderMembers(){
 
 
 
-/* =========================================
-   PHOTO UPLOAD
-========================================= */
-export function bindPhotoUpload() {
-
-  const photoInput = document.getElementById("photoInput");
-  if (!photoInput) return;
-
-  photoInput.addEventListener("change", async (e) => {
-
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    try {
-
-      if (file.size > 500 * 1024) {
-        alert("Max 500kb only");
-        return;
-      }
-
-      const storageRef = ref(storage, `profilePhotos/${user.uid}`);
-
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-
-      await updateDoc(doc(db, "users", user.uid), {
-        photoURL: downloadURL
-      });
-
-      location.reload();
-
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload failed");
-    }
-
-  });
-}
 let unsubscribeMessages = null;
 
 async function renderChatUI(roomId, targetUid){
@@ -582,6 +582,8 @@ async function renderChatUI(roomId, targetUid){
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
+
+// 🔥 FUNGSI FOLLOW
 window.toggleFollow = async function(targetUid){
 
   const user = auth.currentUser;
@@ -650,6 +652,7 @@ window.toggleFollow = async function(targetUid){
   }
 }
 
+// 🔥 FUNGSI CHAT
 window.handleChat = async function(targetUid){
 
   const user = auth.currentUser;
@@ -695,8 +698,10 @@ window.handleChat = async function(targetUid){
   }
 };
 
+// 🔥 FUNGSI ADD FRIEND
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
+// 🔥 FUNGSI BLOCK MEMBER
 window.blockUser = (uid)=>{
   if(confirm("Konfirmasi blokir user ini?")){
     alert("User blocked: " + uid);
