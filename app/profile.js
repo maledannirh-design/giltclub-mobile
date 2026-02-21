@@ -439,11 +439,6 @@ export function renderMembers(){
                 onclick="toggleFollow('${uid}')">
                 ${isFollowing ? 'Following' : 'Follow'}
               </button>
-
-              <button class="friend-btn" onclick="toggleFriend('${uid}')">
-                Add Friend
-              </button>
-
               <button class="chat-btn" onclick="handleChat('${uid}')">
                 💬
               </button>
