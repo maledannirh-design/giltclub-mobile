@@ -998,35 +998,41 @@ export async function renderHome(){
 
     if(unreadRooms.length > 0){
 
-      unreadRooms.slice(0,3).forEach(room=>{
+  for (const room of unreadRooms.slice(0,3)) {
 
-        const otherUser = room.participants.find(p=>p !== user.uid);
+    const otherUserId = room.participants.find(p => p !== user.uid);
 
-        const item = document.createElement("div");
-        item.style.padding = "10px";
-        item.style.marginTop = "8px";
-        item.style.background = "rgba(255,255,255,0.05)";
-        item.style.borderRadius = "10px";
-        item.style.cursor = "pointer";
+    let otherUserName = "Unknown";
 
-        item.innerHTML = `
-          <div style="font-weight:600">
-            ${room.otherUserName || "User"}
-          </div>
-          <div style="opacity:0.7;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-            ${room.lastMessage || ""}
-          </div>
-        `;
-
-        item.onclick = ()=>{
-          localStorage.setItem("activeChatRoom", room.id);
-          window.navigate("members");
-        };
-
-        unreadList.appendChild(item);
-      });
-
+    if (otherUserId) {
+      const otherSnap = await getDoc(doc(db,"users",otherUserId));
+      if (otherSnap.exists()) {
+        otherUserName = otherSnap.data().name || "User";
+      }
     }
+
+    const item = document.createElement("div");
+    item.className = "unread-item";
+
+    item.innerHTML = `
+      <div class="unread-dot"></div>
+      <div class="unread-content">
+        <div class="unread-name">${otherUserName}</div>
+        <div class="unread-preview">
+          ${room.lastMessage || ""}
+        </div>
+      </div>
+    `;
+
+    item.onclick = ()=>{
+      localStorage.setItem("activeChatRoom", room.id);
+      window.navigate("toko"); // pastikan route ini memang ada
+    };
+
+    unreadList.appendChild(item);
+  }
+
+}
 
     // ===== BOOKING =====
     const bookingSnap = await getDocs(
