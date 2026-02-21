@@ -1,13 +1,11 @@
 export async function renderChat(){
-  await updateDoc(
-  doc(db,"chatRooms",activeRoomId),
-  {
-    [`unreadCount.${user.uid}`]: 0
-  }
-);
+
   const content = document.getElementById("content");
   const user = auth.currentUser;
+
   if(!content || !user) return;
+
+  const activeRoomId = localStorage.getItem("activeChatRoom");
 
   content.innerHTML = `
     <div style="padding:20px">
@@ -16,13 +14,20 @@ export async function renderChat(){
     </div>
   `;
 
-  const activeRoomId = localStorage.getItem("activeChatRoom");
-
   if(!activeRoomId){
     document.getElementById("chatContainer").innerHTML =
       "No conversation selected.";
     return;
   }
 
+  // 🔹 Load conversation dulu
   await loadConversation(activeRoomId);
+
+  // 🔹 Setelah itu reset unread
+  await updateDoc(
+    doc(db,"chatRooms",activeRoomId),
+    {
+      [`unreadCount.${user.uid}`]: 0
+    }
+  );
 }
