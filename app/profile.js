@@ -650,44 +650,44 @@ unsubscribeMessages = onSnapshot(
   }
 );
 
-  // ===== SEND MESSAGE =====
-  sendBtn.onclick = async ()=>{
-   chatInput.addEventListener("keydown", (e)=>{
+// ===== SEND MESSAGE =====
+
+sendBtn.onclick = async ()=>{
+
+  const text = chatInput.value.trim();
+  if(!text) return;
+
+  await addDoc(
+    collection(db,"chatRooms",roomId,"messages"),
+    {
+      senderId: user.uid,
+      text: text,
+      createdAt: serverTimestamp(),
+      seen: false
+    }
+  );
+
+  await updateDoc(
+    doc(db,"chatRooms",roomId),
+    {
+      lastMessage: text,
+      lastMessageAt: serverTimestamp(),
+      lastSender: user.uid,
+      updatedAt: serverTimestamp()
+    }
+  );
+
+  chatInput.value = "";
+  scrollToBottom(true);
+};
+
+// ENTER TO SEND (taruh di luar onclick supaya tidak double binding)
+chatInput.addEventListener("keydown", (e)=>{
   if(e.key === "Enter"){
     e.preventDefault();
     sendBtn.click();
   }
 });
-    const text = chatInput.value.trim();
-    if(!text) return;
-
-    await addDoc(
-      collection(db,"chatRooms",roomId,"messages"),
-      {
-        senderId: user.uid,
-        text: text,
-        createdAt: serverTimestamp()
-      }
-    );
-
-    await updateDoc(
-      doc(db,"chatRooms",roomId),
-      {
-        lastMessage: text,
-        lastMessageAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      }
-    );
-
-    chatInput.value = "";
-    scrollToBottom(true);
-  };
-   {
-  senderId: user.uid,
-  text: text,
-  createdAt: serverTimestamp(),
-  seen: false
-}
   // ===== TYPING INDICATOR =====
   let typingTimeout = null;
 
