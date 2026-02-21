@@ -922,7 +922,6 @@ async function renderChatList(){
   );
 }
 
-
 /* =========================================
    D SECTION HOME DASHBOARD
 ========================================= */
@@ -945,11 +944,12 @@ export async function renderHome(){
 
   try{
 
-    // ===== WALLET =====
+    // ===== USER DATA =====
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
 
+    // ===== WALLET =====
     document.getElementById("walletSection").innerHTML =
       `Saldo: Rp ${balance.toLocaleString()}`;
 
@@ -994,140 +994,6 @@ export async function renderHome(){
       </div>
     `;
   }
-}
-
-  // ===== GET USER DATA =====
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-  const userData = userSnap.exists() ? userSnap.data() : {};
-
-  // ===== GET WALLET BALANCE =====
-  let balance = userData.walletBalance || 0;
-
-  // ===== GET UNREAD COUNT =====
-  const roomsSnap = await getDocs(
-    query(collection(db,"chatRooms"))
-  );
-
-  let totalUnread = 0;
-
-  roomsSnap.forEach(docSnap=>{
-    const data = docSnap.data();
-    if(data.unreadCount && data.unreadCount[user.uid]){
-      totalUnread += data.unreadCount[user.uid];
-    }
-  });
-
-  // ===== GET UPCOMING BOOKING =====
-  const bookingSnap = await getDocs(
-    query(
-      collection(db,"bookings"),
-      orderBy("date","asc")
-    )
-  );
-
-  let upcoming = null;
-
-  bookingSnap.forEach(docSnap=>{
-    const data = docSnap.data();
-    if(data.userId === user.uid && data.status === "confirmed" && !upcoming){
-      upcoming = data;
-    }
-  });
-
-  content.innerHTML = `
-    <div class="home-container">
-
-      <h2>Hi, ${userData.username || "User"}</h2>
-
-      <!-- WALLET CARD -->
-      <div class="home-card wallet-card">
-        <div class="wallet-top">
-          <div>Saldo G-Wallet</div>
-          <div id="toggleBalance" style="cursor:pointer">👁</div>
-        </div>
-        <div class="wallet-balance" id="walletBalance">
-          Rp ${balance.toLocaleString()}
-        </div>
-        <button class="btn-primary full" onclick="renderTopUpPage()">
-          Top Up G-Wallet
-        </button>
-      </div>
-
-      <!-- UNREAD MESSAGE -->
-      <div class="home-card" onclick="renderChatList()" style="cursor:pointer">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>Pesan Belum Dibaca</div>
-          <div class="badge-unread">${totalUnread}</div>
-        </div>
-        <div style="margin-top:6px;font-size:13px;opacity:0.7">
-          Kamu punya ${totalUnread} pesan belum dibuka
-        </div>
-      </div>
-
-      <!-- UPCOMING BOOKING -->
-      <div class="home-card">
-        <div>Booking Terdekat</div>
-        ${
-          upcoming
-          ? `
-            <div style="margin-top:8px">
-              <div>${upcoming.courtName || "-"}</div>
-              <div style="font-size:13px;opacity:0.7">
-                ${upcoming.date} - ${upcoming.time}
-              </div>
-            </div>
-          `
-          : `<div style="margin-top:8px;font-size:13px;opacity:0.6">
-              Tidak ada booking mendatang
-             </div>`
-        }
-      </div>
-
-      <!-- SELLER NOTICE -->
-      <div class="home-card highlight-card">
-        <div style="font-weight:600">
-          Penjualan pesanan perlu diantar dari toko kamu
-        </div>
-        <div style="font-size:13px;opacity:0.7;margin-top:6px">
-          Segera proses pesanan pelanggan agar rating tetap maksimal.
-        </div>
-      </div>
-
-      <!-- QUICK ACTIONS -->
-      <div class="home-grid">
-
-        <div class="home-action" onclick="renderCinema()">
-          🎬
-          <div>Nonton Bioskop</div>
-        </div>
-
-        <div class="home-action" onclick="renderBooking()">
-          🎾
-          <div>Booking Court</div>
-        </div>
-
-        <div class="home-action" onclick="renderWalletPage()">
-          💳
-          <div>G-Wallet</div>
-        </div>
-
-      </div>
-
-    </div>
-  `;
-
-  // ===== HIDE BALANCE TOGGLE =====
-  const balanceEl = document.getElementById("walletBalance");
-  const toggleBtn = document.getElementById("toggleBalance");
-
-  let visible = true;
-
-  toggleBtn.onclick = ()=>{
-    visible = !visible;
-    balanceEl.textContent = visible
-      ? `Rp ${balance.toLocaleString()}`
-      : "Rp ******";
-  };
 }
 
 
