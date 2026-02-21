@@ -524,10 +524,13 @@ async function renderChatUI(roomId, targetUid){
 
   // Update last read
   await updateDoc(
-    doc(db,"chatRooms",roomId),
-    { [`lastRead.${user.uid}`]: serverTimestamp() }
-  );
-
+  doc(db,"chatRooms",roomId),
+  {
+    [`lastRead.${user.uid}`]: serverTimestamp(),
+    [`unreadCount.${user.uid}`]: 0
+  }
+);
+  
   // Get target user
   const userSnap = await getDoc(doc(db,"users",targetUid));
   const targetData = userSnap.exists() ? userSnap.data() : null;
@@ -539,37 +542,38 @@ async function renderChatUI(roomId, targetUid){
 
   // Render UI
   content.innerHTML = `
-    <div class="chat-container">
-      <<div class="chat-header">
+  <div class="chat-container">
 
-  <div class="chat-left">
-    <div class="chat-back" onclick="renderMembers()">←</div>
+    <div class="chat-header">
 
-    <div class="chat-user-info">
-      <div class="chat-avatar">${photo}</div>
-      <div class="chat-user-text">
-        <div class="chat-username">${username}</div>
-        <div class="chat-status">Loading...</div>
+      <div class="chat-left">
+        <div class="chat-back" onclick="renderChatList()">←</div>
+
+        <div class="chat-user-info">
+          <div class="chat-avatar">${photo}</div>
+          <div class="chat-user-text">
+            <div class="chat-username">${username}</div>
+            <div class="chat-status">Loading...</div>
+          </div>
+        </div>
       </div>
+
+      <div class="chat-actions">
+        <div class="chat-clear" id="clearChatBtn">🗑</div>
+      </div>
+
     </div>
-  </div>
 
-  <div class="chat-actions">
-    <div class="chat-clear" id="clearChatBtn">🗑</div>
-  </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <div id="typingIndicator"></div>
 
-</div>
-      </div>
-
-      <div id="chatMessages" class="chat-messages"></div>
-      <div id="typingIndicator"></div>
-
-      <div class="chat-input">
-        <input id="chatText" placeholder="Type message..." enterkeyhint="send">
-        <button id="sendMessageBtn">Send</button>
-      </div>
+    <div class="chat-input">
+      <input id="chatText" placeholder="Type message..." enterkeyhint="send">
+      <button id="sendMessageBtn">Send</button>
     </div>
-  `;
+
+  </div>
+`;
 
   const messagesEl = document.getElementById("chatMessages");
   const typingEl   = document.getElementById("typingIndicator");
@@ -698,14 +702,17 @@ async function renderChatUI(roomId, targetUid){
       }
     );
 
-    await updateDoc(
-      doc(db,"chatRooms",roomId),
-      {
-        lastMessage:text,
-        lastMessageAt:serverTimestamp(),
-        lastSender:user.uid
-      }
-    );
+ await updateDoc(
+  doc(db,"chatRooms",roomId),
+  {
+    lastMessage: text,
+    lastMessageAt: serverTimestamp(),
+    lastSender: user.uid,
+
+    [`unreadCount.${targetUid}`]: increment(1),
+    [`unreadCount.${user.uid}`]: 0
+  }
+);
 
     chatInput.value="";
   }
