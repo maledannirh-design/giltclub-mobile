@@ -1,11 +1,20 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { doc, updateDoc, collection, query, increment, orderBy, onSnapshot, getDocs, runTransaction, getDoc, setDoc, addDoc, serverTimestamp  } from "./firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "./storage.js";
+import { onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 let currentUserData = null;
 let unsubscribeFollowers = null;
+
+import {
+  doc, updateDoc, collection, query, increment,
+  orderBy, onSnapshot, getDocs, runTransaction,
+  getDoc, setDoc, addDoc, serverTimestamp
+} from "./firestore.js";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "./storage.js";
+import {
+  getDatabase, ref, set, onDisconnect, onValue
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* =========================================
    SECTION A LOGIN DAN REGISTER
@@ -303,6 +312,27 @@ function closeSheet(){
   document.getElementById("loginSheet").classList.remove("active");
 }
 
+/* =====================================================
+   🔵 REALTIME ONLINE PRESENCE (GLOBAL – AUTO ONLINE)
+===================================================== */
+
+const rtdb = getDatabase();
+
+auth.onAuthStateChanged(user=>{
+  if(!user) return;
+
+  const statusRef = ref(rtdb, "status/" + user.uid);
+
+  set(statusRef,{
+    online: true,
+    lastSeen: Date.now()
+  });
+
+  onDisconnect(statusRef).set({
+    online: false,
+    lastSeen: Date.now()
+  });
+});
 /* =========================================
    SECTION B TAMPILAN MEMBER LIST
 ========================================= */
@@ -428,10 +458,44 @@ export function renderMembers(){
 
     listEl.innerHTML = html;
   }
+let lastVisible = null;
 
+unsubscribeMessages = onSnapshot(q, (snapshot)=>{
+  lastVisible = snapshot.docs[snapshot.docs.length-1];
+});
+   messagesEl.addEventListener("scroll", async ()=>{
+  if(messagesEl.scrollTop === 0 && lastVisible){
+
+    const nextQuery = query(
+      collection(db,"chatRooms",roomId,"messages"),
+      orderBy("createdAt","desc"),
+      startAfter(lastVisible),
+      limit(20)
+    );
+
+    const nextSnap = await getDocs(nextQuery);
+
+    nextSnap.forEach(doc=>{
+      // prepend messages
+    });
+  }
+});
+   await updateDoc(
+  doc(db,"chatRooms",roomId),
+  {
+    lastMessage: text,
+    lastMessageAt: serverTimestamp(),
+    lastSender: user.uid
+  }
+);
   // ===== USERS REALTIME =====
   unsubscribeMembers = onSnapshot(
-    query(collection(db,"users"), orderBy("createdAt","desc")),
+   query(
+  collection(db,"chatRooms",roomId,"messages"),
+  orderBy("createdAt","desc"),
+  limit(20)
+)
+     query(collection(db,"users"), orderBy("createdAt","desc")),
     (snapshot)=>{
 
       usersCache = snapshot.docs.map(doc=>({
@@ -481,7 +545,19 @@ let unsubscribeMessages = null;
 let unsubscribeTyping = null;
 
 async function renderChatUI(roomId, targetUid){
+   
+const statusRef = ref(rtdb, "status/" + targetUid);
 
+onValue(statusRef, (snapshot)=>{
+  const status = snapshot.val();
+  const statusEl = document.querySelector(".chat-status");
+
+  if(status?.online){
+    statusEl.textContent = "Online";
+  }else{
+    statusEl.textContent = "Last seen recently";
+  }
+});
   const content = document.getElementById("content");
   const user = auth.currentUser;
   if(!user) return;
@@ -585,12 +661,25 @@ async function renderChatUI(roomId, targetUid){
 
         currentGroup.appendChild(bubble);
         lastSender = data.senderId;
+         if(isMine){
+  const seenIcon = document.createElement("div");
+  seenIcon.className = "seen-indicator";
+  seenIcon.textContent = data.seen ? "✔✔" : "✔";
+  bubble.appendChild(seenIcon);
+}
       });
 
       if(shouldScroll){
         scrollToBottom(true);
       }
     }
+     snapshot.forEach(doc=>{
+  const data = doc.data();
+
+  if(data.senderId !== user.uid && !data.seen){
+    updateDoc(doc.ref,{ seen:true });
+  }
+});
   );
 
   // ===== SEND MESSAGE =====
@@ -625,7 +714,12 @@ async function renderChatUI(roomId, targetUid){
     chatInput.value = "";
     scrollToBottom(true);
   };
-
+   {
+  senderId: user.uid,
+  text: text,
+  createdAt: serverTimestamp(),
+  seen: false
+}
   // ===== TYPING INDICATOR =====
   let typingTimeout = null;
 
