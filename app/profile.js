@@ -1021,9 +1021,10 @@ export async function renderHome(){
 
     item.onclick = ()=>{
       localStorage.setItem("activeChatRoom", room.id);
-      window.navigate("toko"); // pastikan route ini memang ada
+      window.navigate("chat"); // pastikan route ini memang ada
     };
 
+    
     unreadList.appendChild(item);
   }
 
