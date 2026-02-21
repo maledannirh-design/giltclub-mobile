@@ -44,10 +44,10 @@
 }
 
 .splash-text {
-  font-size: 16px;
+  font-family: "Brittany", cursive;
+  font-size: 26px;
   letter-spacing: 1px;
-  font-weight: 500;
-  max-width: 320px;
+  max-width: 340px;
   margin: 0 auto;
   line-height: 1.6;
 
@@ -61,7 +61,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 
-  min-height: 24px;
+  min-height: 40px;
 }
 
 @keyframes splashFadeUp {
