@@ -475,7 +475,7 @@ export function renderMembers(){
   }
 }
 
-
+// ===== FUNGI RENDER CHAT =====
 
 let unsubscribeMessages = null;
 
@@ -523,35 +523,55 @@ async function renderChatUI(roomId, targetUid){
     </div>
   `;
 
+   // ===== LISTENER CHAT =====
   const messagesEl = document.getElementById("chatMessages");
 
   if(unsubscribeMessages) unsubscribeMessages();
 
   unsubscribeMessages = onSnapshot(
-    query(
-      collection(db,"chatRooms",roomId,"messages"),
-      orderBy("createdAt","asc")
-    ),
-    (snapshot)=>{
+  query(
+    collection(db,"chatRooms",roomId,"messages"),
+    orderBy("createdAt","asc")
+  ),
+  (snapshot)=>{
 
-      messagesEl.innerHTML = "";
+    messagesEl.innerHTML = "";
 
-      snapshot.forEach(doc=>{
+    let lastSender = null;
+    let currentGroup = null;
 
-        const data = doc.data();
-        const isMine = data.senderId === user.uid;
+    snapshot.forEach(doc=>{
 
-        messagesEl.innerHTML += `
-          <div class="chat-bubble ${isMine ? "mine" : "theirs"}">
-            ${data.text}
-          </div>
-        `;
-      });
+      const data = doc.data();
+      const isMine = data.senderId === user.uid;
+      const senderType = isMine ? "mine" : "theirs";
 
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-  );
+      // kalau sender beda dari sebelumnya → buat group baru
+      if(lastSender !== data.senderId){
 
+        currentGroup = document.createElement("div");
+        currentGroup.className = `chat-group ${senderType}`;
+
+        messagesEl.appendChild(currentGroup);
+      }
+
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${senderType}`;
+      bubble.textContent = data.text;
+
+      currentGroup.appendChild(bubble);
+
+      lastSender = data.senderId;
+    });
+
+    messagesEl.scrollTo({
+      top: messagesEl.scrollHeight,
+      behavior: "auto"
+    });
+  }
+);
+
+   
   document.getElementById("sendMessageBtn").onclick = async ()=>{
 
     const input = document.getElementById("chatText");
