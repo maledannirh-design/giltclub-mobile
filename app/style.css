@@ -1025,12 +1025,36 @@ html, body {
   color:white;
   cursor:pointer;
 }
+.unread-badge{
+  background:#ff3b3b;
+  color:white;
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:999px;
+  margin-left:6px;
+}
+.typing-indicator{
+  display:flex;
+  gap:4px;
+  padding:8px 12px;
+  margin-left:8px;
+}
 
+.typing-indicator span{
+  width:6px;
+  height:6px;
+  background:#999;
+  border-radius:50%;
+  animation:blink 1.4s infinite both;
+}
 
+.typing-indicator span:nth-child(2){ animation-delay:.2s; }
+.typing-indicator span:nth-child(3){ animation-delay:.4s; }
 
-@keyframes splashFade{
-  from { opacity: 0; }
-  to   { opacity: 1; }
+@keyframes blink{
+  0%{opacity:.2;}
+  20%{opacity:1;}
+  100%{opacity:.2;}
 }
 
 @keyframes splashFade{
