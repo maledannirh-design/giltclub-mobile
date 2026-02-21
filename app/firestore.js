@@ -34,5 +34,6 @@ export {
   increment,
   serverTimestamp,
   runTransaction,
+  writeBatch,
   onSnapshot
 };
