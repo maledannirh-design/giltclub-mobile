@@ -1,5 +1,6 @@
 import { toggleTheme } from "./theme.js";
 import { renderMembers } from "./profile.js";
+import { renderChat } from "./chat.js";
 
 let navLock = false;
 let currentPage = null;
@@ -36,7 +37,9 @@ export async function navigate(page){
       case "account":
         (await import("./profile.js")).renderAccountUI();
         break;
-
+    case "chat":
+  renderChat();
+  break;
       case "members":
         (await import("./profile.js")).renderMembers();
         break;
