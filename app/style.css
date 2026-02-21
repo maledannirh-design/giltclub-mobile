@@ -1365,23 +1365,26 @@ html, body {
   backdrop-filter: blur(4px);
 }
 /* ===== UNREAD SCROLL ===== */
+/* Container scroll */
 .home-unread-scroll {
-  margin-top: 16px;
+  margin-top: 12px;
+
   display: flex;
   gap: 10px;
   overflow-x: auto;
+
+  justify-content: flex-end;   /* 🔥 bikin rata kanan */
 }
 
+/* Item bubble */
 .home-unread-item {
-  background: rgba(255, 255, 255, 0.08); /* lebih subtle */
-  padding: 6px 12px;
+  background: rgba(255,255,255,0.08);
+  padding: 8px 12px;
   border-radius: 12px;
-  font-size: 12px;
-
-  color: rgba(255, 255, 255, 0.65); /* 🔥 lebih soft */
-  white-space: nowrap;
+  min-width: 140px;
 
   backdrop-filter: blur(6px);
+  cursor: pointer;
 }
 
 /* ===== WALLET CARD ===== */
