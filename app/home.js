@@ -3,7 +3,6 @@ import { renderHome } from "./home.js";
 /* =========================================
    HOME DASHBOARD
 ========================================= */
-
 export async function renderHome(){
 
   const content = document.getElementById("content");
@@ -17,8 +16,8 @@ export async function renderHome(){
 
       <div id="walletSection" style="margin-bottom:16px">Loading wallet...</div>
 
-      <div id="unreadWrapper" style="margin-bottom:16px">
-        <div id="unreadSection">Loading messages...</div>
+      <div id="unreadWrapper" style="margin-bottom:16px; display:none;">
+        <div id="unreadSection"></div>
         <div id="unreadList"></div>
       </div>
 
@@ -28,7 +27,9 @@ export async function renderHome(){
 
   try{
 
-    // ===== USER DATA =====
+    /* ======================
+       USER DATA
+    ====================== */
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
@@ -36,7 +37,10 @@ export async function renderHome(){
     document.getElementById("walletSection").innerHTML =
       `Saldo: Rp ${balance.toLocaleString("id-ID")}`;
 
-    // ===== CHAT ROOMS =====
+
+    /* ======================
+       CHAT ROOMS (OPTIMIZED)
+    ====================== */
     const roomsSnap = await getDocs(
       query(
         collection(db,"chatRooms"),
@@ -60,60 +64,58 @@ export async function renderHome(){
       }
     });
 
-    // SORT latest first
+    // Sort by latest message
     unreadRooms.sort((a,b)=>{
       return (b.lastMessageTime?.seconds || 0) -
              (a.lastMessageTime?.seconds || 0);
     });
 
+    const unreadWrapper = document.getElementById("unreadWrapper");
     const unreadSection = document.getElementById("unreadSection");
     const unreadList = document.getElementById("unreadList");
 
-    unreadSection.innerHTML =
-      `Pesan belum dibaca: ${totalUnread}`;
+    if(totalUnread > 0){
 
-    unreadList.innerHTML = "";
+      unreadWrapper.style.display = "block";
 
-    if(unreadRooms.length > 0){
+      unreadSection.innerHTML =
+        `Pesan belum dibaca: ${totalUnread}`;
 
-  for (const room of unreadRooms.slice(0,3)) {
+      unreadList.innerHTML = "";
 
-    const otherUserId = room.participants.find(p => p !== user.uid);
+      for (const room of unreadRooms.slice(0,3)) {
 
-    let otherUserName = "Unknown";
+        const otherUserId = room.participants.find(p => p !== user.uid);
+        const otherUserData = room.userMap?.[otherUserId] || {};
 
-    if (otherUserId) {
-      const otherSnap = await getDoc(doc(db,"users",otherUserId));
-      if (otherSnap.exists()) {
-        otherUserName = otherSnap.data().name || "User";
+        const otherUserName = otherUserData.name || "User";
+
+        const item = document.createElement("div");
+        item.className = "unread-item";
+
+        item.innerHTML = `
+          <div class="unread-dot"></div>
+          <div class="unread-content">
+            <div class="unread-name">${otherUserName}</div>
+            <div class="unread-preview">
+              ${room.lastMessage || ""}
+            </div>
+          </div>
+        `;
+
+        item.onclick = ()=>{
+          localStorage.setItem("activeChatRoom", room.id);
+          window.navigate("chat");
+        };
+
+        unreadList.appendChild(item);
       }
     }
 
-    const item = document.createElement("div");
-    item.className = "unread-item";
 
-    item.innerHTML = `
-      <div class="unread-dot"></div>
-      <div class="unread-content">
-        <div class="unread-name">${otherUserName}</div>
-        <div class="unread-preview">
-          ${room.lastMessage || ""}
-        </div>
-      </div>
-    `;
-
-    item.onclick = ()=>{
-      localStorage.setItem("activeChatRoom", room.id);
-      window.navigate("chat"); // pastikan route ini memang ada
-    };
-
-    
-    unreadList.appendChild(item);
-  }
-
-}
-
-    // ===== BOOKING =====
+    /* ======================
+       BOOKINGS
+    ====================== */
     const bookingSnap = await getDocs(
       query(
         collection(db,"bookings"),
@@ -135,4 +137,3 @@ export async function renderHome(){
     `;
   }
 }
-
