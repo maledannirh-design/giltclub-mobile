@@ -1,7 +1,6 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 let currentUserData = null;
 let unsubscribeFollowers = null;
