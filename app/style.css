@@ -1277,7 +1277,132 @@ html, body {
 .hidden {
   display: none;
 }
+/* ===== HOME BASE ===== */
+.home-container {
+  padding: 20px;
+}
 
+/* ===== HEADER ===== */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.home-profile-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-avatar img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-username {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.home-gpoint {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.home-unread-icon {
+  position: relative;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.home-unread-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: red;
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 50px;
+}
+
+/* ===== UNREAD SCROLL ===== */
+.home-unread-scroll {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+
+.home-unread-item {
+  min-width: 130px;
+  background: #f4f4f4;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== WALLET CARD ===== */
+.wallet-card-pink {
+  margin-top: 24px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg,#ff7eb3,#ff758c);
+  color: white;
+}
+
+.wallet-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.wallet-main-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.wallet-amount {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.wallet-topup-btn {
+  margin-top: 10px;
+  background: white;
+  color: #ff4d88;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.member-card-img {
+  width: 95px;
+  border-radius: 8px;
+}
+
+.eye-btn {
+  cursor: pointer;
+}
 @keyframes blink{
   0%{opacity:.2;}
   20%{opacity:1;}
