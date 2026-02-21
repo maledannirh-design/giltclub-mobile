@@ -26,7 +26,7 @@ function runSplash(){
           splashScreen.classList.add("hide");
         }, 800);
 
-      }, 2500);
+      }, 1800);
     }
   }
 
