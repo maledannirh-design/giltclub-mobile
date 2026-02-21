@@ -37,7 +37,7 @@ export async function renderHome(){
       "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
 
     const memberCardUrl =
-      membership === "member" ? MEMBER_CARD : VVIP_CARD;
+      membership === "MEMBER" ? MEMBER_CARD : VVIP_CARD;
 
     /* =============================
        CHAT ROOMS (UNREAD)
