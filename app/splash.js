@@ -8,6 +8,8 @@ function runSplash(){
   const splashText = document.getElementById("splashText");
   const splashScreen = document.getElementById("splashScreen");
 
+  if(!splashText || !splashScreen) return;
+
   let index = 0;
 
   function typeWriter(){
@@ -16,12 +18,13 @@ function runSplash(){
       index++;
       setTimeout(typeWriter, 35);
     } else {
+
       setTimeout(() => {
-        splashScreen.classList.add("hide");
+        splashScreen.classList.add("fade-out");
 
         setTimeout(() => {
-          splashScreen.remove();
-        }, 600);
+          splashScreen.classList.add("hide");
+        }, 800);
 
       }, 900);
     }
