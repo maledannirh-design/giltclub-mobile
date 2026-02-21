@@ -162,7 +162,7 @@ export async function renderHome(){
     unreadRooms.slice(0,5).forEach(room=>{
       const otherUid = room.participants.find(p=>p !== user.uid);
       const otherUser = room.userMap?.[otherUid] || {};
-      const username = otherUser.username || "User";
+      const username = otherUser.username || otherUser.name || "User";
 
       const item = document.createElement("div");
       item.className = "home-unread-item";
