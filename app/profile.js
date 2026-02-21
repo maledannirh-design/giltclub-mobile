@@ -335,8 +335,10 @@ auth.onAuthStateChanged(user=>{
 /* =========================================
    SECTION B TAMPILAN MEMBER LIST
 ========================================= */
+
 let unsubscribeMembers = null;
 let unsubscribeFollowing = null;
+let unsubscribeFollowers = null;
 
 export function renderMembers(){
 
@@ -351,7 +353,6 @@ export function renderMembers(){
   `;
 
   const listEl = document.getElementById("memberList");
-
   const currentUser = auth.currentUser;
 
   let followingSet = new Set();
@@ -376,8 +377,9 @@ export function renderMembers(){
 
       const data = userDoc.data;
       const uid  = userDoc.id;
-      
-        if(currentUser && uid === currentUser.uid) return;
+
+      if(currentUser && uid === currentUser.uid) return;
+
       const isFollowing = followingSet.has(uid);
       const followsYou  = followersSet.has(uid);
       const mutual      = isFollowing && followsYou;
@@ -457,44 +459,10 @@ export function renderMembers(){
 
     listEl.innerHTML = html;
   }
-let lastVisible = null;
 
-unsubscribeMessages = onSnapshot(q, (snapshot)=>{
-  lastVisible = snapshot.docs[snapshot.docs.length-1];
-});
-   messagesEl.addEventListener("scroll", async ()=>{
-  if(messagesEl.scrollTop === 0 && lastVisible){
-
-    const nextQuery = query(
-      collection(db,"chatRooms",roomId,"messages"),
-      orderBy("createdAt","desc"),
-      startAfter(lastVisible),
-      limit(20)
-    );
-
-    const nextSnap = await getDocs(nextQuery);
-
-    nextSnap.forEach(doc=>{
-      // prepend messages
-    });
-  }
-});
-   await updateDoc(
-  doc(db,"chatRooms",roomId),
-  {
-    lastMessage: text,
-    lastMessageAt: serverTimestamp(),
-    lastSender: user.uid
-  }
-);
   // ===== USERS REALTIME =====
   unsubscribeMembers = onSnapshot(
-   query(
-  collection(db,"chatRooms",roomId,"messages"),
-  orderBy("createdAt","desc"),
-  limit(20)
-)
-     query(collection(db,"users"), orderBy("createdAt","desc")),
+    query(collection(db,"users"), orderBy("createdAt","desc")),
     (snapshot)=>{
 
       usersCache = snapshot.docs.map(doc=>({
