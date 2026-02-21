@@ -12,21 +12,25 @@ function runSplash(){
   if(!splashText || !splashScreen || !app) return;
 
   let index = 0;
+  const typingSpeed = 35; // sedikit lebih cepat
 
   function typeWriter(){
     if(index < text.length){
-      splashText.innerHTML += text.charAt(index);
+      splashText.textContent += text.charAt(index);
       index++;
-      setTimeout(typeWriter, 40); // 🔥 lebih cepat
+      setTimeout(typeWriter, typingSpeed);
     } else {
-
-      splashScreen.classList.add("fade-out");
-
-      setTimeout(() => {
-        splashScreen.style.display = "none";
-        app.style.opacity = "1";
-      }, 500); // 🔥 fade cepat
+      finishSplash();
     }
+  }
+
+  function finishSplash(){
+    splashScreen.classList.add("fade-out");
+
+    setTimeout(() => {
+      splashScreen.style.display = "none";
+      app.style.opacity = "1";
+    }, 500);
   }
 
   typeWriter();
