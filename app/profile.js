@@ -1000,7 +1000,7 @@ window.handleChat = async function(targetUid){
 
   try{
 
-    // Mutual follow check
+    // ✅ Mutual follow check
     const myFollowing = await getDoc(
       doc(db,"users",myUid,"following",targetUid)
     );
@@ -1052,17 +1052,22 @@ window.handleChat = async function(targetUid){
       });
     }
 
+    // 🔥 Masuk ke chat
     renderChatUI(roomId, targetUid);
 
   }catch(err){
-    console.error(err);
+    console.error("handleChat error:", err);
   }
 };
-// 🔥 fungsi back button
+
+
+// 🔥 expose global
 window.renderMembers = renderMembers;
+window.renderChatUI = renderChatUI;
+
 
 // 🔥 FUNGSI BLOCK MEMBER
-window.blockUser = (uid)=>{
+window.blockUser = function(uid){
   if(confirm("Konfirmasi blokir user ini?")){
     alert("User blocked: " + uid);
   }
