@@ -1006,6 +1006,7 @@ window.handleChat = async function(targetUid){
 
   try{
 
+    // Mutual follow check
     const myFollowing = await getDoc(
       doc(db,"users",myUid,"following",targetUid)
     );
@@ -1023,11 +1024,37 @@ window.handleChat = async function(targetUid){
     const roomSnap = await getDoc(roomRef);
 
     if(!roomSnap.exists()){
+
+      const mySnap = await getDoc(doc(db,"users",myUid));
+      const targetSnap = await getDoc(doc(db,"users",targetUid));
+
+      const myData = mySnap.exists() ? mySnap.data() : {};
+      const targetData = targetSnap.exists() ? targetSnap.data() : {};
+
       await setDoc(roomRef,{
         participants: [myUid, targetUid],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        lastMessage: ""
+
+        lastMessage: "",
+        lastMessageAt: serverTimestamp(),
+        lastSenderId: "",
+
+        unreadCount: {
+          [myUid]: 0,
+          [targetUid]: 0
+        },
+
+        userMap: {
+          [myUid]: {
+            username: myData.username || "User",
+            avatar: myData.photoURL || ""
+          },
+          [targetUid]: {
+            username: targetData.username || "User",
+            avatar: targetData.photoURL || ""
+          }
+        },
+
+        createdAt: serverTimestamp()
       });
     }
 
@@ -1037,7 +1064,6 @@ window.handleChat = async function(targetUid){
     console.error(err);
   }
 };
-
 // 🔥 fungsi back button
 window.renderMembers = renderMembers;
 
