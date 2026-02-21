@@ -29,8 +29,8 @@ export async function navigate(page){
     switch(page){
 
       case "home":
-        content.innerHTML = "<h2>Home</h2>";
-        break;
+    (await import("./profile.js")).renderHome();
+    break;
 
       case "account":
         (await import("./profile.js")).renderAccountUI();
