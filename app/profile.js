@@ -1020,7 +1020,7 @@ export async function renderHome(){
 
         item.onclick = ()=>{
           localStorage.setItem("activeChatRoom", room.id);
-          window.navigate("chat");
+          window.navigate("member");
         };
 
         unreadList.appendChild(item);
