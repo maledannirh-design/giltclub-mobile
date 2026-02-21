@@ -1,4 +1,5 @@
 import { toggleTheme } from "./theme.js";
+import { renderMembers } from "./profile.js";
 
 let navLock = false;
 let currentPage = null;
