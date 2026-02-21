@@ -812,20 +812,16 @@ async function renderChatList(){
   const user = auth.currentUser;
   if(!user || !content) return;
 
-  // stop old listener
   if(unsubscribeChatList) unsubscribeChatList();
 
   content.innerHTML = `
     <div class="chatlist-container">
-
       <div class="chatlist-header">
         <div class="chatlist-title">Chats</div>
       </div>
-
       <div id="chatListBody" class="chatlist-body">
         Loading...
       </div>
-
     </div>
   `;
 
@@ -838,7 +834,7 @@ async function renderChatList(){
       where("participants","array-contains", user.uid),
       orderBy("lastMessageAt","desc")
     ),
-    async (snapshot)=>{
+    (snapshot)=>{
 
       if(!document.getElementById("chatListBody")) return;
 
@@ -853,20 +849,19 @@ async function renderChatList(){
 
       let html = "";
 
-      for(const docSnap of snapshot.docs){
+      snapshot.forEach(docSnap=>{
 
         const room = docSnap.data();
         const roomId = docSnap.id;
 
         const otherUid = room.participants.find(uid => uid !== user.uid);
-        if(!otherUid) continue;
+        if(!otherUid) return;
 
-        const otherSnap = await getDoc(doc(db,"users",otherUid));
-        const otherData = otherSnap.exists() ? otherSnap.data() : null;
+        const otherUser = room.userMap?.[otherUid] || {};
 
-        const username = otherData?.username || "User";
-        const photo = otherData?.photoURL
-          ? `<img src="${otherData.photoURL}" class="chatlist-avatar-img">`
+        const username = otherUser.username || "User";
+        const photo = otherUser.avatar
+          ? `<img src="${otherUser.avatar}" class="chatlist-avatar-img">`
           : `<div class="chatlist-avatar-placeholder">👤</div>`;
 
         const lastMessage = room.lastMessage || "";
@@ -878,7 +873,8 @@ async function renderChatList(){
         const unreadCount = room.unreadCount?.[user.uid] || 0;
 
         html += `
-          <div class="chatlist-card" onclick="renderChatUI('${roomId}','${otherUid}')">
+          <div class="chatlist-card"
+               onclick="renderChatUI('${roomId}','${otherUid}')">
 
             <div class="chatlist-left">
               <div class="chatlist-avatar">
@@ -910,14 +906,12 @@ async function renderChatList(){
 
           </div>
         `;
-      }
+      });
 
       listEl.innerHTML = html;
     }
   );
 }
-
-
 
 /* =========================================
    STUBS - WINDOW SECTION B
