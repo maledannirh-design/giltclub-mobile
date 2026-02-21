@@ -1,4 +1,12 @@
-import { renderHome } from "./home.js";
+import { auth, db } from "./firebase.js";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  collection,
+  query,
+  where
+} from "./firestore.js";
 
 /* =========================================
    HOME DASHBOARD
