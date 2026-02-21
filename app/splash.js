@@ -7,8 +7,9 @@ function runSplash(){
   const text = "Where passion, confidence & elegance meet court";
   const splashText = document.getElementById("splashText");
   const splashScreen = document.getElementById("splashScreen");
+  const app = document.getElementById("app");
 
-  if(!splashText || !splashScreen) return;
+  if(!splashText || !splashScreen || !app) return;
 
   let index = 0;
 
@@ -16,17 +17,20 @@ function runSplash(){
     if(index < text.length){
       splashText.innerHTML += text.charAt(index);
       index++;
-      setTimeout(typeWriter, 250);
+      setTimeout(typeWriter, 100); // lebih lambat
     } else {
 
+      // tunggu setelah selesai ngetik
       setTimeout(() => {
+
         splashScreen.classList.add("fade-out");
 
         setTimeout(() => {
-          splashScreen.classList.add("hide");
-        }, 800);
+          splashScreen.style.display = "none";
+          app.style.opacity = "1";
+        }, 1000);
 
-      }, 1800);
+      }, 2000); // delay 2 detik setelah selesai
     }
   }
 
