@@ -224,3 +224,59 @@ async function loadMiniLedger(){
 function formatCurrency(num){
   return Number(num || 0).toLocaleString("id-ID");
 }
+
+async function loadUnreadMessages() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const unreadSection = document.getElementById("unreadSection");
+  const unreadList = document.getElementById("unreadList");
+  const unreadCountBadge = document.getElementById("unreadCountBadge");
+
+  unreadList.innerHTML = "";
+
+  const q = query(
+    collection(db, "chats"),
+    where("participants", "array-contains", user.uid),
+    where(`unreadCountByUser.${user.uid}`, ">", 0),
+    orderBy("lastMessageTime", "desc"),
+    limit(3)
+  );
+
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    unreadSection.classList.add("hidden");
+    return;
+  }
+
+  unreadSection.classList.remove("hidden");
+  unreadCountBadge.textContent = snapshot.size;
+
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+
+    const item = document.createElement("div");
+    item.className = "unread-item";
+    item.onclick = () => {
+      window.navigate("chat");
+      localStorage.setItem("activeChatId", docSnap.id);
+    };
+
+    item.innerHTML = `
+      <img src="${data.otherUserAvatar || 'default-avatar.png'}" class="unread-avatar"/>
+      <div class="unread-content">
+        <div class="unread-name">${data.otherUserName}</div>
+        <div class="unread-preview">${data.lastMessage}</div>
+        <div class="unread-time">${formatTime(data.lastMessageTime?.toDate())}</div>
+      </div>
+    `;
+
+    unreadList.appendChild(item);
+  });
+}
+
+function formatTime(date) {
+  if (!date) return "";
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
