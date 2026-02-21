@@ -592,97 +592,157 @@ onValue(statusRef, (snapshot)=>{
     });
   }
 
- // ===== LISTENER CHAT =====
-if(unsubscribeMessages) unsubscribeMessages();
+// ===== CHAT LISTENERS SAFE VERSION =====
 
-unsubscribeMessages = onSnapshot(
-  query(
-    collection(db,"chatRooms",roomId,"messages"),
-    orderBy("createdAt","asc")
-  ),
-  (snapshot)=>{
+let unsubscribeMessages = null;
+let unsubscribeTyping = null;
+let unsubscribeStatus = null;
 
-    const shouldScroll = isUserNearBottom();
+async function renderChatUI(roomId, targetUid){
 
-    messagesEl.innerHTML = "";
+  const content = document.getElementById("content");
+  const user = auth.currentUser;
+  if(!user || !content) return;
 
-    let lastSender = null;
-    let currentGroup = null;
+  content.innerHTML = `
+    <div class="chat-container">
+      <div class="chat-header">
+        <div onclick="renderMembers()">←</div>
+        <div>
+          <div class="chat-username">Chat</div>
+          <div class="chat-status">Loading...</div>
+        </div>
+      </div>
 
-    snapshot.forEach(docSnap=>{
+      <div id="chatMessages" class="chat-messages"></div>
+      <div id="typingIndicator"></div>
 
-      const data = docSnap.data();
-      const isMine = data.senderId === user.uid;
-      const senderType = isMine ? "mine" : "theirs";
+      <div class="chat-input">
+        <input id="chatText" placeholder="Type message...">
+        <button id="sendMessageBtn">Send</button>
+      </div>
+    </div>
+  `;
 
-      // grouping
-      if(lastSender !== data.senderId){
-        currentGroup = document.createElement("div");
-        currentGroup.className = `chat-group ${senderType}`;
-        messagesEl.appendChild(currentGroup);
-      }
+  const messagesEl = document.getElementById("chatMessages");
+  const typingEl   = document.getElementById("typingIndicator");
+  const chatInput  = document.getElementById("chatText");
+  const sendBtn    = document.getElementById("sendMessageBtn");
 
-      const bubble = document.createElement("div");
-bubble.className = `chat-bubble ${isMine ? "mine" : "theirs"}`;
+  if(!messagesEl || !typingEl || !chatInput || !sendBtn) return;
 
-// wrapper isi bubble
-const bubbleContent = document.createElement("div");
-bubbleContent.className = "bubble-content";
-bubbleContent.textContent = data.text;
+  // =============================
+  // ONLINE STATUS (WITH GUARD)
+  // =============================
 
-bubble.appendChild(bubbleContent);
+  if(unsubscribeStatus) unsubscribeStatus();
 
-// FOOTER (waktu + seen)
-const footer = document.createElement("div");
-footer.className = "bubble-footer";
+  const statusRef = ref(rtdb, "status/" + targetUid);
 
-if(data.createdAt?.seconds){
-  const date = new Date(data.createdAt.seconds * 1000);
-  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  unsubscribeStatus = onValue(statusRef, (snapshot)=>{
 
-  const timeEl = document.createElement("span");
-  timeEl.className = "bubble-time";
-  timeEl.textContent = time;
+    const statusEl = document.querySelector(".chat-status");
+    if(!statusEl) return; // 🔥 guard
 
-  footer.appendChild(timeEl);
-}
+    const status = snapshot.val();
 
-if(isMine){
-  const seenEl = document.createElement("span");
-  seenEl.className = "seen-indicator";
-  seenEl.textContent = data.seen ? "✔✔" : "✔";
-  footer.appendChild(seenEl);
-}
-
-bubble.appendChild(footer);
-
-      currentGroup.appendChild(bubble);
-      lastSender = data.senderId;
-
-      // seen indicator
-      if(isMine){
-        const seenIcon = document.createElement("div");
-        seenIcon.className = "seen-indicator";
-        seenIcon.textContent = data.seen ? "✔✔" : "✔";
-        bubble.appendChild(seenIcon);
-      }
-
-      // auto mark as seen (untuk message orang lain)
-      if(!isMine && !data.seen){
-        updateDoc(docSnap.ref, { seen: true });
-      }
-
-    });
-
-    if(shouldScroll){
-      scrollToBottom(true);
+    if(!status){
+      statusEl.textContent = "Offline";
+      return;
     }
-  }
-);
 
+    if(status.online){
+      statusEl.textContent = "Online";
+    }else{
+      const date = new Date(status.lastSeen);
+      statusEl.textContent =
+        "Last seen " +
+        date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+  });
+
+  // =============================
+  // MESSAGE LISTENER (WITH GUARD)
+  // =============================
+
+  if(unsubscribeMessages) unsubscribeMessages();
+
+  unsubscribeMessages = onSnapshot(
+    query(
+      collection(db,"chatRooms",roomId,"messages"),
+      orderBy("createdAt","asc")
+    ),
+    (snapshot)=>{
+
+      if(!document.getElementById("chatMessages")) return; // 🔥 guard
+
+      messagesEl.innerHTML = "";
+
+      snapshot.forEach(docSnap=>{
+
+        const data = docSnap.data();
+        const isMine = data.senderId === user.uid;
+
+        const bubble = document.createElement("div");
+        bubble.className = `chat-bubble ${isMine?"mine":"theirs"}`;
+
+        const textEl = document.createElement("div");
+        textEl.textContent = data.text;
+        bubble.appendChild(textEl);
+
+        // timestamp
+        if(data.createdAt?.seconds){
+          const date = new Date(data.createdAt.seconds * 1000);
+          const footer = document.createElement("div");
+          footer.className = "bubble-footer";
+          footer.textContent =
+            date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+          if(isMine){
+            footer.textContent += data.seen ? " ✔✔" : " ✔";
+          }
+
+          bubble.appendChild(footer);
+        }
+
+        messagesEl.appendChild(bubble);
+
+        // auto mark seen
+        if(!isMine && !data.seen){
+          updateDoc(docSnap.ref,{ seen:true });
+        }
+      });
+    }
+  );
+
+  // =============================
+  // TYPING LISTENER (WITH GUARD)
+  // =============================
+
+  if(unsubscribeTyping) unsubscribeTyping();
+
+  unsubscribeTyping = onSnapshot(
+    collection(db,"chatRooms",roomId,"typing"),
+    (snapshot)=>{
+
+      if(!document.getElementById("typingIndicator")) return; // 🔥 guard
+
+      let someoneTyping = false;
+
+      snapshot.forEach(doc=>{
+        if(doc.id !== user.uid && doc.data().isTyping){
+          someoneTyping = true;
+        }
+      });
+
+      typingEl.innerHTML = someoneTyping
+        ? `<div class="typing-indicator"><span></span><span></span><span></span></div>`
+        : "";
+    }
+  );
 // ===== SEND MESSAGE =====
 
-sendBtn.onclick = async ()=>{
+async function sendMessage(){
 
   const text = chatInput.value.trim();
   if(!text) return;
@@ -691,7 +751,7 @@ sendBtn.onclick = async ()=>{
     collection(db,"chatRooms",roomId,"messages"),
     {
       senderId: user.uid,
-      text: text,
+      text,
       createdAt: serverTimestamp(),
       seen: false
     }
@@ -702,22 +762,24 @@ sendBtn.onclick = async ()=>{
     {
       lastMessage: text,
       lastMessageAt: serverTimestamp(),
-      lastSender: user.uid,
-      updatedAt: serverTimestamp()
+      lastSender: user.uid
     }
   );
 
   chatInput.value = "";
-  scrollToBottom(true);
-};
+}
 
-// ENTER TO SEND (taruh di luar onclick supaya tidak double binding)
+// klik tombol
+sendBtn.onclick = sendMessage;
+
+// ENTER = SEND
 chatInput.addEventListener("keydown", (e)=>{
   if(e.key === "Enter"){
     e.preventDefault();
-    sendBtn.click();
+    sendMessage();
   }
 });
+  
   // ===== TYPING INDICATOR =====
   let typingTimeout = null;
 
@@ -740,12 +802,17 @@ chatInput.addEventListener("keydown", (e)=>{
     },1500);
   });
 
-  // ===== LISTEN TYPING =====
+  // =============================
+  // TYPING LISTENER (WITH GUARD)
+  // =============================
+
   if(unsubscribeTyping) unsubscribeTyping();
 
   unsubscribeTyping = onSnapshot(
     collection(db,"chatRooms",roomId,"typing"),
     (snapshot)=>{
+
+      if(!document.getElementById("typingIndicator")) return; // 🔥 guard
 
       let someoneTyping = false;
 
@@ -755,18 +822,11 @@ chatInput.addEventListener("keydown", (e)=>{
         }
       });
 
-      if(someoneTyping){
-        typingEl.innerHTML = `
-          <div class="typing-indicator">
-            <span></span><span></span><span></span>
-          </div>
-        `;
-      }else{
-        typingEl.innerHTML = "";
-      }
+      typingEl.innerHTML = someoneTyping
+        ? `<div class="typing-indicator"><span></span><span></span><span></span></div>`
+        : "";
     }
   );
-}
 
 /* =========================================
    STUBS - WINDOW SECTION B
