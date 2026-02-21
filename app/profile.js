@@ -547,7 +547,7 @@ async function renderChatUI(roomId, targetUid){
     <div class="chat-header">
 
       <div class="chat-left">
-        <div class="chat-back" onclick="renderChatList()">←</div>
+        <div class="chat-back" onclick="renderMembers()">←</div>
 
         <div class="chat-user-info">
           <div class="chat-avatar">${photo}</div>
@@ -1192,7 +1192,7 @@ window.handleChat = async function(targetUid){
 };
 
 // 🔥 fungsi back button
-window.renderChatList = renderChatList;
+window.renderMembers = renderMembers;
 // 🔥 FUNGSI ADD FRIEND
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
