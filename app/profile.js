@@ -917,6 +917,8 @@ async function renderChatList(){
   );
 }
 
+
+
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
@@ -989,6 +991,7 @@ window.toggleFollow = async function(targetUid){
     console.error(err);
   }
 }
+
 // 🔥 FUNGSI CHAT
 window.handleChat = async function(targetUid){
 
@@ -1037,8 +1040,6 @@ window.handleChat = async function(targetUid){
 
 // 🔥 fungsi back button
 window.renderMembers = renderMembers;
-// 🔥 FUNGSI ADD FRIEND
-window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
 // 🔥 FUNGSI BLOCK MEMBER
 window.blockUser = (uid)=>{
