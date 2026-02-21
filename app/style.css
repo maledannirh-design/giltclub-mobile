@@ -1000,7 +1000,31 @@ html, body {
   color:white;
   cursor:pointer;
 }
+.chat-group{
+  display:flex;
+  flex-direction:column;
+  margin-bottom:14px;
+}
 
+.chat-group.mine{
+  align-items:flex-end;
+}
+
+.chat-group.theirs{
+  align-items:flex-start;
+}
+
+.chat-bubble + .chat-bubble{
+  margin-top:6px;
+}
+
+.chat-bubble.mine{
+  border-bottom-right-radius:6px;
+}
+
+.chat-bubble.theirs{
+  border-bottom-left-radius:6px;
+}
 
 
 @keyframes splashFade{
