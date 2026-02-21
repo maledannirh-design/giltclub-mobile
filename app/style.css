@@ -1389,6 +1389,13 @@ html, body {
   );
   pointer-events: none;
 }
+.wallet-saldo-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.9;
+}
 .wallet-card-header {
   display: flex;
   justify-content: space-between;
@@ -1423,9 +1430,26 @@ html, body {
   width: 95px;
   border-radius: 8px;
 }
-
+/* ===== Eye Button ===== */
 .eye-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+
+  opacity: 0.75;
+  transition: 0.2s ease;
+}
+
+.eye-btn:hover {
+  opacity: 1;
+}
+
+.eye-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.4;
 }
 @keyframes blink{
   0%{opacity:.2;}
