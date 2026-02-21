@@ -923,7 +923,7 @@ async function renderChatList(){
 }
 
 /* =========================================
-   D SECTION HOME DASHBOARD
+   HOME DASHBOARD
 ========================================= */
 
 export async function renderHome(){
@@ -936,8 +936,14 @@ export async function renderHome(){
   content.innerHTML = `
     <div style="padding:20px">
       <h2>Home</h2>
-      <div id="walletSection">Loading wallet...</div>
-      <div id="unreadSection">Loading messages...</div>
+
+      <div id="walletSection" style="margin-bottom:16px">Loading wallet...</div>
+
+      <div id="unreadWrapper" style="margin-bottom:16px">
+        <div id="unreadSection">Loading messages...</div>
+        <div id="unreadList"></div>
+      </div>
+
       <div id="bookingSection">Loading booking...</div>
     </div>
   `;
@@ -949,11 +955,10 @@ export async function renderHome(){
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
 
-    // ===== WALLET =====
     document.getElementById("walletSection").innerHTML =
-      `Saldo: Rp ${balance.toLocaleString()}`;
+      `Saldo: Rp ${balance.toLocaleString("id-ID")}`;
 
-    // ===== CHAT UNREAD =====
+    // ===== CHAT ROOMS =====
     const roomsSnap = await getDocs(
       query(
         collection(db,"chatRooms"),
@@ -962,16 +967,66 @@ export async function renderHome(){
     );
 
     let totalUnread = 0;
+    let unreadRooms = [];
 
     roomsSnap.forEach(docSnap=>{
       const data = docSnap.data();
-      if(data.unreadCount && data.unreadCount[user.uid]){
-        totalUnread += data.unreadCount[user.uid];
+      const unread = data.unreadCount?.[user.uid] || 0;
+
+      if(unread > 0){
+        totalUnread += unread;
+        unreadRooms.push({
+          id: docSnap.id,
+          ...data
+        });
       }
     });
 
-    document.getElementById("unreadSection").innerHTML =
+    // SORT latest first
+    unreadRooms.sort((a,b)=>{
+      return (b.lastMessageTime?.seconds || 0) -
+             (a.lastMessageTime?.seconds || 0);
+    });
+
+    const unreadSection = document.getElementById("unreadSection");
+    const unreadList = document.getElementById("unreadList");
+
+    unreadSection.innerHTML =
       `Pesan belum dibaca: ${totalUnread}`;
+
+    unreadList.innerHTML = "";
+
+    if(unreadRooms.length > 0){
+
+      unreadRooms.slice(0,3).forEach(room=>{
+
+        const otherUser = room.participants.find(p=>p !== user.uid);
+
+        const item = document.createElement("div");
+        item.style.padding = "10px";
+        item.style.marginTop = "8px";
+        item.style.background = "rgba(255,255,255,0.05)";
+        item.style.borderRadius = "10px";
+        item.style.cursor = "pointer";
+
+        item.innerHTML = `
+          <div style="font-weight:600">
+            ${room.otherUserName || "User"}
+          </div>
+          <div style="opacity:0.7;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${room.lastMessage || ""}
+          </div>
+        `;
+
+        item.onclick = ()=>{
+          localStorage.setItem("activeChatRoom", room.id);
+          window.navigate("chat");
+        };
+
+        unreadList.appendChild(item);
+      });
+
+    }
 
     // ===== BOOKING =====
     const bookingSnap = await getDocs(
@@ -995,7 +1050,6 @@ export async function renderHome(){
     `;
   }
 }
-
 
 /* =========================================
    STUBS - WINDOW SECTION B
