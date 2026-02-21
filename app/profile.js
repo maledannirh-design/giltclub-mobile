@@ -796,6 +796,124 @@ async function renderChatUI(roomId, targetUid){
     );
   };
 }
+
+
+/* =========================================
+   CHAT LIST SCREEN
+========================================= */
+
+let unsubscribeChatList = null;
+
+async function renderChatList(){
+
+  const content = document.getElementById("content");
+  const user = auth.currentUser;
+  if(!user || !content) return;
+
+  // stop old listener
+  if(unsubscribeChatList) unsubscribeChatList();
+
+  content.innerHTML = `
+    <div class="chatlist-container">
+
+      <div class="chatlist-header">
+        <div class="chatlist-title">Chats</div>
+      </div>
+
+      <div id="chatListBody" class="chatlist-body">
+        Loading...
+      </div>
+
+    </div>
+  `;
+
+  const listEl = document.getElementById("chatListBody");
+  if(!listEl) return;
+
+  unsubscribeChatList = onSnapshot(
+    query(
+      collection(db,"chatRooms"),
+      where("participants","array-contains", user.uid),
+      orderBy("lastMessageAt","desc")
+    ),
+    async (snapshot)=>{
+
+      if(!document.getElementById("chatListBody")) return;
+
+      if(snapshot.empty){
+        listEl.innerHTML = `
+          <div class="chatlist-empty">
+            Belum ada chat.
+          </div>
+        `;
+        return;
+      }
+
+      let html = "";
+
+      for(const docSnap of snapshot.docs){
+
+        const room = docSnap.data();
+        const roomId = docSnap.id;
+
+        const otherUid = room.participants.find(uid => uid !== user.uid);
+        if(!otherUid) continue;
+
+        const otherSnap = await getDoc(doc(db,"users",otherUid));
+        const otherData = otherSnap.exists() ? otherSnap.data() : null;
+
+        const username = otherData?.username || "User";
+        const photo = otherData?.photoURL
+          ? `<img src="${otherData.photoURL}" class="chatlist-avatar-img">`
+          : `<div class="chatlist-avatar-placeholder">👤</div>`;
+
+        const lastMessage = room.lastMessage || "";
+        const lastTime = room.lastMessageAt?.seconds
+          ? new Date(room.lastMessageAt.seconds * 1000)
+              .toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})
+          : "";
+
+        const unreadCount = room.unreadCount?.[user.uid] || 0;
+
+        html += `
+          <div class="chatlist-card" onclick="renderChatUI('${roomId}','${otherUid}')">
+
+            <div class="chatlist-left">
+              <div class="chatlist-avatar">
+                ${photo}
+              </div>
+
+              <div class="chatlist-text">
+                <div class="chatlist-username">
+                  ${username}
+                </div>
+
+                <div class="chatlist-preview">
+                  ${lastMessage}
+                </div>
+              </div>
+            </div>
+
+            <div class="chatlist-right">
+              <div class="chatlist-time">
+                ${lastTime}
+              </div>
+
+              ${
+                unreadCount > 0
+                  ? `<div class="chatlist-badge">${unreadCount}</div>`
+                  : ``
+              }
+            </div>
+
+          </div>
+        `;
+      }
+
+      listEl.innerHTML = html;
+    }
+  );
+}
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
