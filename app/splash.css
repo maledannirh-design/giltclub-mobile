@@ -132,3 +132,8 @@
     transform: translateY(0);
   }
 }
+
+#app {
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
