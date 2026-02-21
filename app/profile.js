@@ -623,8 +623,38 @@ unsubscribeMessages = onSnapshot(
       }
 
       const bubble = document.createElement("div");
-      bubble.className = `chat-bubble ${senderType}`;
-      bubble.textContent = data.text;
+bubble.className = `chat-bubble ${isMine ? "mine" : "theirs"}`;
+
+// wrapper isi bubble
+const bubbleContent = document.createElement("div");
+bubbleContent.className = "bubble-content";
+bubbleContent.textContent = data.text;
+
+bubble.appendChild(bubbleContent);
+
+// FOOTER (waktu + seen)
+const footer = document.createElement("div");
+footer.className = "bubble-footer";
+
+if(data.createdAt?.seconds){
+  const date = new Date(data.createdAt.seconds * 1000);
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const timeEl = document.createElement("span");
+  timeEl.className = "bubble-time";
+  timeEl.textContent = time;
+
+  footer.appendChild(timeEl);
+}
+
+if(isMine){
+  const seenEl = document.createElement("span");
+  seenEl.className = "seen-indicator";
+  seenEl.textContent = data.seen ? "✔✔" : "✔";
+  footer.appendChild(seenEl);
+}
+
+bubble.appendChild(footer);
 
       currentGroup.appendChild(bubble);
       lastSender = data.senderId;
