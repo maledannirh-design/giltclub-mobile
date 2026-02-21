@@ -1,6 +1,7 @@
 import { toggleTheme } from "./theme.js";
 import { renderMembers } from "./profile.js";
 import { renderChat } from "./chat.js";
+import { renderHome } from "./home.js";
 
 let navLock = false;
 let currentPage = null;
