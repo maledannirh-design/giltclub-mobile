@@ -34,7 +34,14 @@ export async function loadDashboard(){
           <div class="metric-card" id="cardSessions"></div>
           <div class="metric-card admin-only" id="cardRevenue"></div>
         </div>
+        <div id="unreadSection" class="unread-section hidden">
+  <div class="unread-header">
+    <h3>Unread Messages</h3>
+    <span id="unreadCountBadge" class="badge"></span>
+  </div>
 
+  <div id="unreadList"></div>
+</div>
         <div class="panel">
           <h3>Monthly Leaderboard</h3>
           <div id="leaderboardList"></div>
@@ -52,6 +59,7 @@ export async function loadDashboard(){
   await loadUserSummary();
   await loadLeaderboard();
   await loadMiniLedger();
+  await loadUnreadMessages();
 }
 
 /* ============================
