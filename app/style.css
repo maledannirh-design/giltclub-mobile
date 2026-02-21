@@ -1106,6 +1106,99 @@ html, body {
 .typing-indicator span:nth-child(2){ animation-delay:.2s; }
 .typing-indicator span:nth-child(3){ animation-delay:.4s; }
 
+.chatlist-container{
+  padding:16px;
+}
+
+.chatlist-header{
+  margin-bottom:12px;
+}
+
+.chatlist-title{
+  font-size:18px;
+  font-weight:600;
+}
+
+.chatlist-body{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.chatlist-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  background:#13261d;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.chatlist-left{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.chatlist-avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  overflow:hidden;
+}
+
+.chatlist-avatar-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.chatlist-avatar-placeholder{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#1f3529;
+}
+
+.chatlist-text{
+  display:flex;
+  flex-direction:column;
+}
+
+.chatlist-username{
+  font-weight:600;
+  font-size:14px;
+}
+
+.chatlist-preview{
+  font-size:12px;
+  opacity:0.7;
+}
+
+.chatlist-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+
+.chatlist-time{
+  font-size:11px;
+  opacity:0.6;
+}
+
+.chatlist-badge{
+  background:#ff4d4f;
+  color:white;
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:20px;
+}
+
+
 @keyframes blink{
   0%{opacity:.2;}
   20%{opacity:1;}
