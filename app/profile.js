@@ -1191,6 +1191,8 @@ window.handleChat = async function(targetUid){
   }
 };
 
+// 🔥 fungsi back button
+window.renderChatList = renderChatList;
 // 🔥 FUNGSI ADD FRIEND
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
