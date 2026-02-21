@@ -647,31 +647,72 @@ html, body {
 
 /* ================= SPLASH SCREEN ================= */
 
-#splashScreen{
+#splashScreen {
   position: fixed;
   inset: 0;
-  background: var(--color-bg);
+  background: radial-gradient(circle at center, #121212 0%, #000000 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 99999;
+
+  opacity: 1;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
-#splashScreen.fade-out{
+#splashScreen.fade-out {
   opacity: 0;
-  transition: opacity 1s ease;
 }
 
-#splashScreen.hide{
+#splashScreen.hide {
   visibility: hidden;
 }
 
-.splash-logo{
-  width: 340px;
-  max-width: 75vw;
+.splash-content {
+  text-align: center;
+  animation: splashFadeUp 1s ease forwards;
+}
+
+.splash-logo {
+  width: 220px;
+  max-width: 70vw;
   height: auto;
-  opacity: 0;
-  animation: splashFade 1s ease forwards;
+  margin-bottom: 28px;
+  opacity: 0.95;
+}
+
+/* === GOLD TYPE TEXT === */
+.splash-text {
+  font-size: 16px;
+  letter-spacing: 1px;
+  font-weight: 500;
+  max-width: 320px;
+  margin: 0 auto;
+  line-height: 1.6;
+
+  background: linear-gradient(
+    90deg,
+    #d4af37,
+    #f5d67a,
+    #b8962e
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  min-height: 24px;
+}
+
+/* === ANIMATION === */
+@keyframes splashFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 /* ================= MEMBER PAGE ================= */
 
