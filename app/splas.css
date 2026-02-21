@@ -8,7 +8,8 @@
 }
 
 /* ================= SPLASH SCREEN ================= */
-
+text-align: center;
+text-shadow: 0 0 8px rgba(212,175,55,0.15);
 #splashScreen {
   position: fixed;
   inset: 0;
