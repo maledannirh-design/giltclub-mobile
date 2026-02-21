@@ -1,57 +1,14 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-import { doc, updateDoc, collection, query, increment, orderBy, getDocs, runTransaction, getDoc, setDoc, addDoc, serverTimestamp  } from "./firestore.js";
+import { doc, updateDoc, collection, query, increment, orderBy, onSnapshot, getDocs, runTransaction, getDoc, setDoc, addDoc, serverTimestamp  } from "./firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "./storage.js";
-
 
 let currentUserData = null;
 let unsubscribeFollowers = null;
 
 /* =========================================
-   PHOTO UPLOAD
-========================================= */
-export function bindPhotoUpload() {
-
-  const photoInput = document.getElementById("photoInput");
-  if (!photoInput) return;
-
-  photoInput.addEventListener("change", async (e) => {
-
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    try {
-
-      if (file.size > 500 * 1024) {
-        alert("Max 500kb only");
-        return;
-      }
-
-      const storageRef = ref(storage, `profilePhotos/${user.uid}`);
-
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-
-      await updateDoc(doc(db, "users", user.uid), {
-        photoURL: downloadURL
-      });
-
-      location.reload();
-
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload failed");
-    }
-
-  });
-}
-
-/* =========================================
-   ENTRY POINT
+   SECTION A LOGIN DAN REGISTER
 ========================================= */
 
 function renderSheetContent(mode){
@@ -145,6 +102,10 @@ function renderSheetContent(mode){
     };
   }
 }
+
+/* =========================================
+   TAMPILAN MENU AKUN
+========================================= */
 export async function renderAccountUI(){
 
   const content = document.getElementById("content");
@@ -246,8 +207,64 @@ export async function renderAccountUI(){
 
   bindAccountEvents(user);
 }
-import { onSnapshot } from "./firestore.js";
+/* =========================================
+   EVENTS - LEMBAR AKUN LOG OUT AND REGISTER
+========================================= */
+function bindAccountEvents(user){
 
+  const overlay = document.getElementById("sheetOverlay");
+  const sheet = document.getElementById("loginSheet");
+
+  if(!overlay || !sheet) return;
+
+  if(!user){
+
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+
+    if(loginBtn){
+      loginBtn.onclick = ()=> openSheet("login");
+    }
+
+    if(registerBtn){
+      registerBtn.onclick = ()=> openSheet("register");
+    }
+  }
+
+  if(user){
+    const logoutBtn = document.getElementById("logoutBtn");
+    if(logoutBtn){
+      logoutBtn.onclick = async ()=>{
+        await logout();
+        renderAccountUI();
+      };
+    }
+  }
+
+  overlay.onclick = closeSheet;
+}
+
+/* =========================================
+   SHEET CONTROL
+========================================= */
+function openSheet(mode="login"){
+
+  const sheet = document.getElementById("loginSheet");
+  const overlay = document.getElementById("sheetOverlay");
+
+  overlay.classList.add("active");
+  sheet.classList.add("active");
+
+  renderSheetContent(mode);
+}
+function closeSheet(){
+  document.getElementById("sheetOverlay").classList.remove("active");
+  document.getElementById("loginSheet").classList.remove("active");
+}
+
+/* =========================================
+   SECTION B TAMPILAN MEMBER LIST
+========================================= */
 let unsubscribeMembers = null;
 let unsubscribeFollowing = null;
 
@@ -416,176 +433,50 @@ export function renderMembers(){
     );
   }
 }
-/* =========================================
-   EVENTS
-========================================= */
-function bindAccountEvents(user){
 
-  const overlay = document.getElementById("sheetOverlay");
-  const sheet = document.getElementById("loginSheet");
 
-  if(!overlay || !sheet) return;
-
-  if(!user){
-
-    const loginBtn = document.getElementById("loginBtn");
-    const registerBtn = document.getElementById("registerBtn");
-
-    if(loginBtn){
-      loginBtn.onclick = ()=> openSheet("login");
-    }
-
-    if(registerBtn){
-      registerBtn.onclick = ()=> openSheet("register");
-    }
-  }
-
-  if(user){
-    const logoutBtn = document.getElementById("logoutBtn");
-    if(logoutBtn){
-      logoutBtn.onclick = async ()=>{
-        await logout();
-        renderAccountUI();
-      };
-    }
-  }
-
-  overlay.onclick = closeSheet;
-}
 
 /* =========================================
-   SHEET CONTROL
+   PHOTO UPLOAD
 ========================================= */
-function openSheet(mode="login"){
+export function bindPhotoUpload() {
 
-  const sheet = document.getElementById("loginSheet");
-  const overlay = document.getElementById("sheetOverlay");
+  const photoInput = document.getElementById("photoInput");
+  if (!photoInput) return;
 
-  overlay.classList.add("active");
-  sheet.classList.add("active");
+  photoInput.addEventListener("change", async (e) => {
 
-  renderSheetContent(mode);
-}
-function closeSheet(){
-  document.getElementById("sheetOverlay").classList.remove("active");
-  document.getElementById("loginSheet").classList.remove("active");
-}
+    const file = e.target.files[0];
+    if (!file) return;
 
-/* =========================================
-   STUBS
-========================================= */
-window.toggleFollow = async function(targetUid){
+    const user = auth.currentUser;
+    if (!user) return;
 
-  const user = auth.currentUser;
-  if(!user) return;
+    try {
 
-  const button = document.querySelector(
-    `button[onclick="toggleFollow('${targetUid}')"]`
-  );
-
-  const isCurrentlyFollowing = button.classList.contains("following");
-
-  // 🔥 Optimistic UI update
-  if(isCurrentlyFollowing){
-    button.classList.remove("following");
-    button.innerText = "Follow";
-  }else{
-    button.classList.add("following");
-    button.innerText = "Following";
-  }
-
-  try{
-
-    const myUid = user.uid;
-
-    const myFollowingRef = doc(db,"users",myUid,"following",targetUid);
-    const targetFollowerRef = doc(db,"users",targetUid,"followers",myUid);
-
-    const myUserRef = doc(db,"users",myUid);
-    const targetUserRef = doc(db,"users",targetUid);
-
-    await runTransaction(db, async (transaction)=>{
-
-      const followSnap = await transaction.get(myFollowingRef);
-
-      if(followSnap.exists()){
-
-        transaction.delete(myFollowingRef);
-        transaction.delete(targetFollowerRef);
-
-        transaction.update(myUserRef,{
-          followingCount: increment(-1)
-        });
-
-        transaction.update(targetUserRef,{
-          followersCount: increment(-1)
-        });
-
-      }else{
-
-        transaction.set(myFollowingRef,{ createdAt: serverTimestamp() });
-        transaction.set(targetFollowerRef,{ createdAt: serverTimestamp() });
-
-        transaction.update(myUserRef,{
-          followingCount: increment(1)
-        });
-
-        transaction.update(targetUserRef,{
-          followersCount: increment(1)
-        });
+      if (file.size > 500 * 1024) {
+        alert("Max 500kb only");
+        return;
       }
 
-    });
+      const storageRef = ref(storage, `profilePhotos/${user.uid}`);
 
-  }catch(err){
-    console.error(err);
-  }
-}
-window.handleChat = async function(targetUid){
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
 
-  const user = auth.currentUser;
-  if(!user){
-    alert("Login dulu");
-    return;
-  }
-
-  const myUid = user.uid;
-  const roomId = [myUid, targetUid].sort().join("_");
-
-  try{
-
-    const myFollowing = await getDoc(
-      doc(db,"users",myUid,"following",targetUid)
-    );
-
-    const theirFollowing = await getDoc(
-      doc(db,"users",targetUid,"following",myUid)
-    );
-
-    if(!(myFollowing.exists() && theirFollowing.exists())){
-      alert("Perlu saling follow untuk chat");
-      return;
-    }
-
-    const roomRef = doc(db,"chatRooms",roomId);
-    const roomSnap = await getDoc(roomRef);
-
-    if(!roomSnap.exists()){
-      await setDoc(roomRef,{
-        participants: [myUid, targetUid],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        lastMessage: ""
+      await updateDoc(doc(db, "users", user.uid), {
+        photoURL: downloadURL
       });
+
+      location.reload();
+
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed");
     }
 
-    renderChatUI(roomId, targetUid);
-
-  }catch(err){
-    console.error(err);
-  }
-};
-
+  });
+}
 let unsubscribeMessages = null;
 
 async function renderChatUI(roomId, targetUid){
@@ -687,6 +578,122 @@ async function renderChatUI(roomId, targetUid){
     input.value = "";
   };
 }
+
+/* =========================================
+   STUBS - WINDOW SECTION B
+========================================= */
+window.toggleFollow = async function(targetUid){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const button = document.querySelector(
+    `button[onclick="toggleFollow('${targetUid}')"]`
+  );
+
+  const isCurrentlyFollowing = button.classList.contains("following");
+
+  // 🔥 Optimistic UI update
+  if(isCurrentlyFollowing){
+    button.classList.remove("following");
+    button.innerText = "Follow";
+  }else{
+    button.classList.add("following");
+    button.innerText = "Following";
+  }
+
+  try{
+
+    const myUid = user.uid;
+
+    const myFollowingRef = doc(db,"users",myUid,"following",targetUid);
+    const targetFollowerRef = doc(db,"users",targetUid,"followers",myUid);
+
+    const myUserRef = doc(db,"users",myUid);
+    const targetUserRef = doc(db,"users",targetUid);
+
+    await runTransaction(db, async (transaction)=>{
+
+      const followSnap = await transaction.get(myFollowingRef);
+
+      if(followSnap.exists()){
+
+        transaction.delete(myFollowingRef);
+        transaction.delete(targetFollowerRef);
+
+        transaction.update(myUserRef,{
+          followingCount: increment(-1)
+        });
+
+        transaction.update(targetUserRef,{
+          followersCount: increment(-1)
+        });
+
+      }else{
+
+        transaction.set(myFollowingRef,{ createdAt: serverTimestamp() });
+        transaction.set(targetFollowerRef,{ createdAt: serverTimestamp() });
+
+        transaction.update(myUserRef,{
+          followingCount: increment(1)
+        });
+
+        transaction.update(targetUserRef,{
+          followersCount: increment(1)
+        });
+      }
+
+    });
+
+  }catch(err){
+    console.error(err);
+  }
+}
+
+window.handleChat = async function(targetUid){
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login dulu");
+    return;
+  }
+
+  const myUid = user.uid;
+  const roomId = [myUid, targetUid].sort().join("_");
+
+  try{
+
+    const myFollowing = await getDoc(
+      doc(db,"users",myUid,"following",targetUid)
+    );
+
+    const theirFollowing = await getDoc(
+      doc(db,"users",targetUid,"following",myUid)
+    );
+
+    if(!(myFollowing.exists() && theirFollowing.exists())){
+      alert("Perlu saling follow untuk chat");
+      return;
+    }
+
+    const roomRef = doc(db,"chatRooms",roomId);
+    const roomSnap = await getDoc(roomRef);
+
+    if(!roomSnap.exists()){
+      await setDoc(roomRef,{
+        participants: [myUid, targetUid],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        lastMessage: ""
+      });
+    }
+
+    renderChatUI(roomId, targetUid);
+
+  }catch(err){
+    console.error(err);
+  }
+};
 
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
