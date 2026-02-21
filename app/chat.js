@@ -1,3 +1,5 @@
+import { doc, updateDoc } from "./firestore.js";
+
 export async function renderChat(){
 
   const content = document.getElementById("content");
