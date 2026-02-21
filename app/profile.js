@@ -932,12 +932,69 @@ export async function renderHome(){
   const content = document.getElementById("content");
   const user = auth.currentUser;
 
-  if(!content) return;
+  if(!content || !user) return;
 
-  if(!user){
-    content.innerHTML = `<div style="padding:20px">Silakan login</div>`;
-    return;
+  content.innerHTML = `
+    <div style="padding:20px">
+      <h2>Home</h2>
+      <div id="walletSection">Loading wallet...</div>
+      <div id="unreadSection">Loading messages...</div>
+      <div id="bookingSection">Loading booking...</div>
+    </div>
+  `;
+
+  try{
+
+    // ===== WALLET =====
+    const userSnap = await getDoc(doc(db,"users",user.uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    const balance = userData.walletBalance || 0;
+
+    document.getElementById("walletSection").innerHTML =
+      `Saldo: Rp ${balance.toLocaleString()}`;
+
+    // ===== CHAT UNREAD =====
+    const roomsSnap = await getDocs(
+      query(
+        collection(db,"chatRooms"),
+        where("participants","array-contains", user.uid)
+      )
+    );
+
+    let totalUnread = 0;
+
+    roomsSnap.forEach(docSnap=>{
+      const data = docSnap.data();
+      if(data.unreadCount && data.unreadCount[user.uid]){
+        totalUnread += data.unreadCount[user.uid];
+      }
+    });
+
+    document.getElementById("unreadSection").innerHTML =
+      `Pesan belum dibaca: ${totalUnread}`;
+
+    // ===== BOOKING =====
+    const bookingSnap = await getDocs(
+      query(
+        collection(db,"bookings"),
+        where("userId","==", user.uid)
+      )
+    );
+
+    document.getElementById("bookingSection").innerHTML =
+      `Total booking: ${bookingSnap.size}`;
+
+  }catch(error){
+
+    console.error("Home error:", error);
+
+    content.innerHTML = `
+      <div style="padding:20px;color:red">
+        Error loading dashboard.
+      </div>
+    `;
   }
+}
 
   // ===== GET USER DATA =====
   const userSnap = await getDoc(doc(db,"users",user.uid));
@@ -1072,6 +1129,8 @@ export async function renderHome(){
       : "Rp ******";
   };
 }
+
+
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
