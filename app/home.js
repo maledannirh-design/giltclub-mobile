@@ -18,20 +18,74 @@ export async function renderHome(){
   if(!content || !user) return;
 
   content.innerHTML = `
-    <div style="padding:20px">
+  <div class="home-container">
 
-      <div id="walletSection">Loading wallet...</div>
+    <!-- 🔹 HEADER ACCOUNT -->
+    <div class="home-header">
+      <div class="home-profile-left">
+        <div class="home-avatar">
+          ${
+            userData?.photoURL
+              ? `<img src="${userData.photoURL}" />`
+              : `<div class="avatar-placeholder">👤</div>`
+          }
+        </div>
 
-      <div id="unreadWrapper" style="margin-top:20px; display:none;">
-        <div id="unreadList"></div>
+        <div class="home-user-text">
+          <div class="home-username">
+            ${userData.username || "User"}
+          </div>
+          <div class="home-gpoint">
+            ${userData.gPoint || 0} G-Point
+          </div>
+        </div>
       </div>
 
-      <div id="bookingSection" style="margin-top:20px">
-        Loading booking...
+      <div class="home-unread-icon">
+        <div class="mail-icon">✉️</div>
+        <div id="homeUnreadBadge" class="home-unread-badge hidden">0</div>
+      </div>
+    </div>
+
+    <!-- 🔹 UNREAD PREVIEW -->
+    <div id="homeUnreadScroll" class="home-unread-scroll"></div>
+
+    <!-- 🔹 WALLET CARD -->
+    <div class="wallet-card-pink">
+
+      <div class="wallet-card-header">
+        <div class="wallet-title">G-WALLET</div>
+        <div class="wallet-saldo-toggle">
+          <span>G-Saldo</span>
+          <span id="toggleSaldoBtn" class="eye-btn">👁</span>
+        </div>
+      </div>
+
+      <div class="wallet-main-content">
+
+        <div class="wallet-left">
+          <div id="walletAmount" class="wallet-amount">
+            Rp ${balance.toLocaleString("id-ID")}
+          </div>
+
+          <button class="wallet-topup-btn">
+            ➕ Top Up
+          </button>
+        </div>
+
+        <div class="wallet-right">
+          <img 
+            src="https://raw.githubusercontent.com/USERNAME/REPO/main/member-card.png" 
+            class="member-card-img"
+          />
+        </div>
+
       </div>
 
     </div>
-  `;
+
+  </div>
+`;
 
   try{
 
@@ -113,3 +167,27 @@ export async function renderHome(){
     console.error(error);
   }
 }
+if(totalUnread > 0){
+  const badge = document.getElementById("homeUnreadBadge");
+  badge.classList.remove("hidden");
+  badge.innerText = totalUnread;
+}
+let saldoVisible = true;
+
+document.getElementById("toggleSaldoBtn").onclick = ()=>{
+  saldoVisible = !saldoVisible;
+
+  document.getElementById("walletAmount").innerText =
+    saldoVisible
+      ? `Rp ${balance.toLocaleString("id-ID")}`
+      : "Rp ******";
+};
+
+const scroll = document.getElementById("homeUnreadScroll");
+
+unreadRooms.slice(0,5).forEach(room=>{
+  const item = document.createElement("div");
+  item.className = "home-unread-item";
+  item.textContent = room.lastMessage;
+  scroll.appendChild(item);
+});
