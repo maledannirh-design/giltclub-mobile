@@ -585,6 +585,7 @@ window.handleChat = async function(targetUid){
     console.error(err);
   }
 };
+
 let unsubscribeMessages = null;
 
 async function renderChatUI(roomId, targetUid){
@@ -592,12 +593,33 @@ async function renderChatUI(roomId, targetUid){
   const content = document.getElementById("content");
   const user = auth.currentUser;
 
+  const userSnap = await getDoc(doc(db,"users",targetUid));
+  const targetData = userSnap.exists() ? userSnap.data() : null;
+
+  const username = targetData?.username || "User";
+  const photo = targetData?.photoURL 
+      ? `<img src="${targetData.photoURL}" class="chat-avatar-img">`
+      : `<div class="chat-avatar-placeholder">👤</div>`;
+
   content.innerHTML = `
     <div class="chat-container">
 
       <div class="chat-header">
-        <button onclick="renderMembers()">← Back</button>
-        <div>Chat</div>
+
+        <div class="chat-back" onclick="renderMembers()">
+          ←
+        </div>
+
+        <div class="chat-user-info">
+          <div class="chat-avatar">
+            ${photo}
+          </div>
+          <div class="chat-user-text">
+            <div class="chat-username">${username}</div>
+            <div class="chat-status">Online</div>
+          </div>
+        </div>
+
       </div>
 
       <div id="chatMessages" class="chat-messages"></div>
@@ -665,6 +687,7 @@ async function renderChatUI(roomId, targetUid){
     input.value = "";
   };
 }
+
 window.toggleFriend = (uid)=> alert("Friend logic for " + uid);
 
 window.blockUser = (uid)=>{
