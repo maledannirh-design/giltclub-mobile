@@ -478,12 +478,23 @@ export function renderMembers(){
 // ===== FUNGI RENDER CHAT =====
 
 let unsubscribeMessages = null;
+let unsubscribeTyping = null;
 
 async function renderChatUI(roomId, targetUid){
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
+  if(!user) return;
 
+  // ===== UPDATE LAST READ =====
+  await updateDoc(
+    doc(db,"chatRooms",roomId),
+    {
+      [`lastRead.${user.uid}`]: serverTimestamp()
+    }
+  );
+
+  // ===== GET TARGET USER =====
   const userSnap = await getDoc(doc(db,"users",targetUid));
   const targetData = userSnap.exists() ? userSnap.data() : null;
 
@@ -492,28 +503,24 @@ async function renderChatUI(roomId, targetUid){
       ? `<img src="${targetData.photoURL}" class="chat-avatar-img">`
       : `<div class="chat-avatar-placeholder">👤</div>`;
 
+  // ===== RENDER UI =====
   content.innerHTML = `
     <div class="chat-container">
 
       <div class="chat-header">
-
-        <div class="chat-back" onclick="renderMembers()">
-          ←
-        </div>
+        <div class="chat-back" onclick="renderMembers()">←</div>
 
         <div class="chat-user-info">
-          <div class="chat-avatar">
-            ${photo}
-          </div>
+          <div class="chat-avatar">${photo}</div>
           <div class="chat-user-text">
             <div class="chat-username">${username}</div>
             <div class="chat-status">Online</div>
           </div>
         </div>
-
       </div>
 
       <div id="chatMessages" class="chat-messages"></div>
+      <div id="typingIndicator"></div>
 
       <div class="chat-input">
         <input id="chatText" placeholder="Type message...">
@@ -523,59 +530,73 @@ async function renderChatUI(roomId, targetUid){
     </div>
   `;
 
-   // ===== LISTENER CHAT =====
   const messagesEl = document.getElementById("chatMessages");
+  const typingEl   = document.getElementById("typingIndicator");
+  const chatInput  = document.getElementById("chatText");
+  const sendBtn    = document.getElementById("sendMessageBtn");
 
+  // ===== HELPER FUNCTIONS =====
+  function isUserNearBottom(){
+    const threshold = 120;
+    return (
+      messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight
+    ) < threshold;
+  }
+
+  function scrollToBottom(smooth = true){
+    messagesEl.scrollTo({
+      top: messagesEl.scrollHeight,
+      behavior: smooth ? "smooth" : "auto"
+    });
+  }
+
+  // ===== LISTENER CHAT =====
   if(unsubscribeMessages) unsubscribeMessages();
 
   unsubscribeMessages = onSnapshot(
-  query(
-    collection(db,"chatRooms",roomId,"messages"),
-    orderBy("createdAt","asc")
-  ),
-  (snapshot)=>{
+    query(
+      collection(db,"chatRooms",roomId,"messages"),
+      orderBy("createdAt","asc")
+    ),
+    (snapshot)=>{
 
-    messagesEl.innerHTML = "";
+      const shouldScroll = isUserNearBottom();
 
-    let lastSender = null;
-    let currentGroup = null;
+      messagesEl.innerHTML = "";
 
-    snapshot.forEach(doc=>{
+      let lastSender = null;
+      let currentGroup = null;
 
-      const data = doc.data();
-      const isMine = data.senderId === user.uid;
-      const senderType = isMine ? "mine" : "theirs";
+      snapshot.forEach(doc=>{
 
-      // kalau sender beda dari sebelumnya → buat group baru
-      if(lastSender !== data.senderId){
+        const data = doc.data();
+        const isMine = data.senderId === user.uid;
+        const senderType = isMine ? "mine" : "theirs";
 
-        currentGroup = document.createElement("div");
-        currentGroup.className = `chat-group ${senderType}`;
+        if(lastSender !== data.senderId){
+          currentGroup = document.createElement("div");
+          currentGroup.className = `chat-group ${senderType}`;
+          messagesEl.appendChild(currentGroup);
+        }
 
-        messagesEl.appendChild(currentGroup);
+        const bubble = document.createElement("div");
+        bubble.className = `chat-bubble ${senderType}`;
+        bubble.textContent = data.text;
+
+        currentGroup.appendChild(bubble);
+        lastSender = data.senderId;
+      });
+
+      if(shouldScroll){
+        scrollToBottom(true);
       }
+    }
+  );
 
-      const bubble = document.createElement("div");
-      bubble.className = `chat-bubble ${senderType}`;
-      bubble.textContent = data.text;
+  // ===== SEND MESSAGE =====
+  sendBtn.onclick = async ()=>{
 
-      currentGroup.appendChild(bubble);
-
-      lastSender = data.senderId;
-    });
-
-    messagesEl.scrollTo({
-      top: messagesEl.scrollHeight,
-      behavior: "auto"
-    });
-  }
-);
-
-   
-  document.getElementById("sendMessageBtn").onclick = async ()=>{
-
-    const input = document.getElementById("chatText");
-    const text = input.value.trim();
+    const text = chatInput.value.trim();
     if(!text) return;
 
     await addDoc(
@@ -591,12 +612,63 @@ async function renderChatUI(roomId, targetUid){
       doc(db,"chatRooms",roomId),
       {
         lastMessage: text,
+        lastMessageAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       }
     );
 
-    input.value = "";
+    chatInput.value = "";
+    scrollToBottom(true);
   };
+
+  // ===== TYPING INDICATOR =====
+  let typingTimeout = null;
+
+  chatInput.addEventListener("input", async ()=>{
+
+    const typingRef = doc(db,"chatRooms",roomId,"typing",user.uid);
+
+    await setDoc(typingRef,{
+      isTyping: true,
+      updatedAt: serverTimestamp()
+    });
+
+    clearTimeout(typingTimeout);
+
+    typingTimeout = setTimeout(async ()=>{
+      await setDoc(typingRef,{
+        isTyping: false,
+        updatedAt: serverTimestamp()
+      });
+    },1500);
+  });
+
+  // ===== LISTEN TYPING =====
+  if(unsubscribeTyping) unsubscribeTyping();
+
+  unsubscribeTyping = onSnapshot(
+    collection(db,"chatRooms",roomId,"typing"),
+    (snapshot)=>{
+
+      let someoneTyping = false;
+
+      snapshot.forEach(doc=>{
+        if(doc.id !== user.uid && doc.data().isTyping){
+          someoneTyping = true;
+        }
+      });
+
+      if(someoneTyping){
+        typingEl.innerHTML = `
+          <div class="typing-indicator">
+            <span></span><span></span><span></span>
+          </div>
+        `;
+      }else{
+        typingEl.innerHTML = "";
+      }
+    }
+  );
 }
 
 /* =========================================
