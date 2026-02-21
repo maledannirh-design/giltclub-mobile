@@ -30,15 +30,18 @@ export async function navigate(page){
 
     switch(page){
 
-case "home":
-  (await import("./profile.js")).renderHome();
-  break;
+      case "home":
+        (await import("./home.js")).renderHome();
+        break;
+
       case "account":
         (await import("./profile.js")).renderAccountUI();
         break;
-    case "chat":
-  renderChat();
-  break;
+
+      case "chat":
+        (await import("./profile.js")).renderChatList();
+        break;
+
       case "members":
         (await import("./profile.js")).renderMembers();
         break;
