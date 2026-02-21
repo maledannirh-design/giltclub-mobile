@@ -4,6 +4,29 @@ import { doc, getDoc } from "./firestore.js";
 import { initTheme, toggleTheme } from "./theme.js";
 import { renderAccountUI, renderMembers } from "./profile.js";
 
+import { getDatabase, ref, set, onDisconnect, serverTimestamp } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const rtdb = getDatabase();
+
+auth.onAuthStateChanged(user=>{
+  if(!user) return;
+
+  const statusRef = ref(rtdb, "status/" + user.uid);
+
+  set(statusRef,{
+    online: true,
+    lastSeen: serverTimestamp()
+  });
+
+  onDisconnect(statusRef).set({
+    online: false,
+    lastSeen: serverTimestamp()
+  });
+});
+
+
+
 // Expose navigate ke global
 window.navigate = navigate;
 
