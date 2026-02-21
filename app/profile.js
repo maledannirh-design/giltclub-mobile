@@ -338,7 +338,6 @@ auth.onAuthStateChanged(user=>{
 
 let unsubscribeMembers = null;
 let unsubscribeFollowing = null;
-let unsubscribeFollowers = null;
 
 export function renderMembers(){
 
