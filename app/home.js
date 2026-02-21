@@ -154,26 +154,38 @@ export async function renderHome(){
       </div>
     `;
 
-    /* =============================
-       RENDER UNREAD PREVIEW
-    ============================= */
-    const scroll = document.getElementById("homeUnreadScroll");
+ /* =============================
+   RENDER UNREAD PREVIEW
+============================= */
+const scroll = document.getElementById("homeUnreadScroll");
 
-    unreadRooms.slice(0,5).forEach(room=>{
-      const otherUid = room.participants.find(p=>p !== user.uid);
-      const otherUser = room.userMap?.[otherUid] || {};
-      const username = otherUser.username || otherUser.name || "User";
+if (scroll) {
 
-      const item = document.createElement("div");
-      item.className = "home-unread-item";
-      item.textContent = `${username}: ${room.lastMessage || ""}`;
+  scroll.innerHTML = ""; // reset dulu biar tidak dobel render
 
-      item.onclick = ()=>{
-        window.renderChatUI(room.id, otherUid);
-      };
+  unreadRooms.slice(0,5).forEach(room=>{
 
-      scroll.appendChild(item);
-    });
+    const otherUid = room.participants.find(p => p !== user.uid);
+    const otherUser = room.userMap?.[otherUid] || {};
+    const username = otherUser.username || otherUser.name || "User";
+    const lastMessage = room.lastMessage || "";
+
+    const item = document.createElement("div");
+    item.className = "home-unread-item";
+
+    item.innerHTML = `
+      <div class="unread-name">${username}</div>
+      <div class="unread-text">${lastMessage}</div>
+    `;
+
+    item.onclick = ()=>{
+      window.renderChatUI(room.id, otherUid);
+    };
+
+    scroll.appendChild(item);
+  });
+
+}
 
     /* =============================
        TOGGLE SALDO (SVG SWITCH)
