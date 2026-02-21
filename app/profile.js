@@ -1,15 +1,13 @@
 import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
-
 let currentUserData = null;
 let unsubscribeFollowers = null;
 
 import {
   doc, updateDoc, collection, query, increment,
   orderBy, onSnapshot, getDocs, runTransaction,
-  getDoc, setDoc, addDoc, serverTimestamp
-} from "./firestore.js";
+  getDoc, setDoc, addDoc, serverTimestamp, writheBatch } from "./firestore.js";
 import { ref as storageRef, uploadBytes, getDownloadURL } from "./storage.js";
 import {
   getDatabase, ref, set, onDisconnect, onValue
@@ -505,7 +503,6 @@ export function renderMembers(){
     );
   }
 }
-
 /* =========================================
    SECTION C TAMPILAN CHAT
 ========================================= */
@@ -520,18 +517,18 @@ async function renderChatUI(roomId, targetUid){
   const user = auth.currentUser;
   if(!user || !content) return;
 
-  // stop old listeners
+  // Stop old listeners
   if(unsubscribeMessages) unsubscribeMessages();
   if(unsubscribeTyping) unsubscribeTyping();
   if(unsubscribeStatus) unsubscribeStatus();
 
-  // ===== UPDATE LAST READ =====
+  // Update last read
   await updateDoc(
     doc(db,"chatRooms",roomId),
     { [`lastRead.${user.uid}`]: serverTimestamp() }
   );
 
-  // ===== GET TARGET USER =====
+  // Get target user
   const userSnap = await getDoc(doc(db,"users",targetUid));
   const targetData = userSnap.exists() ? userSnap.data() : null;
 
@@ -540,11 +537,12 @@ async function renderChatUI(roomId, targetUid){
     ? `<img src="${targetData.photoURL}" class="chat-avatar-img">`
     : `<div class="chat-avatar-placeholder">👤</div>`;
 
-  // ===== RENDER UI =====
+  // Render UI
   content.innerHTML = `
     <div class="chat-container">
       <div class="chat-header">
         <div class="chat-back" onclick="renderMembers()">←</div>
+
         <div class="chat-user-info">
           <div class="chat-avatar">${photo}</div>
           <div class="chat-user-text">
@@ -552,6 +550,8 @@ async function renderChatUI(roomId, targetUid){
             <div class="chat-status">Loading...</div>
           </div>
         </div>
+
+        <div class="chat-clear" id="clearChatBtn">🗑</div>
       </div>
 
       <div id="chatMessages" class="chat-messages"></div>
@@ -568,8 +568,9 @@ async function renderChatUI(roomId, targetUid){
   const typingEl   = document.getElementById("typingIndicator");
   const chatInput  = document.getElementById("chatText");
   const sendBtn    = document.getElementById("sendMessageBtn");
+  const clearBtn   = document.getElementById("clearChatBtn");
 
-  if(!messagesEl || !typingEl || !chatInput || !sendBtn) return;
+  if(!messagesEl || !typingEl || !chatInput || !sendBtn || !clearBtn) return;
 
   // =============================
   // ONLINE STATUS
@@ -594,7 +595,7 @@ async function renderChatUI(roomId, targetUid){
       const date = new Date(status.lastSeen);
       statusEl.textContent =
         "Last seen " +
-        date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        date.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
     }else{
       statusEl.textContent = "Offline";
     }
@@ -615,13 +616,24 @@ async function renderChatUI(roomId, targetUid){
 
       messagesEl.innerHTML = "";
 
+      let lastSender = null;
+      let currentGroup = null;
+
       snapshot.forEach(docSnap=>{
 
         const data = docSnap.data();
         const isMine = data.senderId === user.uid;
+        const senderType = isMine ? "mine" : "theirs";
+
+        // New group if sender changes
+        if(lastSender !== data.senderId){
+          currentGroup = document.createElement("div");
+          currentGroup.className = `chat-group ${senderType}`;
+          messagesEl.appendChild(currentGroup);
+        }
 
         const bubble = document.createElement("div");
-        bubble.className = `chat-bubble ${isMine ? "mine" : "theirs"}`;
+        bubble.className = `chat-bubble ${senderType}`;
 
         const textEl = document.createElement("div");
         textEl.className = "bubble-content";
@@ -634,8 +646,8 @@ async function renderChatUI(roomId, targetUid){
           footer.className = "bubble-footer";
 
           const time = date.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
+            hour:"2-digit",
+            minute:"2-digit"
           });
 
           footer.textContent = time;
@@ -647,12 +659,14 @@ async function renderChatUI(roomId, targetUid){
           bubble.appendChild(footer);
         }
 
-        messagesEl.appendChild(bubble);
+        currentGroup.appendChild(bubble);
 
-        // auto mark seen
+        // Auto mark seen
         if(!isMine && !data.seen){
           updateDoc(docSnap.ref,{ seen:true });
         }
+
+        lastSender = data.senderId;
       });
 
       messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -670,29 +684,29 @@ async function renderChatUI(roomId, targetUid){
     await addDoc(
       collection(db,"chatRooms",roomId,"messages"),
       {
-        senderId: user.uid,
+        senderId:user.uid,
         text,
-        createdAt: serverTimestamp(),
-        seen: false
+        createdAt:serverTimestamp(),
+        seen:false
       }
     );
 
     await updateDoc(
       doc(db,"chatRooms",roomId),
       {
-        lastMessage: text,
-        lastMessageAt: serverTimestamp(),
-        lastSender: user.uid
+        lastMessage:text,
+        lastMessageAt:serverTimestamp(),
+        lastSender:user.uid
       }
     );
 
-    chatInput.value = "";
+    chatInput.value="";
   }
 
   sendBtn.onclick = sendMessage;
 
   chatInput.addEventListener("keydown",(e)=>{
-    if(e.key === "Enter"){
+    if(e.key==="Enter"){
       e.preventDefault();
       sendMessage();
     }
@@ -705,6 +719,7 @@ async function renderChatUI(roomId, targetUid){
   let typingTimeout = null;
 
   chatInput.addEventListener("input", async ()=>{
+
     const typingRef = doc(db,"chatRooms",roomId,"typing",user.uid);
 
     await setDoc(typingRef,{
@@ -737,12 +752,43 @@ async function renderChatUI(roomId, targetUid){
       });
 
       typingEl.innerHTML = someoneTyping
-        ? `<div class="typing-indicator"><span></span><span></span><span></span></div>`
+        ? `<div class="typing-indicator">
+             <span></span><span></span><span></span>
+           </div>`
         : "";
     }
   );
-}
 
+  // =============================
+  // CLEAR CHAT
+  // =============================
+
+  clearBtn.onclick = async ()=>{
+
+    if(!confirm("Clear this chat?")) return;
+
+    const snap = await getDocs(
+      collection(db,"chatRooms",roomId,"messages")
+    );
+
+    const batch = writeBatch(db);
+
+    snap.forEach(doc=>{
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+
+    await updateDoc(
+      doc(db,"chatRooms",roomId),
+      {
+        lastMessage:"",
+        lastMessageAt:null,
+        lastSender:null
+      }
+    );
+  };
+}
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
