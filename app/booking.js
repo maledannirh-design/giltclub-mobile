@@ -36,8 +36,7 @@ export async function renderBooking(){
 
     const user = auth.currentUser;
 
-    unsubscribeSchedules = onSnapshot(
-      collection(db, "schedules"),
+    unsubscribeSchedules = query(collection(db,"schedules"), where("status","==","open")),
       async (snapshot) => {
 
         const schedules = snapshot.docs.map(doc => ({
@@ -116,7 +115,7 @@ function renderScheduleUI(schedules, userBookings){
     } else if (existingBooking) {
 
       html += `
-        <button class="btn btn-danger cancel-btn" data-id="...">
+        <button class="btn btn-danger cancel-btn" data-id="${existingBooking.id}">
   Batalkan
 </button>
       `;
@@ -124,7 +123,7 @@ function renderScheduleUI(schedules, userBookings){
     } else {
 
       html += `
-        <button class="btn btn-primary book-btn" data-id="...">
+        <button class="btn btn-primary book-btn" data-id="${schedule.id}">
   Gabung
 </button>
       `;
