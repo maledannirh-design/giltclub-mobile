@@ -12,21 +12,20 @@ import { recalculateUserStats } from "./userStats.js";
 
 const migrationData = [
  {
-   username: "aderia",
-   totalTopup: 500000,
-   walletBalance: 80000
+   username: "usewin ameera",
+   totalTopup: 1650000,
+   walletBalance: 20250
  },
-  {
-   username: "wawa",
-   totalTopup: 1200000,
-   walletBalance: 410000
+ {
+   username: "jodai",
+   totalTopup: 715000,
+   walletBalance: 115000
  },
  {
    username: "Coach Jack Dimitry",
    totalTopup: 2345000,
    walletBalance: 2120250
  }
-
 ];
 
 export async function runMigration(){
