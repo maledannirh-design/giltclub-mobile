@@ -250,3 +250,32 @@
   border:none;
   border-radius:12px;
 }
+
+.qris-container{
+  margin:20px 0;
+  text-align:center;
+}
+
+.qris-image{
+  width:100%;
+  max-width:340px;
+  border-radius:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+
+.payment-guide{
+  background:rgba(255,255,255,.05);
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:18px;
+  font-size:13px;
+}
+
+.payment-guide h4{
+  margin-bottom:8px;
+}
+
+.payment-guide ol{
+  padding-left:18px;
+  line-height:1.6;
+}
