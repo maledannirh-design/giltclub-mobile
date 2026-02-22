@@ -3,234 +3,362 @@ import { collection, query, where, getDocs, onSnapshot } from "./firestore.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
 import { showToast, showConfirm } from "./ui.js";
 
-
-
 /* ===============================
-   REALTIME LISTENER CONTROL
+   STATE
 ================================= */
 let unsubscribeSchedules = null;
 let bookingLock = false;
-
+let currentWeekStart = startOfWeek(new Date());
+let selectedDate = formatDate(new Date());
+let allSchedules = [];
+let userBookings = [];
 
 /* ===============================
-   RENDER BOOKING PAGE
+   ENTRY
 ================================= */
-export async function renderBooking(){
+export async function renderBooking() {
 
   const content = document.getElementById("content");
   if (!content) return;
 
-  // Stop previous listener if exists
   if (unsubscribeSchedules) {
     unsubscribeSchedules();
     unsubscribeSchedules = null;
   }
 
-  content.innerHTML = `
-    <div style="padding:20px;text-align:center;opacity:.6;">
-      Loading...
-    </div>
-  `;
+  content.innerHTML = `<div style="padding:20px;text-align:center;opacity:.6;">Loading...</div>`;
 
   try {
 
-    const user = auth.currentUser;
-
-    unsubscribeSchedules = query(collection(db,"schedules"), where("status","==","open")),
+    unsubscribeSchedules = onSnapshot(
+      query(collection(db, "schedules"), where("status", "==", "open")),
       async (snapshot) => {
 
-        const schedules = snapshot.docs.map(doc => ({
+        allSchedules = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
 
-        const userBookings = user
-          ? await loadUserBookings(user.uid)
-          : [];
+        if (auth.currentUser) {
+          userBookings = await loadUserBookings(auth.currentUser.uid);
+        } else {
+          userBookings = [];
+        }
 
-        renderScheduleUI(schedules, userBookings);
+        renderFullUI();
       }
     );
 
-  } catch (error) {
-
-    console.error(error);
-    content.innerHTML = "<p>Error loading schedules.</p>";
-
+  } catch (err) {
+    console.error(err);
+    content.innerHTML = "Error loading booking page.";
   }
 }
 
-
 /* ===============================
-   LOAD USER BOOKINGS
+   MAIN RENDER
 ================================= */
-async function loadUserBookings(userId){
-
-  const q = query(
-    collection(db, "bookings"),
-    where("userId", "==", userId),
-    where("status", "==", "active")
-  );
-
-  const snap = await getDocs(q);
-
-  return snap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-}
-
-
-/* ===============================
-   RENDER UI
-================================= */
-function renderScheduleUI(schedules, userBookings){
+function renderFullUI() {
 
   const content = document.getElementById("content");
   if (!content) return;
 
-  const bookingMap = {};
-  userBookings.forEach(b => {
-    bookingMap[b.scheduleId] = b;
-  });
+  content.innerHTML = `
+    ${renderUpcoming()}
+    ${renderCalendar()}
+    <div id="sessionContainer"></div>
+    ${renderCreateSessionCard()}
+  `;
 
-  let html = `<h2>Book Session</h2>`;
+  renderSessionsByDate(selectedDate);
+  attachGlobalEvents();
+}
 
-  schedules.forEach(schedule => {
+/* ===============================
+   UPCOMING EMERALD GLASS
+================================= */
+function renderUpcoming() {
 
-    const existingBooking = bookingMap[schedule.id];
+  const upcoming = [...allSchedules]
+    .filter(s => new Date(s.date) >= new Date())
+    .sort((a,b)=> new Date(a.date) - new Date(b.date))
+    .slice(0,6);
 
+  let html = `
+  <div class="upcoming-wrapper">
+    <div class="upcoming-scroll">
+  `;
+
+  upcoming.forEach(s => {
     html += `
-      <div class="schedule-card">
-        <div><strong>${schedule.title || "Session"}</strong></div>
-        <div>Date: ${schedule.date}</div>
-        <div>Slots: ${schedule.slots}</div>
-        <div>Price: ${schedule.price || 0}</div>
+      <div class="upcoming-card ${isDominant(s) ? "dominant":""}">
+        <div>${s.level || "Session"}</div>
+        <div>${formatDisplayDate(s.date)}</div>
+        <div>${s.startTime || ""} - ${s.endTime || ""}</div>
+      </div>
     `;
-
-    if (!auth.currentUser) {
-
-      html += `<div style="opacity:.6;">Login to join</div>`;
-
-    } else if (existingBooking) {
-
-      html += `
-        <button class="btn btn-danger cancel-btn" data-id="${existingBooking.id}">
-  Batalkan
-</button>
-      `;
-
-    } else {
-
-      html += `
-        <button class="btn btn-primary book-btn" data-id="${schedule.id}">
-  Gabung
-</button>
-      `;
-    }
-
-    html += `</div>`;
   });
+
+  html += `</div></div>`;
+  return html;
+}
+
+/* ===============================
+   CALENDAR
+================================= */
+function renderCalendar() {
+
+  const days = getWeekDays(currentWeekStart);
+
+  let html = `
+  <div class="calendar-container">
+    <div class="calendar-header">
+      <button id="prevWeek">←</button>
+      <h3>${formatMonth(currentWeekStart)}</h3>
+      <button id="nextWeek">→</button>
+    </div>
+    <div class="week-grid">
+  `;
+
+  days.forEach(d => {
+    const dateStr = formatDate(d);
+    html += `
+      <div class="day-card ${dateStr === selectedDate ? "active":""}" data-date="${dateStr}">
+        <div>${d.toLocaleDateString("en-US",{weekday:"short"})}</div>
+        <div>${d.getDate()}</div>
+      </div>
+    `;
+  });
+
+  html += `</div></div>`;
+  return html;
+}
+
+/* ===============================
+   SESSIONS BY DATE
+================================= */
+function renderSessionsByDate(dateStr) {
+
+  const container = document.getElementById("sessionContainer");
+  if (!container) return;
+
+  const sessions = allSchedules
+    .filter(s => s.date === dateStr)
+    .sort((a,b)=> (a.startTime||"").localeCompare(b.startTime||""));
+
+  const dominant = sessions.filter(s => isDominant(s));
+  const normal = sessions.filter(s => !isDominant(s));
+
+  let html = "";
+
+  if (dominant.length) {
+    html += `<h3 style="padding:16px;">Club Sessions</h3>`;
+    dominant.forEach(s => html += renderSessionCard(s,true));
+  }
+
+  if (normal.length) {
+    html += `<h3 style="padding:16px;">Member Sessions</h3>`;
+    normal.forEach(s => html += renderSessionCard(s,false));
+  }
+
+  if (!sessions.length) {
+    html = `<div style="padding:20px;opacity:.6;">No session this day</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+/* ===============================
+   SESSION CARD
+================================= */
+function renderSessionCard(s, dominant=false) {
+
+  const existingBooking = userBookings.find(b => b.scheduleId === s.id);
+
+  return `
+    <div class="session-card ${dominant ? "dominant":""}">
+      <div class="session-header">
+        <div>${s.level || "Session"}</div>
+        <div>${s.startTime || ""} - ${s.endTime || ""}</div>
+      </div>
+      <div>
+        Court: ${s.court || "Tentative"}<br/>
+        Rate: ${s.price || 0}<br/>
+        Max Slot: ${s.maxSlot || 0}<br/>
+        Sisa Slot: ${s.slots || 0}
+      </div>
+      <div style="margin-top:12px;">
+        ${
+          !auth.currentUser
+          ? `<div style="opacity:.5;">Login to join</div>`
+          : existingBooking
+            ? `<button class="cancel-btn" data-id="${existingBooking.id}">Cancel</button>`
+            : `<button class="book-btn" data-id="${s.id}">Join</button>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+/* ===============================
+   CREATE SESSION UI
+================================= */
+function renderCreateSessionCard(){
+  return `
+    <div class="create-session-card" id="openHostForm">
+      Buat Sesi Mabar
+    </div>
+  `;
+}
+
+/* ===============================
+   HOST FORM PAGE
+================================= */
+function renderHostForm(){
+
+  const content = document.getElementById("content");
 
   content.innerHTML = `
-  <div class="page-fade">
-    ${html}
-  </div>
-`;
+    <div style="padding:20px;">
+      <h2>Create Session</h2>
+      <input placeholder="Tanggal"/>
+      <input placeholder="Lapangan"/>
+      <input placeholder="Rate"/>
+      <input placeholder="Max Player"/>
+      <textarea placeholder="Catatan"></textarea>
+      <button id="backBooking">Back</button>
+    </div>
+  `;
+}
 
+/* ===============================
+   EVENTS
+================================= */
+function attachGlobalEvents(){
 
-  // Single event delegation
+  const content = document.getElementById("content");
+
   content.onclick = async (e) => {
 
-    const bookBtn = e.target.closest(".book-btn");
-    if (bookBtn) {
-      await handleBookingClick(bookBtn.dataset.id);
-      return;
+    if (e.target.id === "prevWeek"){
+      currentWeekStart.setDate(currentWeekStart.getDate()-7);
+      renderFullUI();
     }
 
+    if (e.target.id === "nextWeek"){
+      currentWeekStart.setDate(currentWeekStart.getDate()+7);
+      renderFullUI();
+    }
+
+    const dayCard = e.target.closest(".day-card");
+    if (dayCard){
+      selectedDate = dayCard.dataset.date;
+      renderFullUI();
+    }
+
+    const bookBtn = e.target.closest(".book-btn");
+    if (bookBtn) await handleBookingClick(bookBtn.dataset.id);
+
     const cancelBtn = e.target.closest(".cancel-btn");
-    if (cancelBtn) {
-      await handleCancelClick(cancelBtn.dataset.id);
-      return;
+    if (cancelBtn) await handleCancelClick(cancelBtn.dataset.id);
+
+    if (e.target.id === "openHostForm"){
+      renderHostForm();
+    }
+
+    if (e.target.id === "backBooking"){
+      renderFullUI();
     }
 
   };
 }
 
-
 /* ===============================
-   HANDLE BOOKING
+   BOOKING ENGINE
 ================================= */
 async function handleBookingClick(scheduleId){
 
   if (bookingLock) return;
-
-  const user = auth.currentUser;
-  if (!user){
-    showToast("Please login first.", "warning");
+  if (!auth.currentUser){
+    showToast("Login first","warning");
     return;
   }
 
   bookingLock = true;
 
-  const button = document.querySelector(`.book-btn[data-id="${scheduleId}"]`);
-  if (button){
-    button.disabled = true;
-    button.innerText = "Processing...";
-  }
-
   try {
-
     await createBooking({
-      userId: user.uid,
+      userId: auth.currentUser.uid,
       scheduleId
     });
-
-    showToast("Booking successful!", "success");
-
-  } catch (error) {
-
-    showToast(error.message, "error");
-
+    showToast("Booking success","success");
+  } catch(err){
+    showToast(err.message,"error");
   } finally {
-
     bookingLock = false;
   }
 }
 
-
-
-/* ===============================
-   HANDLE CANCEL
-================================= */
 async function handleCancelClick(bookingId){
 
   if (bookingLock) return;
 
-  const confirmed = await showConfirm("Are you sure you want to cancel?");
-  if (!confirmed) return;
+  const ok = await showConfirm("Cancel this session?");
+  if (!ok) return;
 
   bookingLock = true;
 
-  const button = document.querySelector(`.cancel-btn[data-id="${bookingId}"]`);
-  if (button){
-    button.disabled = true;
-    button.innerText = "Processing...";
-  }
-
   try {
-
     await cancelBooking({ bookingId });
-
-    showToast("Booking cancelled!", "success");
-
-  } catch (error) {
-
-    showToast(error.message, "error");
-
+    showToast("Cancelled","success");
+  } catch(err){
+    showToast(err.message,"error");
   } finally {
-
     bookingLock = false;
   }
 }
 
+/* ===============================
+   UTILITIES
+================================= */
+async function loadUserBookings(userId){
+  const q = query(
+    collection(db,"bookings"),
+    where("userId","==",userId),
+    where("status","==","active")
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d=>({id:d.id,...d.data()}));
+}
+
+function isDominant(s){
+  return s.role === "admin" || s.role === "supercoach";
+}
+
+function startOfWeek(date){
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6:1);
+  return new Date(d.setDate(diff));
+}
+
+function getWeekDays(start){
+  return [...Array(7)].map((_,i)=>{
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    return d;
+  });
+}
+
+function formatDate(d){
+  if (typeof d === "string") return d;
+  return d.toISOString().split("T")[0];
+}
+
+function formatDisplayDate(d){
+  return new Date(d).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+}
+
+function formatMonth(d){
+  return d.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+}
