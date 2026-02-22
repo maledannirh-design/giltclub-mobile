@@ -29,52 +29,50 @@ export async function renderWallet(){
     /* =============================
        RENDER UI
     ============================= */
-    content.innerHTML = `
-      <div class="wallet-page">
+   content.innerHTML = `
+  <div class="wallet-page">
 
-        <div class="wallet-card-pink">
+    <!-- PINK CONTAINER -->
+    <div class="wallet-card-pink">
 
-          <div class="wallet-card-header">
-            <div class="wallet-title">G-WALLET</div>
-
-            <div class="wallet-saldo-toggle">
-              <span>G-Saldo</span>
-              <span id="toggleSaldoBtn" class="eye-btn">
-                ${eyeOpenSVG()}
-              </span>
-            </div>
-          </div>
-
-          <div class="wallet-main-content">
-
-            <div class="wallet-left">
-
-              <div id="walletAmount" class="wallet-amount">
-                Rp ******
-              </div>
-
-              <div class="wallet-action-group">
-                <button class="wallet-topup-btn">
-                  ➕ Top Up Saldo
-                </button>
-
-                <button class="wallet-withdraw-btn">
-                  ➖ Tarik Saldo
-                </button>
-              </div>
-
-            </div>
-
-            <div class="wallet-right">
-              <img src="${memberCardUrl}" class="member-card-img" />
-            </div>
-
-          </div>
-
+      <div class="wallet-card-header">
+        <div class="wallet-title">G-WALLET</div>
+        <div class="wallet-saldo-toggle">
+          <span>G-Saldo</span>
+          <span id="toggleSaldoBtn" class="eye-btn">
+            ${eyeOpenSVG()}
+          </span>
         </div>
-
       </div>
-    `;
+
+      <div id="walletAmount" class="wallet-amount">
+        Rp ******
+      </div>
+
+      <!-- MEMBER CARD BESAR -->
+      <div class="wallet-big-card">
+        <img src="${memberCardUrl}" class="wallet-member-big-img" />
+      </div>
+
+    </div>
+
+    <!-- ACTION CARDS -->
+    <div class="wallet-action-row">
+
+      <div class="wallet-action-card topup-card">
+        <div class="action-icon">➕</div>
+        <div class="action-title">Top Up</div>
+      </div>
+
+      <div class="wallet-action-card withdraw-card">
+        <div class="action-icon">➖</div>
+        <div class="action-title">Tarik Saldo</div>
+      </div>
+
+    </div>
+
+  </div>
+`;
 
     /* =============================
        TOGGLE SALDO
