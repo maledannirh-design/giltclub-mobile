@@ -10,6 +10,7 @@ import {
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { recalculateUserStats } from "./userStats.js";
 
 export async function renderAdmin(){
 
@@ -68,33 +69,49 @@ export async function renderAdmin(){
 
 window.approveTopup = async function(trxId, uid, amount){
 
-  const userRef = doc(db,"users", uid);
-  const trxRef  = doc(db,"walletTransactions", trxId);
+  const userRef = doc(db,"users",uid);
+  const trxRef  = doc(db,"walletTransactions",trxId);
 
   const userSnap = await getDoc(userRef);
-  const currentBalance = userSnap.data().walletBalance || 0;
+  const userData = userSnap.data();
 
+  const currentTopup = userData.totalTopup || 0;
+  const currentPayment = userData.totalPayment || 0;
+  const currentBalance = userData.walletBalance || 0;
+
+  const newTopup = currentTopup + amount;
   const newBalance = currentBalance + amount;
 
-  // update transaction (WITH RUNNING BALANCE)
-  await updateDoc(trxRef,{
-    status:"APPROVED",
-    approvedAt: serverTimestamp(),
-    balanceAfter: newBalance
+  // 🔥 HITUNG ULANG STATS
+  const stats = recalculateUserStats({
+    totalTopup: newTopup,
+    totalPayment: currentPayment,
+    membership: userData.membership
   });
 
-  // update user balance
+  // =============================
+  // UPDATE USER
+  // =============================
+
   await updateDoc(userRef,{
-    walletBalance: newBalance
+    walletBalance: newBalance,
+    totalTopup: newTopup,
+    level: stats.level,
+    exp: stats.expTotal,
+    gPoint: stats.gPoint
+  });
+
+  // =============================
+  // UPDATE TRANSACTION
+  // =============================
+
+  await updateDoc(trxRef,{
+    status:"APPROVED",
+    approvedAt: serverTimestamp()
   });
 
   alert("Approved");
   renderAdmin();
-  const stats = recalculateUserStats({
-  totalTopup: newTotalTopup,
-  totalPayment: currentTotalPayment,
-  membership: userData.membership
-});
 };
 
 async function migrateOpeningBalance(dataList){
