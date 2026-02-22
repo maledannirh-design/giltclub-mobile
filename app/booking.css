@@ -239,3 +239,70 @@
 
   font-size: 14px;
 }
+
+/* ===============================
+   GOOGLE STYLE CALENDAR STRIP
+================================= */
+
+.calendar-google-wrapper {
+  padding: 16px;
+}
+
+.calendar-google-card {
+  background: white;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  overflow-x: auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.calendar-google-day {
+  min-width: 70px;
+  text-align: center;
+  padding: 10px 6px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.calendar-google-day:hover {
+  background: #f3f4f6;
+}
+
+.calendar-google-day.active {
+  background: #b11226; /* merah seperti contoh */
+  color: white;
+  box-shadow: 0 6px 18px rgba(177,18,38,0.4);
+}
+
+.g-day-name {
+  font-size: 13px;
+  opacity: .8;
+}
+
+.g-day-number {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.g-month {
+  font-size: 12px;
+  opacity: .8;
+}
+
+.calendar-google-divider {
+  width: 1px;
+  height: 36px;
+  background: #e5e7eb;
+  margin-left: 4px;
+}
+
+.calendar-google-icon {
+  font-size: 18px;
+  opacity: .7;
+  padding-left: 4px;
+}
