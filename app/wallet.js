@@ -1,5 +1,15 @@
 import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+  collection, 
+  addDoc, 
+  serverTimestamp,
+  getDocs,
+  query,
+  doc,
+  getDoc,
+  where,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function renderWallet(){
 
@@ -127,14 +137,25 @@ function eyeOpenSVG(){
     </svg>
   `;
 }
+/* =============================
+   ACTION BUTTONS
+============================= */
+
+document.querySelector(".topup-card").onclick = ()=>{
+  renderTopUpSheet();
+};
+
+document.querySelector(".withdraw-card").onclick = ()=>{
+  alert("Sementara penarikan saldo langsung menghubungi admin club.");
+};
+
+document.querySelector(".ledger-card").onclick = ()=>{
+  renderLedger();
+};
 
 /* =========================================
    MUTASI REKENING
 ========================================= */
-
-document.querySelector(".ledger-card").onclick = async () => {
-  renderLedger();
-};
 async function renderLedger(){
 
   const user = auth.currentUser;
@@ -172,6 +193,92 @@ async function renderLedger(){
   });
 
   html += `</div>`;
-
   content.innerHTML = html;
+}
+
+async function renderTopUpSheet(){
+
+  const content = document.getElementById("content");
+
+  content.innerHTML = `
+    <div class="topup-sheet">
+
+      <h3>Ajukan Top Up</h3>
+
+      <div class="countdown-box">
+        Selesaikan pembayaran dalam
+        <div id="countdownTimer">15:00</div>
+      </div>
+
+      <input 
+        type="number" 
+        id="topupAmount" 
+        placeholder="Masukkan nominal (min 10.000)"
+        class="topup-input"
+      />
+
+      <div class="topup-note">
+        Bukti transfer sementara kirim ke WA admin club.
+      </div>
+
+      <button id="submitTopup" class="btn-primary">
+        Ajukan Top Up
+      </button>
+
+      <button id="cancelTopup" class="btn-danger">
+        Batal
+      </button>
+
+    </div>
+  `;
+
+  startCountdown(15 * 60);
+
+  document.getElementById("cancelTopup").onclick = ()=>{
+    renderWallet();
+  };
+
+  document.getElementById("submitTopup").onclick = async ()=>{
+
+    const amount = parseInt(
+      document.getElementById("topupAmount").value
+    );
+
+    if(!amount || amount < 10000){
+      alert("Minimal top up Rp 10.000");
+      return;
+    }
+
+    await addDoc(collection(db,"walletTransactions"),{
+      uid: auth.currentUser.uid,
+      type: "TOPUP",
+      amount: amount,
+      status: "PENDING",
+      createdAt: serverTimestamp()
+    });
+
+    alert("Top Up diajukan. Silakan kirim bukti transfer ke admin.");
+    renderWallet();
+  };
+}
+
+function startCountdown(duration){
+
+  let timer = duration;
+  const el = document.getElementById("countdownTimer");
+
+  const interval = setInterval(()=>{
+
+    const minutes = Math.floor(timer / 60);
+    const seconds = timer % 60;
+
+    el.innerText =
+      `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+
+    if(--timer < 0){
+      clearInterval(interval);
+      el.innerText = "Waktu habis";
+    }
+
+  },1000);
 }
