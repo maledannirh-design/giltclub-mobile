@@ -38,6 +38,18 @@
   color:white;
   cursor:pointer;
 }
+
+.wallet-action-group{
+  display:flex;
+  gap:10px;
+}
+
+.wallet-action-group button{
+  flex:1;                 /* ini kuncinya */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 .trx-card{
   background:#111827;
   padding:14px;
