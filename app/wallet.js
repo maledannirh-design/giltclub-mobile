@@ -1,84 +1,127 @@
 import { auth, db } from "./firebase.js";
-
-import { 
-  collection, 
-  getDocs, 
-  doc, 
-  setDoc,
-  getDoc,
-  updateDoc 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function renderWallet(){
 
-  const uid = auth.currentUser.uid;
-  const userRef = doc(db, "users", uid);
-  const userSnap = await getDoc(userRef);
+  const content = document.getElementById("content");
+  const user = auth.currentUser;
+  if(!content || !user) return;
 
-  const balance = userSnap.data().walletBalance || 0;
+  try{
 
-  document.getElementById("content").innerHTML = `
-  <div class="wallet-container">
+    /* =============================
+       USER DATA
+    ============================= */
+    const userSnap = await getDoc(doc(db,"users",user.uid));
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    const balance = userData.walletBalance || 0;
+    const membership = userData.membership || "MEMBER";
 
-    <div class="wallet-card">
-      <div class="wallet-label">Total Balance</div>
-      <div class="wallet-balance" id="wallet-balance">Rp 0</div>
-    </div>
+    const MEMBER_CARD =
+      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
 
-    <div class="wallet-actions">
-      <button onclick="topUp()">Top Up</button>
-      <button onclick="payNow()">Pay</button>
-      <button onclick="transfer()">Transfer</button>
-    </div>
+    const VVIP_CARD =
+      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
 
-    <div class="wallet-history" id="wallet-history"></div>
+    const memberCardUrl =
+      membership === "MEMBER" ? MEMBER_CARD : VVIP_CARD;
 
-  </div>
-`;
-}
-function renderTransaction(trx){
+    /* =============================
+       RENDER UI
+    ============================= */
+    content.innerHTML = `
+      <div class="wallet-page">
 
-  return `
-    <div class="trx-card">
-      <div>
-        <div class="trx-type">${trx.type}</div>
-        <div class="trx-date">${new Date(trx.createdAt.seconds*1000).toLocaleDateString()}</div>
+        <div class="wallet-card-pink">
+
+          <div class="wallet-card-header">
+            <div class="wallet-title">G-WALLET</div>
+
+            <div class="wallet-saldo-toggle">
+              <span>G-Saldo</span>
+              <span id="toggleSaldoBtn" class="eye-btn">
+                ${eyeOpenSVG()}
+              </span>
+            </div>
+          </div>
+
+          <div class="wallet-main-content">
+
+            <div class="wallet-left">
+
+              <div id="walletAmount" class="wallet-amount">
+                Rp ******
+              </div>
+
+              <div class="wallet-action-group">
+                <button class="wallet-topup-btn">
+                  ➕ Top Up
+                </button>
+
+                <button class="wallet-withdraw-btn">
+                  ➖ Tarik Saldo
+                </button>
+              </div>
+
+            </div>
+
+            <div class="wallet-right">
+              <img src="${memberCardUrl}" class="member-card-img" />
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
-      <div class="trx-amount ${trx.amount > 0 ? 'plus' : 'minus'}">
-        Rp ${trx.amount.toLocaleString("id-ID")}
-      </div>
-    </div>
-  `;
-}
+    `;
 
-//migration balance//
-export async function migrateOpeningBalance(){
+    /* =============================
+       TOGGLE SALDO
+    ============================= */
+    let saldoVisible = false; // default tertutup
 
-  const usersSnap = await getDocs(collection(db, "users"));
+    const toggleBtn = document.getElementById("toggleSaldoBtn");
+    const walletAmountEl = document.getElementById("walletAmount");
 
-  for (const userDoc of usersSnap.docs) {
+    if(toggleBtn){
+      toggleBtn.onclick = ()=>{
+        saldoVisible = !saldoVisible;
 
-    const userData = userDoc.data();
-    const oldBalance = userData.balance || 0;
-
-    if (oldBalance > 0) {
-
-      const trxRef = doc(collection(db, "walletTransactions"));
-
-      await setDoc(trxRef, {
-        uid: userDoc.id,
-        type: "OPENING",
-        amount: oldBalance,
-        balanceAfter: oldBalance,
-        createdAt: new Date(),
-        note: "Migrated Opening Balance"
-      });
-
-      await updateDoc(userDoc.ref, {
-        walletBalance: oldBalance
-      });
+        walletAmountEl.innerText =
+          saldoVisible
+            ? `Rp ${balance.toLocaleString("id-ID")}`
+            : "Rp ******";
+      };
     }
-  }
 
-  console.log("Migration Done");
+  }catch(error){
+    console.error("Wallet error:", error);
+    content.innerHTML = `
+      <div style="padding:20px;color:red;">
+        Failed to load wallet.
+      </div>
+    `;
+  }
+}
+
+
+/* =========================================
+   SVG ICON
+========================================= */
+
+function eyeOpenSVG(){
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="18" height="18"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="1.6"
+         stroke-linecap="round"
+         stroke-linejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  `;
 }
