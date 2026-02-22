@@ -54,9 +54,9 @@ export async function renderAdmin(){
           <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
         </div>
         <div>
-          <button onclick="approveTopup('${docSnap.id}','${d.uid}',${d.amount})">
-            Approve
-          </button>
+          <button onclick="approveTopup('${docSnap.id}','${d.uid}',${d.amount}, this)">
+  Approve
+</button>
         </div>
       </div>
     `;
