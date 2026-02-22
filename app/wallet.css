@@ -60,3 +60,23 @@
 .minus{
   color:#ef4444;
 }
+
+.wallet-page{
+  padding:20px;
+}
+
+.wallet-action-group{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
+
+.wallet-withdraw-btn{
+  background:rgba(255,255,255,0.25);
+  border:none;
+  padding:8px 14px;
+  border-radius:10px;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
