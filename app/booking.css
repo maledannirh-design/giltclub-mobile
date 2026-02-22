@@ -23,3 +23,30 @@
   background: linear-gradient(135deg, #059669, #10b981);
   color: white;
 }
+.calendar-container {
+  padding: 16px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.day-card {
+  padding: 12px;
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.day-card:hover {
+  transform: translateY(-3px);
+  background: rgba(0,0,0,0.05);
+}
+
+.day-card.active {
+  background: #111827;
+  color: white;
+}
