@@ -41,14 +41,18 @@ function renderSheetContent(mode){
 
     document.getElementById("submitLogin").onclick = async ()=>{
       try{
+
         const email = document.getElementById("sheetEmail").value.trim();
-        const pinLogin = document.getElementById("sheetPinLogin").value.replace(/\s/g,'');
+        const pinLogin = document
+          .getElementById("sheetPinLogin")
+          .value.replace(/\s/g,'');
 
         if(!/^\d{6}$/.test(pinLogin)){
           throw new Error("PIN harus 6 digit");
         }
 
         await login(email, pinLogin);
+
         closeSheet();
         renderAccountUI();
 
@@ -58,6 +62,8 @@ function renderSheetContent(mode){
     };
   }
 
+
+  // ================= REGISTER =================
   if(mode === "register"){
     sheet.innerHTML = `
       <div class="sheet-handle"></div>
@@ -67,17 +73,43 @@ function renderSheetContent(mode){
       <input id="regUsername" type="text" placeholder="Username">
       <input id="regEmail" type="email" placeholder="Email">
 
-      <input id="regPinLogin"
+      <!-- PHONE 2 COLUMN -->
+      <div class="phone-group">
+        <select id="countryCode">
+          <option value="+62">🇮🇩 +62</option>
+          <option value="+60">🇲🇾 +60</option>
+          <option value="+65">🇸🇬 +65</option>
+        </select>
+
+        <input 
+          id="phoneNumber"
+          type="tel"
+          placeholder="8123456789"
+          maxlength="13"
+          inputmode="numeric">
+      </div>
+
+      <input id="birthPlace" type="text" placeholder="Tempat Lahir">
+      <input id="birthDate" type="date">
+
+      <input 
+        id="pinLogin"
         type="password"
         maxlength="6"
         inputmode="numeric"
         placeholder="Buat PIN Login (6 digit)">
 
-      <input id="regPinTrx"
+      <input 
+        id="pinTrx"
         type="password"
         maxlength="6"
         inputmode="numeric"
         placeholder="Buat PIN Transaksi (6 digit)">
+
+      <div class="terms-row">
+        <input type="checkbox" id="termsCheck">
+        <label for="termsCheck">Saya setuju syarat & ketentuan</label>
+      </div>
 
       <button class="btn-primary full" id="submitRegister">
         Daftar
@@ -85,19 +117,56 @@ function renderSheetContent(mode){
     `;
 
     document.getElementById("submitRegister").onclick = async ()=>{
+
       try{
 
-        const fullName = document.getElementById("regFullName").value.trim();
-        const username = document.getElementById("regUsername").value.trim();
-        const email = document.getElementById("regEmail").value.trim();
-        const pinLogin = document.getElementById("regPinLogin").value.trim();
-        const pinTrx = document.getElementById("regPinTrx").value.trim();
+        const fullName   = document.getElementById("regFullName").value.trim();
+        const username   = document.getElementById("regUsername").value.trim();
+        const email      = document.getElementById("regEmail").value.trim();
+
+        const birthPlace = document.getElementById("birthPlace").value.trim();
+        const birthDate  = document.getElementById("birthDate").value;
+
+        const countryCode = document.getElementById("countryCode").value;
+        const phoneNumber = document.getElementById("phoneNumber").value.trim();
+        const phoneFull   = countryCode + phoneNumber;
+
+        const pinLogin = document
+          .getElementById("pinLogin")
+          .value.replace(/\s/g,'');
+
+        const pinTrx = document
+          .getElementById("pinTrx")
+          .value.replace(/\s/g,'');
+
+        const terms = document.getElementById("termsCheck").checked;
+
+        if(!terms){
+          throw new Error("Setujui syarat & ketentuan");
+        }
+
+        if(!/^8[0-9]{8,12}$/.test(phoneNumber)){
+          throw new Error("Nomor HP tidak valid");
+        }
+
+        if(!birthPlace || !birthDate){
+          throw new Error("Lengkapi data kelahiran");
+        }
 
         if(!/^\d{6}$/.test(pinLogin) || !/^\d{6}$/.test(pinTrx)){
           throw new Error("PIN harus 6 digit");
         }
 
-        await register(email, pinLogin, pinTrx, username);
+        await register(
+          email,
+          pinLogin,
+          pinTrx,
+          username,
+          fullName,
+          phoneFull,
+          birthPlace,
+          birthDate
+        );
 
         closeSheet();
         renderAccountUI();
