@@ -32,16 +32,24 @@ export async function renderAdmin(){
     )
   );
 
-  let html = `<div class="admin-container">
-                <h2>Pending Top Up</h2>`;
+  let html = `
+    <div class="admin-container">
+      <h2>Pending Top Up</h2>
+  `;
 
-  snap.forEach(docSnap=>{
+  for(const docSnap of snap.docs){
+
     const d = docSnap.data();
+
+    const userSnap = await getDoc(doc(db,"users", d.uid));
+    const username = userSnap.exists()
+      ? userSnap.data().username || "User"
+      : "User";
 
     html += `
       <div class="admin-trx">
         <div>
-          <div>${d.uid}</div>
+          <div>${username}</div>
           <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
         </div>
         <div>
@@ -51,9 +59,10 @@ export async function renderAdmin(){
         </div>
       </div>
     `;
-  });
+  }
 
   html += `</div>`;
+
   content.innerHTML = html;
 }
 
