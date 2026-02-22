@@ -108,24 +108,36 @@ function renderUpcoming() {
 ================================= */
 function renderCalendar() {
 
+  const todayStr = formatDate(new Date());
+  if (!selectedDate) selectedDate = todayStr;
+
   const days = getWeekDays(currentWeekStart);
 
   let html = `
-  <div class="calendar-container">
+  <div class="calendar-wrapper">
     <div class="calendar-header">
-      <button id="prevWeek">←</button>
-      <h3>${formatMonth(currentWeekStart)}</h3>
-      <button id="nextWeek">→</button>
+      <button id="prevWeek" class="nav-btn">←</button>
+      <div class="month-title">${formatMonth(currentWeekStart)}</div>
+      <button id="nextWeek" class="nav-btn">→</button>
     </div>
-    <div class="week-grid">
+
+    <div class="calendar-scroll">
   `;
 
   days.forEach(d => {
     const dateStr = formatDate(d);
+    const isActive = dateStr === selectedDate;
+    const isToday = dateStr === todayStr;
+
     html += `
-      <div class="day-card ${dateStr === selectedDate ? "active":""}" data-date="${dateStr}">
-        <div>${d.toLocaleDateString("en-US",{weekday:"short"})}</div>
-        <div>${d.getDate()}</div>
+      <div class="calendar-day ${isActive ? "active" : ""}" 
+           data-date="${dateStr}">
+        <div class="day-name">
+          ${d.toLocaleDateString("en-US",{weekday:"short"})}
+        </div>
+        <div class="day-number">
+          ${d.getDate()}
+        </div>
       </div>
     `;
   });
