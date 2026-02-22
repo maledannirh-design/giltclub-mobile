@@ -60,14 +60,14 @@ export async function renderWallet(){
     <div class="wallet-action-row">
 
       <div class="wallet-action-card topup-card">
-        <div class="action-icon">➕</div>
-        <div class="action-title">Top Up</div>
-      </div>
+  <div class="action-icon">➕</div>
+  <div class="action-title">Top Up</div>
+</div>
 
-      <div class="wallet-action-card withdraw-card">
-        <div class="action-icon">➖</div>
-        <div class="action-title">Tarik Saldo</div>
-      </div>
+<div class="wallet-action-card withdraw-card">
+  <div class="action-icon">➖</div>
+  <div class="action-title">Tarik Saldo</div>
+</div>
 
     </div>
 
