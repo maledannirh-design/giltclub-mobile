@@ -60,9 +60,12 @@ export async function register(
   // BUAT USER AUTH
   // ==============================
   const userCredential =
-    await createUserWithEmailAndPassword(auth, email, pinLogin);
+  await createUserWithEmailAndPassword(auth, email, pinLogin);
 
-  const user = userCredential.user;
+const user = userCredential.user;
+
+// 🔥 PENTING: pastikan auth sudah valid
+await user.getIdToken();
 
   // ==============================
   // SIMPAN DATA PROFILE
