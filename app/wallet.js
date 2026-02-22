@@ -19,9 +19,6 @@ export async function renderWallet(){
 
   try{
 
-    /* =============================
-       USER DATA
-    ============================= */
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
@@ -36,62 +33,58 @@ export async function renderWallet(){
     const memberCardUrl =
       membership === "MEMBER" ? MEMBER_CARD : VVIP_CARD;
 
-    /* =============================
-       RENDER UI
-    ============================= */
-   content.innerHTML = `
-  <div class="wallet-page">
+    content.innerHTML = `
+      <div class="wallet-page">
 
-    <!-- PINK CONTAINER -->
-    <div class="wallet-card-pink">
+        <div class="wallet-card-pink">
 
-      <div class="wallet-card-header">
-        <div class="wallet-title">G-WALLET</div>
-        <div class="wallet-saldo-toggle">
-          <span>G-Saldo</span>
-          <span id="toggleSaldoBtn" class="eye-btn">
-            ${eyeOpenSVG()}
-          </span>
+          <div class="wallet-card-header">
+            <div class="wallet-title">G-WALLET</div>
+            <div class="wallet-saldo-toggle">
+              <span>G-Saldo</span>
+              <span id="toggleSaldoBtn" class="eye-btn">
+                ${eyeOpenSVG()}
+              </span>
+            </div>
+          </div>
+
+          <div id="walletAmount" class="wallet-amount">
+            Rp ******
+          </div>
+
+          <div class="wallet-big-card">
+            <img src="${memberCardUrl}" class="wallet-member-big-img" />
+          </div>
+
         </div>
+
+        <div class="wallet-action-row">
+
+          <div class="wallet-action-card topup-card">
+            <div class="action-icon">➕</div>
+            <div class="action-title">Top Up</div>
+          </div>
+
+          <div class="wallet-action-card withdraw-card">
+            <div class="action-icon">➖</div>
+            <div class="action-title">Tarik Saldo</div>
+          </div>
+
+        </div>
+
+        <div class="wallet-action-card ledger-card">
+          <div class="action-icon">📄</div>
+          <div class="action-title">Mutasi</div>
+        </div>
+
       </div>
-
-      <div id="walletAmount" class="wallet-amount">
-        Rp ******
-      </div>
-
-      <!-- MEMBER CARD BESAR -->
-      <div class="wallet-big-card">
-        <img src="${memberCardUrl}" class="wallet-member-big-img" />
-      </div>
-
-    </div>
-
-    <!-- ACTION CARDS -->
-    <div class="wallet-action-row">
-
-      <div class="wallet-action-card topup-card">
-  <div class="action-icon">➕</div>
-  <div class="action-title">Top Up</div>
-</div>
-
-<div class="wallet-action-card withdraw-card">
-  <div class="action-icon">➖</div>
-  <div class="action-title">Tarik Saldo</div>
-</div>
-
-    </div>
-
-<div class="wallet-action-card ledger-card">
-  <div class="action-icon">📄</div>
-  <div class="action-title">Mutasi</div>
-</div>
-  </div>
-`;
+    `;
 
     /* =============================
        TOGGLE SALDO
     ============================= */
-    let saldoVisible = false; // default tertutup
+
+    let saldoVisible = false;
 
     const toggleBtn = document.getElementById("toggleSaldoBtn");
     const walletAmountEl = document.getElementById("walletAmount");
@@ -99,11 +92,36 @@ export async function renderWallet(){
     if(toggleBtn){
       toggleBtn.onclick = ()=>{
         saldoVisible = !saldoVisible;
-
         walletAmountEl.innerText =
           saldoVisible
             ? `Rp ${balance.toLocaleString("id-ID")}`
             : "Rp ******";
+      };
+    }
+
+    /* =============================
+       ACTION BUTTONS
+    ============================= */
+
+    const topupBtn = document.querySelector(".topup-card");
+    const withdrawBtn = document.querySelector(".withdraw-card");
+    const ledgerBtn = document.querySelector(".ledger-card");
+
+    if(topupBtn){
+      topupBtn.onclick = ()=>{
+        renderTopUpSheet();
+      };
+    }
+
+    if(withdrawBtn){
+      withdrawBtn.onclick = ()=>{
+        alert("Sementara penarikan saldo langsung menghubungi admin club.");
+      };
+    }
+
+    if(ledgerBtn){
+      ledgerBtn.onclick = ()=>{
+        renderLedger();
       };
     }
 
@@ -137,25 +155,12 @@ function eyeOpenSVG(){
     </svg>
   `;
 }
-/* =============================
-   ACTION BUTTONS
-============================= */
 
-document.querySelector(".topup-card").onclick = ()=>{
-  renderTopUpSheet();
-};
-
-document.querySelector(".withdraw-card").onclick = ()=>{
-  alert("Sementara penarikan saldo langsung menghubungi admin club.");
-};
-
-document.querySelector(".ledger-card").onclick = ()=>{
-  renderLedger();
-};
 
 /* =========================================
-   MUTASI REKENING
+   MUTASI
 ========================================= */
+
 async function renderLedger(){
 
   const user = auth.currentUser;
@@ -174,8 +179,8 @@ async function renderLedger(){
       <h3>Mutasi Rekening</h3>
   `;
 
-  snap.forEach(doc=>{
-    const d = doc.data();
+  snap.forEach(docSnap=>{
+    const d = docSnap.data();
 
     html += `
       <div class="ledger-item">
@@ -195,6 +200,11 @@ async function renderLedger(){
   html += `</div>`;
   content.innerHTML = html;
 }
+
+
+/* =========================================
+   TOP UP SHEET
+========================================= */
 
 async function renderTopUpSheet(){
 
@@ -262,12 +272,22 @@ async function renderTopUpSheet(){
   };
 }
 
+
+/* =========================================
+   COUNTDOWN
+========================================= */
+
 function startCountdown(duration){
 
   let timer = duration;
   const el = document.getElementById("countdownTimer");
 
   const interval = setInterval(()=>{
+
+    if(!el){
+      clearInterval(interval);
+      return;
+    }
 
     const minutes = Math.floor(timer / 60);
     const seconds = timer % 60;
