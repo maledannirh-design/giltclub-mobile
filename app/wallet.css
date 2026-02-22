@@ -111,46 +111,73 @@
   margin-top:18px;
 }
 
-/* BASE CARD (lebih kecil & slim) */
+/* BASE CARD - SLIM */
 .wallet-action-card{
   flex:1;
   border-radius:16px;
-  padding:14px 12px;   /* jauh lebih kecil */
-  text-align:center;
+  padding:10px 14px;      /* jauh lebih kecil */
   cursor:pointer;
   transition:all .2s ease;
-  display:flex;
-  flex-direction:column;
+
+  display:flex;           /* horizontal */
   align-items:center;
   justify-content:center;
+  gap:6px;                /* jarak icon & text */
+}
+
+/* ACTION ROW */
+.wallet-action-row{
+  display:flex;
+  gap:14px;
+  margin-top:18px;
+}
+
+/* BASE CARD - SLIM */
+.wallet-action-card{
+  flex:1;
+  border-radius:16px;
+  padding:10px 14px;      /* jauh lebih kecil */
+  cursor:pointer;
+  transition:all .2s ease;
+
+  display:flex;           /* horizontal */
+  align-items:center;
+  justify-content:center;
+  gap:6px;                /* jarak icon & text */
 }
 
 /* TOP UP DOMINAN */
 .topup-card{
   background:var(--color-primary);
   color:white;
-  box-shadow:0 8px 20px rgba(0,0,0,.15);
+  box-shadow:0 6px 16px rgba(0,0,0,.15);
 }
 
 .topup-card:hover{
-  transform:translateY(-3px);
+  transform:translateY(-2px);
   background:var(--color-primary-hover);
 }
 
-/* TARIK LEBIH NETRAL */
+/* TARIK SALDO - GLASS GRADIENT */
 .withdraw-card{
-  background:var(--color-card);
-  box-shadow:var(--shadow-card);
+  background:linear-gradient(
+    135deg,
+    rgba(255,255,255,.15),
+    rgba(255,255,255,.05)
+  );
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.15);
+  color:var(--color-text);
 }
 
 /* ICON LEBIH KECIL */
 .action-icon{
-  font-size:16px;
-  margin-bottom:4px;
+  font-size:14px;
+  line-height:1;
 }
 
 /* TEXT LEBIH KECIL */
 .action-title{
-  font-size:13px;
+  font-size:12px;
   font-weight:600;
 }
