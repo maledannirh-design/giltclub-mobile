@@ -162,9 +162,14 @@ export async function renderAccountUI(){
         <input type="file" id="photoInput" accept="image/*" hidden>
 
         <div class="account-info">
-          <div class="account-username">
-            ${username}
-          </div>
+          <div class="profile-name-row">
+  <h2 id="profileName"></h2>
+  <span id="verifiedBadge" class="verified-badge">
+  <svg viewBox="0 0 24 24" fill="#1DA1F2">
+    <path d="M22 12l-2.2-2.2.3-3.1-3.1.3L12 4 9 6.9l-3.1-.3.3 3.1L4 12l2.2 2.2-.3 3.1 3.1-.3L12 20l3-2.9 3.1.3-.3-3.1L22 12zM10 15l-3-3 1.4-1.4L10 12.2l5.6-5.6L17 8l-7 7z"/>
+  </svg>
+</span>
+</div>
 
           ${
             user
@@ -237,7 +242,20 @@ export async function renderAccountUI(){
     </button>
   </div>
   `;
+const profileNameEl = document.getElementById("profileName");
+const verifiedBadge = document.getElementById("verifiedBadge");
 
+if(profileNameEl){
+  profileNameEl.textContent = username;
+}
+
+if(verifiedBadge){
+  if(currentUserData?.verified === true){
+    verifiedBadge.style.display = "flex";
+  } else {
+    verifiedBadge.style.display = "none";
+  }
+}
   bindPhotoUpload();
 
   const avatarTrigger = document.getElementById("avatarTrigger");
