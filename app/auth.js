@@ -61,8 +61,8 @@ export async function register(email, pinLogin, pinTrx, username){
   username: cleanUsername,
   bio: "",
 
-  role: "member",            // member | admin | supercoach
-  membership: "MEMBER",      // MEMBER | VVIP | COACH
+  role: "MEMBER",            // member | admin | coach | supercoach 
+  membership: "MEMBER",      // MEMBER | VVIP
   playingLevel: "newbie",
 
   status: "active",          // active | suspended | deactivated
@@ -81,7 +81,7 @@ export async function register(email, pinLogin, pinTrx, username){
   coachApproved: false,
   coachLevel: null,
 
-  verifiedApproved: false,
+  verifiedApproved: false, // VERIFIED/ UNVERIFIED
   verifiedEligible: false,
 
   isPublic: true,
