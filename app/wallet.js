@@ -17,10 +17,39 @@ export async function renderWallet(){
 
   const balance = userSnap.data().walletBalance || 0;
 
-  document.getElementById("wallet-balance").innerText =
-    "Rp " + balance.toLocaleString("id-ID");
-}
+  document.getElementById("content").innerHTML = `
+  <div class="wallet-container">
 
+    <div class="wallet-card">
+      <div class="wallet-label">Total Balance</div>
+      <div class="wallet-balance" id="wallet-balance">Rp 0</div>
+    </div>
+
+    <div class="wallet-actions">
+      <button onclick="topUp()">Top Up</button>
+      <button onclick="payNow()">Pay</button>
+      <button onclick="transfer()">Transfer</button>
+    </div>
+
+    <div class="wallet-history" id="wallet-history"></div>
+
+  </div>
+`;
+}
+function renderTransaction(trx){
+
+  return `
+    <div class="trx-card">
+      <div>
+        <div class="trx-type">${trx.type}</div>
+        <div class="trx-date">${new Date(trx.createdAt.seconds*1000).toLocaleDateString()}</div>
+      </div>
+      <div class="trx-amount ${trx.amount > 0 ? 'plus' : 'minus'}">
+        Rp ${trx.amount.toLocaleString("id-ID")}
+      </div>
+    </div>
+  `;
+}
 
 //migration balance//
 export async function migrateOpeningBalance(){
