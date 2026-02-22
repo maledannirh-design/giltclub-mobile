@@ -8,7 +8,10 @@ async function migrateUsers(dataList){
       query(collection(db,"users"), where("username","==", item.username))
     );
 
-    if(snap.empty) continue;
+    if(snap.empty){
+      console.log("User tidak ditemukan:", item.username);
+      continue;
+    }
 
     const userDoc = snap.docs[0];
     const uid = userDoc.id;
@@ -26,14 +29,14 @@ async function migrateUsers(dataList){
       walletBalance: item.walletBalance,
       totalTopup: item.totalTopup,
       totalPayment: totalPayment,
-      totalSession: item.totalSession,
 
       level: stats.level,
       exp: stats.expTotal,
       gPoint: stats.gPoint
     });
 
+    console.log("Migrated:", item.username);
   }
 
-  console.log("Migrasi selesai");
+  console.log("Migrasi selesai.");
 }
