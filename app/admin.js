@@ -12,6 +12,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { recalculateUserStats } from "./userStats.js";
 
+import { runMigration } from "./migration.js";
+window.runMigration = runMigration;
+
+runMigration();
+
 export async function renderAdmin(){
 
   const content = document.getElementById("content");
