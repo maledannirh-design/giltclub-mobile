@@ -1,0 +1,23 @@
+.admin-container{
+  padding:20px;
+}
+
+.admin-trx{
+  background:var(--color-card);
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:var(--shadow-card);
+}
+
+.admin-trx button{
+  background:var(--color-success);
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+}
