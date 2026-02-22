@@ -374,3 +374,29 @@ function formatDisplayDate(d){
 function formatMonth(d){
   return d.toLocaleDateString("en-US",{month:"long",year:"numeric"});
 }
+
+function renderMyUpcomingHero(){
+
+  return `
+    <div class="my-upcoming-wrapper">
+      <div class="my-upcoming-glass">
+        <div class="my-upcoming-title">
+          Jadwal Main Saya Terdekat
+        </div>
+
+        <div class="my-upcoming-scroll">
+          <!-- nanti isi dynamic session card -->
+          <div class="mini-session-card">
+            <div>Intermediate</div>
+            <div>Sat • 08:00 - 10:00</div>
+          </div>
+
+          <div class="mini-session-card">
+            <div>Beginner</div>
+            <div>Sun • 15:00 - 17:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
