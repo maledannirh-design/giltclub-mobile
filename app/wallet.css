@@ -38,3 +38,25 @@
   color:white;
   cursor:pointer;
 }
+.trx-card{
+  background:#111827;
+  padding:14px;
+  border-radius:14px;
+  margin-top:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:white;
+}
+
+.trx-type{
+  font-weight:600;
+}
+
+.plus{
+  color:#22c55e;
+}
+
+.minus{
+  color:#ef4444;
+}
