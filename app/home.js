@@ -25,7 +25,7 @@ export async function renderHome(){
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
-    const membership = userData.membership || "member";
+    const membership = userData.membership || "MEMBER"; // FIXED
 
     /* =============================
        MEMBER CARD LOOKUP
@@ -76,7 +76,6 @@ export async function renderHome(){
     content.innerHTML = `
       <div class="home-container">
 
-        <!-- HEADER -->
         <div class="home-header">
           <div class="home-profile-left">
             <div class="home-avatar">
@@ -98,22 +97,18 @@ export async function renderHome(){
           </div>
 
           <div class="home-right-section">
-  
-  <div class="home-unread-icon">
-    <div class="mail-icon">✉️</div>
-    ${
-      totalUnread > 0
-        ? `<div class="home-unread-badge">${totalUnread}</div>`
-        : ``
-    }
-  </div>
-
-  <div id="homeUnreadPreview" class="home-unread-preview"></div>
-
-</div>
+            <div class="home-unread-icon">
+              <div class="mail-icon">✉️</div>
+              ${
+                totalUnread > 0
+                  ? `<div class="home-unread-badge">${totalUnread}</div>`
+                  : ``
+              }
+            </div>
+            <div id="homeUnreadPreview" class="home-unread-preview"></div>
+          </div>
         </div>
 
-        <!-- UNREAD SCROLL -->
         <div id="homeUnreadScroll" class="home-unread-scroll"></div>
 
         <!-- WALLET CARD -->
@@ -123,11 +118,9 @@ export async function renderHome(){
             <div class="wallet-title">G-WALLET</div>
             <div class="wallet-saldo-toggle">
               <span>G-Saldo</span>
-
               <span id="toggleSaldoBtn" class="eye-btn">
                 ${eyeOpenSVG()}
               </span>
-
             </div>
           </div>
 
@@ -135,7 +128,7 @@ export async function renderHome(){
 
             <div class="wallet-left">
               <div id="walletAmount" class="wallet-amount">
-                Rp ${balance.toLocaleString("id-ID")}
+                Rp ******
               </div>
 
               <button class="wallet-topup-btn">
@@ -153,47 +146,47 @@ export async function renderHome(){
 
       </div>
     `;
-/* =============================
-   RENDER UNREAD PREVIEW
-============================= */
-const scroll = document.getElementById("homeUnreadScroll");
 
-if (scroll) {
+    /* =============================
+       RENDER UNREAD PREVIEW
+    ============================= */
+    const scroll = document.getElementById("homeUnreadScroll");
 
-  scroll.innerHTML = "";
+    if (scroll) {
 
-  for (const room of unreadRooms.slice(0,5)) {
+      scroll.innerHTML = "";
 
-    const otherUid = room.participants.find(p => p !== user.uid);
+      for (const room of unreadRooms.slice(0,5)) {
 
-    let username = "User";
+        const otherUid = room.participants.find(p => p !== user.uid);
 
-    if (otherUid) {
-      const otherSnap = await getDoc(doc(db,"users",otherUid));
-      if (otherSnap.exists()) {
-        username = otherSnap.data().username || "User";
+        let username = "User";
+
+        if (otherUid) {
+          const otherSnap = await getDoc(doc(db,"users",otherUid));
+          if (otherSnap.exists()) {
+            username = otherSnap.data().username || "User";
+          }
+        }
+
+        const item = document.createElement("div");
+        item.className = "home-unread-item";
+
+        item.innerHTML = `
+          <div class="unread-name">${username}</div>
+          <div class="unread-text">${room.lastMessage || ""}</div>
+        `;
+
+        item.onclick = ()=>{
+          window.renderChatUI(room.id, otherUid);
+        };
+
+        scroll.appendChild(item);
       }
     }
 
-    const item = document.createElement("div");
-    item.className = "home-unread-item";
-
-    item.innerHTML = `
-      <div class="unread-name">${username}</div>
-      <div class="unread-text">${room.lastMessage || ""}</div>
-    `;
-
-    item.onclick = ()=>{
-      window.renderChatUI(room.id, otherUid);
-    };
-
-    scroll.appendChild(item);
-  }
-
-}
-
     /* =============================
-       TOGGLE SALDO (SVG SWITCH)
+       TOGGLE SALDO
     ============================= */
     let saldoVisible = false;
 
@@ -208,9 +201,6 @@ if (scroll) {
           saldoVisible
             ? `Rp ${balance.toLocaleString("id-ID")}`
             : "Rp ******";
-
-        toggleBtn.innerHTML =
-          saldoVisible ? eyeOpenSVG() : eyeOffSVG();
       };
     }
 
@@ -226,9 +216,8 @@ if (scroll) {
 
 
 /* =========================================
-   SVG ICONS
+   SVG ICON
 ========================================= */
-
 function eyeOpenSVG(){
   return `
     <svg xmlns="http://www.w3.org/2000/svg"
@@ -241,22 +230,6 @@ function eyeOpenSVG(){
          stroke-linejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
       <circle cx="12" cy="12" r="3"/>
-    </svg>
-  `;
-}
-
-function eyeOffSVG(){
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="18" height="18"
-         viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="1.6"
-         stroke-linecap="round"
-         stroke-linejoin="round">
-      <path d="M17.94 17.94A10.94 10.94 0 0112 20C5 20 1 12 1 12a21.81 21.81 0 015.06-7.94"/>
-      <path d="M1 1l22 22"/>
     </svg>
   `;
 }
