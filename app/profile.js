@@ -163,9 +163,9 @@ function renderSheetContent(mode){
           throw new Error("Setujui syarat & ketentuan");
         }
 
-        if(!/^8[0-9]{8,12}$/.test(phoneNumber)){
-          throw new Error("Nomor HP tidak valid");
-        }
+        if(!/^[0-9]{6,15}$/.test(phoneNumber)){
+  throw new Error("Nomor HP tidak valid");
+}
 
         if(!birthPlace || !birthDate){
           throw new Error("Lengkapi data kelahiran");
