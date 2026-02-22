@@ -206,7 +206,7 @@ async function renderLedger(){
    TOP UP SHEET
 ========================================= */
 
-async function renderTopUpSheet(){
+export async function renderTopUpSheet(){
 
   const content = document.getElementById("content");
 
