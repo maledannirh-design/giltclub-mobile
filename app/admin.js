@@ -4,6 +4,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,          // ✅ INI YANG KURANG
   doc,
   updateDoc,
   increment,
