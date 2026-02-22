@@ -54,10 +54,15 @@ export async function renderAdmin(){
           <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
         </div>
         <div>
-          <button onclick="approveTopup('${docSnap.id}','${d.uid}',${d.amount}, this)">
-  Approve
-</button>
-        </div>
+  <button onclick="approveTopup('${docSnap.id}','${d.uid}',${d.amount}, this)">
+    Approve
+  </button>
+
+  <button style="margin-left:6px;"
+    onclick="rejectTopup('${docSnap.id}', this)">
+    Reject
+  </button>
+</div>
       </div>
     `;
   }
@@ -154,30 +159,44 @@ window.approveTopup = async function(trxId, uid, amount, btn){
     }
   }
 };
+window.rejectTopup = async function(trxId, btn){
 
-async function migrateOpeningBalance(dataList){
+  try{
 
-  for(const item of dataList){
+    if(btn){
+      btn.disabled = true;
+      btn.innerText = "Processing...";
+    }
 
-    const userRef = doc(db,"users", item.uid);
-    const trxRef  = doc(db,"walletTransactions", `${item.uid}_MIGRATION`);
+    const trxRef = doc(db,"walletTransactions",trxId);
 
-    await setDoc(trxRef,{
-      uid: item.uid,
-      type: "PEMBUKAAN REKENING SALDO BARU",
-      amount: item.amount,
-      status: "APPROVED",
-      balanceAfter: item.amount,
-      createdAt: serverTimestamp(),
-      approvedAt: serverTimestamp(),
-      note: "Migrasi saldo awal dari sistem lama"
+    const trxSnap = await getDoc(trxRef);
+
+    if(!trxSnap.exists() || trxSnap.data().status !== "PENDING"){
+      alert("Transaksi sudah diproses.");
+      if(btn){
+        btn.disabled = false;
+        btn.innerText = "Reject";
+      }
+      return;
+    }
+
+    await updateDoc(trxRef,{
+      status: "REJECTED",
+      rejectedAt: serverTimestamp()
     });
 
-    await updateDoc(userRef,{
-      walletBalance: item.amount
-    });
+    alert("Top up ditolak.");
+    renderAdmin();
 
+  }catch(error){
+    console.error(error);
+    alert("Error reject");
+
+    if(btn){
+      btn.disabled = false;
+      btn.innerText = "Reject";
+    }
   }
+};
 
-  console.log("Migrasi selesai.");
-}
