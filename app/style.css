@@ -704,10 +704,23 @@ html, body {
 }
 
 .member-username{
+  display:flex;
+  align-items:center;
+  gap:6px;
   font-weight:600;
-  font-size:18px;
 }
 
+.member-username .verified-badge{
+  width:16px;
+  height:16px;
+  display:inline-flex;
+}
+
+.member-username .verified-badge svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
 /* ROLE BADGE */
 .role-badge{
   display:inline-block;
