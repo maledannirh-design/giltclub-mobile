@@ -1584,6 +1584,38 @@ html, body {
   background:linear-gradient(90deg,#E3C565,#FFD700);
   transition:width 0.4s ease;
 }
+
+/* =========================
+   VERIFIED BADGE
+========================= */
+
+.profile-name-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.profile-name-row h2{
+  margin:0;
+  font-size:18px;
+  font-weight:600;
+  color:#fff;
+}
+
+.verified-badge{
+  display:none;
+  width:18px;
+  height:18px;
+  align-items:center;
+  justify-content:center;
+}
+
+.verified-badge svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
 @keyframes blink{
   0%{opacity:.2;}
   20%{opacity:1;}
