@@ -55,7 +55,9 @@ export async function navigate(page){
       case "booking":
         (await import("./booking.js")).renderBooking();
         break;
-
+        case "reward":
+  (await import("./reward.js")).renderReward();
+  break;
       case "cinema":
         (await import("./cinema.js")).renderCinema();
         break;
