@@ -1557,6 +1557,33 @@ html, body {
   );
   transition:width 0.4s ease;
 }
+
+/* ================= EXP SECTION ================= */
+
+.account-exp-text{
+  font-size:13px;
+  margin-top:4px;
+  color:var(--color-text-muted);
+}
+
+.account-exp-bar{
+  margin-top:6px;
+  height:8px;
+  background:rgba(0,0,0,0.08);
+  border-radius:10px;
+  overflow:hidden;
+}
+
+[data-theme="dark"] .account-exp-bar{
+  background:rgba(255,255,255,0.08);
+}
+
+.account-exp-fill{
+  height:100%;
+  border-radius:10px;
+  background:linear-gradient(90deg,#E3C565,#FFD700);
+  transition:width 0.4s ease;
+}
 @keyframes blink{
   0%{opacity:.2;}
   20%{opacity:1;}
