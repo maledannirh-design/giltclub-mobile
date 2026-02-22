@@ -64,11 +64,12 @@ function renderFullUI() {
   if (!content) return;
 
   content.innerHTML = `
-    ${renderUpcoming()}
-    ${renderCalendar()}
-    <div id="sessionContainer"></div>
-    ${renderCreateSessionCard()}
-  `;
+  ${renderMyUpcomingHero()}
+  ${renderUpcoming()}
+  ${renderCalendar()}
+  <div id="sessionContainer"></div>
+  ${renderCreateSessionCard()}
+`;
 
   renderSessionsByDate(selectedDate);
   attachGlobalEvents();
