@@ -91,3 +91,30 @@ window.approveTopup = async function(trxId, uid, amount){
   alert("Approved");
   renderAdmin();
 };
+
+async function migrateOpeningBalance(dataList){
+
+  for(const item of dataList){
+
+    const userRef = doc(db,"users", item.uid);
+    const trxRef  = doc(db,"walletTransactions", `${item.uid}_MIGRATION`);
+
+    await setDoc(trxRef,{
+      uid: item.uid,
+      type: "PEMBUKAAN REKENING SALDO BARU",
+      amount: item.amount,
+      status: "APPROVED",
+      balanceAfter: item.amount,
+      createdAt: serverTimestamp(),
+      approvedAt: serverTimestamp(),
+      note: "Migrasi saldo awal dari sistem lama"
+    });
+
+    await updateDoc(userRef,{
+      walletBalance: item.amount
+    });
+
+  }
+
+  console.log("Migrasi selesai.");
+}
