@@ -1,8 +1,10 @@
+// recalculate.js
+
 import { getDocs, collection, updateDoc, doc } from "./firestore.js";
 import { db } from "./firebase.js";
 import { recalculateUserStats } from "./userStats.js";
 
-async function recalculateAllUsersOnce(){
+export async function recalculateAllUsersOnce(){
 
   const usersSnap = await getDocs(collection(db, "users"));
 
@@ -27,6 +29,3 @@ async function recalculateAllUsersOnce(){
 
   console.log("SELESAI SEMUA USER");
 }
-
-// JALANKAN SEKALI
-recalculateAllUsersOnce();
