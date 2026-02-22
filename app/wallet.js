@@ -210,26 +210,45 @@ async function renderTopUpSheet(){
 
   const content = document.getElementById("content");
 
+  const QRIS_URL =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/qris_deposit.webp";
+
   content.innerHTML = `
     <div class="topup-sheet">
 
       <h3>Ajukan Top Up</h3>
 
+      <!-- COUNTDOWN -->
       <div class="countdown-box">
         Selesaikan pembayaran dalam
         <div id="countdownTimer">15:00</div>
       </div>
 
+      <!-- QRIS IMAGE -->
+      <div class="qris-container">
+        <img src="${QRIS_URL}" class="qris-image"/>
+      </div>
+
+      <!-- CARA PEMBAYARAN -->
+      <div class="payment-guide">
+        <h4>Cara Pembayaran</h4>
+        <ol>
+          <li>Buka aplikasi mBanking / eWallet</li>
+          <li>Pilih menu QRIS / Scan QR</li>
+          <li>Scan kode QR di atas</li>
+          <li>Masukkan nominal sesuai top up</li>
+          <li>Selesaikan pembayaran</li>
+          <li>Kirim bukti transfer ke admin club</li>
+        </ol>
+      </div>
+
+      <!-- INPUT NOMINAL -->
       <input 
         type="number" 
         id="topupAmount" 
         placeholder="Masukkan nominal (min 10.000)"
         class="topup-input"
       />
-
-      <div class="topup-note">
-        Bukti transfer sementara kirim ke WA admin club.
-      </div>
 
       <button id="submitTopup" class="btn-primary">
         Ajukan Top Up
@@ -271,7 +290,6 @@ async function renderTopUpSheet(){
     renderWallet();
   };
 }
-
 
 /* =========================================
    COUNTDOWN
