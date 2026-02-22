@@ -115,38 +115,41 @@ function renderCalendar() {
   const days = getWeekDays(currentWeekStart);
 
   let html = `
-  <div class="calendar-wrapper">
-    <div class="calendar-header">
-      <button id="prevWeek" class="nav-btn">←</button>
-      <div class="month-title">${formatMonth(currentWeekStart)}</div>
-      <button id="nextWeek" class="nav-btn">→</button>
-    </div>
+  <div class="calendar-google-wrapper">
 
-    <div class="calendar-scroll">
+    <div class="calendar-google-card">
   `;
 
   days.forEach(d => {
     const dateStr = formatDate(d);
     const isActive = dateStr === selectedDate;
-    const isToday = dateStr === todayStr;
 
     html += `
-      <div class="calendar-day ${isActive ? "active" : ""}" 
+      <div class="calendar-google-day ${isActive ? "active":""}" 
            data-date="${dateStr}">
-        <div class="day-name">
-          ${d.toLocaleDateString("en-US",{weekday:"short"})}
+        <div class="g-day-name">
+          ${d.toLocaleDateString("id-ID",{weekday:"short"})}
         </div>
-        <div class="day-number">
+        <div class="g-day-number">
           ${d.getDate()}
+        </div>
+        <div class="g-month">
+          ${d.toLocaleDateString("id-ID",{month:"short"})}
         </div>
       </div>
     `;
   });
 
-  html += `</div></div>`;
+  html += `
+      <div class="calendar-google-divider"></div>
+      <div class="calendar-google-icon">📅</div>
+    </div>
+
+  </div>
+  `;
+
   return html;
 }
-
 /* ===============================
    SESSIONS BY DATE
 ================================= */
