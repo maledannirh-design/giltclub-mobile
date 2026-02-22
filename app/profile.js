@@ -120,12 +120,28 @@ export async function renderAccountUI(){
   const user = auth.currentUser;
 
   let username = "Guest";
+  let membership = "-";
+  let level = 0;
+  let expTotal = 0;
+  let expCurrent = 0;
+  let expPercent = 0;
 
   if(user){
+
     const snap = await getDoc(doc(db,"users",user.uid));
+
     if(snap.exists()){
+
       currentUserData = snap.data();
+
       username = currentUserData.username || user.email;
+      membership = currentUserData.membership || "MEMBER";
+
+      level = currentUserData.level || 0;
+      expTotal = currentUserData.exp || 0;
+
+      expCurrent = expTotal % 1000;
+      expPercent = (expCurrent / 1000) * 100;
     }
   }
 
@@ -149,15 +165,32 @@ export async function renderAccountUI(){
           <div class="account-username">
             ${username}
           </div>
-          <div class="account-level">
-            ${user ? "Level 1" : "-"}
-          </div>
-          <div class="account-playing">
-            ${user ? "Playing: Beginner" : ""}
-          </div>
-          <div class="account-membership">
-            ${user ? "Member" : "Not verified"}
-          </div>
+
+          ${
+            user
+            ? `
+              <div class="account-level">
+                Level ${level}
+              </div>
+
+              <div class="account-exp-text">
+                ⚡ ${expCurrent} / 1000 EXP
+              </div>
+
+              <div class="account-exp-bar">
+                <div class="account-exp-fill" style="width:${expPercent}%"></div>
+              </div>
+
+              <div class="account-membership">
+                ${membership}
+              </div>
+            `
+            : `
+              <div class="account-level">-</div>
+              <div class="account-membership">Not verified</div>
+            `
+          }
+
         </div>
       </div>
 
@@ -194,7 +227,10 @@ export async function renderAccountUI(){
     <h3>Login</h3>
 
     <input id="sheetEmail" placeholder="Email">
-    <input id="sheetPinLogin" type="password" placeholder="PIN Login (6 digit)" maxlength="6" inputmode="numeric">
+    <input id="sheetPinLogin" type="password"
+      placeholder="PIN Login (6 digit)"
+      maxlength="6"
+      inputmode="numeric">
 
     <button class="btn-primary full" id="sheetLoginBtn">
       Login
