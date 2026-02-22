@@ -67,51 +67,92 @@ export async function renderAdmin(){
   content.innerHTML = html;
 }
 
-window.approveTopup = async function(trxId, uid, amount){
+window.approveTopup = async function(trxId, uid, amount, btn){
 
-  const userRef = doc(db,"users",uid);
-  const trxRef  = doc(db,"walletTransactions",trxId);
+  try{
 
-  const userSnap = await getDoc(userRef);
-  const userData = userSnap.data();
+    // 🔒 Disable button supaya tidak bisa double click
+    if(btn){
+      btn.disabled = true;
+      btn.innerText = "Processing...";
+    }
 
-  const currentTopup = userData.totalTopup || 0;
-  const currentPayment = userData.totalPayment || 0;
-  const currentBalance = userData.walletBalance || 0;
+    const userRef = doc(db,"users",uid);
+    const trxRef  = doc(db,"walletTransactions",trxId);
 
-  const newTopup = currentTopup + amount;
-  const newBalance = currentBalance + amount;
+    // =============================
+    // CEK STATUS TRANSAKSI DULU
+    // =============================
 
-  // 🔥 HITUNG ULANG STATS
-  const stats = recalculateUserStats({
-    totalTopup: newTopup,
-    totalPayment: currentPayment,
-    membership: userData.membership
-  });
+    const trxSnap = await getDoc(trxRef);
+    const trxData = trxSnap.data();
 
-  // =============================
-  // UPDATE USER
-  // =============================
+    if(!trxSnap.exists() || trxData.status !== "PENDING"){
+      alert("Transaksi sudah diproses.");
+      if(btn){
+        btn.disabled = false;
+        btn.innerText = "Approve";
+      }
+      return;
+    }
 
-  await updateDoc(userRef,{
-    walletBalance: newBalance,
-    totalTopup: newTopup,
-    level: stats.level,
-    exp: stats.expTotal,
-    gPoint: stats.gPoint
-  });
+    // =============================
+    // AMBIL USER DATA
+    // =============================
 
-  // =============================
-  // UPDATE TRANSACTION
-  // =============================
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
 
-  await updateDoc(trxRef,{
-    status:"APPROVED",
-    approvedAt: serverTimestamp()
-  });
+    const currentTopup = userData.totalTopup || 0;
+    const currentPayment = userData.totalPayment || 0;
+    const currentBalance = userData.walletBalance || 0;
 
-  alert("Approved");
-  renderAdmin();
+    const newTopup = currentTopup + amount;
+    const newBalance = currentBalance + amount;
+
+    // =============================
+    // HITUNG ULANG STATS
+    // =============================
+
+    const stats = recalculateUserStats({
+      totalTopup: newTopup,
+      totalPayment: currentPayment,
+      membership: userData.membership
+    });
+
+    // =============================
+    // UPDATE USER
+    // =============================
+
+    await updateDoc(userRef,{
+      walletBalance: newBalance,
+      totalTopup: newTopup,
+      level: stats.level,
+      exp: stats.expTotal,
+      gPoint: stats.gPoint
+    });
+
+    // =============================
+    // UPDATE TRANSACTION
+    // =============================
+
+    await updateDoc(trxRef,{
+      status:"APPROVED",
+      approvedAt: serverTimestamp()
+    });
+
+    alert("Approved");
+    renderAdmin();
+
+  }catch(error){
+    console.error(error);
+    alert("Error approve");
+
+    if(btn){
+      btn.disabled = false;
+      btn.innerText = "Approve";
+    }
+  }
 };
 
 async function migrateOpeningBalance(dataList){
