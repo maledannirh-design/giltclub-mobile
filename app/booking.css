@@ -1,17 +1,25 @@
-<div class="upcoming-wrapper">
-  <div class="upcoming-scroll">
+.upcoming-wrapper {
+  padding: 16px;
+}
 
-    <div class="upcoming-card dominant">
-      <div class="session-level">Supercoach Session</div>
-      <div class="session-time">Sat • 08:00 - 10:00</div>
-      <div class="session-court">Court A</div>
-    </div>
+.upcoming-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
 
-    <div class="upcoming-card">
-      <div class="session-level">Beginner</div>
-      <div class="session-time">Sun • 15:00 - 17:00</div>
-      <div class="session-court">Court B</div>
-    </div>
+.upcoming-card {
+  min-width: 220px;
+  padding: 18px;
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  scroll-snap-align: start;
+}
 
-  </div>
-</div>
+.upcoming-card.dominant {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+}
