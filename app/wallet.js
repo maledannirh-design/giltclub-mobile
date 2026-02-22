@@ -55,11 +55,11 @@ export async function renderWallet(){
 
               <div class="wallet-action-group">
                 <button class="wallet-topup-btn">
-                  ➕ Top Up
+                  ➕ Top Up Saldo
                 </button>
 
                 <button class="wallet-withdraw-btn">
-                  ➖ WD
+                  ➖ Tarik Saldo
                 </button>
               </div>
 
