@@ -7,6 +7,7 @@ import {
   query,
   doc,
   getDoc,
+  setDoc,        // ✅ TAMBAHKAN INI
   where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
