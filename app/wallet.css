@@ -181,3 +181,26 @@
   font-size:12px;
   font-weight:600;
 }
+
+.ledger-container{
+  padding:20px;
+}
+
+.ledger-item{
+  background:var(--color-card);
+  padding:14px;
+  border-radius:12px;
+  margin-bottom:12px;
+  display:flex;
+  justify-content:space-between;
+  box-shadow:var(--shadow-card);
+}
+
+.ledger-type{
+  font-weight:600;
+}
+
+.ledger-date{
+  font-size:12px;
+  opacity:.7;
+}
