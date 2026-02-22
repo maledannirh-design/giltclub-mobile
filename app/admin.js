@@ -56,20 +56,30 @@ export async function renderAdmin(){
   html += `</div>`;
   content.innerHTML = html;
 }
+
 async function approveTopup(trxId, uid, amount){
 
   const userRef = doc(db,"users", uid);
   const trxRef  = doc(db,"walletTransactions", trxId);
 
+  const userSnap = await getDoc(userRef);
+  const currentBalance = userSnap.data().walletBalance || 0;
+
+  const newBalance = currentBalance + amount;
+
+  // update transaction
   await updateDoc(trxRef,{
     status:"APPROVED",
-    approvedAt: serverTimestamp()
+    approvedAt: serverTimestamp(),
+    balanceAfter: newBalance
   });
 
+  // update user balance
   await updateDoc(userRef,{
-    walletBalance: increment(amount)
+    walletBalance: newBalance
   });
 }
+
 window.approveTopup = async function(trxId, uid, amount){
 
   await updateDoc(doc(db,"walletTransactions",trxId),{
