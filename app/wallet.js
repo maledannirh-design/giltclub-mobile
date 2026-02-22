@@ -71,6 +71,10 @@ export async function renderWallet(){
 
     </div>
 
+<div class="wallet-action-card ledger-card">
+  <div class="action-icon">📄</div>
+  <div class="action-title">Mutasi</div>
+</div>
   </div>
 `;
 
@@ -122,4 +126,52 @@ function eyeOpenSVG(){
       <circle cx="12" cy="12" r="3"/>
     </svg>
   `;
+}
+
+/* =========================================
+   MUTASI REKENING
+========================================= */
+
+document.querySelector(".ledger-card").onclick = async () => {
+  renderLedger();
+};
+async function renderLedger(){
+
+  const user = auth.currentUser;
+  const content = document.getElementById("content");
+
+  const snap = await getDocs(
+    query(
+      collection(db,"walletTransactions"),
+      where("uid","==", user.uid),
+      orderBy("createdAt","desc")
+    )
+  );
+
+  let html = `
+    <div class="ledger-container">
+      <h3>Mutasi Rekening</h3>
+  `;
+
+  snap.forEach(doc=>{
+    const d = doc.data();
+
+    html += `
+      <div class="ledger-item">
+        <div>
+          <div class="ledger-type">${d.type}</div>
+          <div class="ledger-date">
+            ${d.createdAt?.toDate().toLocaleString("id-ID") || "-"}
+          </div>
+        </div>
+        <div class="ledger-amount">
+          Rp ${d.amount?.toLocaleString("id-ID")}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  content.innerHTML = html;
 }
