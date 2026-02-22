@@ -57,7 +57,7 @@ export async function renderAdmin(){
   content.innerHTML = html;
 }
 
-async function approveTopup(trxId, uid, amount){
+window.approveTopup = async function(trxId, uid, amount){
 
   const userRef = doc(db,"users", uid);
   const trxRef  = doc(db,"walletTransactions", trxId);
@@ -67,7 +67,7 @@ async function approveTopup(trxId, uid, amount){
 
   const newBalance = currentBalance + amount;
 
-  // update transaction
+  // update transaction (WITH RUNNING BALANCE)
   await updateDoc(trxRef,{
     status:"APPROVED",
     approvedAt: serverTimestamp(),
@@ -77,18 +77,6 @@ async function approveTopup(trxId, uid, amount){
   // update user balance
   await updateDoc(userRef,{
     walletBalance: newBalance
-  });
-}
-
-window.approveTopup = async function(trxId, uid, amount){
-
-  await updateDoc(doc(db,"walletTransactions",trxId),{
-    status:"APPROVED",
-    approvedAt: serverTimestamp()
-  });
-
-  await updateDoc(doc(db,"users",uid),{
-    walletBalance: increment(amount)
   });
 
   alert("Approved");
