@@ -123,54 +123,56 @@ export function logout(){
 
 document.addEventListener("click", async (e) => {
 
-  // ================= REGISTER =================
- if(mode === "register"){
-  sheet.innerHTML = `
-    <div class="sheet-handle"></div>
-    <h3>Pendaftaran Member</h3>
+// ================= REGISTER =================
+if (e.target.id === "submitRegister") {
 
-    <input id="regFullName" type="text" placeholder="Nama Lengkap">
-    <input id="regUsername" type="text" placeholder="Username">
-    <input id="regEmail" type="email" placeholder="Email">
+  try {
 
-    <!-- PHONE 2 COLUMN -->
-    <div class="phone-group">
-      <select id="countryCode">
-        <option value="+62">🇮🇩 +62</option>
-        <option value="+60">🇲🇾 +60</option>
-        <option value="+65">🇸🇬 +65</option>
-      </select>
-      <input id="phoneNumber"
-        type="tel"
-        placeholder="8123456789"
-        maxlength="13"
-        inputmode="numeric">
-    </div>
+    const sheet = document.getElementById("loginSheet");
 
-    <input id="birthPlace" type="text" placeholder="Tempat Lahir">
-    <input id="birthDate" type="date">
+    const fullName   = sheet.querySelector("#regFullName").value.trim();
+    const username   = sheet.querySelector("#regUsername").value.trim();
+    const email      = sheet.querySelector("#regEmail").value.trim();
 
-    <input id="pinLogin"
-      type="password"
-      maxlength="6"
-      inputmode="numeric"
-      placeholder="Buat PIN Login (6 digit)">
+    const birthPlace = sheet.querySelector("#birthPlace").value.trim();
+    const birthDate  = sheet.querySelector("#birthDate").value;
 
-    <input id="pinTrx"
-      type="password"
-      maxlength="6"
-      inputmode="numeric"
-      placeholder="Buat PIN Transaksi (6 digit)">
+    // ===== PHONE (2 COLUMN SYSTEM) =====
+    const countryCode = sheet.querySelector("#countryCode").value;
+    const phoneNumber = sheet.querySelector("#phoneNumber").value.trim();
+    const phoneFull   = countryCode + phoneNumber;
 
-    <div class="terms-row">
-      <input type="checkbox" id="termsCheck">
-      <label for="termsCheck">Saya setuju syarat & ketentuan</label>
-    </div>
+    const pinLogin = sheet.querySelector("#pinLogin").value.replace(/\s/g,'');
+    const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
 
-    <button class="btn-primary full" id="submitRegister">
-      Daftar
-    </button>
-  `;
+    const terms = sheet.querySelector("#termsCheck").checked;
+
+    if (!terms) {
+      throw new Error("Setujui syarat & ketentuan");
+    }
+
+    if (!/^8[0-9]{8,12}$/.test(phoneNumber)) {
+      throw new Error("Nomor HP tidak valid");
+    }
+
+    if (!birthPlace || !birthDate) {
+      throw new Error("Lengkapi data kelahiran");
+    }
+
+    await register(
+      email,
+      pinLogin,
+      pinTrx,
+      username,
+      fullName,
+      phoneFull,
+      birthPlace,
+      birthDate
+    );
+
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 }
 
   // ================= LOGIN =================
