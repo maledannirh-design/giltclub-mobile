@@ -165,9 +165,16 @@ export async function renderAccountUI(){
           <div class="profile-name-row">
   <h2 id="profileName"></h2>
   <span id="verifiedBadge" class="verified-badge">
-  <svg viewBox="0 0 24 24" fill="#1DA1F2">
-    <path d="M22 12l-2.2-2.2.3-3.1-3.1.3L12 4 9 6.9l-3.1-.3.3 3.1L4 12l2.2 2.2-.3 3.1 3.1-.3L12 20l3-2.9 3.1.3-.3-3.1L22 12zM10 15l-3-3 1.4-1.4L10 12.2l5.6-5.6L17 8l-7 7z"/>
+  <svg viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
+    <path d="M9.5 12.5l1.8 1.8 3.5-4" 
+          fill="none" 
+          stroke="#fff" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
   </svg>
+</span>
 </span>
 </div>
 
