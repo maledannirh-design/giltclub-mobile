@@ -543,7 +543,19 @@ export function renderMembers(){
 
             <div class="member-username">
               ${data.username || "User"}
-              ${data.verifiedApproved ? `<span class="verified-badge">✔</span>` : ``}
+              ${data.verified === true ? `
+  <span class="verified-badge">
+    <svg viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
+      <path d="M9.5 12.5l1.8 1.8 3.5-4"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+    </svg>
+  </span>
+` : ``}
               ${
                 mutual
                   ? `<span class="mutual-badge">Mutual</span>`
