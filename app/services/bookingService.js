@@ -96,7 +96,11 @@ export async function createBooking({ userId, scheduleId }) {
       referenceId: bookingRef.id,
       createdAt: serverTimestamp()
     });
-
+    const stats = recalculateUserStats({
+  totalTopup: currentTotalTopup,
+  totalPayment: newTotalPayment,
+  membership: userData.membership
+});
   });
 
   return { success: true };
