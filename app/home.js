@@ -212,8 +212,18 @@ export async function renderHome(){
       </div>
     `;
   }
-}
+  /* =============================
+   HOME TOP UP BUTTON
+============================= */
+const homeTopupBtn = document.querySelector(".wallet-topup-btn");
 
+if(homeTopupBtn){
+  homeTopupBtn.onclick = async ()=>{
+    const module = await import("./wallet.js");
+    module.renderTopUpSheet();
+  };
+}
+}
 
 /* =========================================
    SVG ICON
