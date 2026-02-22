@@ -41,6 +41,37 @@
   transition: all .2s ease;
 }
 
+.session-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  margin-bottom: 14px;
+}
+
+.session-card.dominant {
+  border: 2px solid #10b981;
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.joined-users {
+  display: flex;
+  margin-top: 12px;
+}
+
+.joined-users img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  margin-left: -8px;
+  border: 2px solid white;
+}
+
 .day-card:hover {
   transform: translateY(-3px);
   background: rgba(0,0,0,0.05);
@@ -49,4 +80,16 @@
 .day-card.active {
   background: #111827;
   color: white;
+}
+.host-form {
+  padding: 20px;
+}
+
+.host-form input,
+.host-form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
 }
