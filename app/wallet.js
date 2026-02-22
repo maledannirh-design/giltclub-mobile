@@ -59,7 +59,7 @@ export async function renderWallet(){
                 </button>
 
                 <button class="wallet-withdraw-btn">
-                  ➖ Tarik Saldo
+                  ➖ Withdraw
                 </button>
               </div>
 
