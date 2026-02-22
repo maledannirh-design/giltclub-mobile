@@ -59,7 +59,7 @@ export async function renderWallet(){
                 </button>
 
                 <button class="wallet-withdraw-btn">
-                  ➖ Withdraw
+                  ➖ WD
                 </button>
               </div>
 
