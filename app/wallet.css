@@ -92,3 +92,46 @@
   font-weight:600;
   cursor:pointer;
 }
+
+.wallet-big-card{
+  margin-top:18px;
+  width:100%;
+}
+
+.wallet-member-big-img{
+  width:100%;
+  border-radius:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,.15);
+}
+
+/* ACTION ROW */
+.wallet-action-row{
+  display:flex;
+  gap:16px;
+  margin-top:20px;
+}
+
+.wallet-action-card{
+  flex:1;
+  background:var(--color-card);
+  border-radius:18px;
+  padding:20px;
+  text-align:center;
+  box-shadow:var(--shadow-card);
+  cursor:pointer;
+  transition:all .2s ease;
+}
+
+.wallet-action-card:hover{
+  transform:translateY(-3px);
+}
+
+.action-icon{
+  font-size:22px;
+  margin-bottom:8px;
+}
+
+.action-title{
+  font-weight:600;
+  color:var(--color-text);
+}
