@@ -279,3 +279,8 @@
   padding-left:18px;
   line-height:1.6;
 }
+
+.ledger-balance{
+  font-size:11px;
+  opacity:.6;
+}
