@@ -180,7 +180,8 @@ async function renderLedger(){
       <h3>Mutasi Rekening</h3>
   `;
 
-  snap.forEach(docSnap=>{
+  for(const docSnap of snap.docs){
+
     const d = docSnap.data();
 
     html += `
@@ -191,17 +192,22 @@ async function renderLedger(){
             ${d.createdAt?.toDate().toLocaleString("id-ID") || "-"}
           </div>
         </div>
-        <div class="ledger-amount">
-          Rp ${d.amount?.toLocaleString("id-ID")}
+
+        <div style="text-align:right;">
+          <div class="ledger-amount">
+            Rp ${d.amount?.toLocaleString("id-ID")}
+          </div>
+          <div class="ledger-balance">
+            Saldo: Rp ${d.balanceAfter?.toLocaleString("id-ID") || "-"}
+          </div>
         </div>
       </div>
     `;
-  });
+  }
 
   html += `</div>`;
   content.innerHTML = html;
 }
-
 
 /* =========================================
    TOP UP SHEET
