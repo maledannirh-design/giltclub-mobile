@@ -19,47 +19,39 @@ export async function loadDashboard(){
   if(!content) return;
 
   content.innerHTML = `
-    <div class="page-fade">
-      <div class="dashboard-wrapper">
+  <div class="dashboard-container">
 
-        <div class="dashboard-header">
-          <h2>Dashboard</h2>
-          <div id="roleBadge" class="role-badge"></div>
-        </div>
+    <h2>Dashboard</h2>
+    <div class="dashboard-role">${userData.role}</div>
 
-        <div class="summary-grid">
-          <div class="metric-card" id="cardAttendance"></div>
-          <div class="metric-card" id="cardWallet"></div>
-          <div class="metric-card" id="cardRank"></div>
-          <div class="metric-card" id="cardSessions"></div>
-          <div class="metric-card admin-only" id="cardRevenue"></div>
-        </div>
-        <div id="unreadSection" class="unread-section hidden">
-  <div class="unread-header">
-    <h3>Unread Messages</h3>
-    <span id="unreadCountBadge" class="badge"></span>
-  </div>
+    <div class="dashboard-card">
+      <div class="card-title">Jumlah Check-in dalam Bulan Ini</div>
+      <div class="card-value">${attendanceCount}</div>
+    </div>
 
-  <div id="unreadList"></div>
-</div>
-        <div class="panel">
-          <h3>Monthly Leaderboard</h3>
-          <div id="leaderboardList"></div>
-        </div>
+    <div class="dashboard-card">
+      <div class="card-title">Total Gabung Sesi</div>
+      <div class="card-value">${totalSessions}</div>
+    </div>
 
-        <div class="panel">
-          <h3>Recent Wallet Activity</h3>
-          <div id="walletMiniLedger"></div>
-        </div>
+    <div class="dashboard-card">
+      <div class="card-title">Total G-Point</div>
+      <div class="card-value">${userData.gPoint || 0}</div>
+    </div>
 
+    <div class="dashboard-card reward-card" onclick="navigate('reward')">
+      <div class="reward-title">Tukar Point & Hadiah</div>
+      <div class="reward-sub">
+        Gunakan G-Point untuk klaim hadiah eksklusif
       </div>
     </div>
-  `;
+
+  </div>
+`;
 
   await loadUserSummary();
   await loadLeaderboard();
   await loadMiniLedger();
-  await loadUnreadMessages();
 }
 
 /* ============================
@@ -79,15 +71,6 @@ async function loadUserSummary(){
   const roleBadge = document.getElementById("roleBadge");
   if(roleBadge){
     roleBadge.innerText = userData.role || "member";
-  }
-
-  // Wallet
-  const cardWallet = document.getElementById("cardWallet");
-  if(cardWallet){
-    cardWallet.innerHTML = `
-      <div class="metric-label">Wallet Balance</div>
-      <div class="metric-value">Rp ${formatCurrency(userData.walletBalance || 0)}</div>
-    `;
   }
 
   // Total Sessions (lifetime)
