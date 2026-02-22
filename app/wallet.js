@@ -1,43 +1,55 @@
-import {
-  doc,
-  runTransaction,
-  collection,
-  addDoc,
-  serverTimestamp
-} from "./firestore.js";
 import { auth, db } from "./firebase.js";
 
-export async function injectSaldo(amount){
+import { 
+  collection, 
+  getDocs, 
+  doc, 
+  setDoc,
+  getDoc,
+  updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const user = auth.currentUser;
-  if(!user) return;
+export async function renderWallet(){
 
-  const userRef = doc(db, "users", user.uid);
+  const uid = auth.currentUser.uid;
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
 
-  await runTransaction(db, async (transaction) => {
+  const balance = userSnap.data().walletBalance || 0;
 
-    const userSnap = await transaction.get(userRef);
+  document.getElementById("wallet-balance").innerText =
+    "Rp " + balance.toLocaleString("id-ID");
+}
 
-    if(!userSnap.exists()){
-      throw new Error("User not found");
+
+//migration balance//
+export async function migrateOpeningBalance(){
+
+  const usersSnap = await getDocs(collection(db, "users"));
+
+  for (const userDoc of usersSnap.docs) {
+
+    const userData = userDoc.data();
+    const oldBalance = userData.balance || 0;
+
+    if (oldBalance > 0) {
+
+      const trxRef = doc(collection(db, "walletTransactions"));
+
+      await setDoc(trxRef, {
+        uid: userDoc.id,
+        type: "OPENING",
+        amount: oldBalance,
+        balanceAfter: oldBalance,
+        createdAt: new Date(),
+        note: "Migrated Opening Balance"
+      });
+
+      await updateDoc(userDoc.ref, {
+        walletBalance: oldBalance
+      });
     }
+  }
 
-    const currentBalance = userSnap.data().walletBalance || 0;
-    const newBalance = currentBalance + amount;
-
-    transaction.update(userRef, {
-      walletBalance: newBalance
-    });
-
-  });
-
-  // Simpan mutasi
-  await addDoc(collection(db, "wallet_transactions"), {
-    userId: user.uid,
-    type: "topup",
-    amount: amount,
-    description: "Manual Inject",
-    createdAt: serverTimestamp()
-  });
-
+  console.log("Migration Done");
 }
