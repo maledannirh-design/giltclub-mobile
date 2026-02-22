@@ -1,8 +1,37 @@
+import { db } from "./firebase.js";
+import { 
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 import { recalculateUserStats } from "./userStats.js";
 
-async function migrateUsers(dataList){
+const migrationData = [
+ {
+   username: "usewin ameera",
+   totalTopup: 1650000,
+   walletBalance: 20250
+ },
+  {
+   "username": "wawa",
+   "totalTopup": 1200000,
+   "walletBalance": 410000
+ },
+ {
+   username: "Coach Jack Dimitry",
+   totalTopup: 2345000,
+   walletBalance: 2120250
+ }
 
-  for(const item of dataList){
+];
+
+export async function runMigration(){
+
+  for(const item of migrationData){
 
     const snap = await getDocs(
       query(collection(db,"users"), where("username","==", item.username))
@@ -29,7 +58,6 @@ async function migrateUsers(dataList){
       walletBalance: item.walletBalance,
       totalTopup: item.totalTopup,
       totalPayment: totalPayment,
-
       level: stats.level,
       exp: stats.expTotal,
       gPoint: stats.gPoint
@@ -38,5 +66,5 @@ async function migrateUsers(dataList){
     console.log("Migrated:", item.username);
   }
 
-  console.log("Migrasi selesai.");
+  console.log("MIGRATION DONE");
 }
