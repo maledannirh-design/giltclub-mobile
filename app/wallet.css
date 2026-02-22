@@ -204,3 +204,49 @@
   font-size:12px;
   opacity:.7;
 }
+
+.topup-sheet{
+  padding:20px;
+}
+
+.countdown-box{
+  background:#1e293b;
+  color:white;
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+  margin-bottom:20px;
+}
+
+#countdownTimer{
+  font-size:20px;
+  font-weight:700;
+  margin-top:6px;
+}
+
+.topup-input{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--color-border);
+  margin-bottom:12px;
+}
+
+.btn-primary{
+  width:100%;
+  padding:12px;
+  background:var(--color-primary);
+  color:white;
+  border:none;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+
+.btn-danger{
+  width:100%;
+  padding:12px;
+  background:#dc2626;
+  color:white;
+  border:none;
+  border-radius:12px;
+}
