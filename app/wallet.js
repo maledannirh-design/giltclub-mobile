@@ -19,7 +19,7 @@ export async function renderWallet(){
   if(!content || !user) return;
 
   try{
-    await ensureOpeningBalance();
+    
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
@@ -326,37 +326,4 @@ function startCountdown(duration){
     }
 
   },1000);
-}
-
-
-async function ensureOpeningBalance(){
-
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const userRef = doc(db,"users",user.uid);
-  const userSnap = await getDoc(userRef);
-  if(!userSnap.exists()) return;
-
-  const balance = userSnap.data().walletBalance || 0;
-
-  const openingRef = doc(
-    db,
-    "walletTransactions",
-    `${user.uid}_OPENING`
-  );
-
-  const openingSnap = await getDoc(openingRef);
-
-  if(openingSnap.exists()) return;
-
-  await setDoc(openingRef,{
-    uid: user.uid,
-    type: "OPENING",
-    amount: balance,
-    status: "APPROVED",
-    balanceAfter: balance,
-    createdAt: serverTimestamp(),
-    approvedAt: serverTimestamp()
-  });
 }
