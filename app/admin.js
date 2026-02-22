@@ -12,7 +12,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { recalculateUserStats } from "./userStats.js";
-import { recalculateAllUsersOnce } from "./recalculate.js";
 
 // ✅ IMPORT FUNCTION SECARA BENAR
 import { runMigration } from "./migration.js";
@@ -203,6 +202,6 @@ window.rejectTopup = async function(trxId, btn){
     }
   }
 };
-window.recalculateAllUsersOnce = recalculateAllUsersOnce;
+
 // expose ke console
 window.runMigration = runMigration;
