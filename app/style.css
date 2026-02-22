@@ -1455,6 +1455,53 @@ html, body {
   stroke: currentColor;
   stroke-width: 1.4;
 }
+
+
+.dashboard-card{
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(6px);
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all .2s ease;
+}
+
+.dashboard-card:hover{
+  transform: translateY(-2px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.card-title{
+  font-size: 13px;
+  opacity: .7;
+  margin-bottom: 6px;
+}
+
+.card-value{
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.reward-card{
+  background: linear-gradient(
+    135deg,
+    rgba(255,215,0,0.08),
+    rgba(255,255,255,0.04)
+  );
+  cursor: pointer;
+}
+
+.reward-title{
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.reward-sub{
+  font-size: 12px;
+  opacity: .6;
+  margin-top: 4px;
+}
 @keyframes blink{
   0%{opacity:.2;}
   20%{opacity:1;}
