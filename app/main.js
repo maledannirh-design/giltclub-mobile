@@ -56,6 +56,7 @@ window.addEventListener("load", () => {
 onAuthStateChanged(auth, async (user)=>{
 
   const label = document.getElementById("currentUserLabel");
+  const adminButton = document.querySelector('[data-page="admin"]');
 
   if(user){
 
@@ -78,22 +79,57 @@ onAuthStateChanged(auth, async (user)=>{
     });
 
     // =============================
-    // LOAD USER LABEL
+    // LOAD USER DATA (ROLE + LABEL)
     // =============================
-    if(label){
-      try{
-        const snap = await getDoc(doc(db, "users", user.uid));
+    try{
 
-        if(snap.exists()){
-          const data = snap.data();
+      const snap = await getDoc(doc(db, "users", user.uid));
+
+      if(snap.exists()){
+
+        const data = snap.data();
+
+        // Simpan global role (optional but good)
+        window.currentUserRole = data.role || "MEMBER";
+
+        // Update label
+        if(label){
           label.innerText = `${data.username || "User"} (${data.role || "-"})`;
-        }else{
+        }
+
+        // =============================
+        // SHOW / HIDE ADMIN MENU
+        // =============================
+        if(adminButton){
+          if(data.role === "ADMIN" || data.role === "SUPERCOACH"){
+            adminButton.style.display = "flex";
+          }else{
+            adminButton.style.display = "none";
+          }
+        }
+
+      }else{
+
+        if(label){
           label.innerText = "User data missing";
         }
 
-      }catch(error){
-        console.error("User label error:", error);
+        if(adminButton){
+          adminButton.style.display = "none";
+        }
+
+      }
+
+    }catch(error){
+
+      console.error("User load error:", error);
+
+      if(label){
         label.innerText = "Error loading user";
+      }
+
+      if(adminButton){
+        adminButton.style.display = "none";
       }
     }
 
@@ -103,6 +139,10 @@ onAuthStateChanged(auth, async (user)=>{
 
     if(label){
       label.innerText = "Not logged in";
+    }
+
+    if(adminButton){
+      adminButton.style.display = "none";
     }
 
   }
