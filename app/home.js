@@ -195,7 +195,7 @@ if (scroll) {
     /* =============================
        TOGGLE SALDO (SVG SWITCH)
     ============================= */
-    let saldoVisible = true;
+    let saldoVisible = false;
 
     const toggleBtn = document.getElementById("toggleSaldoBtn");
     const walletAmountEl = document.getElementById("walletAmount");
