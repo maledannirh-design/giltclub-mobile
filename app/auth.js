@@ -8,17 +8,29 @@ import {
   where, 
   getDocs 
 } from "./firestore.js";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import { showToast } from "./ui.js";
 import { navigate } from "./navigation.js";
 
+
 /* ================= REGISTER ================= */
 
-export async function register(email, pinLogin, pinTrx, username){
+export async function register(
+  email,
+  pinLogin,
+  pinTrx,
+  username,
+  fullName,
+  phone,
+  birthPlace,
+  birthDate
+){
 
   if(!/^\d{6}$/.test(pinLogin)){
     throw new Error("PIN Login harus 6 digit angka");
@@ -55,50 +67,58 @@ export async function register(email, pinLogin, pinTrx, username){
   // ==============================
   // SIMPAN DATA PROFILE
   // ==============================
- await setDoc(doc(db, "users", user.uid), {
+  await setDoc(doc(db, "users", user.uid), {
 
-  name: username,
-  username: cleanUsername,
-  bio: "",
+    fullName,
+    username: cleanUsername,
+    email,
 
-  role: "MEMBER",            // member | admin | coach | supercoach 
-  membership: "MEMBER",      // MEMBER | VVIP
-  playingLevel: "newbie",
+    phone,
+    birthPlace,
+    birthDate,
 
-  status: "active",          // active | suspended | deactivated
+    bio: "",
 
-  followersCount: 0,
-  followingCount: 0,
+    role: "MEMBER",
+    membership: "MEMBER",
+    playingLevel: "newbie",
 
-  level: 1,
-  points: 0,
-  wins: 0,
-  matches: 0,
+    status: "active",
 
-  monthlyContribution: 0,
-  attendanceCount: 0,
+    followersCount: 0,
+    followingCount: 0,
 
-  coachApproved: false,
-  coachLevel: null,
+    level: 1,
+    points: 0,
+    wins: 0,
+    matches: 0,
 
-  verifiedApproved: false, // VERIFIED/ UNVERIFIED
-  verifiedEligible: false,
+    monthlyContribution: 0,
+    attendanceCount: 0,
 
-  isPublic: true,
+    coachApproved: false,
+    coachLevel: null,
 
-  pinTrx,
-  createdAt: serverTimestamp()
+    verifiedApproved: false,
+    verifiedEligible: false,
 
-});
+    isPublic: true,
+
+    pinTrx,
+    createdAt: serverTimestamp()
+
+  });
 
   showToast("Akun berhasil dibuat", "success");
   navigate("home");
-  
+
   const sheet = document.getElementById("loginSheet");
   const overlay = document.querySelector(".sheet-overlay");
-  sheet.classList.remove("active");
-  overlay.classList.remove("active");
+
+  if(sheet) sheet.classList.remove("active");
+  if(overlay) overlay.classList.remove("active");
 }
+
 
 /* ================= LOGIN ================= */
 
@@ -113,67 +133,68 @@ export async function login(email, pinLogin){
   showToast("Login berhasil", "success");
 }
 
+
 /* ================= LOGOUT ================= */
 
 export function logout(){
   return signOut(auth);
 }
 
-// ================= BUTTON HANDLER =================
+
+/* ================= BUTTON HANDLER ================= */
 
 document.addEventListener("click", async (e) => {
 
-// ================= REGISTER =================
-if (e.target.id === "submitRegister") {
+  // ================= REGISTER =================
+  if (e.target.id === "submitRegister") {
 
-  try {
+    try {
 
-    const sheet = document.getElementById("loginSheet");
+      const sheet = document.getElementById("loginSheet");
 
-    const fullName   = sheet.querySelector("#regFullName").value.trim();
-    const username   = sheet.querySelector("#regUsername").value.trim();
-    const email      = sheet.querySelector("#regEmail").value.trim();
+      const fullName   = sheet.querySelector("#regFullName").value.trim();
+      const username   = sheet.querySelector("#regUsername").value.trim();
+      const email      = sheet.querySelector("#regEmail").value.trim();
 
-    const birthPlace = sheet.querySelector("#birthPlace").value.trim();
-    const birthDate  = sheet.querySelector("#birthDate").value;
+      const birthPlace = sheet.querySelector("#birthPlace").value.trim();
+      const birthDate  = sheet.querySelector("#birthDate").value;
 
-    // ===== PHONE (2 COLUMN SYSTEM) =====
-    const countryCode = sheet.querySelector("#countryCode").value;
-    const phoneNumber = sheet.querySelector("#phoneNumber").value.trim();
-    const phoneFull   = countryCode + phoneNumber;
+      const countryCode = sheet.querySelector("#countryCode").value;
+      const phoneNumber = sheet.querySelector("#phoneNumber").value.trim();
+      const phoneFull   = countryCode + phoneNumber;
 
-    const pinLogin = sheet.querySelector("#pinLogin").value.replace(/\s/g,'');
-    const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
+      const pinLogin = sheet.querySelector("#pinLogin").value.replace(/\s/g,'');
+      const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
 
-    const terms = sheet.querySelector("#termsCheck").checked;
+      const terms = sheet.querySelector("#termsCheck").checked;
 
-    if (!terms) {
-      throw new Error("Setujui syarat & ketentuan");
+      if (!terms) {
+        throw new Error("Setujui syarat & ketentuan");
+      }
+
+      if (!/^8[0-9]{8,12}$/.test(phoneNumber)) {
+        throw new Error("Nomor HP tidak valid");
+      }
+
+      if (!birthPlace || !birthDate) {
+        throw new Error("Lengkapi data kelahiran");
+      }
+
+      await register(
+        email,
+        pinLogin,
+        pinTrx,
+        username,
+        fullName,
+        phoneFull,
+        birthPlace,
+        birthDate
+      );
+
+    } catch (err) {
+      showToast(err.message, "error");
     }
-
-    if (!/^8[0-9]{8,12}$/.test(phoneNumber)) {
-      throw new Error("Nomor HP tidak valid");
-    }
-
-    if (!birthPlace || !birthDate) {
-      throw new Error("Lengkapi data kelahiran");
-    }
-
-    await register(
-      email,
-      pinLogin,
-      pinTrx,
-      username,
-      fullName,
-      phoneFull,
-      birthPlace,
-      birthDate
-    );
-
-  } catch (err) {
-    showToast(err.message, "error");
   }
-}
 
   // ================= LOGIN =================
   if(e.target.id === "submitLogin"){
@@ -182,26 +203,25 @@ if (e.target.id === "submitRegister") {
 
       const sheet = document.getElementById("loginSheet");
 
-     const email = sheet.querySelector('#sheetEmail').value.trim();
+      const email = sheet.querySelector('#sheetEmail').value.trim();
 
-const pinLogin = sheet
-  .querySelector('#sheetPinLogin')
-  .value.replace(/\s/g,'');
+      const pinLogin = sheet
+        .querySelector('#sheetPinLogin')
+        .value.replace(/\s/g,'');
 
       await login(email, pinLogin);
 
       const sheetEl = document.getElementById("loginSheet");
-const overlay = document.querySelector(".sheet-overlay");
+      const overlay = document.querySelector(".sheet-overlay");
 
-if (sheetEl) sheetEl.classList.remove("active");
-if (overlay) overlay.classList.remove("active");
-// Baru pindah halaman
-navigate("home");
-      
+      if (sheetEl) sheetEl.classList.remove("active");
+      if (overlay) overlay.classList.remove("active");
+
+      navigate("home");
+
     }catch(err){
       showToast(err.message, "error");
     }
-
   }
 
 });
