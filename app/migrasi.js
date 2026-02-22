@@ -68,3 +68,5 @@ export async function runMigration(){
 
   console.log("MIGRATION DONE");
 }
+
+window.runMigration = runMigration;
