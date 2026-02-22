@@ -124,42 +124,54 @@ export function logout(){
 document.addEventListener("click", async (e) => {
 
   // ================= REGISTER =================
-  if(e.target.id === "submitRegister"){
+ if(mode === "register"){
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <h3>Pendaftaran Member</h3>
 
-    try{
+    <input id="regFullName" type="text" placeholder="Nama Lengkap">
+    <input id="regUsername" type="text" placeholder="Username">
+    <input id="regEmail" type="email" placeholder="Email">
 
-      const sheet = document.getElementById("loginSheet");
+    <!-- PHONE 2 COLUMN -->
+    <div class="phone-group">
+      <select id="countryCode">
+        <option value="+62">🇮🇩 +62</option>
+        <option value="+60">🇲🇾 +60</option>
+        <option value="+65">🇸🇬 +65</option>
+      </select>
+      <input id="phoneNumber"
+        type="tel"
+        placeholder="8123456789"
+        maxlength="13"
+        inputmode="numeric">
+    </div>
 
-      const fullName   = sheet.querySelector('input[placeholder="Nama Lengkap"]').value.trim();
-      const username   = sheet.querySelector('input[placeholder="Username"]').value.trim();
-      const birthPlace = sheet.querySelector('input[placeholder="Tempat Lahir"]').value.trim();
-      const birthDate  = sheet.querySelector('input[type="date"]').value;
+    <input id="birthPlace" type="text" placeholder="Tempat Lahir">
+    <input id="birthDate" type="date">
 
-      // ===== PHONE (2 COLUMN SYSTEM) =====
-      const countryCode = document.getElementById("countryCode").value;
-      const phoneNumber = document.getElementById("phoneNumber").value.trim();
-      const phoneFull   = countryCode + phoneNumber;
+    <input id="pinLogin"
+      type="password"
+      maxlength="6"
+      inputmode="numeric"
+      placeholder="Buat PIN Login (6 digit)">
 
-      const email    = sheet.querySelector('input[type="email"]').value.trim();
-      const pinLogin = sheet.querySelector("#pinLogin").value.replace(/\s/g,'');
-const pinTrx   = sheet.querySelector("#pinTrx").value.replace(/\s/g,'');
+    <input id="pinTrx"
+      type="password"
+      maxlength="6"
+      inputmode="numeric"
+      placeholder="Buat PIN Transaksi (6 digit)">
 
-      const terms = sheet.querySelector('.terms-row input').checked;
+    <div class="terms-row">
+      <input type="checkbox" id="termsCheck">
+      <label for="termsCheck">Saya setuju syarat & ketentuan</label>
+    </div>
 
-      if(!terms){
-        throw new Error("Setujui syarat & ketentuan");
-      }
-
-      if(!phoneNumber){
-        throw new Error("Nomor HP tidak valid");
-      }
-      await register(email, pinLogin, pinTrx, username);
-
-    }catch(err){
-      showToast(err.message, "error");
-    }
-
-  }
+    <button class="btn-primary full" id="submitRegister">
+      Daftar
+    </button>
+  `;
+}
 
   // ================= LOGIN =================
   if(e.target.id === "submitLogin"){
