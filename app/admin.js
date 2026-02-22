@@ -4,19 +4,17 @@ import {
   query,
   where,
   getDocs,
-  getDoc,          // ✅ INI YANG KURANG
+  getDoc,
   doc,
   updateDoc,
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 import { recalculateUserStats } from "./userStats.js";
 
-import "./migration.js";
-window.runMigration = runMigration;
-
-runMigration();
-
+// ✅ IMPORT FUNCTION SECARA BENAR
+import { runMigration } from "./migration.js";
 export async function renderAdmin(){
 
   const content = document.getElementById("content");
@@ -204,4 +202,5 @@ window.rejectTopup = async function(trxId, btn){
     }
   }
 };
-
+// expose ke console
+window.runMigration = runMigration;
