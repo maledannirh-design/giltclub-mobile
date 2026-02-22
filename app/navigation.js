@@ -2,6 +2,7 @@ import { toggleTheme } from "./theme.js";
 import { renderMembers } from "./profile.js";
 import { renderChat } from "./chat.js";
 import { renderHome } from "./home.js";
+import { renderWallet } from "./wallet.js";
 
 let navLock = false;
 let currentPage = null;
@@ -47,6 +48,10 @@ export async function navigate(page){
         (await import("./profile.js")).renderMembers();
         break;
 
+      case "wallet":
+        (await import("./wallet.js")).renderWallet();
+        break;
+        
       case "booking":
         (await import("./booking.js")).renderBooking();
         break;
