@@ -273,9 +273,9 @@
 }
 
 .calendar-google-day.active {
-  background: #b11226; /* merah seperti contoh */
+  background: linear-gradient(135deg,#059669,#10b981);
   color: white;
-  box-shadow: 0 6px 18px rgba(177,18,38,0.4);
+  box-shadow: 0 6px 18px rgba(16,185,129,0.4);
 }
 
 .g-day-name {
