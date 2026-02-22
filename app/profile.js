@@ -21,7 +21,9 @@ function renderSheetContent(mode){
 
   const sheet = document.getElementById("loginSheet");
 
+  // ================= LOGIN =================
   if(mode === "login"){
+
     sheet.innerHTML = `
       <div class="sheet-handle"></div>
       <h3>Login</h3>
@@ -38,6 +40,12 @@ function renderSheetContent(mode){
         Login
       </button>
     `;
+
+    // ✅ HANDLE CLOSE (FIXED POSITION)
+    const handle = sheet.querySelector(".sheet-handle");
+    if(handle){
+      handle.addEventListener("click", closeSheet);
+    }
 
     document.getElementById("submitLogin").onclick = async ()=>{
       try{
@@ -65,6 +73,7 @@ function renderSheetContent(mode){
 
   // ================= REGISTER =================
   if(mode === "register"){
+
     sheet.innerHTML = `
       <div class="sheet-handle"></div>
       <h3>Pendaftaran Member</h3>
@@ -73,45 +82,47 @@ function renderSheetContent(mode){
       <input id="regUsername" type="text" placeholder="Username">
       <input id="regEmail" type="email" placeholder="Email">
 
-      <!-- PHONE 1 COLUMN -->
-   <div class="phone-group">
+      <div class="phone-group">
+        <div class="country-wrapper">
+          <select id="countryCode" class="country-select">
+            <option value="+62">🇮🇩 +62</option>
+            <option value="+60">🇲🇾 +60</option>
+            <option value="+65">🇸🇬 +65</option>
+            <option value="+66">🇹🇭 +66</option>
+            <option value="+63">🇵🇭 +63</option>
+            <option value="+84">🇻🇳 +84</option>
+            <option value="+81">🇯🇵 +81</option>
+            <option value="+82">🇰🇷 +82</option>
+            <option value="+86">🇨🇳 +86</option>
+            <option value="+91">🇮🇳 +91</option>
+            <option value="+971">🇦🇪 +971</option>
+            <option value="+966">🇸🇦 +966</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+61">🇦🇺 +61</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+7">🇷🇺 +7</option>
+          </select>
+        </div>
 
-  <div class="country-wrapper">
-    <select id="countryCode" class="country-select">
-      <option value="+62">🇮🇩 +62</option>
-      <option value="+60">🇲🇾 +60</option>
-      <option value="+65">🇸🇬 +65</option>
-      <option value="+66">🇹🇭 +66</option>
-      <option value="+63">🇵🇭 +63</option>
-      <option value="+84">🇻🇳 +84</option>
-      <option value="+81">🇯🇵 +81</option>
-      <option value="+82">🇰🇷 +82</option>
-      <option value="+86">🇨🇳 +86</option>
-      <option value="+91">🇮🇳 +91</option>
-      <option value="+971">🇦🇪 +971</option>
-      <option value="+966">🇸🇦 +966</option>
-      <option value="+44">🇬🇧 +44</option>
-      <option value="+1">🇺🇸 +1</option>
-      <option value="+61">🇦🇺 +61</option>
-      <option value="+49">🇩🇪 +49</option>
-      <option value="+33">🇫🇷 +33</option>
-      <option value="+39">🇮🇹 +39</option>
-      <option value="+34">🇪🇸 +34</option>
-      <option value="+7">🇷🇺 +7</option>
-    </select>
-  </div>
-
-  <input
-    id="phoneNumber"
-    type="tel"
-    placeholder="8123456789"
-    maxlength="15"
-    inputmode="numeric"
-    class="phone-input">
-</div>
+        <input
+          id="phoneNumber"
+          type="tel"
+          placeholder="8123456789"
+          maxlength="15"
+          inputmode="numeric"
+          class="phone-input">
+      </div>
 
       <input id="birthPlace" type="text" placeholder="Tempat Lahir">
-      <input id="birthDate" type="date">
+
+      <div class="form-group">
+        <label class="field-label">Tanggal Lahir</label>
+        <input id="birthDate" type="date">
+      </div>
 
       <input 
         id="pinLogin"
@@ -137,8 +148,13 @@ function renderSheetContent(mode){
       </button>
     `;
 
-    document.getElementById("submitRegister").onclick = async ()=>{
+    // ✅ HANDLE CLOSE (FIXED POSITION)
+    const handle = sheet.querySelector(".sheet-handle");
+    if(handle){
+      handle.addEventListener("click", closeSheet);
+    }
 
+    document.getElementById("submitRegister").onclick = async ()=>{
       try{
 
         const fullName   = document.getElementById("regFullName").value.trim();
@@ -152,13 +168,8 @@ function renderSheetContent(mode){
         const phoneNumber = document.getElementById("phoneNumber").value.trim();
         const phoneFull   = countryCode + phoneNumber;
 
-        const pinLogin = document
-          .getElementById("pinLogin")
-          .value.replace(/\s/g,'');
-
-        const pinTrx = document
-          .getElementById("pinTrx")
-          .value.replace(/\s/g,'');
+        const pinLogin = document.getElementById("pinLogin").value.replace(/\s/g,'');
+        const pinTrx   = document.getElementById("pinTrx").value.replace(/\s/g,'');
 
         const terms = document.getElementById("termsCheck").checked;
 
@@ -167,8 +178,8 @@ function renderSheetContent(mode){
         }
 
         if(!/^[0-9]{6,15}$/.test(phoneNumber)){
-  throw new Error("Nomor HP tidak valid");
-}
+          throw new Error("Nomor HP tidak valid");
+        }
 
         if(!birthPlace || !birthDate){
           throw new Error("Lengkapi data kelahiran");
@@ -176,6 +187,21 @@ function renderSheetContent(mode){
 
         if(!/^\d{6}$/.test(pinLogin) || !/^\d{6}$/.test(pinTrx)){
           throw new Error("PIN harus 6 digit");
+        }
+
+        // 🔥 VALIDASI MINIMAL 18 TAHUN
+        const today = new Date();
+        const birth = new Date(birthDate);
+
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+
+        if(m < 0 || (m === 0 && today.getDate() < birth.getDate())){
+          age--;
+        }
+
+        if(age < 18){
+          throw new Error("Minimal usia 18 tahun untuk bergabung");
         }
 
         await register(
