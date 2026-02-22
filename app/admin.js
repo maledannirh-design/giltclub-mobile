@@ -90,6 +90,11 @@ window.approveTopup = async function(trxId, uid, amount){
 
   alert("Approved");
   renderAdmin();
+  const stats = recalculateUserStats({
+  totalTopup: newTotalTopup,
+  totalPayment: currentTotalPayment,
+  membership: userData.membership
+});
 };
 
 async function migrateOpeningBalance(dataList){
