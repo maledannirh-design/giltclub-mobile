@@ -12,7 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { recalculateUserStats } from "./userStats.js";
 
-import { runMigration } from "./migration.js";
+import "./migration.js";
 window.runMigration = runMigration;
 
 runMigration();
