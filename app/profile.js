@@ -74,37 +74,40 @@ function renderSheetContent(mode){
       <input id="regEmail" type="email" placeholder="Email">
 
       <!-- PHONE 1 COLUMN -->
-     <div class="phone-group">
+   <div class="phone-group">
 
-  <select id="countryCode" class="country-select">
-    <option value="+62">🇮🇩 +62 Indonesia</option>
-    <option value="+60">🇲🇾 +60 Malaysia</option>
-    <option value="+65">🇸🇬 +65 Singapore</option>
-    <option value="+66">🇹🇭 +66 Thailand</option>
-    <option value="+63">🇵🇭 +63 Philippines</option>
-    <option value="+84">🇻🇳 +84 Vietnam</option>
-    <option value="+81">🇯🇵 +81 Japan</option>
-    <option value="+82">🇰🇷 +82 South Korea</option>
-    <option value="+86">🇨🇳 +86 China</option>
-    <option value="+91">🇮🇳 +91 India</option>
-    <option value="+971">🇦🇪 +971 UAE</option>
-    <option value="+966">🇸🇦 +966 Saudi Arabia</option>
-    <option value="+44">🇬🇧 +44 United Kingdom</option>
-    <option value="+1">🇺🇸 +1 United States</option>
-    <option value="+61">🇦🇺 +61 Australia</option>
-    <option value="+49">🇩🇪 +49 Germany</option>
-    <option value="+33">🇫🇷 +33 France</option>
-    <option value="+39">🇮🇹 +39 Italy</option>
-    <option value="+34">🇪🇸 +34 Spain</option>
-    <option value="+7">🇷🇺 +7 Russia</option>
-  </select>
+  <div class="country-wrapper">
+    <select id="countryCode" class="country-select">
+      <option value="+62">🇮🇩 +62</option>
+      <option value="+60">🇲🇾 +60</option>
+      <option value="+65">🇸🇬 +65</option>
+      <option value="+66">🇹🇭 +66</option>
+      <option value="+63">🇵🇭 +63</option>
+      <option value="+84">🇻🇳 +84</option>
+      <option value="+81">🇯🇵 +81</option>
+      <option value="+82">🇰🇷 +82</option>
+      <option value="+86">🇨🇳 +86</option>
+      <option value="+91">🇮🇳 +91</option>
+      <option value="+971">🇦🇪 +971</option>
+      <option value="+966">🇸🇦 +966</option>
+      <option value="+44">🇬🇧 +44</option>
+      <option value="+1">🇺🇸 +1</option>
+      <option value="+61">🇦🇺 +61</option>
+      <option value="+49">🇩🇪 +49</option>
+      <option value="+33">🇫🇷 +33</option>
+      <option value="+39">🇮🇹 +39</option>
+      <option value="+34">🇪🇸 +34</option>
+      <option value="+7">🇷🇺 +7</option>
+    </select>
+  </div>
 
   <input
     id="phoneNumber"
     type="tel"
     placeholder="8123456789"
     maxlength="15"
-    inputmode="numeric">
+    inputmode="numeric"
+    class="phone-input">
 </div>
 
       <input id="birthPlace" type="text" placeholder="Tempat Lahir">
