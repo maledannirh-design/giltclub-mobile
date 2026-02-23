@@ -6,6 +6,8 @@ import {
   collection,
   query,
   where,
+  getDoc,
+  Doc,
   getDocs,
   onSnapshot,
   addDoc,
@@ -258,14 +260,32 @@ async function openSessionPopup(dateStr) {
         ? s.coaches.map(c => c.name).join(", ")
         : "-";
 
-      // ===== AVATAR GRID =====
-      const members = bookingSnap.docs.map(d => d.data());
+     // ===== AMBIL MEMBERS + USER DATA =====
+const members = [];
 
-      const memberAvatarsHtml = members.map(m => `
-        <div class="member-avatar">
-          <img src="${m.photoURL || '/default-avatar.png'}" alt="member">
-        </div>
-      `).join("");
+for (const docSnap of bookingSnap.docs) {
+
+  const bookingData = docSnap.data();
+  const userRef = doc(db, "users", bookingData.userId);
+  const userSnap = await getDoc(userRef);
+
+  if (userSnap.exists()) {
+    const userData = userSnap.data();
+
+    members.push({
+      username: userData.username || userData.fullName || "Member",
+      photoURL: userData.photoURL || "/default-avatar.png"
+    });
+  }
+}
+
+// ===== GENERATE AVATAR + NAME =====
+const memberAvatarsHtml = members.map(m => `
+  <div class="member-avatar">
+    <img src="${m.photoURL}" alt="member">
+    <div class="member-name">${m.username}</div>
+  </div>
+`).join("");
 
       html += `
         <div class="popup-session-card session-detail-content">
