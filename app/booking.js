@@ -83,29 +83,47 @@ function renderFullUI() {
 ================================= */
 function renderMyUpcomingHero(){
 
+  if(!Array.isArray(userBookings) || !Array.isArray(allSchedules)){
+    return "";
+  }
+
+  const now = new Date();
+
   const upcoming = userBookings
-  .map(b => allSchedules.find(s => s.id === b.scheduleId))
-  .filter(Boolean)
-  .filter(s => new Date(s.date + "T" + s.startTime) >= new Date())
-  .sort(...)
-  .slice(0,5);
+    .map(b => allSchedules.find(s => s.id === b.scheduleId))
+    .filter(Boolean)
+    .filter(s => {
+      if(!s.date || !s.startTime) return false;
+      return new Date(s.date + "T" + s.startTime) >= now;
+    })
+    .sort((a,b)=>{
+      const dateA = new Date(a.date + "T" + (a.startTime || "00:00"));
+      const dateB = new Date(b.date + "T" + (b.startTime || "00:00"));
+      return dateA - dateB;
+    })
+    .slice(0,5);
 
   let contentHtml = "";
 
   if(!upcoming.length){
+
     contentHtml = `
       <div class="mini-session-empty">
         Belum ada jadwal main
       </div>
     `;
+
   } else {
 
     upcoming.forEach(s=>{
       contentHtml += `
         <div class="mini-session-card">
-          <div class="mini-tier">${s.tier || "Session"}</div>
+          <div class="mini-tier">
+            ${s.tier || "Session"}
+          </div>
           <div class="mini-time">
-            ${formatDisplayDate(s.date)} • ${s.startTime || ""} - ${s.endTime || ""}
+            ${formatDisplayDate(s.date)} • 
+            ${s.startTime || ""} - ${s.endTime || ""}
           </div>
         </div>
       `;
