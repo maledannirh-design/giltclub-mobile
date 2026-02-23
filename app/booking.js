@@ -253,7 +253,7 @@ function renderCreateSessionCard(){
 /* ===============================
    CREATE SESSION SHEET
 ================================= */
-export function openCreateSessionSheet(){
+export async function openCreateSessionSheet(){
  if(!auth.currentUser){
     showToast("Login terlebih dahulu","error");
     return;
