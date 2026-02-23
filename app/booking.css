@@ -241,7 +241,11 @@ body.dark .popup-session-card{
 /* =====================================
    CREATE SESSION SHEET
 ===================================== */
-
+#createSessionSheet{
+  position:fixed;
+  inset:0;
+  z-index:9998;
+}
 #createSessionOverlay{
   position:fixed;
   inset:0;
