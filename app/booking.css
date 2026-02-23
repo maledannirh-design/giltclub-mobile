@@ -332,7 +332,6 @@ body.dark .sheet-handle{background:#fff;}
   font-size:13px;
   margin-bottom:6px;
   display:block;
-  opacity:.7;
 }
 
 .time-row{
@@ -356,19 +355,19 @@ body.dark .sheet-handle{background:#fff;}
 /* =========================
    LIGHT MODE FORM FIX
 ========================= */
-
+/* Text info biasa */
 body.light .premium-sheet{
-  background:linear-gradient(
-    160deg,
-    #ffe9e9,
-    #e5a9a9
-  );
+  color:#2a2a2a;
 }
+
 
 body.light .premium-sheet label{
-  color:#7a2e2e;
-  font-weight:500;
+  color:#5a1f1f;       /* deep maroon tone */
+  font-weight:600;
+  letter-spacing:.3px;
+  opacity:1;
 }
+
 
 body.light .premium-sheet input,
 body.light .premium-sheet select,
@@ -379,10 +378,38 @@ body.light .premium-sheet textarea{
   box-shadow:0 4px 10px rgba(0,0,0,.06);
 }
 
-body.light .premium-sheet input:focus,
 body.light .premium-sheet select:focus,
-body.light .premium-sheet textarea:focus{
-  box-shadow:0 0 0 2px #10b981;
+
+/* Placeholder */
+body.light .premium-sheet input::placeholder,
+body.light .premium-sheet textarea::placeholder{
+  color:#999;
+  opacity:1;
+}
+
+/* Text kecil / meta */
+body.light .premium-sheet small,
+body.light .premium-sheet .meta-text{
+  color:#6b2d2d;
+}
+
+/* Coach info */
+body.light #coachSelector,
+body.light #coachRateDisplay,
+body.light #coachStatusDisplay{
+  color:#2a2a2a;
+  font-weight:500;
+}
+
+/* Rate coach highlight */
+body.light #coachRateDisplay{
+  font-weight:700;
+  color:#111;
+}
+
+/* Status */
+body.light #coachStatusDisplay{
+  color:#444;
 }
 
 body.dark .premium-sheet input,
