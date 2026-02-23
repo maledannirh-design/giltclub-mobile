@@ -281,13 +281,16 @@ for (const docSnap of bookingSnap.docs) {
 
 // ===== GENERATE AVATAR + NAME =====
 const memberAvatarsHtml = members.map(m => `
-  <div class="member-avatar">
-    ${m.photoURL 
-  ? `<img src="${m.photoURL}" alt="member">`
-  : `<div class="avatar-initial">
-       ${m.username?.charAt(0).toUpperCase() || "M"}
-     </div>`
-}
+  <div class="member-wrapper">
+    <div class="member-avatar">
+      ${
+        m.photoURL 
+          ? `<img src="${m.photoURL}" alt="member">`
+          : `<div class="avatar-initial">
+               ${m.username?.charAt(0).toUpperCase() || "M"}
+             </div>`
+      }
+    </div>
     <div class="member-name">${m.username}</div>
   </div>
 `).join("");
