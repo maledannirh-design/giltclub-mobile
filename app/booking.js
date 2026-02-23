@@ -14,7 +14,7 @@ let currentMonth = new Date();
 let slideDirection = "next";
 
 /* ===============================
-   ENTRY
+   BOOKING SCHEDULES
 ================================= */
 export async function renderBooking() {
 
@@ -54,7 +54,7 @@ export async function renderBooking() {
 }
 
 /* ===============================
-   MAIN RENDER
+   MAIN RENDER UI TAMPILAN
 ================================= */
 function renderFullUI() {
   const content = document.getElementById("content");
@@ -70,7 +70,7 @@ function renderFullUI() {
 }
 
 /* ===============================
-   UPCOMING HERO
+   UPCOMING HERO JADWAL TERDEKAT
 ================================= */
 function renderMyUpcomingHero(){
   return `
@@ -86,7 +86,7 @@ function renderMyUpcomingHero(){
 }
 
 /* ===============================
-   CALENDAR
+   CALENDAR TAMPILAN
 ================================= */
 function renderCalendarMonth() {
 
@@ -162,7 +162,7 @@ function renderCalendarMonth() {
 }
 
 /* ===============================
-   POPUP
+   POPUP KALENDAR
 ================================= */
 function openSessionPopup(dateStr) {
 
@@ -615,6 +615,74 @@ async function checkCoachConflict(date, startTime, endTime){
   return false;
 }
 
+async function setupCoachSelector(){
+
+  const container = document.getElementById("coachSelector");
+  if(!container) return;
+
+  window.selectedCoaches = [];
+  window.selectedCoachRates = [];
+
+  const q = query(
+    collection(db,"users"),
+    where("role","in",["coach","supercoach"])
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    container.innerHTML = `<div style="opacity:.6;">Tidak ada coach tersedia</div>`;
+    return;
+  }
+
+  container.innerHTML = "";
+
+  snap.docs.forEach(docSnap=>{
+
+    const data = docSnap.data();
+    const coachId = docSnap.id;
+
+    const item = document.createElement("div");
+    item.className = "coach-item";
+    item.innerHTML = `
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" value="${coachId}">
+        <span>${data.fullName || data.username}</span>
+      </label>
+    `;
+
+    const checkbox = item.querySelector("input");
+
+    checkbox.addEventListener("change", ()=>{
+
+      if(checkbox.checked){
+
+        if(window.selectedCoaches.length >= 2){
+          showToast("Maksimal 2 coach","error");
+          checkbox.checked = false;
+          return;
+        }
+
+        window.selectedCoaches.push(coachId);
+        window.selectedCoachRates.push(data.coachRate || 0);
+
+      }else{
+
+        window.selectedCoaches =
+          window.selectedCoaches.filter(id=>id!==coachId);
+
+        window.selectedCoachRates.pop();
+      }
+
+      updateCoachMetaDisplay();
+
+    });
+
+    container.appendChild(item);
+
+  });
+
+}
 /* ===============================
    UTILITIES
 ================================= */
