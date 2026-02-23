@@ -548,6 +548,7 @@ function setupSessionModeLogic(){
   });
 
 }
+
 async function setupCreateSessionSubmit(){
 
   const btn = document.getElementById("submitCreateSession");
@@ -639,13 +640,12 @@ async function setupCreateSessionSubmit(){
 
         hostId: auth.currentUser.uid,
 
-        coaches: selectedCoaches.map(c => ({
-  id: c.id,
-  name: c.name,
-  rate: c.rate,
-  approval: "pending"
-}))
-          : [],
+        coaches: (selectedCoaches || []).map(c => ({
+          id: c.id,
+          name: c.name,
+          rate: c.rate,
+          approval: "pending"
+        })),
 
         pricePerHour: ratePerHour || 0,
 
