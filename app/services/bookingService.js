@@ -10,7 +10,31 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =====================================================
-   CREATE BOOKING (ATOMIC CLEAN VERSION)
+   HELPER: HITUNG HARGA (CEIL PER JAM)
+===================================================== */
+function calculateSessionPrice(scheduleData){
+
+  const [startH, startM] = scheduleData.startTime.split(":").map(Number);
+  const [endH, endM] = scheduleData.endTime.split(":").map(Number);
+
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+
+  const totalMinutes = endMinutes - startMinutes;
+
+  if (totalMinutes <= 0) {
+    throw new Error("Durasi sesi tidak valid");
+  }
+
+  // 🔥 1 menit pun dihitung 1 jam
+  const billedHours = Math.ceil(totalMinutes / 60);
+
+  return billedHours * (scheduleData.pricePerHour || 0);
+}
+
+
+/* =====================================================
+   CREATE BOOKING (PER JAM - CEIL VERSION)
 ===================================================== */
 export async function createBooking({ userId, scheduleId }) {
 
@@ -26,12 +50,15 @@ export async function createBooking({ userId, scheduleId }) {
     if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
     const scheduleData = scheduleSnap.data();
+
     const availableSlots = scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
-    const price = scheduleData.pricePerHour || 0;
 
     if (availableSlots <= 0) {
-      throw new Error("Slot full");
+      throw new Error("Slot penuh");
     }
+
+    // 🔥 HITUNG HARGA FINAL
+    const price = calculateSessionPrice(scheduleData);
 
     // 2️⃣ Get User
     const userSnap = await transaction.get(userRef);
@@ -63,7 +90,7 @@ export async function createBooking({ userId, scheduleId }) {
     transaction.set(bookingRef, {
       userId,
       scheduleId,
-      price,
+      price, // 🔥 simpan harga final
       status: "active",
       createdAt: serverTimestamp()
     });
@@ -99,7 +126,7 @@ export async function createBooking({ userId, scheduleId }) {
 
 
 /* =====================================================
-   CANCEL BOOKING (SIMPLE REFUND VERSION)
+   CANCEL BOOKING (FULL REFUND SIMPLE)
 ===================================================== */
 export async function cancelBooking({ bookingId }) {
 
@@ -143,7 +170,7 @@ export async function cancelBooking({ bookingId }) {
       slots: currentSlots + 1
     });
 
-    // 3️⃣ Refund Full (simple version)
+    // 3️⃣ Refund
     const newBalance = (userData.walletBalance || 0) + price;
 
     transaction.update(userRef, {
