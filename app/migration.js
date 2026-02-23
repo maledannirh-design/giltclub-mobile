@@ -12,95 +12,16 @@ import { recalculateUserStats } from "./userStats.js";
 
 const migrationData = [
   {
-   username: "lely",
-   totalTopup: 29543000,
-   walletBalance: 5722000
+   username: "afni",
+   totalTopup: 1000000,
+   walletBalance: 100000
  },
   {
-   username: "usewin ameera",
-   totalTopup: 1650000,
-   walletBalance: 20250
- },
- {
-   username: "jodai",
-   totalTopup: 715000,
-   walletBalance: 115000
- },
- {
-   username: "sintanophe",
-   totalTopup: 1000000,
-   walletBalance: 53500
- },
- {
-   username: "nrlhasanah21",
-   totalTopup: 1000000,
-   walletBalance: 50000
- },
- {
-   username: "kiki",
-   totalTopup: 1550000,
-   walletBalance: 585250
- },
- {
-   username: "jasmine",
-   totalTopup: 1850000,
-   walletBalance: 103500
- },
- {
-   username: "nida",
-   totalTopup: 850000,
-   walletBalance: 175000
- },
- {
-   username: "sawung",
-   totalTopup: 250000,
-   walletBalance: 125000
- },
- {
-   username: "arin",
-   totalTopup: 850000,
-   walletBalance: 45000
- },
- {
-   username: "iiszakaria",
-   totalTopup: 450000,
-   walletBalance: 35000
- },
- {
-   username: "dinda",
-   "totalTopup": 780000,
-   "walletBalance": 135000
- },
- {
-   username: "sasaa",
-   "totalTopup": 1050000,
-   "walletBalance": 35000
- },
- {
-   username: "carol",
-   totalTopup: 400000,
-   walletBalance: 135000
- },
- {
-   username: "endah",
-   totalTopup: 600000,
-   walletBalance: 150000
- },
- {
-   username: "rarak",
+   username: "citra",
    totalTopup: 700000,
-   walletBalance: 290000
- },
- {
-   username: "rieke.dpz",
-   totalTopup: 300000,
-   walletBalance: 175000
- },
- {
-   username: "nafinida27",
-   totalTopup: 200000,
-   walletBalance: 75000
+   walletBalance: 125000
  }
+
 ];
 
 export async function runMigration(){
