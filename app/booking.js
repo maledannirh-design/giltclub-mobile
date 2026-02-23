@@ -8,8 +8,6 @@ import { showToast, showConfirm } from "./ui.js";
 ================================= */
 let unsubscribeSchedules = null;
 let bookingLock = false;
-let currentWeekStart = startOfWeek(new Date());
-let selectedDate = formatDate(new Date());
 let allSchedules = [];
 let userBookings = [];
 let currentMonth = new Date();
@@ -31,7 +29,6 @@ export async function renderBooking() {
   content.innerHTML = `<div style="padding:20px;text-align:center;opacity:.6;">Loading...</div>`;
 
   try {
-
     unsubscribeSchedules = onSnapshot(
       query(collection(db, "schedules"), where("status", "==", "open")),
       async (snapshot) => {
@@ -50,7 +47,6 @@ export async function renderBooking() {
         renderFullUI();
       }
     );
-
   } catch (err) {
     console.error(err);
     content.innerHTML = "Error loading booking page.";
@@ -61,7 +57,6 @@ export async function renderBooking() {
    MAIN RENDER
 ================================= */
 function renderFullUI() {
-
   const content = document.getElementById("content");
 
   content.innerHTML = `
@@ -74,34 +69,20 @@ function renderFullUI() {
   attachGlobalEvents();
 }
 
-
 /* ===============================
-   UPCOMING EMERALD GLASS
+   UPCOMING HERO
 ================================= */
-function renderUpcoming() {
-
-  const upcoming = [...allSchedules]
-    .filter(s => new Date(s.date) >= new Date())
-    .sort((a,b)=> new Date(a.date) - new Date(b.date))
-    .slice(0,6);
-
-  let html = `
-  <div class="upcoming-wrapper">
-    <div class="upcoming-scroll">
-  `;
-
-  upcoming.forEach(s => {
-    html += `
-      <div class="upcoming-card ${isDominant(s) ? "dominant":""}">
-        <div>${s.level || "Session"}</div>
-        <div>${formatDisplayDate(s.date)}</div>
-        <div>${s.startTime || ""} - ${s.endTime || ""}</div>
+function renderMyUpcomingHero(){
+  return `
+    <div class="my-upcoming-wrapper">
+      <div class="my-upcoming-glass">
+        <div class="my-upcoming-title">
+          Jadwal Main Saya Terdekat
+        </div>
+        <div class="my-upcoming-scroll"></div>
       </div>
-    `;
-  });
-
-  html += `</div></div>`;
-  return html;
+    </div>
+  `;
 }
 
 /* ===============================
@@ -181,7 +162,7 @@ function renderCalendarMonth() {
 }
 
 /* ===============================
- POP UP THE DAY
+   POPUP
 ================================= */
 function openSessionPopup(dateStr) {
 
@@ -198,36 +179,14 @@ function openSessionPopup(dateStr) {
   `;
 
   if (!sessions.length) {
-
     html += `<div class="empty-session">Tidak ada sesi pada hari ini</div>`;
-
   } else {
-
     sessions.forEach(s=>{
-
       html += `
         <div class="popup-session-card">
-
           <div><strong>Sesi:</strong> ${s.level}</div>
-          <div><strong>Jam Mulai:</strong> ${s.startTime}</div>
-          <div><strong>Jam Selesai:</strong> ${s.endTime}</div>
+          <div><strong>Jam:</strong> ${s.startTime} - ${s.endTime}</div>
           <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
-
-          <div><strong>Coach:</strong> ${
-            (s.role === "coach" || s.role === "supercoach")
-              ? s.hostName
-              : "Tidak ada"
-          }</div>
-
-          <div><strong>Rate / Jam:</strong> Rp ${s.price}</div>
-          <div><strong>Raket Sewaan:</strong> ${s.racketStock || 0}</div>
-          <div><strong>Sewa Raket / Sesi:</strong> Rp ${s.racketPrice || 0}</div>
-
-          <div class="popup-note">
-            <strong>Catatan:</strong><br>
-            ${s.notes || "-"}
-          </div>
-
         </div>
       `;
     });
@@ -243,159 +202,117 @@ function openSessionPopup(dateStr) {
 }
 
 /* ===============================
-   SESSIONS BY DATE
-================================= */
-function renderSessionsByDate(dateStr) {
-
-  const container = document.getElementById("sessionContainer");
-  if (!container) return;
-
-  const sessions = allSchedules
-    .filter(s => s.date === dateStr)
-    .sort((a,b)=> (a.startTime||"").localeCompare(b.startTime||""));
-
-  const dominant = sessions.filter(s => isDominant(s));
-  const normal = sessions.filter(s => !isDominant(s));
-
-  let html = "";
-
-  if (dominant.length) {
-    html += `<h3 style="padding:16px;">Club Sessions</h3>`;
-    dominant.forEach(s => html += renderSessionCard(s,true));
-  }
-
-  if (normal.length) {
-    html += `<h3 style="padding:16px;">Member Sessions</h3>`;
-    normal.forEach(s => html += renderSessionCard(s,false));
-  }
-
-  if (!sessions.length) {
-    html = `<div style="padding:20px;opacity:.6;">No session this day</div>`;
-  }
-
-  container.innerHTML = html;
-}
-
-/* ===============================
-   SESSION CARD
-================================= */
-function renderSessionCard(s, dominant=false) {
-
-  const existingBooking = userBookings.find(b => b.scheduleId === s.id);
-
-  return `
-    <div class="session-card ${dominant ? "dominant":""}">
-      <div class="session-header">
-        <div>${s.level || "Session"}</div>
-        <div>${s.startTime || ""} - ${s.endTime || ""}</div>
-      </div>
-      <div>
-        Court: ${s.court || "Tentative"}<br/>
-        Rate: ${s.price || 0}<br/>
-        Max Slot: ${s.maxSlot || 0}<br/>
-        Sisa Slot: ${s.slots || 0}
-      </div>
-      <div style="margin-top:12px;">
-        ${
-          !auth.currentUser
-          ? `<div style="opacity:.5;">Login to join</div>`
-          : existingBooking
-            ? `<button class="cancel-btn" data-id="${existingBooking.id}">Cancel</button>`
-            : `<button class="book-btn" data-id="${s.id}">Join</button>`
-        }
-      </div>
-    </div>
-  `;
-}
-
-/* ===============================
-   CREATE SESSION UI
+   CREATE SESSION CARD
 ================================= */
 function renderCreateSessionCard(){
   return `
-    <div class="create-session-card" id="openHostForm">
-      Buat Sesi Mabar
+    <div class="create-session-card" id="openCreateSession">
+      Buat Sesi
     </div>
+    <div id="createSessionSheet"></div>
   `;
 }
 
 /* ===============================
-   HOST FORM PAGE
+   CREATE SESSION SHEET
 ================================= */
-function renderHostForm(){
+export function openCreateSessionSheet() {
 
-  const content = document.getElementById("content");
+  const sheet = document.getElementById("createSessionSheet");
 
-  content.innerHTML = `
-    <div style="padding:20px;">
-      <h2>Create Session</h2>
-      <input placeholder="Tanggal"/>
-      <input placeholder="Lapangan"/>
-      <input placeholder="Rate"/>
-      <input placeholder="Max Player"/>
-      <textarea placeholder="Catatan"></textarea>
-      <button id="backBooking">Back</button>
+  sheet.innerHTML = `
+    <div class="sheet-overlay" id="createSessionOverlay"></div>
+
+    <div class="premium-sheet">
+      <div class="sheet-handle"></div>
+      <h2>Buat Sesi</h2>
+
+      <div class="sheet-section">
+        <label>Tier Sesi</label>
+        <select id="tier">
+          <option>Newbie</option>
+          <option>Beginner</option>
+          <option>Upper Beginner</option>
+          <option>Intermediate</option>
+        </select>
+
+        <label>Jenis Sesi</label>
+        <select id="sessionType">
+          <option value="Mabar">Mabar</option>
+          <option value="Drill">Drill</option>
+          <option value="Drill + Mabar">Drill + Mabar</option>
+        </select>
+
+        <label>Tipe Sesi</label>
+        <select id="sessionMode">
+          <option value="reguler">Reguler</option>
+          <option value="semi-private">Semi Private</option>
+          <option value="private">Private</option>
+        </select>
+
+        <label>Maksimal Pemain</label>
+        <input type="number" id="maxPlayers">
+      </div>
+
+      <button class="btn-create-session" id="submitCreateSession">
+        Buat Sesi
+      </button>
     </div>
   `;
+
+  document.getElementById("createSessionOverlay").onclick = closeCreateSessionSheet;
+
+  document.getElementById("sessionMode").addEventListener("change", e=>{
+    const maxInput = document.getElementById("maxPlayers");
+    if(e.target.value === "private"){
+      maxInput.value = 4;
+      maxInput.disabled = true;
+    } else if(e.target.value === "semi-private"){
+      maxInput.value = 8;
+      maxInput.disabled = true;
+    } else {
+      maxInput.disabled = false;
+    }
+  });
+}
+
+function closeCreateSessionSheet(){
+  document.getElementById("createSessionSheet").innerHTML = "";
 }
 
 /* ===============================
-   EVENTS CONTENT
+   EVENTS
 ================================= */
 function attachGlobalEvents(){
 
   const content = document.getElementById("content");
 
   content.onclick = async (e) => {
-   const monthDay = e.target.closest(".month-day");
-if (monthDay && !monthDay.classList.contains("empty")) {
-  openSessionPopup(monthDay.dataset.date);
-}
 
-if (e.target.id === "closePopup") {
-  document.getElementById("popupContainer").innerHTML = "";
-}
+    const monthDay = e.target.closest(".month-day");
+    if (monthDay && !monthDay.classList.contains("empty")) {
+      openSessionPopup(monthDay.dataset.date);
+    }
+
+    if (e.target.id === "closePopup") {
+      document.getElementById("popupContainer").innerHTML = "";
+    }
+
     if (e.target.id === "prevMonth") {
-  slideDirection = "prev";
-  currentMonth.setMonth(currentMonth.getMonth() - 1);
-  renderFullUI();
-}
-
-if (e.target.id === "nextMonth") {
-  slideDirection = "next";
-  currentMonth.setMonth(currentMonth.getMonth() + 1);
-  renderFullUI();
-}
-     if (e.target.id === "prevWeek"){
-      currentWeekStart.setDate(currentWeekStart.getDate()-7);
+      slideDirection = "prev";
+      currentMonth.setMonth(currentMonth.getMonth() - 1);
       renderFullUI();
     }
 
-    if (e.target.id === "nextWeek"){
-      currentWeekStart.setDate(currentWeekStart.getDate()+7);
+    if (e.target.id === "nextMonth") {
+      slideDirection = "next";
+      currentMonth.setMonth(currentMonth.getMonth() + 1);
       renderFullUI();
     }
 
-    const dayCard = e.target.closest(".day-card");
-    if (dayCard){
-      selectedDate = dayCard.dataset.date;
-      renderFullUI();
+    if (e.target.id === "openCreateSession"){
+      openCreateSessionSheet();
     }
-
-    const bookBtn = e.target.closest(".book-btn");
-    if (bookBtn) await handleBookingClick(bookBtn.dataset.id);
-
-    const cancelBtn = e.target.closest(".cancel-btn");
-    if (cancelBtn) await handleCancelClick(cancelBtn.dataset.id);
-
-    if (e.target.id === "openHostForm"){
-      renderHostForm();
-    }
-
-    if (e.target.id === "backBooking"){
-      renderFullUI();
-    }
-
   };
 }
 
@@ -403,20 +320,14 @@ if (e.target.id === "nextMonth") {
    BOOKING ENGINE
 ================================= */
 async function handleBookingClick(scheduleId){
-
   if (bookingLock) return;
   if (!auth.currentUser){
     showToast("Login first","warning");
     return;
   }
-
   bookingLock = true;
-
   try {
-    await createBooking({
-      userId: auth.currentUser.uid,
-      scheduleId
-    });
+    await createBooking({ userId: auth.currentUser.uid, scheduleId });
     showToast("Booking success","success");
   } catch(err){
     showToast(err.message,"error");
@@ -426,14 +337,10 @@ async function handleBookingClick(scheduleId){
 }
 
 async function handleCancelClick(bookingId){
-
   if (bookingLock) return;
-
   const ok = await showConfirm("Cancel this session?");
   if (!ok) return;
-
   bookingLock = true;
-
   try {
     await cancelBooking({ bookingId });
     showToast("Cancelled","success");
@@ -457,25 +364,6 @@ async function loadUserBookings(userId){
   return snap.docs.map(d=>({id:d.id,...d.data()}));
 }
 
-function isDominant(s){
-  return s.role === "admin" || s.role === "supercoach";
-}
-
-function startOfWeek(date){
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6:1);
-  return new Date(d.setDate(diff));
-}
-
-function getWeekDays(start){
-  return [...Array(7)].map((_,i)=>{
-    const d = new Date(start);
-    d.setDate(start.getDate()+i);
-    return d;
-  });
-}
-
 function formatDate(d){
   const year = d.getFullYear();
   const month = String(d.getMonth()+1).padStart(2,"0");
@@ -484,35 +372,5 @@ function formatDate(d){
 }
 
 function formatDisplayDate(d){
-  return new Date(d).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
-}
-
-function formatMonth(d){
-  return d.toLocaleDateString("en-US",{month:"long",year:"numeric"});
-}
-
-function renderMyUpcomingHero(){
-
-  return `
-    <div class="my-upcoming-wrapper">
-      <div class="my-upcoming-glass">
-        <div class="my-upcoming-title">
-          Jadwal Main Saya Terdekat
-        </div>
-
-        <div class="my-upcoming-scroll">
-          <!-- nanti isi dynamic session card -->
-          <div class="mini-session-card">
-            <div>Intermediate</div>
-            <div>Sat • 08:00 - 10:00</div>
-          </div>
-
-          <div class="mini-session-card">
-            <div>Beginner</div>
-            <div>Sun • 15:00 - 17:00</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+  return new Date(d).toLocaleDateString("id-ID",{weekday:"short",month:"short",day:"numeric"});
 }
