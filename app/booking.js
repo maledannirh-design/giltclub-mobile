@@ -354,6 +354,16 @@ export function openCreateSessionSheet(){
   setupCreateSessionSubmit();
 }
 
+function closeCreateSessionSheet(){
+
+  const sheet = document.getElementById("createSessionSheet");
+  if(!sheet) return;
+
+  sheet.classList.remove("active");
+  sheet.innerHTML = "";
+
+  document.body.classList.remove("no-scroll");
+}
 /* ===============================
    EVENTS
 ================================= */
