@@ -506,3 +506,38 @@ body.dark .premium-create-btn{
   margin-right:8px;
   font-weight:bold;
 }
+
+/* =========================
+   LIGHT MODE LABEL UPGRADE
+========================= */
+
+body.light .sheet-section label{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.4px;
+
+  background:#F2E8D5;     /* cream */
+  color:#2E5D3A;          /* green text */
+
+  margin-bottom:10px;
+}
+/* =========================
+   DARK MODE LABEL UPGRADE
+========================= */
+
+body.dark .sheet-section label{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.4px;
+
+  background:#2E5D3A;     /* green */
+  color:#F2E8D5;          /* cream text */
+
+  margin-bottom:10px;
+}
