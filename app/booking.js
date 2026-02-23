@@ -224,15 +224,16 @@ else if (hasYellow) ringClass = "ring-member";
 }
 
 /* ===============================
-   CALENDAR POPUP (FIXED)
+   CALENDAR POPUP (FINAL CLEAN)
 ================================= */
 async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
+  if (!popup) return;
 
   const sessions = allSchedules
     .filter(s => s.date === dateStr)
-    .sort((a,b)=> (a.startTime||"").localeCompare(b.startTime||""));
+    .sort((a,b)=> (a.startTime || "").localeCompare(b.startTime || ""));
 
   let html = `
     <div class="popup-overlay">
@@ -241,12 +242,18 @@ async function openSessionPopup(dateStr) {
   `;
 
   if (!sessions.length) {
-    html += `<div class="empty-session">Tidak ada sesi pada hari ini</div>`;
+
+    html += `
+      <div class="empty-session">
+        Tidak ada sesi pada hari ini
+      </div>
+    `;
+
   } else {
 
-    for(const s of sessions){
+    for (const s of sessions) {
 
-      // ===== HITUNG SLOT =====
+      // ===== GET BOOKINGS (HITUNG SLOT + AVATAR) =====
       const bookingSnap = await getDocs(
         query(
           collection(db,"bookings"),
@@ -259,17 +266,17 @@ async function openSessionPopup(dateStr) {
       const maxPlayers = s.maxPlayers || 0;
       const sisaSlot = Math.max(maxPlayers - bookedCount, 0);
 
-      // ===== COACH NAME =====
-      const coachNames = (s.coaches || [])
-        .map(c => c.name)
-        .join(", ") || "-";
+      // ===== COACH NAME (USERNAME) =====
+      const coachNames = (s.coaches && s.coaches.length)
+        ? s.coaches.map(c => c.name).join(", ")
+        : "-";
 
-      // ===== AVATAR =====
-      const members = bookingSnap.docs.map(d=>d.data());
+      // ===== AVATAR GRID =====
+      const members = bookingSnap.docs.map(d => d.data());
 
-      const memberAvatarsHtml = members.map(m=>`
+      const memberAvatarsHtml = members.map(m => `
         <div class="member-avatar">
-          <img src="${m.photoURL || '/default-avatar.png'}" />
+          <img src="${m.photoURL || '/default-avatar.png'}" alt="member">
         </div>
       `).join("");
 
@@ -280,7 +287,7 @@ async function openSessionPopup(dateStr) {
           <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
           <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
 
-          <div><strong>Jam:</strong> ${s.startTime} - ${s.endTime}</div>
+          <div><strong>Jam:</strong> ${s.startTime || "-"} - ${s.endTime || "-"}</div>
           <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
 
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
@@ -313,26 +320,6 @@ async function openSessionPopup(dateStr) {
 
   popup.innerHTML = html;
 }
-
-/* ===============================
-   LOGIC GENERATE AVATAR
-================================= */
-const bookingSnap = await getDocs(
-  query(
-    collection(db,"bookings"),
-    where("scheduleId","==",session.id),
-    where("status","==","active")
-  )
-);
-
-const members = bookingSnap.docs.map(d=>d.data());
-
-let memberAvatarsHtml = members.map(m=>`
-  <div class="member-avatar">
-    <img src="${m.photoURL || '/default-avatar.png'}" />
-  </div>
-`).join("");
-
 
 /* ===============================
    CREATE SESSION CARD
