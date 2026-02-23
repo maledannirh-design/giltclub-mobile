@@ -12,6 +12,8 @@ let currentWeekStart = startOfWeek(new Date());
 let selectedDate = formatDate(new Date());
 let allSchedules = [];
 let userBookings = [];
+let currentMonth = new Date();
+let slideDirection = "next";
 
 /* ===============================
    ENTRY
@@ -107,28 +109,28 @@ function renderUpcoming() {
 ================================= */
 function renderCalendarMonth() {
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
 
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  // bikin minggu mulai dari Senin
   let startDay = firstDay.getDay();
   startDay = startDay === 0 ? 6 : startDay - 1;
 
   const totalDays = lastDay.getDate();
 
-  const monthName = today.toLocaleDateString("id-ID", {
-    month: "long"
+  const monthName = currentMonth.toLocaleDateString("id-ID", {
+    month: "long",
+    year: "numeric"
   });
 
   let html = `
-    <div class="month-wrapper">
-
-      <div class="month-header">
-        ${monthName}
+    <div class="month-wrapper slide-${slideDirection}">
+      <div class="month-header-row">
+        <button id="prevMonth">‹</button>
+        <div class="month-header">${monthName}</div>
+        <button id="nextMonth">›</button>
       </div>
 
       <div class="week-labels">
@@ -153,23 +155,28 @@ function renderCalendarMonth() {
     const dateObj = new Date(year, month, d);
     const dateStr = formatDate(dateObj);
 
-    const hasSession = allSchedules.some(s => s.date === dateStr);
+    const sessions = allSchedules.filter(s => s.date === dateStr);
 
-    const dayOfWeek = dateObj.getDay(); 
+    const hasAdmin = sessions.some(s => s.role === "admin" || s.role === "supercoach");
+    const hasMember = sessions.some(s => s.role === "MEMBER");
+
+    let ringClass = "";
+    if (hasAdmin && hasMember) ringClass = "ring-double";
+    else if (hasAdmin) ringClass = "ring-admin";
+    else if (hasMember) ringClass = "ring-member";
+
+    const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     html += `
-      <div class="month-day 
-        ${hasSession ? "has-session" : ""} 
-        ${isWeekend ? "weekend" : ""}"
-        data-date="${dateStr}">
+      <div class="month-day ${ringClass} ${isWeekend ? "weekend":""}"
+           data-date="${dateStr}">
         ${d}
       </div>
     `;
   }
 
   html += `</div></div>`;
-
   return html;
 }
 
@@ -186,26 +193,48 @@ function openSessionPopup(dateStr) {
 
   let html = `
     <div class="popup-overlay">
-      <div class="popup-card">
-        <h3>Sesi ${formatDisplayDate(dateStr)}</h3>
+      <div class="popup-card premium-popup">
+        <h3>${formatDisplayDate(dateStr)}</h3>
   `;
 
   if (!sessions.length) {
-    html += `<p>Tidak ada sesi.</p>`;
+
+    html += `<div class="empty-session">Tidak ada sesi pada hari ini</div>`;
+
   } else {
+
     sessions.forEach(s=>{
+
       html += `
-        <div class="popup-session">
-          <div>${s.level || "Session"}</div>
-          <div>${s.startTime} - ${s.endTime}</div>
-          <div>Slot: ${s.slots}</div>
+        <div class="popup-session-card">
+
+          <div><strong>Sesi:</strong> ${s.level}</div>
+          <div><strong>Jam Mulai:</strong> ${s.startTime}</div>
+          <div><strong>Jam Selesai:</strong> ${s.endTime}</div>
+          <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
+
+          <div><strong>Coach:</strong> ${
+            (s.role === "coach" || s.role === "supercoach")
+              ? s.hostName
+              : "Tidak ada"
+          }</div>
+
+          <div><strong>Rate / Jam:</strong> Rp ${s.price}</div>
+          <div><strong>Raket Sewaan:</strong> ${s.racketStock || 0}</div>
+          <div><strong>Sewa Raket / Sesi:</strong> Rp ${s.racketPrice || 0}</div>
+
+          <div class="popup-note">
+            <strong>Catatan:</strong><br>
+            ${s.notes || "-"}
+          </div>
+
         </div>
       `;
     });
   }
 
   html += `
-        <button id="closePopup">Tutup</button>
+        <button id="closePopup" class="close-popup-btn">Tutup</button>
       </div>
     </div>
   `;
@@ -326,7 +355,18 @@ if (monthDay && !monthDay.classList.contains("empty")) {
 if (e.target.id === "closePopup") {
   document.getElementById("popupContainer").innerHTML = "";
 }
-    if (e.target.id === "prevWeek"){
+    if (e.target.id === "prevMonth") {
+  slideDirection = "prev";
+  currentMonth.setMonth(currentMonth.getMonth() - 1);
+  renderFullUI();
+}
+
+if (e.target.id === "nextMonth") {
+  slideDirection = "next";
+  currentMonth.setMonth(currentMonth.getMonth() + 1);
+  renderFullUI();
+}
+     if (e.target.id === "prevWeek"){
       currentWeekStart.setDate(currentWeekStart.getDate()-7);
       renderFullUI();
     }
@@ -437,8 +477,10 @@ function getWeekDays(start){
 }
 
 function formatDate(d){
-  if (typeof d === "string") return d;
-  return d.toISOString().split("T")[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${year}-${month}-${day}`;
 }
 
 function formatDisplayDate(d){
