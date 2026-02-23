@@ -362,7 +362,15 @@ body.dark .premium-sheet{
   font-size:20px;
   font-weight:700;
 }
+/* Dark Mode */
+body.dark-mode .premium-sheet label {
+  color: #e8f5e9; /* putih susu */
+}
 
+/* Light Mode */
+body:not(.dark-mode) .premium-sheet label {
+  color: #444; /* abu gelap netral */
+}
 /* Sections */
 .sheet-section{
   margin-bottom:22px;
