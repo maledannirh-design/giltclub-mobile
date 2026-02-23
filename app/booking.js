@@ -23,7 +23,7 @@ let currentMonth = new Date();
 let slideDirection = "next";
 
 /* ===============================
-   BOOKING SCHEDULES
+   RENDER BOOKING PAGE
 ================================= */
 export async function renderBooking() {
 
@@ -37,35 +37,31 @@ export async function renderBooking() {
 
   content.innerHTML = `<div style="padding:20px;text-align:center;opacity:.6;">Loading...</div>`;
 
-  try {
-    unsubscribeSchedules = onSnapshot(
-      query(collection(db, "schedules"), where("status", "==", "open")),
-      async (snapshot) => {
+  unsubscribeSchedules = onSnapshot(
+    query(collection(db, "schedules"), where("status", "==", "open")),
+    async (snapshot) => {
 
-        allSchedules = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+      allSchedules = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-        if (auth.currentUser) {
-          userBookings = await loadUserBookings(auth.currentUser.uid);
-        } else {
-          userBookings = [];
-        }
-
-        renderFullUI();
+      if (auth.currentUser) {
+        userBookings = await loadUserBookings(auth.currentUser.uid);
+      } else {
+        userBookings = [];
       }
-    );
-  } catch (err) {
-    console.error(err);
-    content.innerHTML = "Error loading booking page.";
-  }
+
+      renderFullUI();
+    }
+  );
 }
 
 /* ===============================
-   MAIN RENDER UI TAMPILAN
+   FULL UI
 ================================= */
 function renderFullUI() {
+
   const content = document.getElementById("content");
 
   content.innerHTML = `
@@ -228,9 +224,9 @@ else if (hasYellow) ringClass = "ring-member";
 }
 
 /* ===============================
-   POPUP KALENDAR
+   CALENDAR POPUP (FIXED)
 ================================= */
-function openSessionPopup(dateStr) {
+async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
 
@@ -247,38 +243,66 @@ function openSessionPopup(dateStr) {
   if (!sessions.length) {
     html += `<div class="empty-session">Tidak ada sesi pada hari ini</div>`;
   } else {
-    sessions.forEach(s => {
 
-  const coachNames = s.coaches && s.coaches.length
-    ? s.coaches.map(c => c.username || c.id).join(", ")
-    : "-";
+    for(const s of sessions){
 
-  html += `
-    <div class="popup-session-card">
+      // ===== HITUNG SLOT =====
+      const bookingSnap = await getDocs(
+        query(
+          collection(db,"bookings"),
+          where("scheduleId","==",s.id),
+          where("status","==","active")
+        )
+      );
 
-      <div><strong>Tier:</strong> ${s.tier || "-"}</div>
-      <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
-      <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
+      const bookedCount = bookingSnap.size;
+      const maxPlayers = s.maxPlayers || 0;
+      const sisaSlot = Math.max(maxPlayers - bookedCount, 0);
 
-      <div><strong>Jam:</strong> ${s.startTime} - ${s.endTime}</div>
-      <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
+      // ===== COACH NAME =====
+      const coachNames = (s.coaches || [])
+        .map(c => c.name)
+        .join(", ") || "-";
 
-      <div><strong>Maks Pemain:</strong> ${s.maxPlayers || "-"}</div>
-      <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
+      // ===== AVATAR =====
+      const members = bookingSnap.docs.map(d=>d.data());
 
-      <div><strong>Coach:</strong> ${coachNames}</div>
+      const memberAvatarsHtml = members.map(m=>`
+        <div class="member-avatar">
+          <img src="${m.photoURL || '/default-avatar.png'}" />
+        </div>
+      `).join("");
 
-      <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
+      html += `
+        <div class="popup-session-card session-detail-content">
 
-      <button class="join-btn" data-id="${s.id}">
-        Gabung Sesi Ini
-      </button>
-      <div class="session-members">
-  ${memberAvatarsHtml}
-</div>
-    </div>
-  `;
-});
+          <div><strong>Tier:</strong> ${s.tier || "-"}</div>
+          <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
+          <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
+
+          <div><strong>Jam:</strong> ${s.startTime} - ${s.endTime}</div>
+          <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
+
+          <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
+          <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
+
+          <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
+
+          <div><strong>Coach:</strong> ${coachNames}</div>
+
+          <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
+
+          <button class="join-btn" data-id="${s.id}">
+            Gabung Sesi Ini
+          </button>
+
+          <div class="session-members">
+            ${memberAvatarsHtml}
+          </div>
+
+        </div>
+      `;
+    }
   }
 
   html += `
@@ -289,7 +313,7 @@ function openSessionPopup(dateStr) {
 
   popup.innerHTML = html;
 }
-<div class="session-detail-content">
+
 /* ===============================
    LOGIC GENERATE AVATAR
 ================================= */
@@ -571,6 +595,9 @@ function setupSessionModeLogic(){
 
 }
 
+/* ===============================
+   CREATE SESSION (USERNAME FIXED)
+================================= */
 async function setupCreateSessionSubmit(){
 
   const btn = document.getElementById("submitCreateSession");
@@ -578,115 +605,50 @@ async function setupCreateSessionSubmit(){
 
   btn.onclick = async ()=>{
 
-    try{
+    const tier        = document.getElementById("tier").value;
+    const sessionType = document.getElementById("sessionType").value;
+    const mode        = document.getElementById("sessionMode").value;
+    const date        = document.getElementById("sessionDate").value;
+    const startTime   = document.getElementById("startTime").value;
+    const endTime     = document.getElementById("endTime").value;
+    const maxPlayers  = Number(document.getElementById("maxPlayers").value);
+    const court       = document.getElementById("court").value.trim();
+    const ratePerHour = Number(document.getElementById("ratePerHour").value);
+    const racketStock = Number(document.getElementById("racketStock").value);
+    const racketRate  = Number(document.getElementById("racketRate").value);
+    const notes       = document.getElementById("notes").value.trim();
 
-      const tier        = document.getElementById("tier").value;
-      const sessionType = document.getElementById("sessionType").value;
-      const mode        = document.getElementById("sessionMode").value;
+    await addDoc(collection(db,"schedules"),{
 
-      const date        = document.getElementById("sessionDate").value;
-      const startTime   = document.getElementById("startTime").value;
-      const endTime     = document.getElementById("endTime").value;
+      date,
+      startTime,
+      endTime,
 
-      const maxPlayers  = Number(document.getElementById("maxPlayers").value);
-      const court       = document.getElementById("court").value.trim();
+      tier,
+      sessionType,
+      mode,
 
-      const ratePerHour = Number(document.getElementById("ratePerHour").value);
-      const racketStock = Number(document.getElementById("racketStock").value);
-      const racketRate  = Number(document.getElementById("racketRate").value);
+      maxPlayers,
+      court,
 
-      const notes       = document.getElementById("notes").value.trim();
+      hostId: auth.currentUser.uid,
 
-      if(!date || !startTime || !endTime){
-        showToast("Lengkapi tanggal dan jam","error");
-        return;
-      }
+      coaches: (window.selectedCoaches || []).map(c => ({
+        id: c.id,
+        name: c.name, // USERNAME FIX
+        rate: c.rate,
+        approval: "pending"
+      })),
 
-      if(endTime <= startTime){
-        showToast("Jam selesai harus lebih besar dari jam mulai","error");
-        return;
-      }
+      pricePerHour: ratePerHour || 0,
+      racketStock: racketStock || 0,
+      racketPrice: racketRate || 0,
+      notes: notes || "",
+      status: "open",
+      createdAt: serverTimestamp()
+    });
 
-      if(!maxPlayers || maxPlayers <= 0){
-        showToast("Isi maksimal pemain","error");
-        return;
-      }
-
-      if(mode === "private" && maxPlayers > 4){
-        showToast("Private maksimal 4 pemain","error");
-        return;
-      }
-
-      if(mode === "semi-private" && maxPlayers > 8){
-        showToast("Semi-private maksimal 8 pemain","error");
-        return;
-      }
-
-      if(
-        (sessionType === "Drill" || sessionType === "Drill + Mabar")
-        && (!selectedCoaches || selectedCoaches.length === 0)
-      ){
-        showToast("Drill wajib memilih coach","error");
-        return;
-      }
-
-      if(ratePerHour && ratePerHour % 5000 !== 0){
-        showToast("Rate per jam harus kelipatan 5.000","error");
-        return;
-      }
-
-      if(racketRate && racketRate % 5000 !== 0){
-        showToast("Rate raket harus kelipatan 5.000","error");
-        return;
-      }
-
-      const conflict = await checkCoachConflict(date,startTime,endTime);
-
-      if(conflict){
-        showToast("Coach sudah memiliki sesi di jam tersebut","error");
-        return;
-      }
-
-      await addDoc(collection(db,"schedules"),{
-
-        date,
-        startTime,
-        endTime,
-
-        tier,
-        sessionType,
-        mode,
-
-        maxPlayers,
-        court,
-
-        hostId: auth.currentUser.uid,
-
-        coaches: (selectedCoaches || []).map(c => ({
-          id: c.id,
-          name: c.username,
-          rate: c.rate,
-          approval: "pending"
-        })),
-
-        pricePerHour: ratePerHour || 0,
-
-        racketStock: racketStock || 0,
-        racketPrice: racketRate || 0,
-
-        notes: notes || "",
-
-        status: "open",
-        createdAt: serverTimestamp()
-      });
-
-      showToast("Sesi berhasil dibuat","success");
-      closeCreateSessionSheet();
-
-    }catch(err){
-      showToast(err.message,"error");
-    }
-
+    showToast("Sesi berhasil dibuat","success");
   };
 }
 
