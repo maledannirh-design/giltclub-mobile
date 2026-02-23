@@ -219,3 +219,106 @@
   outline: none;
   border-color: #10b981;
 }
+
+/* ===== Month Header Row ===== */
+.month-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.month-header-row button {
+  background: none;
+  border: none;
+  color: #10b981;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* ===== Slide Animation ===== */
+.month-wrapper {
+  animation-duration: .3s;
+  animation-fill-mode: both;
+}
+
+.slide-next {
+  animation-name: slideInRight;
+}
+
+.slide-prev {
+  animation-name: slideInLeft;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== Ring Logic ===== */
+
+.month-day {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-radius: 14px;
+  position: relative;
+}
+
+/* Admin ring (hijau) */
+.ring-admin {
+  box-shadow: 0 0 0 2px #10b981 inset;
+}
+
+/* Member ring (kuning) */
+.ring-member {
+  box-shadow: 0 0 0 2px #facc15 inset;
+}
+
+/* Double ring */
+.ring-double {
+  box-shadow:
+    0 0 0 3px #10b981 inset,
+    0 0 0 6px #facc15 inset;
+}
+
+.premium-popup {
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.popup-session-card {
+  background: #1f2937;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.popup-note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.empty-session {
+  padding: 20px;
+  text-align: center;
+  opacity: .7;
+}
+
+.close-popup-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  background: #10b981;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
