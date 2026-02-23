@@ -254,7 +254,26 @@ function renderCreateSessionCard(){
    CREATE SESSION SHEET
 ================================= */
 export function openCreateSessionSheet(){
+ if(!auth.currentUser){
+    showToast("Login terlebih dahulu","error");
+    return;
+  }
 
+  const userSnap = await getDocs(
+    query(collection(db,"users"), where("__name__","==",auth.currentUser.uid))
+  );
+
+  if(userSnap.empty){
+    showToast("User tidak ditemukan","error");
+    return;
+  }
+
+  const userData = userSnap.docs[0].data();
+
+  if(!userData.verified){
+    showToast("Akun harus verified untuk membuat sesi","warning");
+    return;
+  }
   window.selectedCoaches = [];
   window.selectedCoachRates = [];
 
