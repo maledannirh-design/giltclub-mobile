@@ -385,15 +385,16 @@ export function openCreateSessionSheet(){
     </div>
   `;
 
-// 🔥 CLOSE LANGSUNG TANPA FUNCTION TERPISAH
-  const overlay = document.getElementById("createSessionOverlay");
+// 🔥 CLOSE DENGAN CLICK DI LUAR .premium-sheet
+  sheet.onclick = (e) => {
 
-  if(overlay){
-    overlay.onclick = () => {
+    const premiumSheet = e.target.closest(".premium-sheet");
+
+    if(!premiumSheet){
       sheet.classList.remove("active");
       sheet.innerHTML = "";
-    };
-  }
+    }
+  };
 
   setupSessionModeLogic();
   setupCreateSessionSubmit();
