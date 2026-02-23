@@ -566,59 +566,52 @@ function attachBookingButtons(){
 /* ===============================
    CREATE SESSION (USERNAME FIXED)
 ================================= */
-async function setupCreateSessionSubmit(){
+await addDoc(collection(db,"schedules"),{
 
-  const btn = document.getElementById("submitCreateSession");
-  if(!btn) return;
+  date,
+  startTime,
+  endTime,
 
-  btn.onclick = async ()=>{
+  tier,
+  sessionType,
+  mode,
 
-    const tier        = document.getElementById("tier").value;
-    const sessionType = document.getElementById("sessionType").value;
-    const mode        = document.getElementById("sessionMode").value;
-    const date        = document.getElementById("sessionDate").value;
-    const startTime   = document.getElementById("startTime").value;
-    const endTime     = document.getElementById("endTime").value;
-    const maxPlayers  = Number(document.getElementById("maxPlayers").value);
-    const court       = document.getElementById("court").value.trim();
-    const ratePerHour = Number(document.getElementById("ratePerHour").value);
-    const racketStock = Number(document.getElementById("racketStock").value);
-    const racketRate  = Number(document.getElementById("racketRate").value);
-    const notes       = document.getElementById("notes").value.trim();
+  maxPlayers,
+  slots: maxPlayers,   // pastikan ini ada
 
-    await addDoc(collection(db,"schedules"),{
+  court,
 
-      date,
-      startTime,
-      endTime,
+  hostId: auth.currentUser.uid,
 
-      tier,
-      sessionType,
-      mode,
+  coaches: (window.selectedCoaches || []).map(c => ({
+    id: c.id,
+    name: c.name,
+    rate: c.rate,
+    approval: "pending"
+  })),
 
-      maxPlayers,
-      court,
+  pricePerHour: ratePerHour || 0,
+  racketStock: racketStock || 0,
+  racketPrice: racketRate || 0,
 
-      hostId: auth.currentUser.uid,
+  notes: notes || "",
+  status: "open",
+  createdAt: serverTimestamp()
 
-      coaches: (window.selectedCoaches || []).map(c => ({
-        id: c.id,
-        name: c.name, // USERNAME FIX
-        rate: c.rate,
-        approval: "pending"
-      })),
+});
 
-      pricePerHour: ratePerHour || 0,
-      racketStock: racketStock || 0,
-      racketPrice: racketRate || 0,
-      notes: notes || "",
-      status: "open",
-      createdAt: serverTimestamp()
-    });
+// ✅ SUCCESS
+showToast("Sesi berhasil dibuat","success");
 
-    showToast("Sesi berhasil dibuat","success");
-  };
+// ✅ TUTUP SHEET
+const sheet = document.getElementById("createSessionSheet");
+if(sheet){
+  sheet.classList.remove("active");
+  sheet.innerHTML = "";
 }
+
+// ✅ REFRESH UI
+renderBooking();
 
 async function checkCoachConflict(date, startTime, endTime){
 
