@@ -271,184 +271,175 @@ body.dark .popup-session-card{
 }
 
 /* =====================================
-   CREATE SESSION SHEET
+   CREATE SESSION – SOLID MODERN MODAL
 ===================================== */
-#createSessionSheet{
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;   /* 🔥 penting */
-}
 
-#createSessionOverlay{
+#createSessionSheet{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.6);
   z-index:9998;
-}
-#createSessionSheet.active{
-  pointer-events: auto;   /* hanya aktif saat sheet terbuka */
+  display:none;
 }
 
+#createSessionSheet.active{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Overlay solid */
+#createSessionOverlay{
+  position:absolute;
+  inset:0;
+  background:#000;
+  opacity:.65;
+}
+
+/* CARD STYLE (Login-like) */
 .premium-sheet{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  border-top-left-radius:28px;
-  border-top-right-radius:28px;
-  padding:24px 20px 40px;
+  position:relative;
+  width:92%;
+  max-width:480px;
   max-height:92vh;
   overflow-y:auto;
-  animation:slideUp .28s ease;
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
+  border-radius:28px;
+  padding:30px 24px 36px;
   z-index:9999;
+  animation:modalFade .25s ease;
 }
 
+/* LIGHT MODE */
 body.light .premium-sheet{
-  background:linear-gradient(
-    160deg,
-    rgba(255,235,235,.95),
-    rgba(229,169,169,.95)
-  );
+  background:#ffffff;
+  color:#111;
+  box-shadow:0 30px 80px rgba(0,0,0,.18);
 }
 
+/* DARK MODE */
 body.dark .premium-sheet{
-  background:linear-gradient(
-    160deg,
-    rgba(227,197,101,.18),
-    rgba(227,197,101,.12)
-  );
+  background:#141414;
+  color:#f5f5f5;
+  box-shadow:0 30px 80px rgba(0,0,0,.7);
 }
 
-@keyframes slideUp{
-  from{transform:translateY(100%);}
-  to{transform:translateY(0);}
+/* Animation */
+@keyframes modalFade{
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
 }
 
-.sheet-handle{
-  width:50px;
-  height:5px;
-  border-radius:10px;
-  margin:0 auto 18px;
-  opacity:.4;
+/* Title */
+.premium-sheet h2{
+  text-align:center;
+  margin-bottom:26px;
+  font-size:20px;
+  font-weight:700;
 }
 
-body.light .sheet-handle{background:#000;}
-body.dark .sheet-handle{background:#fff;}
-
+/* Sections */
 .sheet-section{
-  margin-bottom:20px;
+  margin-bottom:22px;
 }
 
+/* Labels */
 .sheet-section label{
   font-size:13px;
-  margin-bottom:6px;
+  font-weight:600;
+  margin-bottom:8px;
   display:block;
+  letter-spacing:.3px;
 }
 
+/* LIGHT LABEL */
+body.light .sheet-section label{
+  color:#444;
+}
+
+/* DARK LABEL */
+body.dark .sheet-section label{
+  color:#cfcfcf;
+}
+
+/* Input Modern */
+.premium-sheet input,
+.premium-sheet select,
+.premium-sheet textarea{
+  width:100%;
+  padding:15px 16px;
+  border-radius:16px;
+  font-size:14px;
+  outline:none;
+  border:1px solid transparent;
+  transition:.2s ease;
+}
+
+/* LIGHT INPUT */
+body.light .premium-sheet input,
+body.light .premium-sheet select,
+body.light .premium-sheet textarea{
+  background:#f7f7f7;
+  border:1px solid #e5e5e5;
+  color:#111;
+}
+
+/* DARK INPUT */
+body.dark .premium-sheet input,
+body.dark .premium-sheet select,
+body.dark .premium-sheet textarea{
+  background:#1f1f1f;
+  border:1px solid #2a2a2a;
+  color:#f5f5f5;
+}
+
+/* Focus */
+.premium-sheet input:focus,
+.premium-sheet select:focus,
+.premium-sheet textarea:focus{
+  border:1px solid #10b981;
+  box-shadow:0 0 0 3px rgba(16,185,129,.15);
+}
+
+/* Time Row */
 .time-row{
   display:flex;
   gap:12px;
 }
 
-/* MODERN FORM STYLE */
-.premium-sheet input,
-.premium-sheet select,
-.premium-sheet textarea{
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  border:none;
+/* Coach Info */
+#coachSelector,
+#coachRateDisplay,
+#coachStatusDisplay{
   font-size:14px;
-  outline:none;
-  transition:var(--transition);
 }
 
-/* =========================
-   LIGHT MODE FORM FIX
-========================= */
-/* Text info biasa */
-body.light .premium-sheet{
-  color:#2a2a2a;
-}
-
-
-body.light .premium-sheet label{
-  color:#5a1f1f;       /* deep maroon tone */
-  font-weight:600;
-  letter-spacing:.3px;
-  opacity:1;
-}
-
-
-body.light .premium-sheet input,
-body.light .premium-sheet select,
-body.light .premium-sheet textarea{
-  background:#ffffff;
-  border:1px solid rgba(0,0,0,.08);
-  color:#222;
-  box-shadow:0 4px 10px rgba(0,0,0,.06);
-}
-
-body.light .premium-sheet select:focus,
-
-/* Placeholder */
-body.light .premium-sheet input::placeholder,
-body.light .premium-sheet textarea::placeholder{
-  color:#999;
-  opacity:1;
-}
-
-/* Text kecil / meta */
-body.light .premium-sheet small,
-body.light .premium-sheet .meta-text{
-  color:#6b2d2d;
-}
-
-/* Coach info */
-body.light #coachSelector,
-body.light #coachRateDisplay,
-body.light #coachStatusDisplay{
-  color:#2a2a2a;
-  font-weight:500;
-}
-
-/* Rate coach highlight */
 body.light #coachRateDisplay{
   font-weight:700;
   color:#111;
 }
 
-/* Status */
-body.light #coachStatusDisplay{
-  color:#444;
-}
-
-body.dark .premium-sheet input,
-body.dark .premium-sheet select,
-body.dark .premium-sheet textarea{
-  background:rgba(255,255,255,.06);
+body.dark #coachRateDisplay{
+  font-weight:700;
   color:#f5f5f5;
 }
 
-.premium-sheet input:focus,
-.premium-sheet select:focus,
-.premium-sheet textarea:focus{
-  box-shadow:0 0 0 2px #10b981;
-}
-
+/* Submit Button */
 .btn-create-session{
   width:100%;
   padding:16px;
-  border-radius:20px;
   border:none;
+  border-radius:18px;
   font-weight:600;
+  font-size:15px;
   cursor:pointer;
   margin-top:10px;
-  transition:var(--transition);
-  background:linear-gradient(135deg,#059669,#10b981);
+  transition:.2s ease;
+  background:#10b981;
   color:white;
 }
 
@@ -456,10 +447,7 @@ body.dark .premium-sheet textarea{
   transform:translateY(-2px);
 }
 
-/* =====================================
-   PREMIUM CREATE BUTTON
-===================================== */
-
+/* Premium Open Button */
 .create-session-wrapper{
   padding:20px;
 }
@@ -468,30 +456,25 @@ body.dark .premium-sheet textarea{
   width:100%;
   padding:16px;
   border:none;
-  border-radius:20px;
+  border-radius:22px;
   font-size:16px;
   font-weight:600;
   cursor:pointer;
-  backdrop-filter:blur(12px);
-  transition:var(--transition);
+  transition:.2s ease;
 }
 
+/* LIGHT */
 body.light .premium-create-btn{
-  background:linear-gradient(
-    135deg,
-    rgba(255,170,170,.95),
-    rgba(229,169,169,.95)
-  );
-  box-shadow:0 8px 20px rgba(0,0,0,.12);
+  background:#111;
+  color:#fff;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
 
+/* DARK */
 body.dark .premium-create-btn{
-  background:linear-gradient(
-    135deg,
-    rgba(227,197,101,.3),
-    rgba(227,197,101,.15)
-  );
-  box-shadow:0 8px 30px rgba(0,0,0,.6);
+  background:#10b981;
+  color:#fff;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
 }
 
 .premium-create-btn:hover{
