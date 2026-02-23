@@ -423,37 +423,161 @@ function setupSessionModeLogic(){
   });
 
 }
-function setupCreateSessionSubmit(){
+async function setupCreateSessionSubmit(){
 
   const btn = document.getElementById("submitCreateSession");
   if(!btn) return;
 
-  btn.addEventListener("click", async ()=>{
+  btn.onclick = async ()=>{
 
-    const mode = document.getElementById("sessionMode").value;
-    const maxPlayers = Number(document.getElementById("maxPlayers").value);
+    try{
 
-    if(!maxPlayers || maxPlayers <= 0){
-      showToast("Isi maksimal pemain","error");
-      return;
+      const tier        = document.getElementById("tier").value;
+      const sessionType = document.getElementById("sessionType").value;
+      const mode        = document.getElementById("sessionMode").value;
+
+      const date        = document.getElementById("sessionDate").value;
+      const startTime   = document.getElementById("startTime").value;
+      const endTime     = document.getElementById("endTime").value;
+
+      const maxPlayers  = Number(document.getElementById("maxPlayers").value);
+      const court       = document.getElementById("court").value.trim();
+
+      const ratePerHour = Number(document.getElementById("ratePerHour").value);
+      const racketStock = Number(document.getElementById("racketStock").value);
+      const racketRate  = Number(document.getElementById("racketRate").value);
+
+      const notes       = document.getElementById("notes").value.trim();
+
+      if(!date || !startTime || !endTime){
+        showToast("Lengkapi tanggal dan jam","error");
+        return;
+      }
+
+      if(endTime <= startTime){
+        showToast("Jam selesai harus lebih besar dari jam mulai","error");
+        return;
+      }
+
+      if(!maxPlayers || maxPlayers <= 0){
+        showToast("Isi maksimal pemain","error");
+        return;
+      }
+
+      if(mode === "private" && maxPlayers > 4){
+        showToast("Private maksimal 4 pemain","error");
+        return;
+      }
+
+      if(mode === "semi-private" && maxPlayers > 8){
+        showToast("Semi-private maksimal 8 pemain","error");
+        return;
+      }
+
+      if(
+        (sessionType === "Drill" || sessionType === "Drill + Mabar")
+        && (!selectedCoaches || selectedCoaches.length === 0)
+      ){
+        showToast("Drill wajib memilih coach","error");
+        return;
+      }
+
+      if(ratePerHour && ratePerHour % 5000 !== 0){
+        showToast("Rate per jam harus kelipatan 5.000","error");
+        return;
+      }
+
+      if(racketRate && racketRate % 5000 !== 0){
+        showToast("Rate raket harus kelipatan 5.000","error");
+        return;
+      }
+
+      const conflict = await checkCoachConflict(date,startTime,endTime);
+
+      if(conflict){
+        showToast("Coach sudah memiliki sesi di jam tersebut","error");
+        return;
+      }
+
+      await addDoc(collection(db,"schedules"),{
+
+        date,
+        startTime,
+        endTime,
+
+        tier,
+        sessionType,
+        mode,
+
+        maxPlayers,
+        court,
+
+        hostId: auth.currentUser.uid,
+
+        coaches: selectedCoaches
+          ? selectedCoaches.map(id=>({
+              id,
+              approval: "pending"
+            }))
+          : [],
+
+        pricePerHour: ratePerHour || 0,
+
+        racketStock: racketStock || 0,
+        racketPrice: racketRate || 0,
+
+        notes: notes || "",
+
+        status: "open",
+        createdAt: serverTimestamp()
+      });
+
+      showToast("Sesi berhasil dibuat","success");
+      closeCreateSessionSheet();
+
+    }catch(err){
+      showToast(err.message,"error");
     }
 
-    if(mode === "private" && maxPlayers > 4){
-      showToast("Private maksimal 4 pemain","error");
-      return;
-    }
-
-    if(mode === "semi-private" && maxPlayers > 8){
-      showToast("Semi-private maksimal 8 pemain","error");
-      return;
-    }
-
-    // nanti lanjut save ke firestore
-    console.log("Valid, lanjut simpan");
-
-  });
-
+  };
 }
+
+async function checkCoachConflict(date, startTime, endTime){
+
+  for(const coachId of selectedCoaches){
+
+    const q = query(
+      collection(db,"schedules"),
+      where("date","==",date)
+    );
+
+    const snap = await getDocs(q);
+
+    for(const doc of snap.docs){
+
+      const data = doc.data();
+
+      if(!data.coaches) continue;
+
+      const coachExists = data.coaches.some(c=>c.id === coachId);
+
+      if(!coachExists) continue;
+
+      // cek overlap waktu
+      if(
+        (startTime < data.endTime) &&
+        (endTime > data.startTime)
+      ){
+        return true;
+      }
+
+    }
+
+  }
+
+  return false;
+}
+
 /* ===============================
    UTILITIES
 ================================= */
