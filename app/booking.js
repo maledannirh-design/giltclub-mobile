@@ -395,44 +395,52 @@ if(overlay){
    setupCoachSelector();
 }
 
-
 /* ===============================
    EVENTS
 ================================= */
 function attachGlobalEvents(){
 
   const content = document.getElementById("content");
+  if(!content) return;
 
   content.onclick = async (e) => {
 
+    // ===== Klik tanggal kalender =====
     const monthDay = e.target.closest(".month-day");
     if (monthDay && !monthDay.classList.contains("empty")) {
       openSessionPopup(monthDay.dataset.date);
+      return;
     }
 
+    // ===== Tutup popup sesi =====
     if (e.target.id === "closePopup") {
-      document.getElementById("popupContainer").innerHTML = "";
+      const popup = document.getElementById("popupContainer");
+      if(popup) popup.innerHTML = "";
+      return;
     }
 
+    // ===== Prev Month =====
     if (e.target.id === "prevMonth") {
       slideDirection = "prev";
       currentMonth.setMonth(currentMonth.getMonth() - 1);
       renderFullUI();
+      return;
     }
 
+    // ===== Next Month =====
     if (e.target.id === "nextMonth") {
       slideDirection = "next";
       currentMonth.setMonth(currentMonth.getMonth() + 1);
       renderFullUI();
+      return;
     }
 
+    // ===== Open Create Session =====
     if (e.target.id === "openCreateSession"){
       openCreateSessionSheet();
+      return;
     }
-   
-     if (e.target.id === "createSessionOverlay") {
-     closeCreateSessionSheet();
-   }
+
   };
 }
 
