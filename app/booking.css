@@ -248,14 +248,14 @@ body.dark .popup-session-card{
   pointer-events: none;   /* 🔥 penting */
 }
 
-#createSessionSheet.active{
-  pointer-events: auto;   /* hanya aktif saat sheet terbuka */
-}
 #createSessionOverlay{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.6);
-  z-index:998;
+  z-index:9998;
+}
+#createSessionSheet.active{
+  pointer-events: auto;   /* hanya aktif saat sheet terbuka */
 }
 
 .premium-sheet{
