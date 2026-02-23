@@ -678,7 +678,7 @@ async function setupCoachSelector(){
 
   const q = query(
     collection(db,"users"),
-    where("role","in",["coach","supercoach"])
+    where("role","in",["COACH","SUPERCOACH"])
   );
 
   const snap = await getDocs(q);
