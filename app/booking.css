@@ -372,6 +372,9 @@
   to   { transform: translateY(0); }
 }
 
+
+/* ===== FORMAT CREATE BOOKING ===== */
+
 .sheet-handle {
   width: 50px;
   height: 5px;
@@ -394,17 +397,6 @@
   color: #9ca3af;
   display: block;
   margin-bottom: 6px;
-}
-
-.premium-sheet input,
-.premium-sheet select,
-.premium-sheet textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #374151;
-  background: #1f2937;
-  color: white;
 }
 
 .time-row {
@@ -467,4 +459,30 @@ body.dark .premium-sheet {
   background: #1f1f1f;
   box-shadow:
     0 -10px 40px rgba(0,0,0,0.6);
+}
+
+.sheet-section input,
+.sheet-section select,
+.sheet-section textarea {
+  background: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.5);
+  color: #222;
+}
+
+body.dark .sheet-section input,
+body.dark .sheet-section select,
+body.dark .sheet-section textarea {
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #f5f5f5;
+}
+.sheet-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.sheet-container.active {
+  pointer-events: auto;
 }
