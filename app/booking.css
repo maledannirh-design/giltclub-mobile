@@ -322,3 +322,40 @@
   color: white;
   cursor: pointer;
 }
+
+.premium-popup {
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.popup-session-card {
+  background: #1f2937;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.popup-note {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.empty-session {
+  padding: 20px;
+  text-align: center;
+  opacity: .7;
+}
+
+.close-popup-btn {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  background: #10b981;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
