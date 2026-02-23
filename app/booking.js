@@ -563,54 +563,95 @@ function attachBookingButtons(){
 }
 
 /* ===============================
-   CREATE SESSION (USERNAME FIXED)
+   CREATE SESSION SUBMIT (FINAL CLEAN)
 ================================= */
-await addDoc(collection(db,"schedules"),{
+async function setupCreateSessionSubmit(){
 
-  date,
-  startTime,
-  endTime,
+  const btn = document.getElementById("submitCreateSession");
+  if(!btn) return;
 
-  tier,
-  sessionType,
-  mode,
+  btn.onclick = async ()=>{
 
-  maxPlayers,
-  slots: maxPlayers,   // pastikan ini ada
+    try{
 
-  court,
+      const tier        = document.getElementById("tier").value;
+      const sessionType = document.getElementById("sessionType").value;
+      const mode        = document.getElementById("sessionMode").value;
 
-  hostId: auth.currentUser.uid,
+      const date        = document.getElementById("sessionDate").value;
+      const startTime   = document.getElementById("startTime").value;
+      const endTime     = document.getElementById("endTime").value;
 
-  coaches: (window.selectedCoaches || []).map(c => ({
-    id: c.id,
-    name: c.name,
-    rate: c.rate,
-    approval: "pending"
-  })),
+      const maxPlayers  = Number(document.getElementById("maxPlayers").value);
+      const court       = document.getElementById("court").value.trim();
 
-  pricePerHour: ratePerHour || 0,
-  racketStock: racketStock || 0,
-  racketPrice: racketRate || 0,
+      const ratePerHour = Number(document.getElementById("ratePerHour").value);
+      const racketStock = Number(document.getElementById("racketStock").value);
+      const racketRate  = Number(document.getElementById("racketRate").value);
 
-  notes: notes || "",
-  status: "open",
-  createdAt: serverTimestamp()
+      const notes       = document.getElementById("notes").value.trim();
 
-});
+      if(!date || !startTime || !endTime){
+        showToast("Lengkapi tanggal dan jam","error");
+        return;
+      }
 
-// ✅ SUCCESS
-showToast("Sesi berhasil dibuat","success");
+      if(!maxPlayers || maxPlayers <= 0){
+        showToast("Isi maksimal pemain","error");
+        return;
+      }
 
-// ✅ TUTUP SHEET
-const sheet = document.getElementById("createSessionSheet");
-if(sheet){
-  sheet.classList.remove("active");
-  sheet.innerHTML = "";
+      await addDoc(collection(db,"schedules"),{
+
+        date,
+        startTime,
+        endTime,
+
+        tier,
+        sessionType,
+        mode,
+
+        maxPlayers,
+        slots: maxPlayers,   // 🔥 penting
+
+        court,
+
+        hostId: auth.currentUser.uid,
+
+        coaches: (window.selectedCoaches || []).map(c => ({
+          id: c.id,
+          name: c.name,
+          rate: c.rate,
+          approval: "pending"
+        })),
+
+        pricePerHour: ratePerHour || 0,
+        racketStock: racketStock || 0,
+        racketPrice: racketRate || 0,
+
+        notes: notes || "",
+        status: "open",
+        createdAt: serverTimestamp()
+
+      });
+
+      showToast("Sesi berhasil dibuat","success");
+
+      const sheet = document.getElementById("createSessionSheet");
+      if(sheet){
+        sheet.classList.remove("active");
+        sheet.innerHTML = "";
+      }
+
+      renderBooking();
+
+    }catch(err){
+      showToast(err.message || "Gagal membuat sesi","error");
+    }
+
+  };
+
 }
-
-// ✅ REFRESH UI
-renderBooking();
 
 async function checkCoachConflict(date, startTime, endTime){
 
