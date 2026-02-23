@@ -7,30 +7,27 @@ import {
   query,
   where,
   getDocs
-} from "../firestore.js";
-import { CANCEL_POLICY } from "../config.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =====================================================
-   CREATE BOOKING (FULL ATOMIC + WALLET LEDGER)
+   CREATE BOOKING (ATOMIC CLEAN VERSION)
 ===================================================== */
 export async function createBooking({ userId, scheduleId }) {
 
   const scheduleRef = doc(db, "schedules", scheduleId);
-  const bookingsCol = collection(db, "bookings");
   const userRef = doc(db, "users", userId);
-  const ledgerCol = collection(db, "wallet_transactions");
+  const bookingsCol = collection(db, "bookings");
+  const ledgerCol = collection(db, "walletTransactions");
 
   await runTransaction(db, async (transaction) => {
 
     // 1️⃣ Get Schedule
     const scheduleSnap = await transaction.get(scheduleRef);
-    if (!scheduleSnap.exists()) {
-      throw new Error("Schedule not found");
-    }
+    if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
     const scheduleData = scheduleSnap.data();
-    const availableSlots = scheduleData.slots || 0;
-    const price = scheduleData.price || 0;
+    const availableSlots = scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
+    const price = scheduleData.pricePerHour || 0;
 
     if (availableSlots <= 0) {
       throw new Error("Slot full");
@@ -38,18 +35,16 @@ export async function createBooking({ userId, scheduleId }) {
 
     // 2️⃣ Get User
     const userSnap = await transaction.get(userRef);
-    if (!userSnap.exists()) {
-      throw new Error("User not found");
-    }
+    if (!userSnap.exists()) throw new Error("User not found");
 
     const userData = userSnap.data();
     const currentBalance = userData.walletBalance || 0;
 
     if (currentBalance < price) {
-      throw new Error("Insufficient balance");
+      throw new Error("Saldo tidak cukup");
     }
 
-    // 3️⃣ Duplicate Booking Guard
+    // 3️⃣ Duplicate Guard
     const duplicateQuery = query(
       bookingsCol,
       where("userId", "==", userId),
@@ -59,7 +54,7 @@ export async function createBooking({ userId, scheduleId }) {
 
     const duplicateSnap = await getDocs(duplicateQuery);
     if (!duplicateSnap.empty) {
-      throw new Error("You already booked this schedule");
+      throw new Error("Sudah booking sesi ini");
     }
 
     // 4️⃣ Create Booking
@@ -68,9 +63,9 @@ export async function createBooking({ userId, scheduleId }) {
     transaction.set(bookingRef, {
       userId,
       scheduleId,
-      createdAt: serverTimestamp(),
+      price,
       status: "active",
-      price
+      createdAt: serverTimestamp()
     });
 
     // 5️⃣ Reduce Slot
@@ -78,7 +73,7 @@ export async function createBooking({ userId, scheduleId }) {
       slots: availableSlots - 1
     });
 
-    // 6️⃣ Wallet Debit
+    // 6️⃣ Deduct Wallet
     const newBalance = currentBalance - price;
 
     transaction.update(userRef, {
@@ -96,11 +91,7 @@ export async function createBooking({ userId, scheduleId }) {
       referenceId: bookingRef.id,
       createdAt: serverTimestamp()
     });
-    const stats = recalculateUserStats({
-  totalTopup: currentTotalTopup,
-  totalPayment: newTotalPayment,
-  membership: userData.membership
-});
+
   });
 
   return { success: true };
@@ -108,105 +99,67 @@ export async function createBooking({ userId, scheduleId }) {
 
 
 /* =====================================================
-   CANCEL BOOKING (TIER REFUND + LEDGER + ATOMIC)
+   CANCEL BOOKING (SIMPLE REFUND VERSION)
 ===================================================== */
 export async function cancelBooking({ bookingId }) {
 
   const bookingRef = doc(db, "bookings", bookingId);
-  const ledgerCol = collection(db, "wallet_transactions");
+  const ledgerCol = collection(db, "walletTransactions");
 
   await runTransaction(db, async (transaction) => {
 
-    // 1️⃣ Get Booking
     const bookingSnap = await transaction.get(bookingRef);
-    if (!bookingSnap.exists()) {
-      throw new Error("Booking not found");
-    }
+    if (!bookingSnap.exists()) throw new Error("Booking not found");
 
     const bookingData = bookingSnap.data();
-
     if (bookingData.status !== "active") {
       throw new Error("Booking already cancelled");
     }
 
-    // 2️⃣ Get Schedule
     const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
-    const scheduleSnap = await transaction.get(scheduleRef);
-
-    if (!scheduleSnap.exists()) {
-      throw new Error("Schedule not found");
-    }
-
-    const scheduleData = scheduleSnap.data();
-
-    // 3️⃣ Get User
     const userRef = doc(db, "users", bookingData.userId);
+
+    const scheduleSnap = await transaction.get(scheduleRef);
     const userSnap = await transaction.get(userRef);
 
-    if (!userSnap.exists()) {
-      throw new Error("User not found");
-    }
+    if (!scheduleSnap.exists()) throw new Error("Schedule not found");
+    if (!userSnap.exists()) throw new Error("User not found");
 
+    const scheduleData = scheduleSnap.data();
     const userData = userSnap.data();
 
-    // 4️⃣ Deadline Check
-    const scheduleDate = new Date(scheduleData.date);
-    const now = new Date();
-    const diffHours = (scheduleDate - now) / (1000 * 60 * 60);
+    const price = bookingData.price || 0;
 
-    if (diffHours < CANCEL_POLICY.deadlineHours) {
-      throw new Error("Cancel deadline passed");
-    }
-
-    // 5️⃣ Tier Refund Calculation
-    let refundRate = 0;
-
-    for (const tier of CANCEL_POLICY.tiers) {
-      if (diffHours >= tier.minHoursBefore) {
-        refundRate = tier.refundRate;
-        break;
-      }
-    }
-
-    const price = bookingData.price || scheduleData.price || 0;
-    const refundAmount = price * refundRate;
-
-    // 6️⃣ Update Booking Status
+    // 1️⃣ Update Booking
     transaction.update(bookingRef, {
       status: "cancelled",
-      cancelledAt: serverTimestamp(),
-      refundRate,
-      refundAmount
+      cancelledAt: serverTimestamp()
     });
 
-    // 7️⃣ Restore Slot
-    const currentSlots = scheduleData.slots || 0;
+    // 2️⃣ Restore Slot
+    const currentSlots = scheduleData.slots ?? 0;
 
     transaction.update(scheduleRef, {
       slots: currentSlots + 1
     });
 
-    // 8️⃣ Wallet Refund + Ledger
-    if (refundAmount > 0) {
+    // 3️⃣ Refund Full (simple version)
+    const newBalance = (userData.walletBalance || 0) + price;
 
-      const currentBalance = userData.walletBalance || 0;
-      const newBalance = currentBalance + refundAmount;
+    transaction.update(userRef, {
+      walletBalance: newBalance
+    });
 
-      transaction.update(userRef, {
-        walletBalance: newBalance
-      });
+    const ledgerRef = doc(ledgerCol);
 
-      const ledgerRef = doc(ledgerCol);
-
-      transaction.set(ledgerRef, {
-        userId: bookingData.userId,
-        type: "refund",
-        amount: refundAmount,
-        balanceAfter: newBalance,
-        referenceId: bookingId,
-        createdAt: serverTimestamp()
-      });
-    }
+    transaction.set(ledgerRef, {
+      userId: bookingData.userId,
+      type: "refund",
+      amount: price,
+      balanceAfter: newBalance,
+      referenceId: bookingId,
+      createdAt: serverTimestamp()
+    });
 
   });
 
