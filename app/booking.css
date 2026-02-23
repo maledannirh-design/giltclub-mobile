@@ -1,165 +1,3 @@
-.upcoming-wrapper {
-  padding: 16px;
-}
-
-.upcoming-scroll {
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-}
-
-.upcoming-card {
-  min-width: 220px;
-  padding: 18px;
-  border-radius: 20px;
-  backdrop-filter: blur(20px);
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  scroll-snap-align: start;
-}
-
-.upcoming-card.dominant {
-  background: linear-gradient(135deg, #059669, #10b981);
-  color: white;
-}
-.calendar-container {
-  padding: 16px;
-}
-
-.week-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-}
-
-.day-card {
-  padding: 12px;
-  border-radius: 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .2s ease;
-}
-
-.session-card {
-  padding: 18px;
-  border-radius: 18px;
-  background: white;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-  margin-bottom: 14px;
-}
-
-.session-card.dominant {
-  border: 2px solid #10b981;
-}
-
-.session-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.joined-users {
-  display: flex;
-  margin-top: 12px;
-}
-
-.joined-users img {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  margin-left: -8px;
-  border: 2px solid white;
-}
-
-.day-card:hover {
-  transform: translateY(-3px);
-  background: rgba(0,0,0,0.05);
-}
-
-.day-card.active {
-  background: #111827;
-  color: white;
-}
-.host-form {
-  padding: 20px;
-}
-
-.host-form input,
-.host-form textarea {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 14px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-}
-
-/* ===============================
-   CALENDAR PREMIUM STYLE
-================================= */
-
-.calendar-wrapper {
-  padding: 16px 16px 8px 16px;
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.month-title {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.nav-btn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.calendar-scroll {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-}
-
-.calendar-day {
-  min-width: 72px;
-  padding: 10px 0;
-  text-align: center;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #f3f4f6;
-}
-
-.calendar-day:hover {
-  transform: translateY(-2px);
-}
-
-.calendar-day .day-name {
-  font-size: 12px;
-  opacity: .7;
-}
-
-.calendar-day .day-number {
-  font-size: 18px;
-  font-weight: 600;
-  margin-top: 2px;
-}
-
-/* ACTIVE = HIJAU */
-.calendar-day.active {
-  background: linear-gradient(135deg,#059669,#10b981);
-  color: white;
-  box-shadow: 0 6px 18px rgba(16,185,129,0.4);
-}
-
 /* ==================================
    MY UPCOMING HERO – ORANGE GLASS
 =================================== */
@@ -240,69 +78,95 @@
   font-size: 14px;
 }
 
+
 /* ===============================
-   GOOGLE STYLE CALENDAR STRIP
+   MONTH GRID
 ================================= */
 
-.calendar-google-wrapper {
+.month-wrapper {
   padding: 16px;
 }
 
-.calendar-google-card {
-  background: white;
-  border-radius: 18px;
-  padding: 14px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  overflow-x: auto;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
-}
-
-.calendar-google-day {
-  min-width: 70px;
-  text-align: center;
-  padding: 10px 6px;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.calendar-google-day:hover {
-  background: #f3f4f6;
-}
-
-.calendar-google-day.active {
-  background: linear-gradient(135deg,#059669,#10b981);
-  color: white;
-  box-shadow: 0 6px 18px rgba(16,185,129,0.4);
-}
-
-.g-day-name {
-  font-size: 13px;
-  opacity: .8;
-}
-
-.g-day-number {
+.month-title {
   font-size: 18px;
   font-weight: 600;
-  margin-top: 2px;
+  margin-bottom: 12px;
 }
 
-.g-month {
-  font-size: 12px;
-  opacity: .8;
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
 }
 
-.calendar-google-divider {
-  width: 1px;
-  height: 36px;
-  background: #e5e7eb;
-  margin-left: 4px;
+.month-day {
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #f3f4f6;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 14px;
 }
 
-.calendar-google-icon {
-  font-size: 18px;
-  opacity: .7;
-  padding-left: 4px;
+.month-day:hover {
+  transform: translateY(-2px);
 }
+
+.month-day.has-session {
+  background: linear-gradient(135deg,#059669,#10b981);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+}
+
+.month-day.empty {
+  background: transparent;
+  cursor: default;
+}
+
+/* ===============================
+   POPUP
+================================= */
+
+.popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  width: 85%;
+  max-width: 400px;
+}
+
+.popup-session {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  margin-bottom: 8px;
+}
+
+/* ===============================
+   POPUP
+================================= */
+.host-form {
+  padding: 20px;
+}
+
+.host-form input,
+.host-form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
