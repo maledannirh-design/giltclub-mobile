@@ -78,25 +78,46 @@
   font-size: 14px;
 }
 
-
-/* ===============================
-   MONTH GRID
-================================= */
+/* =========================================
+   MONTH CALENDAR – CLEAN DARK READY
+========================================= */
 
 .month-wrapper {
-  padding: 16px;
+  padding: 20px 16px;
 }
 
-.month-title {
-  font-size: 18px;
+/* ===== Month Title ===== */
+
+.month-header {
+  text-align: center;
+  font-size: 20px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  color: #ffffff;
 }
+
+/* ===== Weekday Labels ===== */
+
+.week-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 10px;
+  font-size: 13px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.week-labels .weekend {
+  color: #10b981;
+  font-weight: 500;
+}
+
+/* ===== Month Grid ===== */
 
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 
 .month-day {
@@ -104,61 +125,82 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  background: #f3f4f6;
+  border-radius: 14px;
   cursor: pointer;
-  transition: 0.2s ease;
   font-size: 14px;
+  transition: all 0.2s ease;
+
+  background: #1f2937;
+  color: #e5e7eb;
 }
 
+/* Hover */
 .month-day:hover {
   transform: translateY(-2px);
+  background: #374151;
 }
 
+/* Weekend text green only */
+.month-day.weekend {
+  color: #10b981;
+}
+
+/* Has Session = Emerald solid */
 .month-day.has-session {
-  background: linear-gradient(135deg,#059669,#10b981);
+  background: linear-gradient(135deg,#065f46,#10b981);
   color: white;
-  box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+  box-shadow: 0 4px 14px rgba(16,185,129,0.4);
 }
 
+/* Public Holiday (tanggal merah) */
+.month-day.holiday {
+  background: #7f1d1d;
+  color: #ffffff;
+}
+
+/* Empty cell */
 .month-day.empty {
   background: transparent;
   cursor: default;
 }
 
-/* ===============================
+/* =========================================
    POPUP
-================================= */
+========================================= */
 
 .popup-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 999;
 }
 
 .popup-card {
-  background: white;
+  background: #1f2937;
   padding: 20px;
-  border-radius: 16px;
-  width: 85%;
-  max-width: 400px;
+  border-radius: 18px;
+  width: 90%;
+  max-width: 420px;
+  color: #e5e7eb;
 }
 
 .popup-session {
-  padding: 10px;
-  border-radius: 10px;
-  background: #f3f4f6;
-  margin-bottom: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #374151;
+  margin-bottom: 10px;
 }
 
-/* ===============================
-   POPUP
-================================= */
+/* =========================================
+   HOST FORM
+========================================= */
+
 .host-form {
   padding: 20px;
+  color: #e5e7eb;
 }
 
 .host-form input,
@@ -167,6 +209,13 @@
   padding: 12px;
   margin-bottom: 14px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: #ffffff;
 }
 
+.host-form input:focus,
+.host-form textarea:focus {
+  outline: none;
+  border-color: #10b981;
+}
