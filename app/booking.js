@@ -333,6 +333,7 @@ function closeCreateSessionSheet(){
   document.getElementById("createSessionSheet").innerHTML = "";
 }
 
+
 /* ===============================
    EVENTS
 ================================= */
@@ -404,6 +405,26 @@ async function handleCancelClick(bookingId){
   }
 }
 
+function setupSessionModeLogic(){
+
+  const mode = document.getElementById("sessionMode");
+  const maxInput = document.getElementById("maxPlayers");
+
+  mode.addEventListener("change", e=>{
+
+    if(e.target.value === "private"){
+      maxInput.value = 4;
+      maxInput.disabled = true;
+    }
+    else if(e.target.value === "semi-private"){
+      maxInput.value = 8;
+      maxInput.disabled = true;
+    }
+    else{
+      maxInput.disabled = false;
+    }
+  });
+}
 /* ===============================
    UTILITIES
 ================================= */
