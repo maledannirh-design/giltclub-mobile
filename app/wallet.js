@@ -286,7 +286,7 @@ export async function renderTopUpSheet(){
     }
 
     await addDoc(collection(db,"walletTransactions"),{
-      uid: auth.currentUser.uid,
+      userId: auth.currentUser.uid,
       type: "TOPUP",
       amount: amount,
       status: "PENDING",
