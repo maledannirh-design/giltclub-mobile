@@ -385,10 +385,15 @@ export function openCreateSessionSheet(){
     </div>
   `;
 
+// 🔥 CLOSE LANGSUNG TANPA FUNCTION TERPISAH
   const overlay = document.getElementById("createSessionOverlay");
-if(overlay){
-  overlay.addEventListener("click", closeCreateSessionSheet);
-}
+
+  if(overlay){
+    overlay.onclick = () => {
+      sheet.classList.remove("active");
+      sheet.innerHTML = "";
+    };
+  }
 
   setupSessionModeLogic();
   setupCreateSessionSubmit();
