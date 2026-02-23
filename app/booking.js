@@ -250,7 +250,7 @@ function openSessionPopup(dateStr) {
     sessions.forEach(s => {
 
   const coachNames = s.coaches && s.coaches.length
-    ? s.coaches.map(c => c.name || c.id).join(", ")
+    ? s.coaches.map(c => c.username || c.id).join(", ")
     : "-";
 
   html += `
@@ -273,7 +273,9 @@ function openSessionPopup(dateStr) {
       <button class="join-btn" data-id="${s.id}">
         Gabung Sesi Ini
       </button>
-
+      <div class="session-members">
+  ${memberAvatarsHtml}
+</div>
     </div>
   `;
 });
@@ -287,6 +289,26 @@ function openSessionPopup(dateStr) {
 
   popup.innerHTML = html;
 }
+<div class="session-detail-content">
+/* ===============================
+   LOGIC GENERATE AVATAR
+================================= */
+const bookingSnap = await getDocs(
+  query(
+    collection(db,"bookings"),
+    where("scheduleId","==",session.id),
+    where("status","==","active")
+  )
+);
+
+const members = bookingSnap.docs.map(d=>d.data());
+
+let memberAvatarsHtml = members.map(m=>`
+  <div class="member-avatar">
+    <img src="${m.photoURL || '/default-avatar.png'}" />
+  </div>
+`).join("");
+
 
 /* ===============================
    CREATE SESSION CARD
@@ -642,7 +664,7 @@ async function setupCreateSessionSubmit(){
 
         coaches: (selectedCoaches || []).map(c => ({
           id: c.id,
-          name: c.name,
+          name: c.username,
           rate: c.rate,
           approval: "pending"
         })),
