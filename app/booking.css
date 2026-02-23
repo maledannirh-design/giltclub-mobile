@@ -242,9 +242,14 @@ body.dark .popup-session-card{
    CREATE SESSION SHEET
 ===================================== */
 #createSessionSheet{
-  position:fixed;
-  inset:0;
-  z-index:9998;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;   /* 🔥 penting */
+}
+
+#createSessionSheet.active{
+  pointer-events: auto;   /* hanya aktif saat sheet terbuka */
 }
 #createSessionOverlay{
   position:fixed;
