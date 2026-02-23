@@ -544,33 +544,41 @@ async function setupCreateSessionSubmit(){
 
 async function checkCoachConflict(date, startTime, endTime){
 
-  for(const coachId of selectedCoaches){
+  if(!selectedCoaches || selectedCoaches.length === 0){
+    return false;
+  }
 
-    const q = query(
-      collection(db,"schedules"),
-      where("date","==",date)
+  const q = query(
+    collection(db,"schedules"),
+    where("date","==",date),
+    where("status","==","open")
+  );
+
+  const snap = await getDocs(q);
+
+  for(const docSnap of snap.docs){
+
+    const data = docSnap.data();
+
+    if(!data.coaches || !Array.isArray(data.coaches)) continue;
+
+    const existingStart = data.startTime;
+    const existingEnd   = data.endTime;
+
+    if(!existingStart || !existingEnd) continue;
+
+    const overlap =
+      (startTime < existingEnd) &&
+      (endTime > existingStart);
+
+    if(!overlap) continue;
+
+    const coachConflict = data.coaches.some(c =>
+      selectedCoaches.includes(c.id)
     );
 
-    const snap = await getDocs(q);
-
-    for(const doc of snap.docs){
-
-      const data = doc.data();
-
-      if(!data.coaches) continue;
-
-      const coachExists = data.coaches.some(c=>c.id === coachId);
-
-      if(!coachExists) continue;
-
-      // cek overlap waktu
-      if(
-        (startTime < data.endTime) &&
-        (endTime > data.startTime)
-      ){
-        return true;
-      }
-
+    if(coachConflict){
+      return true;
     }
 
   }
