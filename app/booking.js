@@ -142,7 +142,7 @@ function renderMyUpcomingHero(){
 }
 
 /* ===============================
-   CALENDAR TAMPILAN
+   CALENDAR TAMPILAN (FINAL FIX)
 ================================= */
 function renderCalendarMonth() {
 
@@ -192,27 +192,14 @@ function renderCalendarMonth() {
     const dateObj = new Date(year, month, d);
     const dateStr = formatDate(dateObj);
 
-    const sessions = allSchedules.filter(s => s.date === dateStr);
-
-   const hasGreen = sessions.some(s =>
-  ["ADMIN","SUPERCOACH","COACH"].includes(s.hostRole)
-);
-
-const hasYellow = sessions.some(s =>
-  s.hostRole === "MEMBER"
-);
-
-let ringClass = "";
-
-if (hasGreen && hasYellow) ringClass = "ring-double";
-else if (hasGreen) ringClass = "ring-admin";
-else if (hasYellow) ringClass = "ring-member";
+    // 🔥 CUKUP CEK ADA SESSION ATAU TIDAK
+    const hasSession = allSchedules.some(s => s.date === dateStr);
 
     const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     html += `
-      <div class="month-day ${ringClass} ${isWeekend ? "weekend":""}"
+      <div class="month-day ${hasSession ? "has-session" : ""} ${isWeekend ? "weekend":""}"
            data-date="${dateStr}">
         ${d}
       </div>
