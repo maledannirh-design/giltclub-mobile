@@ -422,67 +422,68 @@
 }
 
 /* =========================
-   CREATE SESSION BACKGROUND
+   PREMIUM SHEET FINAL
 ========================= */
 
-.premium-sheet {
+.premium-sheet{
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
 
-  border-top-left-radius: 30px;
-  border-top-right-radius: 30px;
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
 
   padding: 24px 20px 40px;
-  max-height: 90vh;
+  max-height: 92vh;
   overflow-y: auto;
-  z-index: 999;
 
-  animation: slideUp .3s ease;
+  z-index: 9999;
+  animation: slideUp .28s ease;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* LIGHT MODE */
-body.light .premium-sheet {
-  background: linear-gradient(
-    160deg,
-    rgba(255, 228, 228, 0.95),
-    rgba(229,169,169,0.8)
-  );
+body.light .premium-sheet{
+  background:
+    linear-gradient(
+      160deg,
+      rgba(255,235,235,0.98),
+      rgba(229,169,169,0.95)
+    );
 
   box-shadow:
-    0 -10px 30px rgba(229,169,169,0.35);
+    0 -15px 40px rgba(0,0,0,0.12);
 }
 
 /* DARK MODE */
-body.dark .premium-sheet {
-  background: #1f1f1f;
+body.dark .premium-sheet{
+  background:
+    linear-gradient(
+      160deg,
+      #1c1c1c,
+      #141414
+    );
+
   box-shadow:
-    0 -10px 40px rgba(0,0,0,0.6);
+    0 -20px 60px rgba(0,0,0,0.7);
 }
 
-.sheet-section input,
-.sheet-section select,
-.sheet-section textarea {
-  background: rgba(255,255,255,0.4);
-  border: 1px solid rgba(255,255,255,0.5);
+/* FORM ELEMENTS */
+.premium-sheet input,
+.premium-sheet select,
+.premium-sheet textarea{
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.08);
   color: #222;
 }
 
-body.dark .sheet-section input,
-body.dark .sheet-section select,
-body.dark .sheet-section textarea {
+body.dark .premium-sheet input,
+body.dark .premium-sheet select,
+body.dark .premium-sheet textarea{
   background: #2a2a2a;
   border: 1px solid #3a3a3a;
-  color: #f5f5f5;
-}
-.sheet-container {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-}
-
-.sheet-container.active {
-  pointer-events: auto;
+  color: #f2f2f2;
 }
