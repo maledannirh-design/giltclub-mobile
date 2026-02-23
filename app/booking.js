@@ -255,7 +255,6 @@ function renderCreateSessionCard(){
 ================================= */
 export function openCreateSessionSheet(){
 
-  // reset state global
   window.selectedCoaches = [];
   window.selectedCoachRates = [];
 
@@ -265,14 +264,12 @@ export function openCreateSessionSheet(){
   sheet.classList.add("active");
 
   sheet.innerHTML = `
-    <div class="sheet-overlay" id="createSessionOverlay"></div>
+    <div id="createSessionOverlay"></div>
 
     <div class="premium-sheet">
-
       <div class="sheet-handle"></div>
       <h2>Buat Sesi</h2>
 
-      <!-- ROW 1 -->
       <div class="sheet-section">
         <label>Tier Sesi</label>
         <select id="tier">
@@ -283,7 +280,6 @@ export function openCreateSessionSheet(){
         </select>
       </div>
 
-      <!-- ROW 2 -->
       <div class="sheet-section">
         <label>Jenis Sesi</label>
         <select id="sessionType">
@@ -293,7 +289,6 @@ export function openCreateSessionSheet(){
         </select>
       </div>
 
-      <!-- ROW 3 -->
       <div class="sheet-section">
         <label>Tipe Sesi</label>
         <select id="sessionMode">
@@ -303,19 +298,16 @@ export function openCreateSessionSheet(){
         </select>
       </div>
 
-      <!-- ROW 4 -->
       <div class="sheet-section">
         <label>Maksimal Pemain</label>
-        <input type="number" id="maxPlayers" placeholder="Jumlah pemain">
+        <input type="number" id="maxPlayers">
       </div>
 
-      <!-- ROW 5 -->
       <div class="sheet-section">
         <label>Tanggal</label>
         <input type="date" id="sessionDate">
       </div>
 
-      <!-- ROW 6 -->
       <div class="sheet-section">
         <div class="time-row">
           <div>
@@ -329,76 +321,63 @@ export function openCreateSessionSheet(){
         </div>
       </div>
 
-      <!-- ROW 7 -->
       <div class="sheet-section">
         <label>Lapangan</label>
-        <input type="text" id="court" placeholder="Nama lapangan">
+        <input type="text" id="court">
       </div>
 
-      <!-- ROW 8 -->
       <div class="sheet-section">
         <label>Pilih Coach (maksimal 2)</label>
         <div id="coachSelector"></div>
       </div>
 
-      <!-- ROW 9 -->
       <div class="sheet-section">
         <label>Rate Coach / Jam</label>
         <div id="coachRateDisplay">-</div>
       </div>
 
-      <!-- ROW 10 -->
       <div class="sheet-section">
         <label>Status Coach</label>
         <div id="coachStatusDisplay">none</div>
       </div>
 
-      <!-- ROW 11 -->
       <div class="sheet-section">
         <label>Rate / Jam (Pemain)</label>
         <input type="number" id="ratePerHour" step="5000">
-        <div id="rateWarning" class="rate-warning"></div>
       </div>
 
-      <!-- ROW 12 -->
       <div class="sheet-section">
         <label>Raket Sewaan</label>
         <input type="number" id="racketStock">
       </div>
 
-      <!-- ROW 13 -->
       <div class="sheet-section">
         <label>Rate Raket / Sesi</label>
         <input type="number" id="racketRate" step="5000">
       </div>
 
-      <!-- ROW 14 -->
       <div class="sheet-section">
         <label>Catatan</label>
-        <textarea id="notes" rows="3" placeholder="Tulis catatan sesi"></textarea>
+        <textarea id="notes" rows="3"></textarea>
       </div>
 
       <button class="btn-create-session" id="submitCreateSession">
         Buat Sesi
       </button>
-
     </div>
   `;
 
-// 🔥 CLOSE DENGAN CLICK DI LUAR .premium-sheet
-  sheet.onclick = (e) => {
+  // 🔥 CLOSE VIA OVERLAY (DIRECT BIND)
+  const overlay = document.getElementById("createSessionOverlay");
 
-    const premiumSheet = e.target.closest(".premium-sheet");
-
-    if(!premiumSheet){
-      sheet.classList.remove("active");
-      sheet.innerHTML = "";
-    }
-  };
+  overlay.addEventListener("click", () => {
+    sheet.classList.remove("active");
+    sheet.innerHTML = "";
+  });
 
   setupSessionModeLogic();
   setupCreateSessionSubmit();
-   setupCoachSelector();
+  setupCoachSelector();
 }
 
 /* ===============================
