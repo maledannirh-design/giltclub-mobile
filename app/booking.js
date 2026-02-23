@@ -467,7 +467,6 @@ export async function openCreateSessionSheet(){
     sheet.innerHTML = "";
   });
 
-  setupSessionModeLogic();
   setupCreateSessionSubmit();
   setupCoachSelector();
 }
