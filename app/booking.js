@@ -453,3 +453,17 @@ function formatDate(d){
 function formatDisplayDate(d){
   return new Date(d).toLocaleDateString("id-ID",{weekday:"short",month:"short",day:"numeric"});
 }
+
+function openCreateSessionSheet(html){
+  const sheet = document.getElementById("createSessionSheet");
+  sheet.innerHTML = html;
+  sheet.classList.add("active");
+  document.body.classList.add("no-scroll");
+}
+
+function closeCreateSessionSheet(){
+  const sheet = document.getElementById("createSessionSheet");
+  sheet.classList.remove("active");
+  sheet.innerHTML = "";
+  document.body.classList.remove("no-scroll");
+}
