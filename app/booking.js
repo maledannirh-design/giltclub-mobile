@@ -1,7 +1,15 @@
 import { db, auth } from "./firebase.js";
-import { collection, query, where, getDocs, onSnapshot } from "./firestore.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
 import { showToast, showConfirm } from "./ui.js";
+import { 
+  collection,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ===============================
    STATE
