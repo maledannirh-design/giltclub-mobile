@@ -282,7 +282,12 @@ for (const docSnap of bookingSnap.docs) {
 // ===== GENERATE AVATAR + NAME =====
 const memberAvatarsHtml = members.map(m => `
   <div class="member-avatar">
-    <img src="${m.photoURL}" alt="member">
+    ${m.photoURL 
+  ? `<img src="${m.photoURL}" alt="member">`
+  : `<div class="avatar-initial">
+       ${m.username?.charAt(0).toUpperCase() || "M"}
+     </div>`
+}
     <div class="member-name">${m.username}</div>
   </div>
 `).join("");
