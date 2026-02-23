@@ -521,50 +521,42 @@ function attachGlobalEvents(){
 }
 
 /* ===============================
-   BOOKING ENGINE
+   BOOKING UI HANDLER
 ================================= */
-async function handleBookingClick(scheduleId){
-  if (bookingLock) return;
-  if (!auth.currentUser){
-    showToast("Login first","warning");
-    return;
-  }
-  bookingLock = true;
-  try {
-    await createBooking({ userId: auth.currentUser.uid, scheduleId });
-    showToast("Booking success","success");
-  } catch(err){
-    showToast(err.message,"error");
-  } finally {
-    bookingLock = false;
-  }
-}
 
-async function handleCancelClick(bookingId){
-  if (bookingLock) return;
-  const ok = await showConfirm("Cancel this session?");
-  if (!ok) return;
-  bookingLock = true;
-  try {
-    await cancelBooking({ bookingId });
-    showToast("Cancelled","success");
-  } catch(err){
-    showToast(err.message,"error");
-  } finally {
-    bookingLock = false;
-  }
-}
+function attachBookingButtons(){
 
-function setupSessionModeLogic(){
+  const joinButtons = document.querySelectorAll(".join-btn");
 
-  const mode = document.getElementById("sessionMode");
+  joinButtons.forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
 
-  if(!mode) return;
+      if(!auth.currentUser){
+        showToast("Login terlebih dahulu","warning");
+        return;
+      }
 
-  mode.addEventListener("change", ()=>{
-    // Tidak ada auto isi
-    // Tidak ada disable
-    // Hanya UI react jika nanti mau tambahkan warning
+      if(bookingLock) return;
+
+      bookingLock = true;
+
+      try{
+
+        await createBooking({
+          userId: auth.currentUser.uid,
+          scheduleId: btn.dataset.id
+        });
+
+        showToast("Booking berhasil","success");
+        renderBooking(); // refresh UI
+
+      }catch(err){
+        showToast(err.message || "Booking gagal","error");
+      }
+
+      bookingLock = false;
+
+    });
   });
 
 }
