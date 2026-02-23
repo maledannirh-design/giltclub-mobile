@@ -413,22 +413,46 @@ async function handleCancelClick(bookingId){
 function setupSessionModeLogic(){
 
   const mode = document.getElementById("sessionMode");
-  const maxInput = document.getElementById("maxPlayers");
 
-  mode.addEventListener("change", e=>{
+  if(!mode) return;
 
-    if(e.target.value === "private"){
-      maxInput.value = 4;
-      maxInput.disabled = true;
-    }
-    else if(e.target.value === "semi-private"){
-      maxInput.value = 8;
-      maxInput.disabled = true;
-    }
-    else{
-      maxInput.disabled = false;
-    }
+  mode.addEventListener("change", ()=>{
+    // Tidak ada auto isi
+    // Tidak ada disable
+    // Hanya UI react jika nanti mau tambahkan warning
   });
+
+}
+function setupCreateSessionSubmit(){
+
+  const btn = document.getElementById("submitCreateSession");
+  if(!btn) return;
+
+  btn.addEventListener("click", async ()=>{
+
+    const mode = document.getElementById("sessionMode").value;
+    const maxPlayers = Number(document.getElementById("maxPlayers").value);
+
+    if(!maxPlayers || maxPlayers <= 0){
+      showToast("Isi maksimal pemain","error");
+      return;
+    }
+
+    if(mode === "private" && maxPlayers > 4){
+      showToast("Private maksimal 4 pemain","error");
+      return;
+    }
+
+    if(mode === "semi-private" && maxPlayers > 8){
+      showToast("Semi-private maksimal 8 pemain","error");
+      return;
+    }
+
+    // nanti lanjut save ke firestore
+    console.log("Valid, lanjut simpan");
+
+  });
+
 }
 /* ===============================
    UTILITIES
