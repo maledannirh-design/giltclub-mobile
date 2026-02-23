@@ -83,14 +83,12 @@ function renderFullUI() {
 ================================= */
 function renderMyUpcomingHero(){
 
-  const upcoming = allSchedules
-    .filter(s => new Date(s.date + "T" + (s.startTime || "00:00")) >= new Date())
-    .sort((a,b)=>{
-      const d1 = new Date(a.date + "T" + (a.startTime || "00:00"));
-      const d2 = new Date(b.date + "T" + (b.startTime || "00:00"));
-      return d1 - d2;
-    })
-    .slice(0,5);
+  const upcoming = userBookings
+  .map(b => allSchedules.find(s => s.id === b.scheduleId))
+  .filter(Boolean)
+  .filter(s => new Date(s.date + "T" + s.startTime) >= new Date())
+  .sort(...)
+  .slice(0,5);
 
   let contentHtml = "";
 
@@ -182,13 +180,19 @@ function renderCalendarMonth() {
 
     const sessions = allSchedules.filter(s => s.date === dateStr);
 
-    const hasAdmin = sessions.some(s => s.role === "admin" || s.role === "supercoach");
-    const hasMember = sessions.some(s => s.role === "MEMBER");
+   const hasGreen = sessions.some(s =>
+  ["ADMIN","SUPERCOACH","COACH"].includes(s.hostRole)
+);
 
-    let ringClass = "";
-    if (hasAdmin && hasMember) ringClass = "ring-double";
-    else if (hasAdmin) ringClass = "ring-admin";
-    else if (hasMember) ringClass = "ring-member";
+const hasYellow = sessions.some(s =>
+  s.hostRole === "MEMBER"
+);
+
+let ringClass = "";
+
+if (hasGreen && hasYellow) ringClass = "ring-double";
+else if (hasGreen) ringClass = "ring-admin";
+else if (hasYellow) ringClass = "ring-member";
 
     const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
@@ -225,15 +229,36 @@ function openSessionPopup(dateStr) {
   if (!sessions.length) {
     html += `<div class="empty-session">Tidak ada sesi pada hari ini</div>`;
   } else {
-    sessions.forEach(s=>{
-      html += `
-        <div class="popup-session-card">
-          <div><strong>Sesi:</strong> ${s.level}</div>
-          <div><strong>Jam:</strong> ${s.startTime} - ${s.endTime}</div>
-          <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
-        </div>
-      `;
-    });
+    sessions.forEach(s => {
+
+  const coachNames = s.coaches && s.coaches.length
+    ? s.coaches.map(c => c.name || c.id).join(", ")
+    : "-";
+
+  html += `
+    <div class="popup-session-card">
+
+      <div><strong>Tier:</strong> ${s.tier || "-"}</div>
+      <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
+      <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
+
+      <div><strong>Jam:</strong> ${s.startTime} - ${s.endTime}</div>
+      <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
+
+      <div><strong>Maks Pemain:</strong> ${s.maxPlayers || "-"}</div>
+      <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
+
+      <div><strong>Coach:</strong> ${coachNames}</div>
+
+      <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
+
+      <button class="join-btn" data-id="${s.id}">
+        Gabung Sesi Ini
+      </button>
+
+    </div>
+  `;
+});
   }
 
   html += `
@@ -596,11 +621,12 @@ async function setupCreateSessionSubmit(){
 
         hostId: auth.currentUser.uid,
 
-        coaches: selectedCoaches
-          ? selectedCoaches.map(id=>({
-              id,
-              approval: "pending"
-            }))
+        coaches: selectedCoaches.map(c => ({
+  id: c.id,
+  name: c.name,
+  rate: c.rate,
+  approval: "pending"
+}))
           : [],
 
         pricePerHour: ratePerHour || 0,
@@ -716,7 +742,11 @@ async function setupCoachSelector(){
           return;
         }
 
-        window.selectedCoaches.push(coachId);
+        window.selectedCoaches.push({
+  id: coachId,
+  name: data.fullName || data.username,
+  rate: data.coachRate || 0
+});
         window.selectedCoachRates.push(data.coachRate || 0);
 
       }else{
