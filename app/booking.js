@@ -73,13 +73,48 @@ function renderFullUI() {
    UPCOMING HERO JADWAL TERDEKAT
 ================================= */
 function renderMyUpcomingHero(){
+
+  const upcoming = allSchedules
+    .filter(s => new Date(s.date + "T" + (s.startTime || "00:00")) >= new Date())
+    .sort((a,b)=>{
+      const d1 = new Date(a.date + "T" + (a.startTime || "00:00"));
+      const d2 = new Date(b.date + "T" + (b.startTime || "00:00"));
+      return d1 - d2;
+    })
+    .slice(0,5);
+
+  let contentHtml = "";
+
+  if(!upcoming.length){
+    contentHtml = `
+      <div class="mini-session-empty">
+        Belum ada jadwal main
+      </div>
+    `;
+  } else {
+
+    upcoming.forEach(s=>{
+      contentHtml += `
+        <div class="mini-session-card">
+          <div class="mini-tier">${s.tier || "Session"}</div>
+          <div class="mini-time">
+            ${formatDisplayDate(s.date)} • ${s.startTime || ""} - ${s.endTime || ""}
+          </div>
+        </div>
+      `;
+    });
+
+  }
+
   return `
     <div class="my-upcoming-wrapper">
       <div class="my-upcoming-glass">
         <div class="my-upcoming-title">
           Jadwal Main Saya Terdekat
         </div>
-        <div class="my-upcoming-scroll"></div>
+        <div class="my-upcoming-scroll">
+          ${contentHtml}
+        </div>
       </div>
     </div>
   `;
@@ -206,10 +241,12 @@ function openSessionPopup(dateStr) {
 ================================= */
 function renderCreateSessionCard(){
   return `
-    <div class="create-session-card" id="openCreateSession">
-      Buat Sesi
+    <div class="create-session-wrapper">
+      <button class="premium-create-btn" id="openCreateSession">
+        <span class="plus-icon">＋</span>
+        Buat Sesi
+      </button>
     </div>
-    <div id="createSessionSheet"></div>
   `;
 }
 
