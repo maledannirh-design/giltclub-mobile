@@ -19,7 +19,16 @@ import { showToast } from "./ui.js";
 import { navigate } from "./navigation.js";
 
 
-/* ================= REGISTER ================= */
+/* =========================================
+   INTERNAL LOCK (ANTI DOUBLE REGISTER)
+========================================= */
+
+let registerLock = false;
+
+
+/* =========================================
+   REGISTER
+========================================= */
 
 export async function register(
   email,
@@ -32,98 +41,108 @@ export async function register(
   birthDate
 ){
 
-  if(!/^\d{6}$/.test(pinLogin)){
-    throw new Error("PIN Login harus 6 digit angka");
+  if (registerLock) return;
+  registerLock = true;
+
+  try {
+
+    if(!/^\d{6}$/.test(pinLogin)){
+      throw new Error("PIN Login harus 6 digit angka");
+    }
+
+    if(!/^\d{6}$/.test(pinTrx)){
+      throw new Error("PIN Transaksi harus 6 digit angka");
+    }
+
+    const cleanUsername = username.toLowerCase();
+
+    // ==============================
+    // CEK USERNAME UNIK
+    // ==============================
+    const q = query(
+      collection(db, "users"),
+      where("username", "==", cleanUsername)
+    );
+
+    const snap = await getDocs(q);
+
+    if(!snap.empty){
+      throw new Error("Username sudah digunakan");
+    }
+
+    // ==============================
+    // BUAT USER AUTH
+    // ==============================
+    const userCredential =
+      await createUserWithEmailAndPassword(auth, email, pinLogin);
+
+    const user = userCredential.user;
+
+    await user.getIdToken();
+
+    // ==============================
+    // SIMPAN DATA PROFILE
+    // ==============================
+    await setDoc(doc(db, "users", user.uid), {
+
+      fullName,
+      username: cleanUsername,
+      email,
+
+      phone,
+      birthPlace,
+      birthDate,
+
+      bio: "",
+
+      role: "MEMBER",
+      membership: "MEMBER",
+      playingLevel: "newbie",
+
+      status: "active",
+
+      followersCount: 0,
+      followingCount: 0,
+
+      level: 1,
+      points: 0,
+      wins: 0,
+      matches: 0,
+
+      monthlyContribution: 0,
+      attendanceCount: 0,
+
+      coachApproved: false,
+      coachLevel: null,
+
+      verifiedApproved: false,
+      verifiedEligible: false,
+
+      isPublic: true,
+
+      pinTrx,
+      createdAt: serverTimestamp()
+
+    });
+
+    showToast("Akun berhasil dibuat", "success");
+    navigate("home");
+
+    const sheet = document.getElementById("loginSheet");
+    const overlay = document.querySelector(".sheet-overlay");
+
+    if(sheet) sheet.classList.remove("active");
+    if(overlay) overlay.classList.remove("active");
+
+  } finally {
+    registerLock = false;
   }
-
-  if(!/^\d{6}$/.test(pinTrx)){
-    throw new Error("PIN Transaksi harus 6 digit angka");
-  }
-
-  const cleanUsername = username.toLowerCase();
-
-  // ==============================
-  // CEK USERNAME UNIK
-  // ==============================
-  const q = query(
-    collection(db, "users"),
-    where("username", "==", cleanUsername)
-  );
-
-  const snap = await getDocs(q);
-
-  if(!snap.empty){
-    throw new Error("Username sudah digunakan");
-  }
-
-  // ==============================
-  // BUAT USER AUTH
-  // ==============================
-  const userCredential =
-  await createUserWithEmailAndPassword(auth, email, pinLogin);
-
-const user = userCredential.user;
-
-// 🔥 PENTING: pastikan auth sudah valid
-await user.getIdToken();
-
-  // ==============================
-  // SIMPAN DATA PROFILE
-  // ==============================
-  await setDoc(doc(db, "users", user.uid), {
-
-    fullName,
-    username: cleanUsername,
-    email,
-
-    phone,
-    birthPlace,
-    birthDate,
-
-    bio: "",
-
-    role: "MEMBER",
-    membership: "MEMBER",
-    playingLevel: "newbie",
-
-    status: "active",
-
-    followersCount: 0,
-    followingCount: 0,
-
-    level: 1,
-    points: 0,
-    wins: 0,
-    matches: 0,
-
-    monthlyContribution: 0,
-    attendanceCount: 0,
-
-    coachApproved: false,
-    coachLevel: null,
-
-    verifiedApproved: false,
-    verifiedEligible: false,
-
-    isPublic: true,
-
-    pinTrx,
-    createdAt: serverTimestamp()
-
-  });
-
-  showToast("Akun berhasil dibuat", "success");
-  navigate("home");
-
-  const sheet = document.getElementById("loginSheet");
-  const overlay = document.querySelector(".sheet-overlay");
-
-  if(sheet) sheet.classList.remove("active");
-  if(overlay) overlay.classList.remove("active");
 }
 
 
-/* ================= LOGIN ================= */
+/* =========================================
+   LOGIN
+========================================= */
 
 export async function login(email, pinLogin){
 
@@ -137,19 +156,27 @@ export async function login(email, pinLogin){
 }
 
 
-/* ================= LOGOUT ================= */
+/* =========================================
+   LOGOUT
+========================================= */
 
 export function logout(){
   return signOut(auth);
 }
 
 
-/* ================= BUTTON HANDLER ================= */
+/* =========================================
+   BUTTON HANDLER (SAFE VERSION)
+========================================= */
 
 document.addEventListener("click", async (e) => {
 
   // ================= REGISTER =================
   if (e.target.id === "submitRegister") {
+
+    e.preventDefault();
+
+    if (registerLock) return;
 
     try {
 
@@ -201,6 +228,8 @@ document.addEventListener("click", async (e) => {
 
   // ================= LOGIN =================
   if(e.target.id === "submitLogin"){
+
+    e.preventDefault();
 
     try{
 
