@@ -385,23 +385,17 @@ export function openCreateSessionSheet(){
     </div>
   `;
 
-  document.getElementById("createSessionOverlay").onclick = closeCreateSessionSheet;
+  const overlay = document.getElementById("createSessionOverlay");
+if(overlay){
+  overlay.addEventListener("click", closeCreateSessionSheet);
+}
 
   setupSessionModeLogic();
   setupCreateSessionSubmit();
    setupCoachSelector();
 }
 
-function closeCreateSessionSheet(){
 
-  const sheet = document.getElementById("createSessionSheet");
-  if(!sheet) return;
-
-  sheet.classList.remove("active");
-  sheet.innerHTML = "";
-
-  document.body.classList.remove("no-scroll");
-}
 /* ===============================
    EVENTS
 ================================= */
