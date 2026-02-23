@@ -61,19 +61,17 @@ export async function renderBooking() {
 function renderFullUI() {
 
   const content = document.getElementById("content");
-  if (!content) return;
 
   content.innerHTML = `
-  ${renderMyUpcomingHero()}
-  ${renderUpcoming()}
-  ${renderCalendar()}
-  <div id="sessionContainer"></div>
-  ${renderCreateSessionCard()}
-`;
+    ${renderMyUpcomingHero()}
+    ${renderCalendarMonth()}
+    ${renderCreateSessionCard()}
+    <div id="popupContainer"></div>
+  `;
 
-  renderSessionsByDate(selectedDate);
   attachGlobalEvents();
 }
+
 
 /* ===============================
    UPCOMING EMERALD GLASS
@@ -107,49 +105,91 @@ function renderUpcoming() {
 /* ===============================
    CALENDAR
 ================================= */
-function renderCalendar() {
+function renderCalendarMonth() {
 
-  const todayStr = formatDate(new Date());
-  if (!selectedDate) selectedDate = todayStr;
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
 
-  const days = getWeekDays(currentWeekStart);
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const startDay = firstDay.getDay();
+  const totalDays = lastDay.getDate();
 
   let html = `
-  <div class="calendar-google-wrapper">
+    <div class="month-wrapper">
+      <h3 class="month-title">
+        ${today.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
+      </h3>
 
-    <div class="calendar-google-card">
+      <div class="month-grid">
   `;
 
-  days.forEach(d => {
-    const dateStr = formatDate(d);
-    const isActive = dateStr === selectedDate;
+  // kosongkan slot sebelum tanggal 1
+  for (let i = 0; i < startDay; i++) {
+    html += `<div class="month-day empty"></div>`;
+  }
+
+  for (let d = 1; d <= totalDays; d++) {
+
+    const dateStr = formatDate(new Date(year, month, d));
+
+    const hasSession = allSchedules.some(s => s.date === dateStr);
 
     html += `
-      <div class="calendar-google-day ${isActive ? "active":""}" 
+      <div class="month-day ${hasSession ? "has-session" : ""}" 
            data-date="${dateStr}">
-        <div class="g-day-name">
-          ${d.toLocaleDateString("id-ID",{weekday:"short"})}
-        </div>
-        <div class="g-day-number">
-          ${d.getDate()}
-        </div>
-        <div class="g-month">
-          ${d.toLocaleDateString("id-ID",{month:"short"})}
-        </div>
+        ${d}
       </div>
     `;
-  });
+  }
 
-  html += `
-      <div class="calendar-google-divider"></div>
-      <div class="calendar-google-icon">📅</div>
-    </div>
-
-  </div>
-  `;
+  html += `</div></div>`;
 
   return html;
 }
+
+/* ===============================
+ POP UP THE DAY
+================================= */
+function openSessionPopup(dateStr) {
+
+  const popup = document.getElementById("popupContainer");
+
+  const sessions = allSchedules
+    .filter(s => s.date === dateStr)
+    .sort((a,b)=> (a.startTime||"").localeCompare(b.startTime||""));
+
+  let html = `
+    <div class="popup-overlay">
+      <div class="popup-card">
+        <h3>Sesi ${formatDisplayDate(dateStr)}</h3>
+  `;
+
+  if (!sessions.length) {
+    html += `<p>Tidak ada sesi.</p>`;
+  } else {
+    sessions.forEach(s=>{
+      html += `
+        <div class="popup-session">
+          <div>${s.level || "Session"}</div>
+          <div>${s.startTime} - ${s.endTime}</div>
+          <div>Slot: ${s.slots}</div>
+        </div>
+      `;
+    });
+  }
+
+  html += `
+        <button id="closePopup">Tutup</button>
+      </div>
+    </div>
+  `;
+
+  popup.innerHTML = html;
+}
+
 /* ===============================
    SESSIONS BY DATE
 ================================= */
@@ -248,14 +288,21 @@ function renderHostForm(){
 }
 
 /* ===============================
-   EVENTS
+   EVENTS CONTENT
 ================================= */
 function attachGlobalEvents(){
 
   const content = document.getElementById("content");
 
   content.onclick = async (e) => {
+   const monthDay = e.target.closest(".month-day");
+if (monthDay && !monthDay.classList.contains("empty")) {
+  openSessionPopup(monthDay.dataset.date);
+}
 
+if (e.target.id === "closePopup") {
+  document.getElementById("popupContainer").innerHTML = "";
+}
     if (e.target.id === "prevWeek"){
       currentWeekStart.setDate(currentWeekStart.getDate()-7);
       renderFullUI();
