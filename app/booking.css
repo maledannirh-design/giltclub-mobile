@@ -541,3 +541,16 @@ body.dark .sheet-section label{
 
   margin-bottom:10px;
 }
+
+
+.calendar-day.has-session {
+  position: relative;
+}
+
+.calendar-day.has-session::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 2px solid #00ff88;
+  border-radius: 50%;
+}
