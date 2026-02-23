@@ -170,7 +170,7 @@ async function renderLedger(){
   const snap = await getDocs(
     query(
       collection(db,"walletTransactions"),
-      where("uid","==", user.uid),
+      where("userId","==", user.uid),
       orderBy("createdAt","desc")
     )
   );
