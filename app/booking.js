@@ -352,6 +352,7 @@ export function openCreateSessionSheet(){
 
   setupSessionModeLogic();
   setupCreateSessionSubmit();
+   setupCoachSelector();
 }
 
 function closeCreateSessionSheet(){
@@ -683,6 +684,29 @@ async function setupCoachSelector(){
   });
 
 }
+
+function updateCoachMetaDisplay(){
+
+  const rateDisplay = document.getElementById("coachRateDisplay");
+  const statusDisplay = document.getElementById("coachStatusDisplay");
+
+  if(!rateDisplay || !statusDisplay) return;
+
+  if(!window.selectedCoachRates.length){
+    rateDisplay.innerText = "-";
+    statusDisplay.innerText = "none";
+    return;
+  }
+
+  const totalRate =
+    window.selectedCoachRates.reduce((a,b)=>a+b,0);
+
+  rateDisplay.innerText =
+    "Rp " + totalRate.toLocaleString("id-ID");
+
+  statusDisplay.innerText = "pending";
+}
+
 /* ===============================
    UTILITIES
 ================================= */
