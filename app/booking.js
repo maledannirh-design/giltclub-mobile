@@ -306,6 +306,7 @@ async function openSessionPopup(dateStr) {
   `;
 
   popup.innerHTML = html;
+  attachBookingButtons();
 }
 
 /* ===============================
@@ -518,6 +519,7 @@ function attachGlobalEvents(){
     }
 
   };
+  
 }
 
 /* ===============================
