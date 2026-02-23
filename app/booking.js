@@ -114,32 +114,55 @@ function renderCalendarMonth() {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  const startDay = firstDay.getDay();
+  // bikin minggu mulai dari Senin
+  let startDay = firstDay.getDay();
+  startDay = startDay === 0 ? 6 : startDay - 1;
+
   const totalDays = lastDay.getDate();
+
+  const monthName = today.toLocaleDateString("id-ID", {
+    month: "long"
+  });
 
   let html = `
     <div class="month-wrapper">
-      <h3 class="month-title">
-        ${today.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
-      </h3>
+
+      <div class="month-header">
+        ${monthName}
+      </div>
+
+      <div class="week-labels">
+        <div>Sen</div>
+        <div>Sel</div>
+        <div>Rab</div>
+        <div>Kam</div>
+        <div>Jum</div>
+        <div class="weekend">Sab</div>
+        <div class="weekend">Min</div>
+      </div>
 
       <div class="month-grid">
   `;
 
-  // kosongkan slot sebelum tanggal 1
   for (let i = 0; i < startDay; i++) {
     html += `<div class="month-day empty"></div>`;
   }
 
   for (let d = 1; d <= totalDays; d++) {
 
-    const dateStr = formatDate(new Date(year, month, d));
+    const dateObj = new Date(year, month, d);
+    const dateStr = formatDate(dateObj);
 
     const hasSession = allSchedules.some(s => s.date === dateStr);
 
+    const dayOfWeek = dateObj.getDay(); 
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
     html += `
-      <div class="month-day ${hasSession ? "has-session" : ""}" 
-           data-date="${dateStr}">
+      <div class="month-day 
+        ${hasSession ? "has-session" : ""} 
+        ${isWeekend ? "weekend" : ""}"
+        data-date="${dateStr}">
         ${d}
       </div>
     `;
