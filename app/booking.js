@@ -330,7 +330,8 @@ export function openCreateSessionSheet() {
 }
 
 function closeCreateSessionSheet(){
-  document.getElementById("createSessionSheet").innerHTML = "";
+  const sheet = document.getElementById("createSessionSheet");
+  if(sheet) sheet.innerHTML = "";
 }
 
 
@@ -367,6 +368,10 @@ function attachGlobalEvents(){
     if (e.target.id === "openCreateSession"){
       openCreateSessionSheet();
     }
+   
+     if (e.target.id === "createSessionOverlay") {
+     closeCreateSessionSheet();
+   }
   };
 }
 
