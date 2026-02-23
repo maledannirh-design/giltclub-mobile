@@ -576,3 +576,21 @@ body.dark .sheet-section label{
 .session-detail-content p {
   margin: 4px 0;
 }
+
+.session-detail-content{
+  text-align:left !important;
+}
+
+.session-members{
+  margin-top:16px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.member-avatar img{
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:50%;
+  object-fit:cover;
+}
