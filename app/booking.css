@@ -487,3 +487,47 @@ body.dark .premium-sheet textarea{
   border: 1px solid #3a3a3a;
   color: #f2f2f2;
 }
+
+/* EMPTY UPCOMING */
+.mini-session-empty{
+  opacity:.7;
+  font-size:14px;
+  padding:12px 4px;
+}
+
+/* PREMIUM CREATE BUTTON */
+.create-session-wrapper{
+  padding:20px;
+}
+
+.premium-create-btn{
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:18px;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255,170,170,0.9),
+    rgba(229,169,169,0.9)
+  );
+
+  box-shadow:
+    0 8px 20px rgba(229,169,169,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+
+  backdrop-filter: blur(12px);
+  transition: all .2s ease;
+}
+
+.premium-create-btn:hover{
+  transform: translateY(-2px);
+}
+
+.plus-icon{
+  margin-right:8px;
+  font-weight:bold;
+}
