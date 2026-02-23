@@ -216,9 +216,16 @@ function renderCreateSessionCard(){
 /* ===============================
    CREATE SESSION SHEET
 ================================= */
-export function openCreateSessionSheet() {
+export function openCreateSessionSheet(){
+
+  // reset state global
+  window.selectedCoaches = [];
+  window.selectedCoachRates = [];
 
   const sheet = document.getElementById("createSessionSheet");
+  if(!sheet) return;
+
+  sheet.classList.add("active");
 
   sheet.innerHTML = `
     <div class="sheet-overlay" id="createSessionOverlay"></div>
@@ -228,9 +235,8 @@ export function openCreateSessionSheet() {
       <div class="sheet-handle"></div>
       <h2>Buat Sesi</h2>
 
-      <!-- SECTION 1 DETAIL SESI -->
+      <!-- ROW 1 -->
       <div class="sheet-section">
-
         <label>Tier Sesi</label>
         <select id="tier">
           <option>Newbie</option>
@@ -238,32 +244,42 @@ export function openCreateSessionSheet() {
           <option>Upper Beginner</option>
           <option>Intermediate</option>
         </select>
+      </div>
 
+      <!-- ROW 2 -->
+      <div class="sheet-section">
         <label>Jenis Sesi</label>
         <select id="sessionType">
           <option value="Mabar">Mabar</option>
           <option value="Drill">Drill</option>
           <option value="Drill + Mabar">Drill + Mabar</option>
         </select>
+      </div>
 
+      <!-- ROW 3 -->
+      <div class="sheet-section">
         <label>Tipe Sesi</label>
         <select id="sessionMode">
           <option value="reguler">Reguler</option>
           <option value="semi-private">Semi Private</option>
           <option value="private">Private</option>
         </select>
-
-        <label>Maksimal Pemain</label>
-        <input type="number" id="maxPlayers" placeholder="Jumlah pemain">
-
       </div>
 
-      <!-- SECTION 2 WAKTU -->
+      <!-- ROW 4 -->
       <div class="sheet-section">
+        <label>Maksimal Pemain</label>
+        <input type="number" id="maxPlayers" placeholder="Jumlah pemain">
+      </div>
 
+      <!-- ROW 5 -->
+      <div class="sheet-section">
         <label>Tanggal</label>
         <input type="date" id="sessionDate">
+      </div>
 
+      <!-- ROW 6 -->
+      <div class="sheet-section">
         <div class="time-row">
           <div>
             <label>Jam Mulai</label>
@@ -274,44 +290,52 @@ export function openCreateSessionSheet() {
             <input type="time" id="endTime">
           </div>
         </div>
+      </div>
 
+      <!-- ROW 7 -->
+      <div class="sheet-section">
         <label>Lapangan</label>
         <input type="text" id="court" placeholder="Nama lapangan">
-
       </div>
 
-      <!-- SECTION 3 COACH -->
+      <!-- ROW 8 -->
       <div class="sheet-section">
-
-        <label>Pilih Coach (maks 2)</label>
-        <select id="coachSelect">
-          <option value="">Tidak Ada Coach</option>
-        </select>
-
-        <div class="coach-meta">
-          <div><strong>Rate Coach / Jam:</strong> <span id="coachRateDisplay">-</span></div>
-          <div><strong>Status Coach:</strong> <span id="coachStatusDisplay">none</span></div>
-        </div>
-
+        <label>Pilih Coach (maksimal 2)</label>
+        <div id="coachSelector"></div>
       </div>
 
-      <!-- SECTION 4 HARGA -->
+      <!-- ROW 9 -->
       <div class="sheet-section">
+        <label>Rate Coach / Jam</label>
+        <div id="coachRateDisplay">-</div>
+      </div>
 
+      <!-- ROW 10 -->
+      <div class="sheet-section">
+        <label>Status Coach</label>
+        <div id="coachStatusDisplay">none</div>
+      </div>
+
+      <!-- ROW 11 -->
+      <div class="sheet-section">
         <label>Rate / Jam (Pemain)</label>
         <input type="number" id="ratePerHour" step="5000">
-
         <div id="rateWarning" class="rate-warning"></div>
-
-        <label>Raket Sewaan</label>
-        <input type="number" id="racketStock">
-
-        <label>Rate Raket / Sesi</label>
-        <input type="number" id="racketRate" step="5000">
-
       </div>
 
-      <!-- SECTION 5 CATATAN -->
+      <!-- ROW 12 -->
+      <div class="sheet-section">
+        <label>Raket Sewaan</label>
+        <input type="number" id="racketStock">
+      </div>
+
+      <!-- ROW 13 -->
+      <div class="sheet-section">
+        <label>Rate Raket / Sesi</label>
+        <input type="number" id="racketRate" step="5000">
+      </div>
+
+      <!-- ROW 14 -->
       <div class="sheet-section">
         <label>Catatan</label>
         <textarea id="notes" rows="3" placeholder="Tulis catatan sesi"></textarea>
@@ -327,13 +351,8 @@ export function openCreateSessionSheet() {
   document.getElementById("createSessionOverlay").onclick = closeCreateSessionSheet;
 
   setupSessionModeLogic();
+  setupCreateSessionSubmit();
 }
-
-function closeCreateSessionSheet(){
-  const sheet = document.getElementById("createSessionSheet");
-  if(sheet) sheet.innerHTML = "";
-}
-
 
 /* ===============================
    EVENTS
