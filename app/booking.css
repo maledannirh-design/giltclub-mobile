@@ -359,3 +359,93 @@
   color: white;
   cursor: pointer;
 }
+/* ===== Overlay ===== */
+#createSessionOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 998;
+}
+
+/* ===== Sheet ===== */
+.premium-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  background: linear-gradient(135deg,#111827,#1f2937);
+  backdrop-filter: blur(25px);
+
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+
+  padding: 24px 20px 40px 20px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  animation: slideUp .35s ease;
+  z-index: 999;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheet-handle {
+  width: 50px;
+  height: 5px;
+  background: #374151;
+  border-radius: 10px;
+  margin: 0 auto 20px auto;
+}
+
+.premium-sheet h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sheet-section {
+  margin-bottom: 22px;
+}
+
+.sheet-section label {
+  font-size: 13px;
+  color: #9ca3af;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.premium-sheet input,
+.premium-sheet select,
+.premium-sheet textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: white;
+}
+
+.time-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-create-session {
+  width: 100%;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg,#059669,#10b981);
+  border: none;
+  font-weight: 600;
+  color: white;
+  margin-top: 10px;
+}
+
+.rate-warning {
+  font-size: 12px;
+  color: #facc15;
+  margin-top: 6px;
+}
