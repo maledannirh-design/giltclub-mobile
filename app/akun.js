@@ -3,6 +3,8 @@ import { renderAkunProfil } from "./akunProfil.js";
 import { renderAkunSosial } from "./akunSosial.js";
 import { renderAkunPrivasi } from "./akunPrivasi.js";
 
+<link rel="stylesheet" href="akun.css">
+  
 export async function renderAkunPage(){
 
   const content = document.getElementById("content");
