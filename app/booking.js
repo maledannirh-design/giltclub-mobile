@@ -1,7 +1,6 @@
 import { db, auth } from "./firebase.js";
 import { createBooking, cancelBooking } from "./services/bookingService.js";
 import { showToast, showConfirm } from "./ui.js";
-
 import { 
   collection,
   query,
@@ -9,6 +8,7 @@ import {
   getDoc,
   doc,
   getDocs,
+  updateDoc,
   onSnapshot,
   addDoc,
   serverTimestamp
@@ -220,6 +220,16 @@ async function openSessionPopup(dateStr) {
   const popup = document.getElementById("popupContainer");
   if (!popup) return;
 
+  const currentUser = auth.currentUser;
+  let currentUserRole = "member";
+
+  if (currentUser) {
+    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+    if (userSnap.exists()) {
+      currentUserRole = (userSnap.data().role || "member").toUpperCase();
+    }
+  }
+
   const sessions = allSchedules
     .filter(s => s.date === dateStr)
     .sort((a,b)=> (a.startTime || "").localeCompare(b.startTime || ""));
@@ -232,17 +242,12 @@ async function openSessionPopup(dateStr) {
 
   if (!sessions.length) {
 
-    html += `
-      <div class="empty-session">
-        Tidak ada sesi pada hari ini
-      </div>
-    `;
+    html += `<div class="empty-session">Tidak ada sesi pada hari ini</div>`;
 
   } else {
 
     for (const s of sessions) {
 
-      // ===== GET BOOKINGS (HITUNG SLOT + AVATAR) =====
       const bookingSnap = await getDocs(
         query(
           collection(db,"bookings"),
@@ -251,75 +256,115 @@ async function openSessionPopup(dateStr) {
         )
       );
 
-      const bookedCount = bookingSnap.size;
       const maxPlayers = s.maxPlayers || 0;
-      const sisaSlot = Math.max(maxPlayers - bookedCount, 0);
+      const lockedSlots = s.lockedSlots || [];
 
-      // ===== COACH NAME (USERNAME) =====
-      const coachNames = (s.coaches && s.coaches.length)
-        ? s.coaches.map(c => c.name).join(", ")
-        : "-";
+      const members = [];
 
-     // ===== AMBIL MEMBERS + USER DATA =====
-const members = [];
-
-for (const docSnap of bookingSnap.docs) {
-
-  const bookingData = docSnap.data();
-  const userRef = doc(db, "users", bookingData.userId);
-  const userSnap = await getDoc(userRef);
-
-  if (userSnap.exists()) {
-    const userData = userSnap.data();
-
-    members.push({
-      username: userData.username || userData.fullName || "Member",
-      photoURL: userData.photoURL || "/default-avatar.png"
-    });
-  }
-}
-
-// ===== GENERATE AVATAR + NAME =====
-const memberAvatarsHtml = members.map(m => `
-  <div class="member-wrapper">
-    <div class="member-avatar">
-      ${
-        m.photoURL 
-          ? `<img src="${m.photoURL}" alt="member">`
-          : `<div class="avatar-initial">
-               ${m.username?.charAt(0).toUpperCase() || "M"}
-             </div>`
+      for (const docSnap of bookingSnap.docs) {
+        const bookingData = docSnap.data();
+        const userSnap = await getDoc(doc(db,"users",bookingData.userId));
+        if (userSnap.exists()) {
+          const u = userSnap.data();
+          members.push({
+            userId: bookingData.userId,
+            username: u.username || u.fullName || "Member",
+            photoURL: u.photoURL || null
+          });
+        }
       }
-    </div>
-    <div class="member-name">${m.username}</div>
-  </div>
-`).join("");
+
+      const alreadyJoined = currentUser
+        ? members.some(m => m.userId === currentUser.uid)
+        : false;
+
+      const isPrivileged =
+        ["ADMIN","SUPERCOACH","host"].includes(currentUserRole) ||
+        s.hostId === currentUser?.uid;
+
+      // ===== SLOT RENDER =====
+      let slotHtml = "";
+
+      for (let i = 0; i < maxPlayers; i++) {
+
+        const locked = lockedSlots.find(l => l.index === i);
+        const member = members[i];
+
+        if (locked) {
+          slotHtml += `
+            <div class="member-wrapper slot locked-slot" 
+                 data-schedule="${s.id}" 
+                 data-index="${i}">
+              <div class="member-avatar">
+                <div class="avatar-initial">🔒</div>
+              </div>
+              <div class="member-name">${locked.label || "Locked"}</div>
+            </div>
+          `;
+          continue;
+        }
+
+        if (member) {
+          slotHtml += `
+            <div class="member-wrapper slot filled-slot"
+                 data-user="${member.userId}">
+              <div class="member-avatar">
+                ${
+                  member.photoURL
+                    ? `<img src="${member.photoURL}">`
+                    : `<div class="avatar-initial">
+                         ${member.username.charAt(0).toUpperCase()}
+                       </div>`
+                }
+              </div>
+              <div class="member-name">${member.username}</div>
+            </div>
+          `;
+          continue;
+        }
+
+        slotHtml += `
+          <div class="member-wrapper slot empty-slot"
+               data-schedule="${s.id}" 
+               data-index="${i}">
+            <div class="member-avatar">
+              <div class="avatar-initial">+</div>
+            </div>
+            <div class="member-name">Kosong</div>
+          </div>
+        `;
+      }
 
       html += `
-        <div class="popup-session-card session-detail-content">
+        <div class="popup-session-card">
 
           <div><strong>Tier:</strong> ${s.tier || "-"}</div>
           <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
           <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
-
           <div><strong>Jam:</strong> ${s.startTime || "-"} - ${s.endTime || "-"}</div>
           <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
-
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
-          <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
-
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
-
-          <div><strong>Coach:</strong> ${coachNames}</div>
-
           <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
 
-          <button class="join-btn" data-id="${s.id}">
-            Gabung Sesi Ini
-          </button>
+          ${
+            currentUser
+              ? `<button class="join-btn" data-id="${s.id}">
+                   ${alreadyJoined ? "Cancel Join" : "Gabung Sesi Ini"}
+                 </button>`
+              : ""
+          }
+
+          ${
+            isPrivileged
+              ? `<button class="edit-session-btn" data-id="${s.id}">
+                   Edit Session
+                 </button>`
+              : ""
+          }
 
           <div class="session-members">
-            ${memberAvatarsHtml}
+            ${slotHtml}
           </div>
 
         </div>
@@ -334,9 +379,167 @@ const memberAvatarsHtml = members.map(m => `
   `;
 
   popup.innerHTML = html;
-  attachBookingButtons();
+  attachSlotInteraction(currentUserRole);
+  // ===== JOIN BUTTON LOGIC =====
+  document.querySelectorAll(".join-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+      if (!currentUser) {
+        showToast("Login terlebih dahulu","warning");
+        return;
+      }
+
+      if (bookingLock) return;
+      bookingLock = true;
+
+      try {
+
+        if (btn.innerText.includes("Cancel")) {
+
+          await cancelBooking({
+            userId: currentUser.uid,
+            scheduleId: btn.dataset.id
+          });
+
+          showToast("Booking dibatalkan","success");
+
+        } else {
+
+          await createBooking({
+            userId: currentUser.uid,
+            scheduleId: btn.dataset.id
+          });
+
+          showToast("Berhasil join sesi","success");
+        }
+
+        renderBooking();
+
+      } catch(err){
+        showToast(err.message || "Gagal","error");
+      }
+
+      bookingLock = false;
+    };
+  });
+
 }
 
+
+
+async function attachSlotInteraction(currentUserRole) {
+
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
+
+  const isPrivileged =
+    ["ADMIN","SUPERCOACH","host"].includes(currentUserRole);
+
+  const slots = document.querySelectorAll(".slot");
+
+  slots.forEach(slot => {
+
+    slot.addEventListener("click", async () => {
+
+      const scheduleId = slot.dataset.schedule;
+      const index = Number(slot.dataset.index);
+
+      if (!scheduleId && !slot.classList.contains("empty-slot")) {
+        return;
+      }
+
+      // ===== EMPTY SLOT =====
+      if (slot.classList.contains("empty-slot")) {
+
+        if (!isPrivileged) {
+
+          // MEMBER = JOIN
+          try {
+            await createBooking({
+              userId: currentUser.uid,
+              scheduleId
+            });
+
+            showToast("Berhasil join sesi","success");
+            renderBooking();
+
+          } catch (err) {
+            showToast(err.message || "Gagal join","error");
+          }
+
+          return;
+        }
+
+        // ===== ADMIN LOCK SLOT =====
+        const label = prompt("Masukkan label untuk lock slot:");
+
+        if (!label) return;
+
+        try {
+
+          const scheduleRef = doc(db,"schedules",scheduleId);
+          const scheduleSnap = await getDoc(scheduleRef);
+
+          if (!scheduleSnap.exists()) return;
+
+          const lockedSlots = scheduleSnap.data().lockedSlots || [];
+
+          lockedSlots.push({
+            index,
+            label
+          });
+
+          await updateDoc(scheduleRef,{
+            lockedSlots
+          });
+
+          showToast("Slot berhasil dikunci","success");
+          renderBooking();
+
+        } catch(err){
+          showToast("Gagal lock slot","error");
+        }
+
+        return;
+      }
+
+      // ===== LOCKED SLOT CLICK =====
+      if (slot.classList.contains("locked-slot")) {
+
+        if (!isPrivileged) return;
+
+        const confirmUnlock = confirm("Unlock slot ini?");
+
+        if (!confirmUnlock) return;
+
+        try {
+
+          const scheduleRef = doc(db,"schedules",scheduleId);
+          const scheduleSnap = await getDoc(scheduleRef);
+
+          if (!scheduleSnap.exists()) return;
+
+          const lockedSlots = scheduleSnap.data().lockedSlots || [];
+
+          const updated = lockedSlots.filter(l => l.index !== index);
+
+          await updateDoc(scheduleRef,{
+            lockedSlots: updated
+          });
+
+          showToast("Slot berhasil dibuka","success");
+          renderBooking();
+
+        } catch(err){
+          showToast("Gagal unlock slot","error");
+        }
+
+      }
+
+    });
+
+  });
+
+}
 /* ===============================
    CREATE SESSION CARD
 ================================= */
