@@ -286,11 +286,14 @@ async function openSessionPopup(dateStr) {
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
       const isFinished = now > sessionEnd;
 
-      const bookedCount = members.length;
-      const lockedCount = lockedSlots.length;
-      const usedSlots = bookedCount + lockedCount;
-      const sisaSlot = Math.max(maxPlayers - usedSlots, 0);
-      const isFull = sisaSlot <= 0;
+      // 🔥 SOURCE OF TRUTH
+const engineSlots = s.slots ?? maxPlayers;
+
+// locked slot tetap kurangi visual
+const lockedCount = lockedSlots.length;
+
+const sisaSlot = Math.max(engineSlots - lockedCount, 0);
+const isFull = sisaSlot <= 0;
 
       /* ===============================
          SLOT RENDER (DATASET FIXED)
