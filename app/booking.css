@@ -559,28 +559,88 @@ body.light .premium-sheet {
 }
 
 /* =====================================
-   SHEET SECTION – CLEAN SOFT CARD
+   CREATE SESSION – DOVE BOTTOM SHEET STYLE
+===================================== */
+
+#createSessionSheet {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: none;
+}
+
+#createSessionSheet.active {
+  display: block;
+}
+
+/* Overlay */
+#createSessionOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+}
+
+/* ===== BOTTOM SHEET ===== */
+.premium-sheet {
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  background: var(--color-card);
+  color: var(--color-text);
+
+  border-radius: 28px 28px 0 0;
+
+  padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
+
+  max-height: 90vh;
+  overflow-y: auto;
+
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(.22,1,.36,1);
+
+  box-shadow: 0 -12px 30px rgba(0,0,0,.12);
+
+  z-index: 9999;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ACTIVE STATE */
+#createSessionSheet.active .premium-sheet {
+  transform: translateY(0);
+}
+
+/* ===== HANDLE BAR ===== */
+.sheet-handle{
+  width:40px;
+  height:5px;
+  border-radius:999px;
+  background:var(--color-border);
+  margin:0 auto 18px;
+}
+
+/* ===== TITLE ===== */
+.premium-sheet h2 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* =====================================
+   SHEET SECTION – CLEAN CARD STYLE
 ===================================== */
 
 .sheet-section {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   padding: 16px;
   border-radius: 18px;
-  transition: .2s ease;
-}
-
-/* LIGHT MODE */
-body.light .sheet-section {
-  background: #ffffff;
+  background: var(--color-bg);
   border: 1px solid var(--color-border);
-  box-shadow: 0 4px 12px rgba(0,0,0,.05);
-}
-
-/* DARK MODE */
-body.dark .sheet-section {
-  background: #1f241f; /* sedikit lebih terang dari bg */
-  border: 1px solid var(--color-border);
-  box-shadow: 0 6px 18px rgba(0,0,0,.4);
 }
 
 /* LABEL */
@@ -590,97 +650,64 @@ body.dark .sheet-section {
   margin-bottom: 8px;
   display: block;
   letter-spacing: .3px;
+  color: var(--color-text-muted);
 }
 
-body.light .sheet-section label {
-  color: #444;
-}
-
-body.dark .sheet-section label {
-  color: #f0efe9;
-}
-
-/* =====================================
-   INPUTS
-===================================== */
-
+/* INPUTS */
 .premium-sheet input,
 .premium-sheet select,
 .premium-sheet textarea {
+
   width: 100%;
   padding: 14px 16px;
-  border-radius: 16px;
+
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+
   font-size: 14px;
+  background: var(--color-card);
+  color: var(--color-text);
+
   outline: none;
   transition: .2s ease;
 }
 
-/* Light Input */
-body.light .premium-sheet input,
-body.light .premium-sheet select,
-body.light .premium-sheet textarea {
-  background: #f7f7f7;
-  border: 1px solid #e5e5e5;
-  color: #111;
-}
-
-/* Dark Input */
-body.dark .premium-sheet input,
-body.dark .premium-sheet select,
-body.dark .premium-sheet textarea {
-  background: #1f1f1f;
-  border: 1px solid #2a2a2a;
-  color: #f5f5f5;
-}
-
-/* Focus State */
 .premium-sheet input:focus,
 .premium-sheet select:focus,
 .premium-sheet textarea:focus {
-  border: 1px solid #10b981;
-  box-shadow: 0 0 0 3px rgba(16,185,129,.15);
+  border-color: var(--color-highlight);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.05);
 }
 
-/* =====================================
-   SUBMIT BUTTON
-===================================== */
+/* TIME ROW */
+.time-row{
+  display:flex;
+  gap:12px;
+}
 
+/* SUBMIT BUTTON */
 .btn-create-session {
-  width: 100%;
-  margin-top: 14px;
 
+  width: 100%;
   padding: 16px;
-  border-radius: 20px;
 
   border: none;
+  border-radius: 18px;
+
   font-weight: 600;
   font-size: 15px;
+
   cursor: pointer;
+  margin-top: 14px;
+
+  background: var(--color-primary);
+  color: #fff;
 
   transition: .2s ease;
 }
 
-/* Light */
-body.light .btn-create-session {
-  background: #10b981;
-  color: white;
-  box-shadow: 0 10px 25px rgba(16,185,129,.25);
-}
-
-/* Dark */
-body.dark .btn-create-session {
-  background: linear-gradient(135deg,#E3C565,#caa73f);
-  color: #1f1f1f;
-  box-shadow: 0 12px 30px rgba(227,197,101,.35);
-}
-
 .btn-create-session:hover {
   transform: translateY(-2px);
-  opacity: .95;
-}
-
-.btn-create-session:active {
-  transform: scale(.98);
 }
 
 /* =====================================
@@ -788,12 +815,16 @@ body.dark .premium-create-btn {
   transform: translateY(-2px);
 }
 
+
 .session-admin-actions{
   margin-top:14px;
   display:flex;
   justify-content:flex-end;
 }
 
+/* =====================================
+   CREATE BUTTON WRAPPER (OUTSIDE MODAL)
+===================================== */
 .edit-session-btn{
   display:inline-flex;
   align-items:center;
