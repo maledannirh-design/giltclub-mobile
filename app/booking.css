@@ -353,6 +353,14 @@ body.dark .close-popup-btn {
   transform: translateY(-2px);
 }
 
+.session-meta strong{
+  color: #10b981; /* hijau brand */
+}
+
+/* Dark mode */
+body.dark .session-meta strong{
+  color: #E3C565; /* gold */
+}
 
 
 /* =====================================
@@ -391,7 +399,14 @@ body.dark .join-btn{
 .join-btn:active{
   transform: scale(.98);
 }
-
+.join-btn.session-finished,
+.join-btn:disabled{
+  background: #9ca3af !important;
+  color: #ffffff !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  opacity: .8;
+}
 /* =====================================
    1. PAGE CREATE SESSION – CLEAN MODAL FIXED
 ===================================== */
