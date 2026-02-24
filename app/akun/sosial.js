@@ -16,9 +16,7 @@ export async function renderSosial(){
   let userData = {};
   try{
     const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()){
-      userData = snap.data();
-    }
+    if(snap.exists()) userData = snap.data();
   }catch(err){
     console.error(err);
   }
@@ -26,12 +24,12 @@ export async function renderSosial(){
   const social = userData.social || {};
 
   content.innerHTML = `
-    <div class="account-container">
+    <div class="akun-container">
 
       <div class="akun-back" id="backToAkun">← Kembali</div>
-      <div class="akun-page-title">Sosial Media</div>
+      <div class="akun-title">Sosial Media</div>
 
-      <div class="panel">
+      <div class="akun-card">
 
         <input id="instagramUrl"
           placeholder="URL Instagram"
@@ -45,7 +43,7 @@ export async function renderSosial(){
           placeholder="URL Facebook"
           value="${social.facebookUrl || ""}">
 
-        <button class="form-submit" id="saveSocialBtn">
+        <button class="akun-btn" id="saveSocialBtn">
           Simpan Perubahan
         </button>
 
@@ -62,27 +60,9 @@ export async function renderSosial(){
     const tiktokUrl = document.getElementById("tiktokUrl").value.trim();
     const facebookUrl = document.getElementById("facebookUrl").value.trim();
 
-    // ===== VALIDASI SEDERHANA URL =====
-    const urlRegex = /^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$/i;
-
-    if(instagramUrl && !urlRegex.test(instagramUrl)){
-      alert("URL Instagram tidak valid.");
-      return;
-    }
-
-    if(tiktokUrl && !urlRegex.test(tiktokUrl)){
-      alert("URL TikTok tidak valid.");
-      return;
-    }
-
-    if(facebookUrl && !urlRegex.test(facebookUrl)){
-      alert("URL Facebook tidak valid.");
-      return;
-    }
-
     try{
       await updateDoc(doc(db,"users",user.uid),{
-        social: {
+        social:{
           instagramUrl,
           tiktokUrl,
           facebookUrl
@@ -90,12 +70,9 @@ export async function renderSosial(){
       });
 
       alert("Sosial media berhasil diperbarui.");
-
     }catch(err){
       console.error(err);
       alert("Gagal menyimpan perubahan.");
     }
-
   };
-
 }
