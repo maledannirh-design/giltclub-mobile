@@ -1,5 +1,5 @@
 /* =====================================
-   GLOBAL INHERIT
+   GLOBAL
 ===================================== */
 
 :root{
@@ -10,7 +10,7 @@
 }
 
 /* =====================================
-   UPCOMING HERO (GLASS CLEAN)
+   UPCOMING HERO
 ===================================== */
 
 .my-upcoming-wrapper{
@@ -18,29 +18,18 @@
 }
 
 .my-upcoming-glass{
-  position:relative;
   padding:22px;
   border-radius:var(--radius-lg);
-  backdrop-filter:blur(22px);
-  -webkit-backdrop-filter:blur(22px);
   transition:var(--transition);
 }
 
 body.light .my-upcoming-glass{
-  background:linear-gradient(
-    140deg,
-    rgba(255,200,200,.95),
-    rgba(229,169,169,.9)
-  );
+  background:#ffffff;
   box-shadow:0 15px 40px rgba(0,0,0,.12);
 }
 
 body.dark .my-upcoming-glass{
-  background:linear-gradient(
-    140deg,
-    rgba(227,197,101,.18),
-    rgba(227,197,101,.12)
-  );
+  background:#1c1c1c;
   box-shadow:0 15px 40px rgba(0,0,0,.6);
 }
 
@@ -61,20 +50,14 @@ body.dark .my-upcoming-glass{
   padding:14px;
   border-radius:var(--radius-md);
   font-size:13px;
-  backdrop-filter:blur(10px);
 }
 
 body.light .mini-session-card{
-  background:rgba(255,255,255,.7);
+  background:#f3f4f6;
 }
 
 body.dark .mini-session-card{
-  background:rgba(255,255,255,.05);
-}
-
-.mini-session-empty{
-  opacity:.7;
-  font-size:14px;
+  background:#2a2a2a;
 }
 
 /* =====================================
@@ -83,7 +66,6 @@ body.dark .mini-session-card{
 
 .month-wrapper{
   padding:20px 16px;
-  animation-duration:.3s;
 }
 
 .month-header-row{
@@ -98,13 +80,6 @@ body.dark .mini-session-card{
   font-weight:600;
 }
 
-.month-header-row button{
-  background:none;
-  border:none;
-  font-size:20px;
-  cursor:pointer;
-}
-
 .week-labels{
   display:grid;
   grid-template-columns:repeat(7,1fr);
@@ -112,10 +87,6 @@ body.dark .mini-session-card{
   font-size:13px;
   text-align:center;
   opacity:.7;
-}
-
-.week-labels .weekend{
-  color:#10b981;
 }
 
 .month-grid{
@@ -141,51 +112,15 @@ body.light .month-day{
 
 body.dark .month-day{
   background:#1f1f1f;
+  color:#f5f5f5;
 }
 
 .month-day:hover{
   transform:translateY(-2px);
 }
 
-.month-day.weekend{
-  color:#10b981;
-}
-
-.month-day.empty{
-  background:transparent;
-  cursor:default;
-}
-
-/* Rings */
-.ring-admin{
-  box-shadow:0 0 0 2px #10b981 inset;
-}
-
-.ring-member{
-  box-shadow:0 0 0 2px #facc15 inset;
-}
-
-.ring-double{
-  box-shadow:
-    0 0 0 3px #10b981 inset,
-    0 0 0 6px #facc15 inset;
-}
-
-/* Slide Animation */
-.slide-next{animation:slideRight .3s ease;}
-.slide-prev{animation:slideLeft .3s ease;}
-
-@keyframes slideRight{
-  from{opacity:0;transform:translateX(40px);}
-  to{opacity:1;transform:translateX(0);}
-}
-@keyframes slideLeft{
-  from{opacity:0;transform:translateX(-40px);}
-  to{opacity:1;transform:translateX(0);}
-}
-
 /* =====================================
-   POPUP KALENDAR – BRAND VERSION
+   POPUP
 ===================================== */
 
 .popup-overlay{
@@ -195,79 +130,31 @@ body.dark .month-day{
   align-items:center;
   justify-content:center;
   z-index:999;
-
-  /* blur halus saja, bukan hitam */
-  backdrop-filter:blur(6px);
 }
 
-/* Card Container */
+body.light .popup-overlay{
+  background:rgba(0,0,0,.3);
+}
+
+body.dark .popup-overlay{
+  background:rgba(0,0,0,.6);
+}
+
 .popup-card{
   width:88%;
   max-width:420px;
   padding:28px 24px;
   border-radius:24px;
-  box-shadow:0 25px 60px rgba(0,0,0,.15);
-  text-align:center;
-}
-
-/* ================= LIGHT MODE ================= */
-
-body.light .popup-overlay{
-  background:rgba(242,232,213,.85); /* cream translucent */
 }
 
 body.light .popup-card{
   background:#ffffff;
-  color:#2E5D3A;
-}
-
-body.light .popup-session-card{
-  background:#F2E8D5;
-  color:#2E5D3A;
-}
-
-body.light .empty-session{
-  color:#2E5D3A;
-}
-
-/* ================= DARK MODE ================= */
-
-body.dark .popup-overlay{
-  background:rgba(46,93,58,.85);
+  color:#111;
 }
 
 body.dark .popup-card{
-  background:#254A32;
-  color:#F2E8D5;
-}
-
-body.dark .popup-session-card{
-  background: linear-gradient(
-    160deg,
-    rgba(46,93,58,0.85),
-    rgba(30,60,40,0.92)
-  );
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  color: #F2E8D5;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-box-shadow:
-  0 10px 30px rgba(0,0,0,.5),
-  inset 0 1px 0 rgba(255,255,255,.05);
-body.dark .popup-session-card strong{
-  color: #E3C565; /* gold */
-}
-body.dark .empty-session{
-  color:#F2E8D5;
-}
-
-/* ================================= */
-
-.popup-card h3{
-  margin-bottom:18px;
-  font-size:20px;
-  font-weight:700;
+  background:#1e1e1e;
+  color:#f5f5f5;
 }
 
 .popup-session-card{
@@ -277,7 +164,18 @@ body.dark .empty-session{
   font-size:14px;
 }
 
-/* Button */
+body.light .popup-session-card{
+  background:#f3f4f6;
+}
+
+body.dark .popup-session-card{
+  background:#2a2a2a;
+}
+
+.popup-session-card strong{
+  font-weight:600;
+}
+
 .close-popup-btn{
   margin-top:18px;
   width:100%;
@@ -286,26 +184,11 @@ body.dark .empty-session{
   border-radius:20px;
   font-weight:600;
   cursor:pointer;
-  transition:.2s ease;
-}
-
-/* Brand Button */
-body.light .close-popup-btn{
-  background:#E5A9A9;
-  color:#2E5D3A;
-}
-
-body.dark .close-popup-btn{
-  background:#E5A9A9;
-  color:#2E5D3A;
-}
-
-.close-popup-btn:hover{
-  transform:translateY(-2px);
+  background:#e5a9a9;
 }
 
 /* =====================================
-   CREATE SESSION – SOLID MODERN MODAL
+   CREATE SESSION MODAL
 ===================================== */
 
 #createSessionSheet{
@@ -321,15 +204,12 @@ body.dark .close-popup-btn{
   justify-content:center;
 }
 
-/* Overlay solid */
 #createSessionOverlay{
   position:absolute;
   inset:0;
-  background:#000;
-  opacity:.65;
+  background:rgba(0,0,0,.6);
 }
 
-/* CARD STYLE (Login-like) */
 .premium-sheet{
   position:relative;
   width:92%;
@@ -339,36 +219,18 @@ body.dark .close-popup-btn{
   border-radius:28px;
   padding:30px 24px 36px;
   z-index:9999;
-  animation:modalFade .25s ease;
 }
 
-/* LIGHT MODE */
 body.light .premium-sheet{
   background:#ffffff;
   color:#111;
-  box-shadow:0 30px 80px rgba(0,0,0,.18);
 }
 
-/* DARK MODE */
 body.dark .premium-sheet{
   background:#141414;
   color:#f5f5f5;
-  box-shadow:0 30px 80px rgba(0,0,0,.7);
 }
 
-/* Animation */
-@keyframes modalFade{
-  from{
-    opacity:0;
-    transform:translateY(20px);
-  }
-  to{
-    opacity:1;
-    transform:translateY(0);
-  }
-}
-
-/* Title */
 .premium-sheet h2{
   text-align:center;
   margin-bottom:26px;
@@ -376,42 +238,33 @@ body.dark .premium-sheet{
   font-weight:700;
 }
 
-/* Sections */
+/* SECTION CARD (SOLID, NO BLUR) */
+
 .sheet-section{
-  margin-bottom:22px;
+  margin-bottom:18px;
+  padding:16px;
+  border-radius:18px;
 }
 
-/* Labels */
+body.light .sheet-section{
+  background:#f3f4f6;
+}
+
+body.dark .sheet-section{
+  background:#1f1f1f;
+}
+
+/* LABEL */
+
 .sheet-section label{
+  display:block;
   font-size:13px;
   font-weight:600;
   margin-bottom:8px;
-  display:block;
-  letter-spacing:.3px;
 }
 
-/* LIGHT LABEL */
-body.light .sheet-section label{
-  color:#444;
-}
+/* INPUT */
 
-/* DARK LABEL */
-body.dark .sheet-section label{
-  color:#cfcfcf;
-}
-/* SECTION CARD STYLE */
-body.light .sheet-section {
-  background: rgba(242,232,213,0.4);
-  padding: 16px;
-  border-radius: 18px;
-}
-
-body.dark .sheet-section {
-  background: rgba(46,93,58,0.2);
-  padding: 16px;
-  border-radius: 18px;
-}
-/* Input Modern */
 .premium-sheet input,
 .premium-sheet select,
 .premium-sheet textarea{
@@ -419,61 +272,26 @@ body.dark .sheet-section {
   padding:15px 16px;
   border-radius:16px;
   font-size:14px;
+  border:1px solid #ddd;
   outline:none;
-  border:1px solid transparent;
-  transition:.2s ease;
 }
 
-/* LIGHT INPUT */
-body.light .premium-sheet input,
-body.light .premium-sheet select,
-body.light .premium-sheet textarea{
-  background:#f7f7f7;
-  border:1px solid #e5e5e5;
-  color:#111;
-}
-
-/* DARK INPUT */
 body.dark .premium-sheet input,
 body.dark .premium-sheet select,
 body.dark .premium-sheet textarea{
-  background:#1f1f1f;
-  border:1px solid #2a2a2a;
+  background:#2a2a2a;
+  border:1px solid #333;
   color:#f5f5f5;
 }
 
-/* Focus */
 .premium-sheet input:focus,
 .premium-sheet select:focus,
 .premium-sheet textarea:focus{
   border:1px solid #10b981;
-  box-shadow:0 0 0 3px rgba(16,185,129,.15);
 }
 
-/* Time Row */
-.time-row{
-  display:flex;
-  gap:12px;
-}
+/* BUTTON */
 
-/* Coach Info */
-#coachSelector,
-#coachRateDisplay,
-#coachStatusDisplay{
-  font-size:14px;
-}
-
-body.light #coachRateDisplay{
-  font-weight:700;
-  color:#111;
-}
-
-body.dark #coachRateDisplay{
-  font-weight:700;
-  color:#f5f5f5;
-}
-
-/* Submit Button */
 .btn-create-session{
   width:100%;
   padding:16px;
@@ -482,156 +300,13 @@ body.dark #coachRateDisplay{
   font-weight:600;
   font-size:15px;
   cursor:pointer;
-  margin-top:10px;
-  transition:.2s ease;
   background:#10b981;
   color:white;
 }
 
-.btn-create-session:hover{
-  transform:translateY(-2px);
-}
-
-/* Premium Open Button */
-.create-session-wrapper{
-  padding:20px;
-}
-
-.premium-create-btn{
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:22px;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-  transition:.2s ease;
-}
-
-/* LIGHT */
-body.light .premium-create-btn{
-  background:#111;
-  color:#fff;
-  box-shadow:0 10px 30px rgba(0,0,0,.15);
-}
-
-/* DARK */
-body.dark .premium-create-btn{
-  background:#10b981;
-  color:#fff;
-  box-shadow:0 10px 30px rgba(0,0,0,.5);
-}
-
-.premium-create-btn:hover{
-  transform:translateY(-2px);
-}
-
-.plus-icon{
-  margin-right:8px;
-  font-weight:bold;
-}
-
-/* =========================
-   LIGHT MODE LABEL UPGRADE
-========================= */
-
-body.light .sheet-section label{
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:.4px;
-
-  background:#F2E8D5;     /* cream */
-  color:#2E5D3A;          /* green text */
-
-  margin-bottom:10px;
-}
-/* =========================
-   DARK MODE LABEL UPGRADE
-========================= */
-
-body.dark .sheet-section label{
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:.4px;
-
-  background:#2E5D3A;     /* green */
-  color:#F2E8D5;          /* cream text */
-
-  margin-bottom:10px;
-}
-
-
-.calendar-day.has-session {
-  position: relative;
-}
-
-.calendar-day.has-session::after {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 2px solid #00ff88;
-  border-radius: 50%;
-}
-
-.session-detail-content {
-  text-align: left !important;
-}
-
-.session-members {
-  margin-top: 16px;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.member-avatar img {
-  width: 100%;
-  aspect-ratio: 1/1;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.month-day.has-session {
-  position: relative;
-}
-
-.month-day.has-session::after {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 2px solid #00ff88;
-  border-radius: 50%;
-}
-
-.join-btn {
-  margin-top: 14px;
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
-  border: none;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-
-  background: linear-gradient(135deg, #ff4db8, #ff0080);
-  color: white;
-
-  transition: 0.2s ease;
-}
-
-.join-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.join-btn:active {
-  transform: scale(0.98);
-}
+/* =====================================
+   MEMBERS
+===================================== */
 
 .session-members{
   display:flex;
@@ -652,10 +327,7 @@ body.dark .sheet-section label{
   height:50px;
   border-radius:50%;
   overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#eee;
+  background:#ddd;
 }
 
 .member-avatar img{
@@ -664,42 +336,26 @@ body.dark .sheet-section label{
   object-fit:cover;
 }
 
-.avatar-initial{
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-  color:#fff;
-  background:linear-gradient(135deg,#ff2f92,#ff6ec7);
-}
-
 .member-name{
   font-size:11px;
   margin-top:6px;
   text-align:center;
-  white-space:nowrap;
+  max-width:60px;
   overflow:hidden;
   text-overflow:ellipsis;
-  max-width:60px;
-}
-/* =========================
-   CREATE SESSION SECTION FIX
-========================= */
-
-body.light .sheet-section{
-  background: rgba(255,255,255,0.85);
-  padding:16px;
-  border-radius:18px;
-  backdrop-filter: blur(6px);
-  border:1px solid rgba(0,0,0,0.05);
+  white-space:nowrap;
 }
 
-body.dark .sheet-section{
-  background: rgba(25,35,28,0.92);
-  padding:16px;
-  border-radius:18px;
-  backdrop-filter: blur(6px);
-  border:1px solid rgba(255,255,255,0.05);
+/* JOIN BUTTON */
+
+.join-btn{
+  margin-top:14px;
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(135deg,#ff4db8,#ff0080);
+  color:white;
 }
