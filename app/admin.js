@@ -8,14 +8,15 @@ import {
   doc,
   runTransaction,
   updateDoc,
-  increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { recalculateUserStats } from "./userStats.js";
-
-// ✅ IMPORT FUNCTION SECARA BENAR
 import { runMigration } from "./migration.js";
+
+/* =====================================================
+   RENDER ADMIN PANEL
+===================================================== */
 export async function renderAdmin(){
 
   const content = document.getElementById("content");
@@ -39,8 +40,15 @@ export async function renderAdmin(){
 
   let html = `
     <div class="admin-container">
+
       <h2>Pending Top Up</h2>
   `;
+
+  if(snap.empty){
+    html += `<div style="opacity:.6;margin-bottom:20px;">
+      Tidak ada top up pending
+    </div>`;
+  }
 
   for(const docSnap of snap.docs){
 
@@ -58,80 +66,63 @@ export async function renderAdmin(){
           <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
         </div>
         <div>
-  <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
-    Approve
-  </button>
-
-  <button style="margin-left:6px;"
-    onclick="rejectTopup('${docSnap.id}', this)">
-    Reject
-  </button>
-</div>
+          <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
+            Approve
+          </button>
+          <button style="margin-left:6px;"
+            onclick="rejectTopup('${docSnap.id}', this)">
+            Reject
+          </button>
+        </div>
       </div>
     `;
   }
 
-  html += `</div>`;
+  // 🔥 CONTAINER ADJUSTMENT
+  html += `
+      <div id="adminBalanceAdjustment" style="margin-top:40px;"></div>
+    </div>
+  `;
 
   content.innerHTML = html;
+
+  // 🔥 WAJIB PANGGIL
+  await renderBalanceAdjustmentPanel();
 }
 
+/* =====================================================
+   APPROVE TOP UP
+===================================================== */
 window.approveTopup = async function(trxId, userId, amount, btn){
 
   try{
 
-    // 🔒 Disable button supaya tidak bisa double click
     if(btn){
       btn.disabled = true;
       btn.innerText = "Processing...";
     }
 
-   const userRef = doc(db,"users", userId);
+    const userRef = doc(db,"users", userId);
     const trxRef  = doc(db,"walletTransactions",trxId);
 
-    // =============================
-    // CEK STATUS TRANSAKSI DULU
-    // =============================
-
     const trxSnap = await getDoc(trxRef);
-    const trxData = trxSnap.data();
-
-    if(!trxSnap.exists() || trxData.status !== "PENDING"){
+    if(!trxSnap.exists() || trxSnap.data().status !== "PENDING"){
       alert("Transaksi sudah diproses.");
-      if(btn){
-        btn.disabled = false;
-        btn.innerText = "Approve";
-      }
+      renderAdmin();
       return;
     }
-
-    // =============================
-    // AMBIL USER DATA
-    // =============================
 
     const userSnap = await getDoc(userRef);
     const userData = userSnap.data();
 
-    const currentTopup = userData.totalTopup || 0;
-    const currentPayment = userData.totalPayment || 0;
-    const currentBalance = userData.walletBalance || 0;
-
-    const newTopup = currentTopup + amount;
-    const newBalance = currentBalance + amount;
-
-    // =============================
-    // HITUNG ULANG STATS
-    // =============================
+    const newBalance = (userData.walletBalance || 0) + amount;
+    const newTopup = (userData.totalTopup || 0) + amount;
 
     const stats = recalculateUserStats({
       totalTopup: newTopup,
-      totalPayment: currentPayment,
+      totalPayment: userData.totalPayment || 0,
       membership: userData.membership
     });
-
-    // =============================
-    // UPDATE USER
-    // =============================
 
     await updateDoc(userRef,{
       walletBalance: newBalance,
@@ -140,10 +131,6 @@ window.approveTopup = async function(trxId, userId, amount, btn){
       exp: stats.expTotal,
       gPoint: stats.gPoint
     });
-
-    // =============================
-    // UPDATE TRANSACTION
-    // =============================
 
     await updateDoc(trxRef,{
       status:"APPROVED",
@@ -156,32 +143,23 @@ window.approveTopup = async function(trxId, userId, amount, btn){
   }catch(error){
     console.error(error);
     alert("Error approve");
-
-    if(btn){
-      btn.disabled = false;
-      btn.innerText = "Approve";
-    }
+    renderAdmin();
   }
 };
-window.rejectTopup = async function(trxId, btn){
+
+/* =====================================================
+   REJECT TOP UP
+===================================================== */
+window.rejectTopup = async function(trxId){
 
   try{
 
-    if(btn){
-      btn.disabled = true;
-      btn.innerText = "Processing...";
-    }
-
     const trxRef = doc(db,"walletTransactions",trxId);
-
     const trxSnap = await getDoc(trxRef);
 
     if(!trxSnap.exists() || trxSnap.data().status !== "PENDING"){
       alert("Transaksi sudah diproses.");
-      if(btn){
-        btn.disabled = false;
-        btn.innerText = "Reject";
-      }
+      renderAdmin();
       return;
     }
 
@@ -196,15 +174,13 @@ window.rejectTopup = async function(trxId, btn){
   }catch(error){
     console.error(error);
     alert("Error reject");
-
-    if(btn){
-      btn.disabled = false;
-      btn.innerText = "Reject";
-    }
   }
 };
 
-async function renderBalanceAdjustmentPanel() {
+/* =====================================================
+   RENDER BALANCE ADJUSTMENT PANEL
+===================================================== */
+async function renderBalanceAdjustmentPanel(){
 
   const container = document.getElementById("adminBalanceAdjustment");
   if (!container) return;
@@ -215,9 +191,11 @@ async function renderBalanceAdjustmentPanel() {
 
   usersSnap.docs.forEach(docSnap=>{
     const u = docSnap.data();
-    options += `<option value="${docSnap.id}">
-      ${u.username || u.fullName || docSnap.id}
-    </option>`;
+    options += `
+      <option value="${docSnap.id}">
+        ${u.username || u.fullName || docSnap.id}
+      </option>
+    `;
   });
 
   container.innerHTML = `
@@ -231,7 +209,7 @@ async function renderBalanceAdjustmentPanel() {
       </select>
 
       <label>Nominal (boleh minus)</label>
-      <input type="number" id="adjustAmount" placeholder="contoh: 50000 atau -20000">
+      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
 
       <label>Catatan</label>
       <input type="text" id="adjustNote" placeholder="Alasan adjustment">
@@ -244,9 +222,11 @@ async function renderBalanceAdjustmentPanel() {
   `;
 
   document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
-
 }
 
+/* =====================================================
+   HANDLE ADJUSTMENT
+===================================================== */
 async function handleBalanceAdjustment(){
 
   const userId = document.getElementById("adjustUser").value;
@@ -254,7 +234,7 @@ async function handleBalanceAdjustment(){
   const note = document.getElementById("adjustNote").value.trim();
 
   if (!amount || isNaN(amount)) {
-    showToast("Nominal tidak valid","error");
+    alert("Nominal tidak valid");
     return;
   }
 
@@ -266,24 +246,19 @@ async function handleBalanceAdjustment(){
     await runTransaction(db, async (transaction)=>{
 
       const userSnap = await transaction.get(userRef);
-      if (!userSnap.exists()) {
-        throw new Error("User tidak ditemukan");
-      }
+      if (!userSnap.exists()) throw new Error("User tidak ditemukan");
 
-      const userData = userSnap.data();
-      const currentBalance = userData.walletBalance || 0;
+      const currentBalance = userSnap.data().walletBalance || 0;
       const newBalance = currentBalance + amount;
 
       if (newBalance < 0) {
         throw new Error("Saldo tidak boleh minus");
       }
 
-      // Update wallet
       transaction.update(userRef,{
         walletBalance: newBalance
       });
 
-      // Create ledger entry
       const ledgerRef = doc(ledgerCol);
 
       transaction.set(ledgerRef,{
@@ -298,17 +273,13 @@ async function handleBalanceAdjustment(){
 
     });
 
-    showToast("Adjustment berhasil","success");
-
-    document.getElementById("adjustAmount").value = "";
-    document.getElementById("adjustNote").value = "";
+    alert("Adjustment berhasil");
+    renderAdmin();
 
   } catch(err){
-    showToast(err.message || "Gagal adjustment","error");
+    alert(err.message || "Gagal adjustment");
   }
-
 }
 
-
-// expose ke console
+// expose
 window.runMigration = runMigration;
