@@ -1,22 +1,233 @@
-/* ================= AKUN MODULE ================= */
+/* ================================
+   AKUN MODULE (SELF CONTAINED)
+================================ */
 
-.akun-page-title{
+/* WRAPPER */
+
+.akun-container{
+  max-width:430px;
+  margin:0 auto;
+  padding:12px 12px 100px;
+}
+
+/* PAGE TITLE */
+
+.akun-title{
   font-size:18px;
   font-weight:600;
-  margin-bottom:16px;
+  margin-bottom:18px;
 }
+
+/* BACK BUTTON */
 
 .akun-back{
   font-size:14px;
-  margin-bottom:12px;
+  margin-bottom:14px;
   cursor:pointer;
   color:var(--color-text-muted);
+  transition:color .2s ease;
 }
 
 .akun-back:active{
   color:var(--color-highlight);
 }
 
-.akun-section{
+/* ================================
+   CARD / PANEL
+================================ */
+
+.akun-card{
+  background:var(--color-card);
+  border-radius:22px;
+  padding:18px;
+  margin-bottom:16px;
+
+  box-shadow:0 4px 16px rgba(0,0,0,.04);
+}
+
+/* ================================
+   MENU LIST
+================================ */
+
+.akun-list{
+  background:var(--color-card);
+  border-radius:22px;
+  overflow:hidden;
+}
+
+.akun-item{
+  padding:16px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:14px;
+  border-bottom:1px solid var(--color-border);
+  cursor:pointer;
+  transition:background .2s ease;
+}
+
+.akun-item:last-child{
+  border-bottom:none;
+}
+
+.akun-item:active{
+  background:var(--color-highlight);
+}
+
+.akun-item-danger{
+  color:#c76b6b;
+}
+
+/* ================================
+   FORM ELEMENT
+================================ */
+
+.akun-card input,
+.akun-card select,
+.akun-card textarea{
+  width:100%;
+  height:52px;
+  padding:0 16px;
+  margin-bottom:16px;
+
+  border-radius:18px;
+  border:1px solid var(--color-border);
+
+  background:var(--color-bg);
+  color:var(--color-text);
+
+  font-size:15px;
+  outline:none;
+
+  transition:all .2s ease;
+}
+
+.akun-card textarea{
+  height:90px;
+  padding-top:12px;
+  resize:none;
+}
+
+.akun-card input:focus,
+.akun-card select:focus,
+.akun-card textarea:focus{
+  border-color:var(--color-highlight);
+  box-shadow:0 0 0 3px rgba(227,197,101,.25);
+}
+
+.akun-card input:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+/* ================================
+   CHECKBOX / SWITCH SIMPLE
+================================ */
+
+.akun-checkbox-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:16px;
+  font-size:14px;
+}
+
+.akun-checkbox-row input{
+  width:18px;
+  height:18px;
+  accent-color:var(--color-highlight);
+  cursor:pointer;
+}
+
+/* ================================
+   BUTTON
+================================ */
+
+.akun-btn{
+  width:100%;
+  height:50px;
+  border-radius:18px;
+  border:none;
+  font-weight:600;
+  background:var(--color-primary);
+  color:var(--color-text);
+  cursor:pointer;
+  transition:all .2s ease;
+}
+
+.akun-btn:hover{
+  background:var(--color-primary-hover);
+}
+
+.akun-btn:active{
+  background:var(--color-highlight);
+  transform:scale(.97);
+}
+
+.akun-btn-danger{
+  background:#c76b6b;
+}
+
+.akun-btn-danger:active{
+  transform:scale(.97);
+}
+
+/* ================================
+   BOTTOM SHEET (AKUN VERSION)
+================================ */
+
+.akun-sheet-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(6px);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s ease;
+  z-index:9998;
+}
+
+.akun-sheet-overlay.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.akun-sheet{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+
+  background:var(--color-card);
+  border-radius:28px 28px 0 0;
+
+  padding:24px 20px calc(40px + env(safe-area-inset-bottom));
+
+  max-height:90vh;
+  overflow-y:auto;
+
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+
+  box-shadow:0 -12px 30px rgba(0,0,0,.12);
+  z-index:9999;
+}
+
+.akun-sheet.active{
+  transform:translateY(0);
+}
+
+.akun-sheet-handle{
+  width:48px;
+  height:5px;
+  border-radius:10px;
+  background:var(--color-border);
+  margin:0 auto 22px auto;
+}
+
+.akun-sheet h3{
   margin-bottom:20px;
+  margin-top:0;
+  font-size:18px;
+  font-weight:600;
 }
