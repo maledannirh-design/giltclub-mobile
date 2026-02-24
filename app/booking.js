@@ -377,16 +377,18 @@ async function openSessionPopup(dateStr) {
               : ""
           }
 
-          ${
-            isPrivileged
-              ? `<div class="session-admin-actions">
-  <button class="edit-session-btn" data-id="${s.id}">
-    <span class="edit-icon">✏️</span>
-    Edit Session
-  </button>
-</div>`
-              : ""
-          }
+         ${
+  isPrivileged
+    ? `
+      <div class="session-admin-actions">
+        <button class="edit-session-btn" data-id="${s.id}">
+          <span class="edit-icon">✏️</span>
+          Edit Session
+        </button>
+      </div>
+      `
+    : ""
+}
 
           <div class="session-members">
             ${slotHtml}
@@ -455,8 +457,6 @@ async function openSessionPopup(dateStr) {
   });
 
 }
-
-
 
 async function attachSlotInteraction(currentUserRole) {
 
@@ -682,9 +682,19 @@ export async function openCreateSessionSheet(){
       </div>
 
       <div class="sheet-section">
-        <label>Pilih Coach (maksimal 2)</label>
-        <div id="coachSelector"></div>
-      </div>
+  <label>Pilih Coach (maksimal 2)</label>
+
+  <div class="coach-dropdown">
+
+    <div class="coach-dropdown-trigger" id="coachDropdownTrigger">
+      <span id="coachDropdownLabel">Tidak ada</span>
+      <span class="coach-arrow">▾</span>
+    </div>
+
+    <div class="coach-dropdown-list" id="coachSelector"></div>
+
+  </div>
+</div>
 
       <div class="sheet-section">
         <label>Rate Coach / Jam</label>
@@ -963,10 +973,26 @@ async function checkCoachConflict(date, startTime, endTime){
 async function setupCoachSelector(){
 
   const container = document.getElementById("coachSelector");
-  if(!container) return;
+  const dropdown = document.querySelector(".coach-dropdown");
+  const trigger = document.getElementById("coachDropdownTrigger");
 
+  if(!container || !dropdown || !trigger) return;
+
+  // RESET GLOBAL STATE
   window.selectedCoaches = [];
   window.selectedCoachRates = [];
+
+  // TOGGLE DROPDOWN
+  trigger.onclick = ()=>{
+    dropdown.classList.toggle("active");
+  };
+
+  // CLOSE IF CLICK OUTSIDE
+  document.addEventListener("click",(e)=>{
+    if(!dropdown.contains(e.target)){
+      dropdown.classList.remove("active");
+    }
+  });
 
   const q = query(
     collection(db,"users"),
@@ -986,13 +1012,15 @@ async function setupCoachSelector(){
 
     const data = docSnap.data();
     const coachId = docSnap.id;
+    const coachName = data.fullName || data.username || "Coach";
 
     const item = document.createElement("div");
     item.className = "coach-item";
+
     item.innerHTML = `
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <label>
         <input type="checkbox" value="${coachId}">
-        <span>${data.fullName || data.username}</span>
+        <span>${coachName}</span>
       </label>
     `;
 
@@ -1009,20 +1037,23 @@ async function setupCoachSelector(){
         }
 
         window.selectedCoaches.push({
-  id: coachId,
-  name: data.fullName || data.username,
-  rate: data.coachRate || 0
-});
-        window.selectedCoachRates.push(data.coachRate || 0);
+          id: coachId,
+          name: coachName,
+          rate: data.coachRate || 0
+        });
 
       }else{
 
         window.selectedCoaches =
-          window.selectedCoaches.filter(id=>id!==coachId);
+          window.selectedCoaches.filter(c=>c.id !== coachId);
 
-        window.selectedCoachRates.pop();
       }
 
+      // Rebuild rate array (lebih aman daripada pop)
+      window.selectedCoachRates =
+        window.selectedCoaches.map(c=>c.rate);
+
+      updateCoachDropdownLabel();
       updateCoachMetaDisplay();
 
     });
@@ -1031,6 +1062,20 @@ async function setupCoachSelector(){
 
   });
 
+  updateCoachDropdownLabel();
+}
+function updateCoachDropdownLabel(){
+
+  const label = document.getElementById("coachDropdownLabel");
+  if(!label) return;
+
+  if(!window.selectedCoaches.length){
+    label.innerText = "Tidak ada";
+    return;
+  }
+
+  label.innerText =
+    window.selectedCoaches.map(c=>c.name).join(", ");
 }
 
 function updateCoachMetaDisplay(){
