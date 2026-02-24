@@ -282,16 +282,10 @@ async function openSessionPopup(dateStr) {
         ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
         s.hostId === currentUser?.uid;
 
-      /* ===============================
-         🔥 CEK SESI SELESAI
-      =============================== */
       const now = new Date();
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
       const isFinished = now > sessionEnd;
 
-      /* ===============================
-         🔥 SLOT ENGINE (PRODUCTION SAFE)
-      =============================== */
       const bookedCount = members.length;
       const lockedCount = lockedSlots.length;
       const usedSlots = bookedCount + lockedCount;
@@ -299,8 +293,9 @@ async function openSessionPopup(dateStr) {
       const isFull = sisaSlot <= 0;
 
       /* ===============================
-         🔥 SLOT RENDER (FIXED INDEX BUG)
+         SLOT RENDER (DATASET FIXED)
       =============================== */
+
       let slotHtml = "";
       let memberPointer = 0;
 
@@ -310,7 +305,9 @@ async function openSessionPopup(dateStr) {
 
         if (locked) {
           slotHtml += `
-            <div class="member-wrapper slot locked-slot">
+            <div class="member-wrapper slot locked-slot"
+                 data-schedule="${s.id}"
+                 data-index="${i}">
               <div class="member-avatar">
                 <div class="avatar-initial">🔒</div>
               </div>
@@ -342,7 +339,9 @@ async function openSessionPopup(dateStr) {
         }
 
         slotHtml += `
-          <div class="member-wrapper slot empty-slot">
+          <div class="member-wrapper slot empty-slot"
+               data-schedule="${s.id}"
+               data-index="${i}">
             <div class="member-avatar">
               <div class="avatar-initial">+</div>
             </div>
@@ -446,10 +445,24 @@ async function openSessionPopup(dateStr) {
 
         if (btn.innerText.includes("Cancel")) {
 
-          await cancelBooking({
-            userId: currentUser.uid,
-            scheduleId: btn.dataset.id
-          });
+          const q = query(
+            collection(db,"bookings"),
+            where("userId","==",currentUser.uid),
+            where("scheduleId","==",btn.dataset.id),
+            where("status","==","active")
+          );
+
+          const snap = await getDocs(q);
+
+          if(snap.empty){
+            showToast("Booking tidak ditemukan","error");
+            bookingLock = false;
+            return;
+          }
+
+          const bookingId = snap.docs[0].id;
+
+          await cancelBooking({ bookingId });
 
           showToast("Booking dibatalkan","success");
 
@@ -480,9 +493,6 @@ async function attachSlotInteraction(currentUserRole) {
   const currentUser = auth.currentUser;
   if (!currentUser) return;
 
-  const isPrivileged =
-    ["ADMIN","SUPERCOACH","host"].includes(currentUserRole);
-
   const slots = document.querySelectorAll(".slot");
 
   slots.forEach(slot => {
@@ -492,17 +502,29 @@ async function attachSlotInteraction(currentUserRole) {
       const scheduleId = slot.dataset.schedule;
       const index = Number(slot.dataset.index);
 
-      if (!scheduleId && !slot.classList.contains("empty-slot")) {
-        return;
-      }
+      if (!scheduleId || isNaN(index)) return;
 
-      // ===== EMPTY SLOT =====
+      const scheduleRef = doc(db,"schedules",scheduleId);
+      const scheduleSnap = await getDoc(scheduleRef);
+
+      if (!scheduleSnap.exists()) return;
+
+      const scheduleData = scheduleSnap.data();
+
+      const isPrivileged =
+        ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
+        scheduleData.hostId === currentUser.uid;
+
+      /* =====================================
+         EMPTY SLOT CLICK
+      ===================================== */
       if (slot.classList.contains("empty-slot")) {
 
+        // ===== MEMBER JOIN =====
         if (!isPrivileged) {
 
-          // MEMBER = JOIN
           try {
+
             await createBooking({
               userId: currentUser.uid,
               scheduleId
@@ -518,27 +540,27 @@ async function attachSlotInteraction(currentUserRole) {
           return;
         }
 
-        // ===== ADMIN LOCK SLOT =====
+        // ===== PRIVILEGED LOCK SLOT =====
         const label = prompt("Masukkan label untuk lock slot:");
 
         if (!label) return;
 
         try {
 
-          const scheduleRef = doc(db,"schedules",scheduleId);
-          const scheduleSnap = await getDoc(scheduleRef);
+          const lockedSlots = scheduleData.lockedSlots || [];
 
-          if (!scheduleSnap.exists()) return;
-
-          const lockedSlots = scheduleSnap.data().lockedSlots || [];
-
-          lockedSlots.push({
-            index,
-            label
-          });
+          // ❗ Prevent duplicate index
+          const alreadyLocked = lockedSlots.some(l => l.index === index);
+          if (alreadyLocked) {
+            showToast("Slot sudah terkunci","warning");
+            return;
+          }
 
           await updateDoc(scheduleRef,{
-            lockedSlots
+            lockedSlots: [
+              ...lockedSlots,
+              { index, label }
+            ]
           });
 
           showToast("Slot berhasil dikunci","success");
@@ -551,23 +573,19 @@ async function attachSlotInteraction(currentUserRole) {
         return;
       }
 
-      // ===== LOCKED SLOT CLICK =====
+      /* =====================================
+         LOCKED SLOT CLICK
+      ===================================== */
       if (slot.classList.contains("locked-slot")) {
 
         if (!isPrivileged) return;
 
         const confirmUnlock = confirm("Unlock slot ini?");
-
         if (!confirmUnlock) return;
 
         try {
 
-          const scheduleRef = doc(db,"schedules",scheduleId);
-          const scheduleSnap = await getDoc(scheduleRef);
-
-          if (!scheduleSnap.exists()) return;
-
-          const lockedSlots = scheduleSnap.data().lockedSlots || [];
+          const lockedSlots = scheduleData.lockedSlots || [];
 
           const updated = lockedSlots.filter(l => l.index !== index);
 
@@ -582,6 +600,7 @@ async function attachSlotInteraction(currentUserRole) {
           showToast("Gagal unlock slot","error");
         }
 
+        return;
       }
 
     });
