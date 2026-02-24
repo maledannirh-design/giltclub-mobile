@@ -447,28 +447,31 @@ body.light .premium-sheet {
 }
 
 /* =====================================
-   SECTIONS
+   SHEET SECTION – CLEAN SOFT CARD
 ===================================== */
 
 .sheet-section {
   margin-bottom: 22px;
   padding: 16px;
   border-radius: 18px;
+  transition: .2s ease;
 }
 
-/* Section Background */
-
+/* LIGHT MODE */
 body.light .sheet-section {
-  background: rgba(0,0,0,.03);
-  border: 1px solid rgba(0,0,0,.05);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 12px rgba(0,0,0,.05);
 }
 
+/* DARK MODE */
 body.dark .sheet-section {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
+  background: #1f241f; /* sedikit lebih terang dari bg */
+  border: 1px solid var(--color-border);
+  box-shadow: 0 6px 18px rgba(0,0,0,.4);
 }
 
-/* Labels */
+/* LABEL */
 .sheet-section label {
   font-size: 13px;
   font-weight: 600;
@@ -477,8 +480,13 @@ body.dark .sheet-section {
   letter-spacing: .3px;
 }
 
-body.light .sheet-section label { color: #444; }
-body.dark .sheet-section label { color: #fafaf7; }
+body.light .sheet-section label {
+  color: #444;
+}
+
+body.dark .sheet-section label {
+  color: #f0efe9;
+}
 
 /* =====================================
    INPUTS
