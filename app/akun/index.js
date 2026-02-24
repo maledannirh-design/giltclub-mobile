@@ -3,34 +3,36 @@ import { renderProfil } from "./profil.js";
 import { renderSosial } from "./sosial.js";
 import { renderPrivasi } from "./privasi.js";
 
-export async function renderAkunPage(){
+export function renderAkunPage(){
 
   const content = document.getElementById("content");
   if(!content) return;
 
   content.innerHTML = `
-    <div class="account-container">
+    <div class="akun-container">
 
-      <div class="akun-page-title">
-        Pengaturan Akun
-      </div>
+      <div class="akun-title">Pengaturan Akun</div>
 
-      <div class="account-group">
+      <div class="akun-list">
 
-        <div class="group-row" id="menuKeamanan">
-          Akun & Keamanan <span>›</span>
+        <div class="akun-item" id="menuKeamanan">
+          <span>Akun & Keamanan</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="menuProfil">
-          Informasi Pribadi <span>›</span>
+        <div class="akun-item" id="menuProfil">
+          <span>Informasi Pribadi</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="menuSosial">
-          Sosial Media <span>›</span>
+        <div class="akun-item" id="menuSosial">
+          <span>Sosial Media</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="menuPrivasi">
-          Pengaturan Privasi <span>›</span>
+        <div class="akun-item" id="menuPrivasi">
+          <span>Pengaturan Privasi</span>
+          <span>›</span>
         </div>
 
       </div>
@@ -38,7 +40,6 @@ export async function renderAkunPage(){
     </div>
   `;
 
-  // ROUTING
   document.getElementById("menuKeamanan").onclick = renderKeamanan;
   document.getElementById("menuProfil").onclick = renderProfil;
   document.getElementById("menuSosial").onclick = renderSosial;
