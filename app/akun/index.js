@@ -45,3 +45,4 @@ export function renderAkunPage(){
   document.getElementById("menuSosial").onclick = renderSosial;
   document.getElementById("menuPrivasi").onclick = renderPrivasi;
 }
+
