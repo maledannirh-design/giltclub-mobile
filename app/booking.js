@@ -286,18 +286,11 @@ async function openSessionPopup(dateStr) {
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
       const isFinished = now > sessionEnd;
 
-      // 🔥 SOURCE OF TRUTH
-const engineSlots = s.slots ?? maxPlayers;
+      // ✅ SINGLE SOURCE OF TRUTH
+      const sisaSlot = s.slots ?? 0;
+      const isFull = sisaSlot <= 0;
 
-// locked slot tetap kurangi visual
-const lockedCount = lockedSlots.length;
-
-const sisaSlot = Math.max(engineSlots - lockedCount, 0);
-const isFull = sisaSlot <= 0;
-
-      /* ===============================
-         SLOT RENDER (DATASET FIXED)
-      =============================== */
+      /* SLOT RENDER */
 
       let slotHtml = "";
       let memberPointer = 0;
@@ -377,11 +370,7 @@ const isFull = sisaSlot <= 0;
               <button class="join-btn 
                 ${isFinished ? "session-finished" : ""}"
                 data-id="${s.id}"
-                ${
-                  isFinished || (isFull && !alreadyJoined)
-                    ? "disabled"
-                    : ""
-                }>
+                ${isFinished || (isFull && !alreadyJoined) ? "disabled" : ""}>
                 ${
                   isFinished
                     ? "Sesi Selesai"
@@ -464,7 +453,6 @@ const isFull = sisaSlot <= 0;
           }
 
           const bookingId = snap.docs[0].id;
-
           await cancelBooking({ bookingId });
 
           showToast("Booking dibatalkan","success");
@@ -496,9 +484,9 @@ async function attachSlotInteraction(currentUserRole) {
   const currentUser = auth.currentUser;
   if (!currentUser) return;
 
-  const slots = document.querySelectorAll(".slot");
+  const slotElements = document.querySelectorAll(".slot");
 
-  slots.forEach(slot => {
+  slotElements.forEach(slot => {
 
     slot.addEventListener("click", async () => {
 
@@ -507,9 +495,9 @@ async function attachSlotInteraction(currentUserRole) {
 
       if (!scheduleId || isNaN(index)) return;
 
-      const scheduleRef = doc(db,"schedules",scheduleId);
-      const scheduleSnap = await getDoc(scheduleRef);
+      const scheduleRef = doc(db, "schedules", scheduleId);
 
+      const scheduleSnap = await getDoc(scheduleRef);
       if (!scheduleSnap.exists()) return;
 
       const scheduleData = scheduleSnap.data();
@@ -518,12 +506,12 @@ async function attachSlotInteraction(currentUserRole) {
         ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
         scheduleData.hostId === currentUser.uid;
 
-      /* =====================================
-         EMPTY SLOT CLICK
-      ===================================== */
+      /* =================================================
+         EMPTY SLOT
+      ================================================= */
       if (slot.classList.contains("empty-slot")) {
 
-        // ===== MEMBER JOIN =====
+        // MEMBER → BOOKING
         if (!isPrivileged) {
 
           try {
@@ -543,42 +531,55 @@ async function attachSlotInteraction(currentUserRole) {
           return;
         }
 
-        // ===== PRIVILEGED LOCK SLOT =====
+        // PRIVILEGED → LOCK SLOT
         const label = prompt("Masukkan label untuk lock slot:");
-
         if (!label) return;
 
         try {
 
-          const lockedSlots = scheduleData.lockedSlots || [];
+          await runTransaction(db, async (transaction) => {
 
-          // ❗ Prevent duplicate index
-          const alreadyLocked = lockedSlots.some(l => l.index === index);
-          if (alreadyLocked) {
-            showToast("Slot sudah terkunci","warning");
-            return;
-          }
+            const snap = await transaction.get(scheduleRef);
+            if (!snap.exists()) throw new Error("Session tidak ditemukan");
 
-          await updateDoc(scheduleRef,{
-            lockedSlots: [
-              ...lockedSlots,
-              { index, label }
-            ]
+            const data = snap.data();
+            const currentSlots = data.slots ?? 0;
+            const lockedSlots = data.lockedSlots || [];
+
+            if (currentSlots <= 0) {
+              throw new Error("Tidak ada slot tersisa");
+            }
+
+            const alreadyLocked =
+              lockedSlots.some(l => l.index === index);
+
+            if (alreadyLocked) {
+              throw new Error("Slot sudah terkunci");
+            }
+
+            transaction.update(scheduleRef, {
+              lockedSlots: [
+                ...lockedSlots,
+                { index, label }
+              ],
+              slots: currentSlots - 1
+            });
+
           });
 
           showToast("Slot berhasil dikunci","success");
           renderBooking();
 
-        } catch(err){
-          showToast("Gagal lock slot","error");
+        } catch (err) {
+          showToast(err.message || "Gagal lock slot","error");
         }
 
         return;
       }
 
-      /* =====================================
-         LOCKED SLOT CLICK
-      ===================================== */
+      /* =================================================
+         LOCKED SLOT
+      ================================================= */
       if (slot.classList.contains("locked-slot")) {
 
         if (!isPrivileged) return;
@@ -588,19 +589,35 @@ async function attachSlotInteraction(currentUserRole) {
 
         try {
 
-          const lockedSlots = scheduleData.lockedSlots || [];
+          await runTransaction(db, async (transaction) => {
 
-          const updated = lockedSlots.filter(l => l.index !== index);
+            const snap = await transaction.get(scheduleRef);
+            if (!snap.exists()) throw new Error("Session tidak ditemukan");
 
-          await updateDoc(scheduleRef,{
-            lockedSlots: updated
+            const data = snap.data();
+            const lockedSlots = data.lockedSlots || [];
+            const currentSlots = data.slots ?? 0;
+
+            const updated = lockedSlots.filter(
+              l => l.index !== index
+            );
+
+            if (updated.length === lockedSlots.length) {
+              throw new Error("Slot tidak ditemukan");
+            }
+
+            transaction.update(scheduleRef, {
+              lockedSlots: updated,
+              slots: currentSlots + 1
+            });
+
           });
 
           showToast("Slot berhasil dibuka","success");
           renderBooking();
 
-        } catch(err){
-          showToast("Gagal unlock slot","error");
+        } catch (err) {
+          showToast(err.message || "Gagal unlock slot","error");
         }
 
         return;
