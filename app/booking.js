@@ -215,9 +215,6 @@ function renderCalendarMonth() {
 /* ===============================
    CALENDAR POPUP (FINAL CLEAN)
 ================================= */
-/* ===============================
-   CALENDAR POPUP (FINAL CLEAN)
-================================= */
 async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
