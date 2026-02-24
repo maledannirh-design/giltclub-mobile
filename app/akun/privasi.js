@@ -1,6 +1,6 @@
 import { auth, db } from "../firebase.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { renderAkunPage } from "./index.js";
+import { doc, getDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function renderPrivasi(){
 
@@ -14,19 +14,26 @@ export async function renderPrivasi(){
   }
 
   let userData = {};
+
   try{
     const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()) userData = snap.data();
+    if(snap.exists()){
+      userData = snap.data();
+    }
   }catch(err){
-    console.error(err);
+    console.error("Load privacy error:", err);
   }
 
-  const privacy = userData.privacy || {};
+  const privacy = userData.privacy || {
+    showOnlineStatus: true,
+    showSkillDashboard: true,
+    chatPermission: "all"
+  };
 
   content.innerHTML = `
     <div class="akun-container">
 
-      <div class="akun-back" id="backToAkun">← Kembali</div>
+      <div class="akun-back" id="backToAccount">← Kembali</div>
       <div class="akun-title">Pengaturan Privasi</div>
 
       <div class="akun-card">
@@ -34,20 +41,40 @@ export async function renderPrivasi(){
         <div class="akun-checkbox-row">
           <input type="checkbox" id="showOnlineStatus"
             ${privacy.showOnlineStatus ? "checked" : ""}>
-          <label for="showOnlineStatus">Tampilkan Status Online</label>
+          <label for="showOnlineStatus">
+            Tampilkan Status Online
+          </label>
         </div>
 
         <div class="akun-checkbox-row">
           <input type="checkbox" id="showSkillDashboard"
             ${privacy.showSkillDashboard ? "checked" : ""}>
-          <label for="showSkillDashboard">Tampilkan Dashboard Skill</label>
+          <label for="showSkillDashboard">
+            Tampilkan Dashboard Skill
+          </label>
         </div>
 
-        <select id="chatPermission">
-          <option value="all" ${privacy.chatPermission === "all" ? "selected" : ""}>Semua</option>
-          <option value="followers" ${privacy.chatPermission === "followers" ? "selected" : ""}>Followers</option>
-          <option value="none" ${privacy.chatPermission === "none" ? "selected" : ""}>Tidak ada</option>
-        </select>
+        <div style="margin-top:12px;">
+          <label style="font-size:13px;color:var(--color-text-muted);">
+            Siapa bisa chat
+          </label>
+          <select id="chatPermission" style="margin-top:6px;">
+            <option value="all" 
+              ${privacy.chatPermission === "all" ? "selected" : ""}>
+              Semua
+            </option>
+
+            <option value="followers"
+              ${privacy.chatPermission === "followers" ? "selected" : ""}>
+              Followers
+            </option>
+
+            <option value="none"
+              ${privacy.chatPermission === "none" ? "selected" : ""}>
+              Tidak ada
+            </option>
+          </select>
+        </div>
 
         <button class="akun-btn" id="savePrivacyBtn">
           Simpan Perubahan
@@ -58,13 +85,18 @@ export async function renderPrivasi(){
     </div>
   `;
 
-  document.getElementById("backToAkun").onclick = renderAkunPage;
+  // 🔙 BACK TO ACCOUNT MAIN
+  document.getElementById("backToAccount").onclick = async ()=>{
+    const module = await import("../profile.js");
+    module.renderAccountUI();
+  };
 
+  // 💾 SAVE PRIVACY
   document.getElementById("savePrivacyBtn").onclick = async () => {
 
-    const showOnlineStatus = document.getElementById("showOnlineStatus").checked;
+    const showOnlineStatus   = document.getElementById("showOnlineStatus").checked;
     const showSkillDashboard = document.getElementById("showSkillDashboard").checked;
-    const chatPermission = document.getElementById("chatPermission").value;
+    const chatPermission     = document.getElementById("chatPermission").value;
 
     try{
       await updateDoc(doc(db,"users",user.uid),{
@@ -76,8 +108,9 @@ export async function renderPrivasi(){
       });
 
       alert("Pengaturan privasi diperbarui.");
+
     }catch(err){
-      console.error(err);
+      console.error("Update privacy error:", err);
       alert("Gagal menyimpan perubahan.");
     }
   };
