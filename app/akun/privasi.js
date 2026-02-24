@@ -2,7 +2,7 @@ import { auth, db } from "../firebase.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { renderAkunPage } from "./index.js";
 
-export async function renderProfil(){
+export async function renderPrivasi(){
 
   const content = document.getElementById("content");
   if(!content) return;
@@ -21,48 +21,35 @@ export async function renderProfil(){
     console.error(err);
   }
 
+  const privacy = userData.privacy || {};
+
   content.innerHTML = `
     <div class="akun-container">
 
       <div class="akun-back" id="backToAkun">← Kembali</div>
-      <div class="akun-title">Informasi Pribadi</div>
+      <div class="akun-title">Pengaturan Privasi</div>
 
       <div class="akun-card">
 
-        <input id="usernameID"
-          placeholder="UsernameID"
-          value="${userData.usernameID || ""}">
+        <div class="akun-checkbox-row">
+          <input type="checkbox" id="showOnlineStatus"
+            ${privacy.showOnlineStatus ? "checked" : ""}>
+          <label for="showOnlineStatus">Tampilkan Status Online</label>
+        </div>
 
-        <input id="displayName"
-          placeholder="Display Name"
-          value="${userData.displayName || ""}">
+        <div class="akun-checkbox-row">
+          <input type="checkbox" id="showSkillDashboard"
+            ${privacy.showSkillDashboard ? "checked" : ""}>
+          <label for="showSkillDashboard">Tampilkan Dashboard Skill</label>
+        </div>
 
-        <input id="fullName"
-          placeholder="Nama Lengkap"
-          value="${userData.fullName || ""}">
+        <select id="chatPermission">
+          <option value="all" ${privacy.chatPermission === "all" ? "selected" : ""}>Semua</option>
+          <option value="followers" ${privacy.chatPermission === "followers" ? "selected" : ""}>Followers</option>
+          <option value="none" ${privacy.chatPermission === "none" ? "selected" : ""}>Tidak ada</option>
+        </select>
 
-        <input id="email"
-          value="${userData.email || user.email || ""}"
-          disabled>
-
-        <input id="phone"
-          placeholder="Nomor HP"
-          inputmode="numeric"
-          value="${userData.phone || ""}">
-
-        <input id="birthPlace"
-          placeholder="Tempat Lahir"
-          value="${userData.birthPlace || ""}">
-
-        <input type="date"
-          id="birthDate"
-          value="${userData.birthDate || ""}">
-
-        <textarea id="bio"
-          placeholder="Bio (maks 200 karakter)"
-          maxlength="200">${userData.bio || ""}</textarea>
-
-        <button class="akun-btn" id="saveProfileBtn">
+        <button class="akun-btn" id="savePrivacyBtn">
           Simpan Perubahan
         </button>
 
@@ -73,45 +60,22 @@ export async function renderProfil(){
 
   document.getElementById("backToAkun").onclick = renderAkunPage;
 
-  document.getElementById("saveProfileBtn").onclick = async () => {
+  document.getElementById("savePrivacyBtn").onclick = async () => {
 
-    const usernameID = document.getElementById("usernameID").value.trim();
-    const displayName = document.getElementById("displayName").value.trim();
-    const fullName = document.getElementById("fullName").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const birthPlace = document.getElementById("birthPlace").value.trim();
-    const birthDate = document.getElementById("birthDate").value;
-    const bio = document.getElementById("bio").value.trim();
-
-    const usernameRegex = /^[a-z0-9_]{4,20}$/;
-    if(!usernameRegex.test(usernameID)){
-      alert("UsernameID tidak valid.");
-      return;
-    }
-
-    const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
-    if(birthPlace && !birthPlaceRegex.test(birthPlace)){
-      alert("Tempat lahir hanya huruf dan spasi.");
-      return;
-    }
-
-    if(bio.length > 200){
-      alert("Bio maksimal 200 karakter.");
-      return;
-    }
+    const showOnlineStatus = document.getElementById("showOnlineStatus").checked;
+    const showSkillDashboard = document.getElementById("showSkillDashboard").checked;
+    const chatPermission = document.getElementById("chatPermission").value;
 
     try{
       await updateDoc(doc(db,"users",user.uid),{
-        usernameID,
-        displayName,
-        fullName,
-        phone,
-        birthPlace,
-        birthDate,
-        bio
+        privacy:{
+          showOnlineStatus,
+          showSkillDashboard,
+          chatPermission
+        }
       });
 
-      alert("Profil berhasil diperbarui.");
+      alert("Pengaturan privasi diperbarui.");
     }catch(err){
       console.error(err);
       alert("Gagal menyimpan perubahan.");
