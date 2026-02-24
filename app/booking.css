@@ -303,6 +303,7 @@ body.dark .close-popup-btn{
 .close-popup-btn:hover{
   transform:translateY(-2px);
 }
+
 /* =====================================
    CREATE SESSION – SOLID MODERN MODAL
 ===================================== */
@@ -682,4 +683,23 @@ body.dark .sheet-section label{
   overflow:hidden;
   text-overflow:ellipsis;
   max-width:60px;
+}
+/* =========================
+   CREATE SESSION SECTION FIX
+========================= */
+
+body.light .sheet-section{
+  background: rgba(255,255,255,0.85);
+  padding:16px;
+  border-radius:18px;
+  backdrop-filter: blur(6px);
+  border:1px solid rgba(0,0,0,0.05);
+}
+
+body.dark .sheet-section{
+  background: rgba(25,35,28,0.92);
+  padding:16px;
+  border-radius:18px;
+  backdrop-filter: blur(6px);
+  border:1px solid rgba(255,255,255,0.05);
 }
