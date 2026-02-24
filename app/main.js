@@ -6,7 +6,7 @@ import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
 import { doc, getDoc } from "./firestore.js";
-import "./app/akun/index.js";   // ⬅ TAMBAHKAN INI
+
 import { getDatabase, ref, set, onDisconnect }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
