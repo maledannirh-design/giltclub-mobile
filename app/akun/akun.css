@@ -10,7 +10,6 @@
   padding:12px 12px 100px;
 }
 
-
 /* PAGE TITLE */
 
 .akun-title{
@@ -42,7 +41,6 @@
   border-radius:22px;
   padding:18px;
   margin-bottom:16px;
-
   box-shadow:0 4px 16px rgba(0,0,0,.04);
 }
 
@@ -99,7 +97,6 @@
 
   font-size:15px;
   outline:none;
-
   transition:all .2s ease;
 }
 
@@ -122,7 +119,7 @@
 }
 
 /* ================================
-   CHECKBOX / SWITCH SIMPLE
+   CHECKBOX
 ================================ */
 
 .akun-checkbox-row{
@@ -141,8 +138,10 @@
 }
 
 /* ================================
-   BUTTON
+   BUTTON (MATCH GLOBAL STYLE)
 ================================ */
+
+/* gunakan pattern global button style */
 
 .akun-btn{
   width:100%;
@@ -167,6 +166,7 @@
 
 .akun-btn-danger{
   background:#c76b6b;
+  color:#fff;
 }
 
 .akun-btn-danger:active{
