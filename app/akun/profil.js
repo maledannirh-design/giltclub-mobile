@@ -14,52 +14,55 @@ export async function renderProfil(){
   }
 
   let userData = {};
-
   try{
     const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()){
-      userData = snap.data();
-    }
+    if(snap.exists()) userData = snap.data();
   }catch(err){
     console.error(err);
   }
 
   content.innerHTML = `
-    <div class="account-container">
+    <div class="akun-container">
 
       <div class="akun-back" id="backToAkun">← Kembali</div>
-      <div class="akun-page-title">Informasi Pribadi</div>
+      <div class="akun-title">Informasi Pribadi</div>
 
-      <div class="panel">
+      <div class="akun-card">
 
-        <input id="usernameID" placeholder="UsernameID"
+        <input id="usernameID"
+          placeholder="UsernameID"
           value="${userData.usernameID || ""}">
 
-        <input id="displayName" placeholder="Display Name"
+        <input id="displayName"
+          placeholder="Display Name"
           value="${userData.displayName || ""}">
 
-        <input id="fullName" placeholder="Nama Lengkap"
+        <input id="fullName"
+          placeholder="Nama Lengkap"
           value="${userData.fullName || ""}">
 
-        <input id="email" placeholder="Email"
+        <input id="email"
           value="${userData.email || user.email || ""}"
           disabled>
 
-        <input id="phone" placeholder="Nomor HP"
+        <input id="phone"
+          placeholder="Nomor HP"
           inputmode="numeric"
           value="${userData.phone || ""}">
 
-        <input id="birthPlace" placeholder="Tempat Lahir"
+        <input id="birthPlace"
+          placeholder="Tempat Lahir"
           value="${userData.birthPlace || ""}">
 
-        <input type="date" id="birthDate"
+        <input type="date"
+          id="birthDate"
           value="${userData.birthDate || ""}">
 
-        <input id="bio" placeholder="Bio (maks 200 karakter)"
-          maxlength="200"
-          value="${userData.bio || ""}">
+        <textarea id="bio"
+          placeholder="Bio (maks 200 karakter)"
+          maxlength="200">${userData.bio || ""}</textarea>
 
-        <button class="form-submit" id="saveProfileBtn">
+        <button class="akun-btn" id="saveProfileBtn">
           Simpan Perubahan
         </button>
 
@@ -80,11 +83,9 @@ export async function renderProfil(){
     const birthDate = document.getElementById("birthDate").value;
     const bio = document.getElementById("bio").value.trim();
 
-    // ===== VALIDATION =====
-
     const usernameRegex = /^[a-z0-9_]{4,20}$/;
     if(!usernameRegex.test(usernameID)){
-      alert("UsernameID hanya huruf kecil, angka, underscore (4-20 karakter).");
+      alert("UsernameID tidak valid.");
       return;
     }
 
@@ -111,12 +112,9 @@ export async function renderProfil(){
       });
 
       alert("Profil berhasil diperbarui.");
-
     }catch(err){
       console.error(err);
       alert("Gagal menyimpan perubahan.");
     }
-
   };
-
 }
