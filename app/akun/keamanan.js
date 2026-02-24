@@ -1,45 +1,51 @@
 import { auth } from "../firebase.js";
 import { renderAkunPage } from "./index.js";
 
-export async function renderKeamanan(){
+export function renderKeamanan(){
 
   const content = document.getElementById("content");
   if(!content) return;
 
   content.innerHTML = `
-    <div class="account-container">
+    <div class="akun-container">
 
       <div class="akun-back" id="backToAkun">← Kembali</div>
-      <div class="akun-page-title">Akun & Keamanan</div>
+      <div class="akun-title">Akun & Keamanan</div>
 
-      <div class="account-group">
+      <div class="akun-list">
 
-        <div class="group-row" id="changeLoginPin">
-          Ubah PIN Login <span>›</span>
+        <div class="akun-item" id="changeLoginPin">
+          <span>Ubah PIN Login</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="changeTrxPin">
-          Ubah PIN Transaksi <span>›</span>
+        <div class="akun-item" id="changeTrxPin">
+          <span>Ubah PIN Transaksi</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="resetPin">
-          Reset PIN <span>›</span>
+        <div class="akun-item" id="resetPin">
+          <span>Reset PIN</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="logoutBtn">
-          Logout <span>›</span>
+        <div class="akun-item" id="logoutBtn">
+          <span>Logout</span>
+          <span>›</span>
         </div>
 
-        <div class="group-row" id="deleteAccount" style="color:#c76b6b;">
-          Hapus Akun <span>›</span>
+        <div class="akun-item akun-item-danger" id="deleteAccount">
+          <span>Hapus Akun</span>
+          <span>›</span>
         </div>
 
       </div>
+
     </div>
 
-    <div class="sheet-overlay" id="sheetOverlay"></div>
-    <div class="sheet" id="securitySheet">
-      <div class="sheet-handle"></div>
+    <div class="akun-sheet-overlay" id="sheetOverlay"></div>
+    <div class="akun-sheet" id="securitySheet">
+      <div class="akun-sheet-handle"></div>
       <div id="sheetContent"></div>
     </div>
   `;
@@ -70,37 +76,36 @@ function openPinSheet(type){
   sheetContent.innerHTML = `
     <h3>${title}</h3>
 
-    <input type="password"
-      id="oldPin"
-      placeholder="PIN Lama (6 digit)"
-      maxlength="6"
-      inputmode="numeric">
+    <div class="akun-card">
 
-    <input type="password"
-      id="newPin"
-      placeholder="PIN Baru (6 digit)"
-      maxlength="6"
-      inputmode="numeric">
+      <input type="password" id="oldPin"
+        placeholder="PIN Lama (6 digit)"
+        maxlength="6"
+        inputmode="numeric">
 
-    <input type="password"
-      id="confirmPin"
-      placeholder="Konfirmasi PIN Baru"
-      maxlength="6"
-      inputmode="numeric">
+      <input type="password" id="newPin"
+        placeholder="PIN Baru (6 digit)"
+        maxlength="6"
+        inputmode="numeric">
 
-    <button class="form-submit" id="savePinBtn">
-      Simpan
-    </button>
+      <input type="password" id="confirmPin"
+        placeholder="Konfirmasi PIN Baru"
+        maxlength="6"
+        inputmode="numeric">
+
+      <button class="akun-btn" id="savePinBtn">
+        Simpan
+      </button>
+
+    </div>
   `;
 
   overlay.classList.add("active");
   sheet.classList.add("active");
-
   overlay.onclick = closeSheet;
 
-  document.getElementById("savePinBtn").onclick = async () => {
+  document.getElementById("savePinBtn").onclick = () => {
 
-    const oldPin = document.getElementById("oldPin").value.trim();
     const newPin = document.getElementById("newPin").value.trim();
     const confirmPin = document.getElementById("confirmPin").value.trim();
 
@@ -113,11 +118,6 @@ function openPinSheet(type){
       alert("Konfirmasi PIN tidak cocok.");
       return;
     }
-
-    // TODO:
-    // 1. Verifikasi PIN lama
-    // 2. Hash PIN baru
-    // 3. Update ke Firestore
 
     alert("PIN berhasil diubah (dummy).");
     closeSheet();
@@ -134,22 +134,19 @@ function openResetPinSheet(){
 
   sheetContent.innerHTML = `
     <h3>Reset PIN</h3>
-    <p style="font-size:13px;margin-bottom:18px;">
-      Reset PIN akan mengirim instruksi ke email Anda.
-    </p>
 
-    <button class="form-submit" id="resetPinBtn">
-      Kirim Reset
-    </button>
+    <div class="akun-card">
+      <button class="akun-btn" id="resetPinBtn">
+        Kirim Reset
+      </button>
+    </div>
   `;
 
   overlay.classList.add("active");
   sheet.classList.add("active");
-
   overlay.onclick = closeSheet;
 
   document.getElementById("resetPinBtn").onclick = () => {
-    // TODO: Kirim reset via backend
     alert("Instruksi reset dikirim (dummy).");
     closeSheet();
   };
@@ -166,25 +163,25 @@ function openDeleteAccountSheet(){
   sheetContent.innerHTML = `
     <h3>Hapus Akun Permanen</h3>
 
-    <input type="password"
-      id="deletePin"
-      placeholder="Masukkan PIN Login"
-      maxlength="6"
-      inputmode="numeric">
+    <div class="akun-card">
 
-    <button class="form-submit"
-      id="confirmDelete"
-      style="background:#c76b6b;">
-      Hapus Permanen
-    </button>
+      <input type="password" id="deletePin"
+        placeholder="Masukkan PIN Login"
+        maxlength="6"
+        inputmode="numeric">
+
+      <button class="akun-btn akun-btn-danger" id="confirmDelete">
+        Hapus Permanen
+      </button>
+
+    </div>
   `;
 
   overlay.classList.add("active");
   sheet.classList.add("active");
-
   overlay.onclick = closeSheet;
 
-  document.getElementById("confirmDelete").onclick = async () => {
+  document.getElementById("confirmDelete").onclick = () => {
 
     const pin = document.getElementById("deletePin").value.trim();
 
@@ -193,22 +190,12 @@ function openDeleteAccountSheet(){
       return;
     }
 
-    // TODO:
-    // 1. Verifikasi PIN
-    // 2. Hapus data user di Firestore
-    // 3. auth.currentUser.delete()
-
     alert("Akun terhapus (dummy).");
     closeSheet();
   };
 }
 
-/* ================= CLOSE SHEET ================= */
-
 function closeSheet(){
-  const overlay = document.getElementById("sheetOverlay");
-  const sheet = document.getElementById("securitySheet");
-
-  overlay.classList.remove("active");
-  sheet.classList.remove("active");
+  document.getElementById("sheetOverlay").classList.remove("active");
+  document.getElementById("securitySheet").classList.remove("active");
 }
