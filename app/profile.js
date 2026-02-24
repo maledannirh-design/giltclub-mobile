@@ -315,6 +315,10 @@ export async function renderAccountUI(){
               <div class="account-membership">
                 ${membership}
               </div>
+
+              <div class="account-bio">
+  ${currentUserData?.bio || "Belum ada bio"}
+</div>
             `
             : `
               <div class="account-level">-</div>
