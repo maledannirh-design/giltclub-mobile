@@ -49,7 +49,7 @@ export async function runMigration(){
       membership: userData.membership
     });
 
-    await updateDoc(doc(db,"users",userId),{
+    await updateDoc(doc(db,"users",uid),{
       walletBalance: item.walletBalance,
       totalTopup: item.totalTopup,
       totalPayment: totalPayment,
