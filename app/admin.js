@@ -45,7 +45,7 @@ export async function renderAdmin(){
 
     const d = docSnap.data();
 
-    const userSnap = await getDoc(doc(db,"users", d.uid));
+    const userSnap = await getDoc(doc(db,"users", d.userId));
     const username = userSnap.exists()
       ? userSnap.data().username || "User"
       : "User";
@@ -57,7 +57,7 @@ export async function renderAdmin(){
           <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
         </div>
         <div>
-  <button onclick="approveTopup('${docSnap.id}','${d.uid}',${d.amount}, this)">
+  <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
     Approve
   </button>
 
@@ -75,7 +75,7 @@ export async function renderAdmin(){
   content.innerHTML = html;
 }
 
-window.approveTopup = async function(trxId, uid, amount, btn){
+window.approveTopup = async function(trxId, userId, amount, btn){
 
   try{
 
@@ -85,7 +85,7 @@ window.approveTopup = async function(trxId, uid, amount, btn){
       btn.innerText = "Processing...";
     }
 
-    const userRef = doc(db,"users",uid);
+   const userRef = doc(db,"users", userId);
     const trxRef  = doc(db,"walletTransactions",trxId);
 
     // =============================
