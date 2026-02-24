@@ -46,3 +46,4 @@ export function renderAkunPage(){
   document.getElementById("menuPrivasi").onclick = renderPrivasi;
 }
 
+window.renderAkunPage = renderAkunPage;
