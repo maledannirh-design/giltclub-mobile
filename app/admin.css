@@ -1,23 +1,28 @@
-.admin-container{
-  padding:20px;
+.admin-container {
+  padding: 20px;
+  color: var(--text-primary);
 }
 
-.admin-trx{
-  background:var(--color-card);
-  padding:14px;
-  border-radius:12px;
-  margin-bottom:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  box-shadow:var(--shadow-card);
+.admin-trx {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.admin-trx button{
-  background:var(--color-success);
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:8px;
-  cursor:pointer;
+.admin-trx button {
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.admin-trx button:hover {
+  opacity: 0.7;
 }
