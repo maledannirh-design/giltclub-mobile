@@ -707,6 +707,45 @@ body.dark .premium-create-btn {
   transform: translateY(-2px);
 }
 
+.session-admin-actions{
+  margin-top:14px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.edit-session-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+
+  padding:8px 14px;
+  border-radius:14px;
+
+  font-size:13px;
+  font-weight:600;
+
+  border:none;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+/* LIGHT */
+body.light .edit-session-btn{
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 6px 14px rgba(0,0,0,.1);
+}
+
+/* DARK */
+body.dark .edit-session-btn{
+  background: var(--color-highlight);
+  color: #1f1f1f;
+  box-shadow: 0 6px 14px rgba(0,0,0,.4);
+}
+
+.edit-session-btn:hover{
+  transform: translateY(-2px);
+}
 
 /* =====================================
   Z. ALL ANIMATIONS
