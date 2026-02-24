@@ -13,6 +13,12 @@ import {
   getDatabase, ref, set, onDisconnect, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+
+// === SUB MODULE AKUN (LAZY LOAD TARGETS) ===
+// tidak perlu import statis, karena kita pakai dynamic import
+// jadi TIDAK perlu import keamanan.js dll di atas
+
+
 /* =========================================
    SECTION A LOGIN DAN REGISTER
 ========================================= */
@@ -279,27 +285,24 @@ export async function renderAccountUI(){
 
         <div class="account-info">
           <div class="profile-name-row">
-  <h2 id="profileName"></h2>
-  <span id="verifiedBadge" class="verified-badge">
-  <svg viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
-    <path d="M9.5 12.5l1.8 1.8 3.5-4" 
-          fill="none" 
-          stroke="#fff" 
-          stroke-width="2" 
-          stroke-linecap="round" 
-          stroke-linejoin="round"/>
-  </svg>
-</span>
-</span>
-</div>
+            <h2 id="profileName"></h2>
+            <span id="verifiedBadge" class="verified-badge">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
+                <path d="M9.5 12.5l1.8 1.8 3.5-4" 
+                      fill="none" 
+                      stroke="#fff" 
+                      stroke-width="2" 
+                      stroke-linecap="round" 
+                      stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
 
           ${
             user
             ? `
-              <div class="account-level">
-                Level ${level}
-              </div>
+              <div class="account-level">Level ${level}</div>
 
               <div class="account-exp-text">
                 ⚡ ${expCurrent} / 1000 EXP
@@ -339,10 +342,10 @@ export async function renderAccountUI(){
     </div>
 
     <div class="account-group">
-      <div class="group-row">Akun & Keamanan <span>›</span></div>
-      <div class="group-row">Informasi Pribadi <span>›</span></div>
-      <div class="group-row">Sosial Media <span>›</span></div>
-      <div class="group-row">Pengaturan Privasi <span>›</span></div>
+      <div class="group-row" id="menuKeamanan">Akun & Keamanan <span>›</span></div>
+      <div class="group-row" id="menuProfil">Informasi Pribadi <span>›</span></div>
+      <div class="group-row" id="menuSosial">Sosial Media <span>›</span></div>
+      <div class="group-row" id="menuPrivasi">Pengaturan Privasi <span>›</span></div>
     </div>
 
   </div>
@@ -351,34 +354,38 @@ export async function renderAccountUI(){
 
   <div class="sheet" id="loginSheet">
     <div class="sheet-handle"></div>
-
     <h3>Login</h3>
-
     <input id="sheetEmail" placeholder="Email">
     <input id="sheetPinLogin" type="password"
       placeholder="PIN Login (6 digit)"
       maxlength="6"
       inputmode="numeric">
-
     <button class="btn-primary full" id="sheetLoginBtn">
       Login
     </button>
   </div>
   `;
-const profileNameEl = document.getElementById("profileName");
-const verifiedBadge = document.getElementById("verifiedBadge");
 
-if(profileNameEl){
-  profileNameEl.textContent = username;
-}
+  // =============================
+  // PROFILE NAME & VERIFIED
+  // =============================
 
-if(verifiedBadge){
-  if(currentUserData?.verified === true){
-    verifiedBadge.style.display = "flex";
-  } else {
-    verifiedBadge.style.display = "none";
+  const profileNameEl = document.getElementById("profileName");
+  const verifiedBadge = document.getElementById("verifiedBadge");
+
+  if(profileNameEl){
+    profileNameEl.textContent = username;
   }
-}
+
+  if(verifiedBadge){
+    verifiedBadge.style.display =
+      currentUserData?.verified === true ? "flex" : "none";
+  }
+
+  // =============================
+  // PHOTO UPLOAD
+  // =============================
+
   bindPhotoUpload();
 
   const avatarTrigger = document.getElementById("avatarTrigger");
@@ -388,8 +395,50 @@ if(verifiedBadge){
     };
   }
 
+  // =============================
+  // LOGIN / LOGOUT
+  // =============================
+
   bindAccountEvents(user);
+
+  // =============================
+  // SUB MENU ROUTING (LAZY LOAD)
+  // =============================
+
+  const menuKeamanan = document.getElementById("menuKeamanan");
+  const menuProfil   = document.getElementById("menuProfil");
+  const menuSosial   = document.getElementById("menuSosial");
+  const menuPrivasi  = document.getElementById("menuPrivasi");
+
+  if(menuKeamanan){
+    menuKeamanan.onclick = async ()=>{
+      const module = await import("./akun/keamanan.js");
+      module.renderKeamanan();
+    };
+  }
+
+  if(menuProfil){
+    menuProfil.onclick = async ()=>{
+      const module = await import("./akun/profil.js");
+      module.renderProfil();
+    };
+  }
+
+  if(menuSosial){
+    menuSosial.onclick = async ()=>{
+      const module = await import("./akun/sosial.js");
+      module.renderSosial();
+    };
+  }
+
+  if(menuPrivasi){
+    menuPrivasi.onclick = async ()=>{
+      const module = await import("./akun/privasi.js");
+      module.renderPrivasi();
+    };
+  }
 }
+
 /* =========================================
    PHOTO UPLOAD
 ========================================= */
