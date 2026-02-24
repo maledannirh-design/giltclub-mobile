@@ -362,15 +362,7 @@ body.dark .premium-sheet{
   font-size:20px;
   font-weight:700;
 }
-/* Dark Mode */
-body.dark-mode .premium-sheet label {
-  color: #e8f5e9; /* putih susu */
-}
 
-/* Light Mode */
-body:not(.dark-mode) .premium-sheet label {
-  color: #444; /* abu gelap netral */
-}
 /* Sections */
 .sheet-section{
   margin-bottom:22px;
@@ -394,7 +386,18 @@ body.light .sheet-section label{
 body.dark .sheet-section label{
   color:#cfcfcf;
 }
+/* SECTION CARD STYLE */
+body.light .sheet-section {
+  background: rgba(242,232,213,0.4);
+  padding: 16px;
+  border-radius: 18px;
+}
 
+body.dark .sheet-section {
+  background: rgba(46,93,58,0.2);
+  padding: 16px;
+  border-radius: 18px;
+}
 /* Input Modern */
 .premium-sheet input,
 .premium-sheet select,
@@ -569,7 +572,6 @@ body.dark .sheet-section label{
 
 .session-members {
   margin-top: 16px;
-  display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
