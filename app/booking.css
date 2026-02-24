@@ -443,12 +443,6 @@ body.dark .premium-sheet {
   font-weight: 700;
 }
 
-/* Animation */
-@keyframes modalFade {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 /* =====================================
    SECTIONS
 ===================================== */
@@ -481,7 +475,7 @@ body.dark .sheet-section {
 }
 
 body.light .sheet-section label { color: #444; }
-body.dark .sheet-section label { color: #cfcfcf; }
+body.dark .sheet-section label { color: #fafaf7; }
 
 /* =====================================
    INPUTS
@@ -678,4 +672,10 @@ body.dark .premium-create-btn {
 @keyframes modalFade {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation */
+@keyframes modalFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
