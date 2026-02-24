@@ -82,7 +82,7 @@ body.dark .mini-session-card {
   padding: 20px 16px;
   animation-duration: .3s;
 }
-.month-wrapper { padding: 20px 16px; animation-duration: .3s; }
+
 .month-header-row {
   display: flex;
   justify-content: space-between;
@@ -94,11 +94,7 @@ body.dark .mini-session-card {
   font-size: 20px;
   font-weight: 600;
 }
-
-/* =====================================
-   MONTH NAV BUTTON FIX
-===================================== */
-
+/* TOMBOL GESER BULAN = OK */
 .month-header-row button {
   width: 38px;
   height: 38px;
@@ -111,9 +107,11 @@ body.dark .mini-session-card {
   border: none;
   font-size: 18px;
   cursor: pointer;
-  transition: .2s ease;
+  transition: .2s ease;  
 }
-
+.month-header-row button:hover {
+  transform: translateY(-2px);
+}
 /* LIGHT MODE */
 body.light .month-header-row button {
   background: #ffffff;
@@ -126,10 +124,6 @@ body.dark .month-header-row button {
   background: rgba(255,255,255,.08);
   color: #E3C565; /* gold biar konsisten popup */
   border: 1px solid rgba(255,255,255,.1);
-}
-
-.month-header-row button:hover {
-  transform: translateY(-2px);
 }
 
 .week-labels {
@@ -187,35 +181,6 @@ body.dark .month-day {
   cursor: default;
 }
 
-/* =====================================
-   DATE WITH THE SESSION
-===================================== */
-/* Base circle ring */
-.month-day.has-session::after{
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 50%;
-  border: 2px solid #10b981;
-  pointer-events: none;
-  transition: .25s ease;
-}
-/* Hover effect */
-.month-day.has-session:hover::after{
-  transform: scale(1.05);
-}
-
-/* Glow dark mode */
-body.dark .month-day.has-session{
-  animation: ringPulse 2.5s infinite ease-in-out;
-}
-
-body.dark .month-day.has-session::after{
-  border: 2px solid #E3C565;
-  box-shadow: 0 0 8px rgba(227,197,101,.4);
-}
-
-
 /* KINDS OF RINGS */
 
 .ring-admin {
@@ -253,6 +218,35 @@ body.dark .month-day.has-session::after{
   100% { box-shadow: 0 0 0 rgba(227,197,101,0); }
 }
 
+/* =====================================
+   DATE WITH THE SESSION
+===================================== */
+/* Base circle ring */
+.month-day.has-session::after{
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 2px solid #10b981;
+  pointer-events: none;
+  transition: .25s ease;
+}
+/* Hover effect */
+.month-day.has-session:hover::after{
+  transform: scale(1.05);
+}
+
+/* Glow dark mode */
+body.dark .month-day.has-session{
+  animation: ringPulse 2.5s infinite ease-in-out;
+}
+
+body.dark .month-day.has-session::after{
+  border: 2px solid #E3C565;
+  box-shadow: 0 0 8px rgba(227,197,101,.4);
+}
+
+
 
 /* =====================================
    POPUP KALENDAR – BRAND VERSION
@@ -276,6 +270,7 @@ body.dark .month-day.has-session::after{
   box-shadow: 0 25px 60px rgba(0,0,0,.15);
   text-align: left;
 }
+
 
 /* LIGHT MODE */
 
@@ -344,6 +339,7 @@ body.dark .empty-session {
   font-size: 14px;
 }
 
+/* Button */
 .close-popup-btn {
   margin-top: 18px;
   width: 100%;
