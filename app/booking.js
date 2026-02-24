@@ -286,24 +286,31 @@ async function openSessionPopup(dateStr) {
          🔥 CEK SESI SELESAI
       =============================== */
       const now = new Date();
-      const sessionEnd = new Date(
-        s.date + "T" + (s.endTime || "00:00")
-      );
-      const isFinished = sessionEnd < now;
+      const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
+      const isFinished = now > sessionEnd;
 
-      // ===== SLOT RENDER =====
+      /* ===============================
+         🔥 SLOT ENGINE (PRODUCTION SAFE)
+      =============================== */
+      const bookedCount = members.length;
+      const lockedCount = lockedSlots.length;
+      const usedSlots = bookedCount + lockedCount;
+      const sisaSlot = Math.max(maxPlayers - usedSlots, 0);
+      const isFull = sisaSlot <= 0;
+
+      /* ===============================
+         🔥 SLOT RENDER (FIXED INDEX BUG)
+      =============================== */
       let slotHtml = "";
+      let memberPointer = 0;
 
       for (let i = 0; i < maxPlayers; i++) {
 
         const locked = lockedSlots.find(l => l.index === i);
-        const member = members[i];
 
         if (locked) {
           slotHtml += `
-            <div class="member-wrapper slot locked-slot" 
-                 data-schedule="${s.id}" 
-                 data-index="${i}">
+            <div class="member-wrapper slot locked-slot">
               <div class="member-avatar">
                 <div class="avatar-initial">🔒</div>
               </div>
@@ -313,10 +320,11 @@ async function openSessionPopup(dateStr) {
           continue;
         }
 
+        const member = members[memberPointer];
+
         if (member) {
           slotHtml += `
-            <div class="member-wrapper slot filled-slot"
-                 data-user="${member.userId}">
+            <div class="member-wrapper slot filled-slot">
               <div class="member-avatar">
                 ${
                   member.photoURL
@@ -329,13 +337,12 @@ async function openSessionPopup(dateStr) {
               <div class="member-name">${member.username}</div>
             </div>
           `;
+          memberPointer++;
           continue;
         }
 
         slotHtml += `
-          <div class="member-wrapper slot empty-slot"
-               data-schedule="${s.id}" 
-               data-index="${i}">
+          <div class="member-wrapper slot empty-slot">
             <div class="member-avatar">
               <div class="avatar-initial">+</div>
             </div>
@@ -355,40 +362,50 @@ async function openSessionPopup(dateStr) {
 
           <div><strong>Jam:</strong> ${s.startTime || "-"} - ${s.endTime || "-"}</div>
           <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
+
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
+          <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
+
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
           <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
 
           ${
             currentUser
               ? `
-              <button class="join-btn ${isFinished ? "session-finished" : ""}"
-                      data-id="${s.id}"
-                      ${isFinished ? "disabled" : ""}>
+              <button class="join-btn 
+                ${isFinished ? "session-finished" : ""}"
+                data-id="${s.id}"
+                ${
+                  isFinished || (isFull && !alreadyJoined)
+                    ? "disabled"
+                    : ""
+                }>
                 ${
                   isFinished
                     ? "Sesi Selesai"
-                    : alreadyJoined
-                      ? "Cancel Join"
-                      : "Gabung Sesi Ini"
+                    : isFull && !alreadyJoined
+                      ? "Slot Penuh"
+                      : alreadyJoined
+                        ? "Cancel Join"
+                        : "Gabung Sesi Ini"
                 }
               </button>
               `
               : ""
           }
 
-         ${
-  isPrivileged
-    ? `
-      <div class="session-admin-actions">
-        <button class="edit-session-btn" data-id="${s.id}">
-          <span class="edit-icon">✏️</span>
-          Edit Session
-        </button>
-      </div>
-      `
-    : ""
-}
+          ${
+            isPrivileged
+              ? `
+              <div class="session-admin-actions">
+                <button class="edit-session-btn" data-id="${s.id}">
+                  <span class="edit-icon">✏️</span>
+                  Edit Session
+                </button>
+              </div>
+              `
+              : ""
+          }
 
           <div class="session-members">
             ${slotHtml}
@@ -406,22 +423,22 @@ async function openSessionPopup(dateStr) {
   `;
 
   popup.innerHTML = html;
+
   attachSlotInteraction(currentUserRole);
+
   document.querySelectorAll(".edit-session-btn").forEach(btn=>{
-  btn.onclick = ()=>{
-    openEditSessionSheet(btn.dataset.id);
-  };
-});
-  // ===== JOIN BUTTON LOGIC =====
+    btn.onclick = ()=>{
+      openEditSessionSheet(btn.dataset.id);
+    };
+  });
+
   document.querySelectorAll(".join-btn").forEach(btn=>{
     btn.onclick = async ()=>{
       if (btn.disabled) return;
-
       if (!currentUser) {
         showToast("Login terlebih dahulu","warning");
         return;
       }
-
       if (bookingLock) return;
       bookingLock = true;
 
