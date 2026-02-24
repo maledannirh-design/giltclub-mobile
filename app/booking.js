@@ -382,9 +382,12 @@ async function openSessionPopup(dateStr) {
 
           ${
             isPrivileged
-              ? `<button class="edit-session-btn" data-id="${s.id}">
-                   Edit Session
-                 </button>`
+              ? `<div class="session-admin-actions">
+  <button class="edit-session-btn" data-id="${s.id}">
+    <span class="edit-icon">✏️</span>
+    Edit Session
+  </button>
+</div>`
               : ""
           }
 
@@ -405,7 +408,11 @@ async function openSessionPopup(dateStr) {
 
   popup.innerHTML = html;
   attachSlotInteraction(currentUserRole);
-
+  document.querySelectorAll(".edit-session-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    openEditSessionSheet(btn.dataset.id);
+  };
+});
   // ===== JOIN BUTTON LOGIC =====
   document.querySelectorAll(".join-btn").forEach(btn=>{
     btn.onclick = async ()=>{
@@ -1073,4 +1080,83 @@ function formatDate(d){
 
 function formatDisplayDate(d){
   return new Date(d).toLocaleDateString("id-ID",{weekday:"short",month:"short",day:"numeric"});
+}
+
+
+async function openEditSessionSheet(scheduleId){
+
+  const scheduleRef = doc(db,"schedules",scheduleId);
+  const snap = await getDoc(scheduleRef);
+
+  if(!snap.exists()){
+    showToast("Session tidak ditemukan","error");
+    return;
+  }
+
+  const s = snap.data();
+
+  await openCreateSessionSheet();
+
+  // Delay kecil supaya DOM sudah render
+  setTimeout(()=>{
+
+    document.getElementById("tier").value = s.tier || "Newbie";
+    document.getElementById("sessionType").value = s.sessionType || "Mabar";
+    document.getElementById("sessionMode").value = s.mode || "reguler";
+
+    document.getElementById("sessionDate").value = s.date || "";
+    document.getElementById("startTime").value = s.startTime || "";
+    document.getElementById("endTime").value = s.endTime || "";
+
+    document.getElementById("maxPlayers").value = s.maxPlayers || 0;
+    document.getElementById("court").value = s.court || "";
+
+    document.getElementById("ratePerHour").value = s.pricePerHour || 0;
+    document.getElementById("racketStock").value = s.racketStock || 0;
+    document.getElementById("racketRate").value = s.racketPrice || 0;
+
+    document.getElementById("notes").value = s.notes || "";
+
+    const submitBtn = document.getElementById("submitCreateSession");
+    submitBtn.innerText = "Update Session";
+
+    submitBtn.onclick = async ()=>{
+
+      try{
+
+        await updateDoc(scheduleRef,{
+
+          tier: document.getElementById("tier").value,
+          sessionType: document.getElementById("sessionType").value,
+          mode: document.getElementById("sessionMode").value,
+
+          date: document.getElementById("sessionDate").value,
+          startTime: document.getElementById("startTime").value,
+          endTime: document.getElementById("endTime").value,
+
+          maxPlayers: Number(document.getElementById("maxPlayers").value),
+          court: document.getElementById("court").value.trim(),
+
+          pricePerHour: Number(document.getElementById("ratePerHour").value),
+          racketStock: Number(document.getElementById("racketStock").value),
+          racketPrice: Number(document.getElementById("racketRate").value),
+
+          notes: document.getElementById("notes").value.trim(),
+        });
+
+        showToast("Session berhasil diperbarui","success");
+
+        const sheet = document.getElementById("createSessionSheet");
+        sheet.classList.remove("active");
+        sheet.innerHTML = "";
+
+        renderBooking();
+
+      }catch(err){
+        showToast("Gagal update session","error");
+      }
+
+    };
+
+  },200);
 }
