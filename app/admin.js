@@ -6,6 +6,7 @@ import {
   getDocs,
   getDoc,
   doc,
+  runTransaction,
   updateDoc,
   increment,
   serverTimestamp
@@ -202,6 +203,112 @@ window.rejectTopup = async function(trxId, btn){
     }
   }
 };
+
+async function renderBalanceAdjustmentPanel() {
+
+  const container = document.getElementById("adminBalanceAdjustment");
+  if (!container) return;
+
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  let options = "";
+
+  usersSnap.docs.forEach(docSnap=>{
+    const u = docSnap.data();
+    options += `<option value="${docSnap.id}">
+      ${u.username || u.fullName || docSnap.id}
+    </option>`;
+  });
+
+  container.innerHTML = `
+    <div class="admin-card">
+
+      <h3>Manual Balance Adjustment</h3>
+
+      <label>User</label>
+      <select id="adjustUser">
+        ${options}
+      </select>
+
+      <label>Nominal (boleh minus)</label>
+      <input type="number" id="adjustAmount" placeholder="contoh: 50000 atau -20000">
+
+      <label>Catatan</label>
+      <input type="text" id="adjustNote" placeholder="Alasan adjustment">
+
+      <button id="saveAdjustment" class="admin-btn">
+        Simpan
+      </button>
+
+    </div>
+  `;
+
+  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+
+}
+
+async function handleBalanceAdjustment(){
+
+  const userId = document.getElementById("adjustUser").value;
+  const amount = Number(document.getElementById("adjustAmount").value);
+  const note = document.getElementById("adjustNote").value.trim();
+
+  if (!amount || isNaN(amount)) {
+    showToast("Nominal tidak valid","error");
+    return;
+  }
+
+  try {
+
+    const userRef = doc(db, "users", userId);
+    const ledgerCol = collection(db, "walletTransactions");
+
+    await runTransaction(db, async (transaction)=>{
+
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) {
+        throw new Error("User tidak ditemukan");
+      }
+
+      const userData = userSnap.data();
+      const currentBalance = userData.walletBalance || 0;
+      const newBalance = currentBalance + amount;
+
+      if (newBalance < 0) {
+        throw new Error("Saldo tidak boleh minus");
+      }
+
+      // Update wallet
+      transaction.update(userRef,{
+        walletBalance: newBalance
+      });
+
+      // Create ledger entry
+      const ledgerRef = doc(ledgerCol);
+
+      transaction.set(ledgerRef,{
+        userId,
+        type: "admin_adjustment",
+        amount,
+        balanceAfter: newBalance,
+        note: note || "",
+        createdBy: auth.currentUser.uid,
+        createdAt: serverTimestamp()
+      });
+
+    });
+
+    showToast("Adjustment berhasil","success");
+
+    document.getElementById("adjustAmount").value = "";
+    document.getElementById("adjustNote").value = "";
+
+  } catch(err){
+    showToast(err.message || "Gagal adjustment","error");
+  }
+
+}
+
 
 // expose ke console
 window.runMigration = runMigration;
