@@ -246,12 +246,22 @@ body.dark .month-day.has-session::after{
 .popup-card {
   width: 88%;
   max-width: 420px;
+
+  max-height: 85vh;      /* 🔥 batas tinggi popup */
+  overflow-y: auto;      /* 🔥 aktifkan scroll vertikal */
+
   padding: 28px 24px;
   border-radius: 24px;
   box-shadow: 0 25px 60px rgba(0,0,0,.15);
   text-align: left;
-}
 
+  -webkit-overflow-scrolling: touch; /* smooth scroll mobile */
+}
+.close-popup-btn{
+  position: sticky;
+  bottom: 0;
+  margin-top: 18px;
+}
 body.light .popup-overlay {
   background: rgba(242,232,213,.85);
 }
@@ -410,16 +420,22 @@ body.dark .join-btn{
 /* Modal Card */
 .premium-sheet {
   position: relative;
+
   width: 92%;
   max-width: 480px;
-  max-height: 92vh;
-  overflow-y: auto;
+
+  height: 75vh;          /* 🔥 fix tinggi 75% layar */
+  max-height: 75vh;      /* safety */
+
+  overflow-y: auto;      /* scroll internal */
 
   border-radius: 28px;
   padding: 30px 24px 36px;
 
   z-index: 9999;
   animation: modalFade .25s ease;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Light */
