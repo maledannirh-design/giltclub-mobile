@@ -75,7 +75,7 @@ body.dark .mini-session-card {
 }
 
 /* =====================================
-   CALENDAR = 100% OK
+   CALENDAR
 ===================================== */
 
 .month-wrapper {
@@ -94,37 +94,38 @@ body.dark .mini-session-card {
   font-size: 20px;
   font-weight: 600;
 }
-/* TOMBOL GESER BULAN = OK */
+
+/* Month Navigation Button */
+
 .month-header-row button {
   width: 38px;
   height: 38px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 50%;
   border: none;
   font-size: 18px;
   cursor: pointer;
-  transition: .2s ease;  
+  transition: .2s ease;
 }
+
 .month-header-row button:hover {
   transform: translateY(-2px);
 }
-/* LIGHT MODE */
+
 body.light .month-header-row button {
   background: #ffffff;
   color: #2E5D3A;
   box-shadow: 0 4px 12px rgba(0,0,0,.1);
 }
 
-/* DARK MODE */
 body.dark .month-header-row button {
   background: rgba(255,255,255,.08);
-  color: #E3C565; /* gold biar konsisten popup */
+  color: #E3C565;
   border: 1px solid rgba(255,255,255,.1);
 }
+/* Week Labels */
 
 .week-labels {
   display: grid;
@@ -139,6 +140,8 @@ body.dark .month-header-row button {
   color: #10b981;
 }
 
+/* Calendar Grid */
+
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7,1fr);
@@ -146,19 +149,15 @@ body.dark .month-header-row button {
 }
 
 .month-day {
+  position: relative;
   aspect-ratio: 1/1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   border-radius: 14px;
   cursor: pointer;
   transition: var(--transition);
   font-size: 14px;
 }
-.month-day{
-  overflow: hidden;
-}
-/* Pulse only dark mode */
 
 body.light .month-day {
   background: #f3f4f6;
@@ -172,31 +171,13 @@ body.dark .month-day {
   transform: translateY(-2px);
 }
 
-}
-/* SABTU MINGGU TANGGAL HIJAU */
 .month-day.weekend {
   color: #10b981;
 }
-/* WEEKDAY NO BG */
+
 .month-day.empty {
   background: transparent;
   cursor: default;
-}
-
-/* KINDS OF RINGS */
-
-.ring-admin {
-  box-shadow: 0 0 0 2px #10b981 inset;
-}
-
-.ring-member {
-  box-shadow: 0 0 0 2px #facc15 inset;
-}
-
-.ring-double {
-  box-shadow:
-    0 0 0 3px #10b981 inset,
-    0 0 0 6px #facc15 inset;
 }
 
 /* Slide Animation */
@@ -221,39 +202,34 @@ body.dark .month-day {
 }
 
 /* =====================================
-   DATE WITH THE SESSION
+   DATE WIHT THE SESSION - PERFECT CIRCLE RING
 ===================================== */
-/* Base circle ring */
+
 .month-day.has-session::after{
   content: "";
   position: absolute;
-
-  width: 70%;
-  height: 70%;
-
+  width: 65%;
+  height: 65%;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
   border-radius: 50%;
   border: 2px solid #10b981;
-
   pointer-events: none;
   transition: .25s ease;
 }
-/* Dark mode */
+
 body.dark .month-day.has-session::after{
   border: 2px solid #E3C565;
-  box-shadow: 0 0 8px rgba(227,197,101,.4);
+  box-shadow: 0 0 6px rgba(227,197,101,.4);
 }
 
-/* Hover grow */
 .month-day.has-session:hover::after{
   transform: translate(-50%, -50%) scale(1.1);
 }
 
 /* =====================================
-   POPUP KALENDAR – BRAND VERSION
+   POPUP SESI DITANGGAL KALENDAR
 ===================================== */
 
 .popup-overlay {
@@ -275,9 +251,6 @@ body.dark .month-day.has-session::after{
   text-align: left;
 }
 
-
-/* LIGHT MODE */
-
 body.light .popup-overlay {
   background: rgba(242,232,213,.85);
 }
@@ -287,9 +260,13 @@ body.light .popup-card {
   color: #2E5D3A;
 }
 
-body.light .popup-session-card {
-  background: #F2E8D5;
-  color: #2E5D3A;
+body.dark .popup-overlay {
+  background: rgba(46,93,58,.85);
+}
+
+body.dark .popup-card {
+  background: #254A32;
+  color: #F2E8D5;
 }
 
 body.light .empty-session {
@@ -365,8 +342,47 @@ body.dark .close-popup-btn {
   transform: translateY(-2px);
 }
 
+
+
 /* =====================================
-   CREATE SESSION – SOLID MODERN MODAL
+   2. JOIN BUTTON SESI
+===================================== */
+
+.join-btn{
+  margin-top: 16px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+body.light .join-btn{
+  background: linear-gradient(135deg,#ff4db8,#ff0080);
+  color: white;
+  box-shadow: 0 8px 20px rgba(255,0,128,.25);
+}
+
+body.dark .join-btn{
+  background: linear-gradient(135deg,#E3C565,#caa73f);
+  color: #1f1f1f;
+  box-shadow: 0 8px 25px rgba(227,197,101,.35);
+}
+
+.join-btn:hover{
+  transform: translateY(-2px);
+  opacity: .95;
+}
+
+.join-btn:active{
+  transform: scale(.98);
+}
+
+/* =====================================
+   1. PAGE CREATE SESSION – CLEAN MODAL FIXED
 ===================================== */
 
 #createSessionSheet {
@@ -382,37 +398,44 @@ body.dark .close-popup-btn {
   justify-content: center;
 }
 
+/* Overlay */
 #createSessionOverlay {
   position: absolute;
   inset: 0;
-  background: #000;
-  opacity: .65;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(4px);
 }
 
+/* Modal Card */
 .premium-sheet {
   position: relative;
   width: 92%;
   max-width: 480px;
   max-height: 92vh;
   overflow-y: auto;
+
   border-radius: 28px;
   padding: 30px 24px 36px;
+
   z-index: 9999;
   animation: modalFade .25s ease;
 }
 
+/* Light */
 body.light .premium-sheet {
   background: #ffffff;
   color: #111;
   box-shadow: 0 30px 80px rgba(0,0,0,.18);
 }
 
+/* Dark */
 body.dark .premium-sheet {
   background: #141414;
   color: #f5f5f5;
   box-shadow: 0 30px 80px rgba(0,0,0,.7);
 }
 
+/* Title */
 .premium-sheet h2 {
   text-align: center;
   margin-bottom: 26px;
@@ -420,14 +443,32 @@ body.dark .premium-sheet {
   font-weight: 700;
 }
 
+/* Animation */
 @keyframes modalFade {
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Sections */
+/* =====================================
+   SECTIONS
+===================================== */
+
 .sheet-section {
   margin-bottom: 22px;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+/* Section Background */
+
+body.light .sheet-section {
+  background: rgba(0,0,0,.03);
+  border: 1px solid rgba(0,0,0,.05);
+}
+
+body.dark .sheet-section {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
 }
 
 /* Labels */
@@ -442,36 +483,22 @@ body.dark .premium-sheet {
 body.light .sheet-section label { color: #444; }
 body.dark .sheet-section label { color: #cfcfcf; }
 
-/* CREATE SESSION SECTION FIX */
-body.light .sheet-section {
-  background: rgba(255,255,255,0.85);
-  padding: 16px;
-  border-radius: 18px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0,0,0,0.05);
-}
-
-body.dark .sheet-section {
-  background: rgba(25,35,28,0.92);
-  padding: 16px;
-  border-radius: 18px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-/* Input */
+/* =====================================
+   INPUTS
+===================================== */
 
 .premium-sheet input,
 .premium-sheet select,
 .premium-sheet textarea {
   width: 100%;
-  padding: 15px 16px;
+  padding: 14px 16px;
   border-radius: 16px;
   font-size: 14px;
   outline: none;
-  border: 1px solid transparent;
   transition: .2s ease;
 }
 
+/* Light Input */
 body.light .premium-sheet input,
 body.light .premium-sheet select,
 body.light .premium-sheet textarea {
@@ -480,6 +507,7 @@ body.light .premium-sheet textarea {
   color: #111;
 }
 
+/* Dark Input */
 body.dark .premium-sheet input,
 body.dark .premium-sheet select,
 body.dark .premium-sheet textarea {
@@ -488,6 +516,7 @@ body.dark .premium-sheet textarea {
   color: #f5f5f5;
 }
 
+/* Focus State */
 .premium-sheet input:focus,
 .premium-sheet select:focus,
 .premium-sheet textarea:focus {
@@ -495,26 +524,52 @@ body.dark .premium-sheet textarea {
   box-shadow: 0 0 0 3px rgba(16,185,129,.15);
 }
 
-/* Submit Button */
+/* =====================================
+   SUBMIT BUTTON
+===================================== */
+
 .btn-create-session {
   width: 100%;
+  margin-top: 14px;
+
   padding: 16px;
+  border-radius: 20px;
+
   border: none;
-  border-radius: 18px;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  margin-top: 10px;
+
   transition: .2s ease;
+}
+
+/* Light */
+body.light .btn-create-session {
   background: #10b981;
   color: white;
+  box-shadow: 0 10px 25px rgba(16,185,129,.25);
+}
+
+/* Dark */
+body.dark .btn-create-session {
+  background: linear-gradient(135deg,#E3C565,#caa73f);
+  color: #1f1f1f;
+  box-shadow: 0 12px 30px rgba(227,197,101,.35);
 }
 
 .btn-create-session:hover {
   transform: translateY(-2px);
+  opacity: .95;
 }
 
-/* Member Section */
+.btn-create-session:active {
+  transform: scale(.98);
+}
+
+/* =====================================
+   MEMBER AVATAR SECTION
+===================================== */
+
 .session-members {
   display: flex;
   flex-wrap: wrap;
@@ -534,9 +589,11 @@ body.dark .premium-sheet textarea {
   height: 50px;
   border-radius: 50%;
   overflow: hidden;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   background: #eee;
 }
 
@@ -552,6 +609,7 @@ body.dark .premium-sheet textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg,#ff2f92,#ff6ec7);
@@ -561,71 +619,63 @@ body.dark .premium-sheet textarea {
   font-size: 11px;
   margin-top: 6px;
   text-align: center;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 60px;
 }
 
-.create-session-wrapper{
-  padding:20px;
-  display:flex;
-  justify-content:center;
-}
-
-.premium-create-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-
-  padding:14px 24px;
-  border-radius:999px;
-
-  font-weight:600;
-  font-size:15px;
-
-  border:none;
-  cursor:pointer;
-}
-
 /* =====================================
-   JOIN BUTTON – FIX CLEAN VERSION
+   CREATE BUTTON WRAPPER (OUTSIDE MODAL)
 ===================================== */
 
-.join-btn{
-  margin-top: 16px;
-  width: 100%;
-  padding: 14px;
-  border-radius: 16px;
-  border: none;
+.create-session-wrapper {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.premium-create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 14px 26px;
+  border-radius: 999px;
 
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
 
+  border: none;
   cursor: pointer;
   transition: .2s ease;
 }
 
-/* LIGHT MODE */
-body.light .join-btn{
-  background: linear-gradient(135deg,#ff4db8,#ff0080);
-  color: white;
-  box-shadow: 0 8px 20px rgba(255,0,128,.25);
+/* Light */
+body.light .premium-create-btn {
+  background: #ffffff;
+  color: #2E5D3A;
+  box-shadow: 0 8px 25px rgba(0,0,0,.1);
 }
 
-/* DARK MODE */
-body.dark .join-btn{
-  background: linear-gradient(135deg,#E3C565,#caa73f);
-  color: #1f1f1f;
-  box-shadow: 0 8px 25px rgba(227,197,101,.35);
+/* Dark */
+body.dark .premium-create-btn {
+  background: rgba(255,255,255,.08);
+  color: #E3C565;
+  border: 1px solid rgba(255,255,255,.1);
 }
 
-.join-btn:hover{
+.premium-create-btn:hover {
   transform: translateY(-2px);
-  opacity: .95;
 }
 
-.join-btn:active{
-  transform: scale(.98);
+
+/* =====================================
+  Z. ALL ANIMATIONS
+===================================== */
+@keyframes modalFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
