@@ -1,6 +1,6 @@
 import { auth, db } from "../firebase.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { renderAkunPage } from "./index.js";
+import { doc, getDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export async function renderProfil(){
 
@@ -14,17 +14,20 @@ export async function renderProfil(){
   }
 
   let userData = {};
+
   try{
     const snap = await getDoc(doc(db,"users",user.uid));
-    if(snap.exists()) userData = snap.data();
+    if(snap.exists()){
+      userData = snap.data();
+    }
   }catch(err){
-    console.error(err);
+    console.error("Load profile error:", err);
   }
 
   content.innerHTML = `
     <div class="akun-container">
 
-      <div class="akun-back" id="backToAkun">← Kembali</div>
+      <div class="akun-back" id="backToAccount">← Kembali</div>
       <div class="akun-title">Informasi Pribadi</div>
 
       <div class="akun-card">
@@ -71,27 +74,34 @@ export async function renderProfil(){
     </div>
   `;
 
-  document.getElementById("backToAkun").onclick = renderAkunPage;
+  // 🔙 BACK TO ACCOUNT MAIN
+  document.getElementById("backToAccount").onclick = async ()=>{
+    const module = await import("../profile.js");
+    module.renderAccountUI();
+  };
 
+  // 💾 SAVE PROFILE
   document.getElementById("saveProfileBtn").onclick = async () => {
 
-    const usernameID = document.getElementById("usernameID").value.trim();
+    const usernameID  = document.getElementById("usernameID").value.trim();
     const displayName = document.getElementById("displayName").value.trim();
-    const fullName = document.getElementById("fullName").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const birthPlace = document.getElementById("birthPlace").value.trim();
-    const birthDate = document.getElementById("birthDate").value;
-    const bio = document.getElementById("bio").value.trim();
+    const fullName    = document.getElementById("fullName").value.trim();
+    const phone       = document.getElementById("phone").value.trim();
+    const birthPlace  = document.getElementById("birthPlace").value.trim();
+    const birthDate   = document.getElementById("birthDate").value;
+    const bio         = document.getElementById("bio").value.trim();
+
+    // ===== VALIDATION =====
 
     const usernameRegex = /^[a-z0-9_]{4,20}$/;
-    if(!usernameRegex.test(usernameID)){
-      alert("UsernameID tidak valid.");
+    if(usernameID && !usernameRegex.test(usernameID)){
+      alert("UsernameID hanya huruf kecil, angka, underscore (4–20 karakter).");
       return;
     }
 
     const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
     if(birthPlace && !birthPlaceRegex.test(birthPlace)){
-      alert("Tempat lahir hanya huruf dan spasi.");
+      alert("Tempat lahir hanya boleh huruf dan spasi.");
       return;
     }
 
@@ -112,10 +122,10 @@ export async function renderProfil(){
       });
 
       alert("Profil berhasil diperbarui.");
+
     }catch(err){
-      console.error(err);
+      console.error("Update profile error:", err);
       alert("Gagal menyimpan perubahan.");
     }
   };
 }
-
