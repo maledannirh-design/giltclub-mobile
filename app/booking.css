@@ -10,7 +10,7 @@
 }
 
 /* =====================================
-   UPCOMING HERO (GLASS CLEAN)
+   UPCOMING HERO (GLASS CLEAN) = BELUM FIX, BG HILANG
 ===================================== */
 
 .my-upcoming-wrapper {
@@ -78,7 +78,7 @@ body.dark .mini-session-card {
 }
 
 /* =====================================
-   CALENDAR
+   CALENDAR = 100% OK
 ===================================== */
 
 .month-wrapper {
@@ -346,11 +346,6 @@ body.dark .premium-sheet {
   box-shadow: 0 30px 80px rgba(0,0,0,.7);
 }
 
-@keyframes modalFade {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .premium-sheet h2 {
   text-align: center;
   margin-bottom: 26px;
@@ -358,14 +353,17 @@ body.dark .premium-sheet {
   font-weight: 700;
 }
 
-/* Sections */
+@keyframes modalFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
+/* Sections */
 .sheet-section {
   margin-bottom: 22px;
 }
 
 /* Labels */
-
 .sheet-section label {
   font-size: 13px;
   font-weight: 600;
@@ -377,20 +375,22 @@ body.dark .premium-sheet {
 body.light .sheet-section label { color: #444; }
 body.dark .sheet-section label { color: #cfcfcf; }
 
-/* SECTION CARD STYLE */
-
+/* CREATE SESSION SECTION FIX */
 body.light .sheet-section {
-  background: rgba(242,232,213,0.4);
+  background: rgba(255,255,255,0.85);
   padding: 16px;
   border-radius: 18px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
 body.dark .sheet-section {
-  background: rgba(46,93,58,0.2);
+  background: rgba(25,35,28,0.92);
   padding: 16px;
   border-radius: 18px;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.05);
 }
-
 /* Input */
 
 .premium-sheet input,
@@ -429,7 +429,6 @@ body.dark .premium-sheet textarea {
 }
 
 /* Submit Button */
-
 .btn-create-session {
   width: 100%;
   padding: 16px;
@@ -449,7 +448,6 @@ body.dark .premium-sheet textarea {
 }
 
 /* Member Section */
-
 .session-members {
   display: flex;
   flex-wrap: wrap;
@@ -502,20 +500,4 @@ body.dark .premium-sheet textarea {
   max-width: 60px;
 }
 
-/* CREATE SESSION SECTION FIX */
 
-body.light .sheet-section {
-  background: rgba(255,255,255,0.85);
-  padding: 16px;
-  border-radius: 18px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0,0,0,0.05);
-}
-
-body.dark .sheet-section {
-  background: rgba(25,35,28,0.92);
-  padding: 16px;
-  border-radius: 18px;
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.05);
-}
