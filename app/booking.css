@@ -423,16 +423,18 @@ body.dark .join-btn{
 
 /* Light */
 body.light .premium-sheet {
-  background: #ffffff;
-  color: #111;
-  box-shadow: 0 30px 80px rgba(0,0,0,.18);
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 25px 70px rgba(0,0,0,.15);
 }
 
 /* Dark */
-body.dark .premium-sheet {
-  background: #141414;
-  color: #f5f5f5;
-  box-shadow: 0 30px 80px rgba(0,0,0,.7);
+body.light .premium-sheet {
+  background: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 25px 70px rgba(0,0,0,.15);
 }
 
 /* Title */
