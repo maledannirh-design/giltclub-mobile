@@ -215,6 +215,9 @@ function renderCalendarMonth() {
 /* ===============================
    CALENDAR POPUP (FINAL CLEAN)
 ================================= */
+/* ===============================
+   CALENDAR POPUP (FINAL CLEAN)
+================================= */
 async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
@@ -279,8 +282,17 @@ async function openSessionPopup(dateStr) {
         : false;
 
       const isPrivileged =
-        ["ADMIN","SUPERCOACH","host"].includes(currentUserRole) ||
+        ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
         s.hostId === currentUser?.uid;
+
+      /* ===============================
+         🔥 CEK SESI SELESAI
+      =============================== */
+      const now = new Date();
+      const sessionEnd = new Date(
+        s.date + "T" + (s.endTime || "00:00")
+      );
+      const isFinished = sessionEnd < now;
 
       // ===== SLOT RENDER =====
       let slotHtml = "";
@@ -338,9 +350,12 @@ async function openSessionPopup(dateStr) {
       html += `
         <div class="popup-session-card">
 
-          <div><strong>Tier:</strong> ${s.tier || "-"}</div>
-          <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
-          <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
+          <div class="session-meta">
+            <div><strong>Tier:</strong> ${s.tier || "-"}</div>
+            <div><strong>Jenis:</strong> ${s.sessionType || "-"}</div>
+            <div><strong>Tipe:</strong> ${s.mode || "-"}</div>
+          </div>
+
           <div><strong>Jam:</strong> ${s.startTime || "-"} - ${s.endTime || "-"}</div>
           <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
@@ -349,9 +364,19 @@ async function openSessionPopup(dateStr) {
 
           ${
             currentUser
-              ? `<button class="join-btn" data-id="${s.id}">
-                   ${alreadyJoined ? "Cancel Join" : "Gabung Sesi Ini"}
-                 </button>`
+              ? `
+              <button class="join-btn ${isFinished ? "session-finished" : ""}"
+                      data-id="${s.id}"
+                      ${isFinished ? "disabled" : ""}>
+                ${
+                  isFinished
+                    ? "Sesi Selesai"
+                    : alreadyJoined
+                      ? "Cancel Join"
+                      : "Gabung Sesi Ini"
+                }
+              </button>
+              `
               : ""
           }
 
@@ -380,9 +405,12 @@ async function openSessionPopup(dateStr) {
 
   popup.innerHTML = html;
   attachSlotInteraction(currentUserRole);
+
   // ===== JOIN BUTTON LOGIC =====
   document.querySelectorAll(".join-btn").forEach(btn=>{
     btn.onclick = async ()=>{
+      if (btn.disabled) return;
+
       if (!currentUser) {
         showToast("Login terlebih dahulu","warning");
         return;
