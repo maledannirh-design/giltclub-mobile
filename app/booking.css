@@ -36,9 +36,9 @@ body.light .my-upcoming-glass {
 }
 
 body.dark .my-upcoming-glass{
-  background: rgba(46,93,58,0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(20,30,25,0.9);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 20px 50px rgba(0,0,0,.6);
 }
 
 .my-upcoming-title {
@@ -155,6 +155,9 @@ body.dark .month-header-row button {
   transition: var(--transition);
   font-size: 14px;
 }
+.month-day{
+  overflow: hidden;
+}
 /* Pulse only dark mode */
 
 body.light .month-day {
@@ -168,8 +171,7 @@ body.dark .month-day {
 .month-day:hover {
   transform: translateY(-2px);
 }
-.month-day.has-session{
-  box-shadow: 0 0 0 2px #10b981 inset;
+
 }
 /* SABTU MINGGU TANGGAL HIJAU */
 .month-day.weekend {
@@ -225,28 +227,30 @@ body.dark .month-day {
 .month-day.has-session::after{
   content: "";
   position: absolute;
-  inset: 6px;
+
+  width: 70%;
+  height: 70%;
+
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
   border-radius: 50%;
   border: 2px solid #10b981;
+
   pointer-events: none;
   transition: .25s ease;
 }
-/* Hover effect */
-.month-day.has-session:hover::after{
-  transform: scale(1.05);
-}
-
-/* Glow dark mode */
-body.dark .month-day.has-session{
-  animation: ringPulse 2.5s infinite ease-in-out;
-}
-
+/* Dark mode */
 body.dark .month-day.has-session::after{
   border: 2px solid #E3C565;
   box-shadow: 0 0 8px rgba(227,197,101,.4);
 }
 
-
+/* Hover grow */
+.month-day.has-session:hover::after{
+  transform: translate(-50%, -50%) scale(1.1);
+}
 
 /* =====================================
    POPUP KALENDAR – BRAND VERSION
