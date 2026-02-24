@@ -242,10 +242,22 @@ body.dark .popup-card{
 }
 
 body.dark .popup-session-card{
-  background:#2E5D3A;
-  color:#F2E8D5;
+  background: linear-gradient(
+    160deg,
+    rgba(46,93,58,0.85),
+    rgba(30,60,40,0.92)
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #F2E8D5;
+  border: 1px solid rgba(255,255,255,0.08);
 }
-
+box-shadow:
+  0 10px 30px rgba(0,0,0,.5),
+  inset 0 1px 0 rgba(255,255,255,.05);
+body.dark .popup-session-card strong{
+  color: #E3C565; /* gold */
+}
 body.dark .empty-session{
   color:#F2E8D5;
 }
