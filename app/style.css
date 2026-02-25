@@ -1693,13 +1693,3 @@ html, body {
   line-height:1.4;
 }
 
-.avatar-circle{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:var(--color-highlight);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:600;
-}
