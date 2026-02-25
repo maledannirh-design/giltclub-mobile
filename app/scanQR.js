@@ -1,20 +1,23 @@
 import { db } from "./firebase.js";
-import { collection, query, where, getDocs, doc, getDoc } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-window.validateScan = async function(){
-
-  const params = new URLSearchParams(window.location.search);
-
-  const memberCode = params.get("c");
-  const issueFromQR = Number(params.get("i"));
-  const signatureFromQR = params.get("s");
+/* =====================================================
+   CORE VALIDATION ENGINE
+===================================================== */
+async function validateCore(memberCode, issueFromQR, signatureFromQR){
 
   if(!memberCode || !issueFromQR || !signatureFromQR){
     return { valid:false, reason:"Missing parameters" };
   }
 
-  // 1️⃣ Find user by memberCode
+  // 1️⃣ Cari user berdasarkan memberCode
   const q = query(
     collection(db,"users"),
     where("memberCode","==",memberCode)
@@ -28,8 +31,9 @@ window.validateScan = async function(){
 
   const userDoc = snap.docs[0];
   const uid = userDoc.id;
+  const userData = userDoc.data();
 
-  // 2️⃣ Get secure private data
+  // 2️⃣ Ambil secure data
   const secureRef = doc(db,"users",uid,"private","secure");
   const secureSnap = await getDoc(secureRef);
 
@@ -37,10 +41,12 @@ window.validateScan = async function(){
     return { valid:false, reason:"Secure data missing" };
   }
 
-  const { secretKey, issue } = secureSnap.data();
+  const secureData = secureSnap.data();
+  const secretKey = secureData.secretKey;
+  const issue = secureData.issue;
 
-  // 3️⃣ Issue mismatch → old card
-  if(issueFromQR !== issue){
+  // 3️⃣ Cek issue (anti kartu lama)
+  if(Number(issueFromQR) !== issue){
     return { valid:false, reason:"Card expired (issue mismatch)" };
   }
 
@@ -54,7 +60,7 @@ window.validateScan = async function(){
 
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const rebuiltSignature = hashArray
-    .map(b=>b.toString(16).padStart(2,"0"))
+    .map(b => b.toString(16).padStart(2,"0"))
     .join("");
 
   if(rebuiltSignature !== signatureFromQR){
@@ -63,54 +69,30 @@ window.validateScan = async function(){
 
   return {
     valid:true,
-    uid,
-    memberCode,
-    user:userDoc.data()
+    uid: uid,
+    user: userData,
+    memberCode: memberCode
   };
+}
+
+/* =====================================================
+   Untuk scan.html (mode URL)
+===================================================== */
+window.validateScan = async function(){
+
+  const params = new URLSearchParams(window.location.search);
+
+  const memberCode = params.get("c");
+  const issue = params.get("i");
+  const signature = params.get("s");
+
+  return await validateCore(memberCode, issue, signature);
 };
 
+/* =====================================================
+   Untuk Camera Mode (Admin Check-In)
+===================================================== */
 window.validateScanParams = async function(memberCode, issue, signature){
 
-  if(!memberCode || !issue || !signature){
-    return { valid:false, reason:"Parameter tidak lengkap" };
-  }
-
-  const usersSnap = await getDocs(collection(db,"users"));
-  
-  for(const docSnap of usersSnap.docs){
-
-    const user = docSnap.data();
-
-    if(user.memberCode === memberCode){
-
-      const privateRef = doc(db,"users",docSnap.id,"private","secure");
-      const privateSnap = await getDoc(privateRef);
-
-      if(!privateSnap.exists()){
-        return { valid:false, reason:"Secure data not found" };
-      }
-
-      const secure = privateSnap.data();
-
-      if(Number(issue) !== secure.issue){
-        return { valid:false, reason:"Issue mismatch" };
-      }
-
-      const raw = memberCode + issue + secure.secretKey;
-
-      const encoder = new TextEncoder();
-      const data = encoder.encode(raw);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2,"0")).join("");
-
-      if(hashHex !== signature){
-        return { valid:false, reason:"Signature mismatch" };
-      }
-
-      return { valid:true, user };
-    }
-  }
-
-  return { valid:false, reason:"Member tidak ditemukan" };
+  return await validateCore(memberCode, issue, signature);
 };
