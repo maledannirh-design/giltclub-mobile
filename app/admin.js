@@ -626,5 +626,28 @@ async function setupCheckinQR(){
     resultBox.innerHTML = "";
   };
 }
+
+window.generateMemberCode = async function(uid){
+
+  const userRef = doc(db,"users",uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    console.log("User not found");
+    return;
+  }
+
+  // 🔥 Generate kode unik
+  const year = new Date().getFullYear().toString().slice(-2);
+  const random = Math.floor(10000 + Math.random() * 90000);
+
+  const memberCode = `GC-${year}C${random}`;
+
+  await updateDoc(userRef,{
+    memberCode: memberCode
+  });
+
+  console.log("MemberCode:", memberCode);
+};
 // expose
 window.runMigration = runMigration;
