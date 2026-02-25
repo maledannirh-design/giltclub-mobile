@@ -479,6 +479,9 @@ window.exportMembersToCSV = async function(){
 let html5QrInstance = null;
 let cameraList = [];
 let currentCameraIndex = 0;
+let html5QrInstance = null;
+let cameraList = [];
+let currentCameraIndex = 0;
 
 async function setupCheckinQR(){
 
@@ -506,7 +509,6 @@ async function setupCheckinQR(){
       return;
     }
 
-    // 🔥 Cari kamera belakang dulu
     const backIndex = cameraList.findIndex(device =>
       device.label.toLowerCase().includes("back") ||
       device.label.toLowerCase().includes("environment")
@@ -532,10 +534,31 @@ async function setupCheckinQR(){
 
         try{
 
-          const url = new URL(decodedText);
-          const c = url.searchParams.get("c");
-          const i = url.searchParams.get("i");
-          const s = url.searchParams.get("s");
+          // 🔥 CLEAN TEXT
+          let cleaned = decodedText.trim().replace(/\n/g,"");
+
+          let c = null;
+          let i = null;
+          let s = null;
+
+          // 🔥 FLEXIBLE PARSING
+          if(cleaned.startsWith("http")){
+            const parsed = new URL(cleaned);
+            c = parsed.searchParams.get("c");
+            i = parsed.searchParams.get("i");
+            s = parsed.searchParams.get("s");
+          } else {
+            const params = new URLSearchParams(cleaned);
+            c = params.get("c");
+            i = params.get("i");
+            s = params.get("s");
+          }
+
+          if(!c || !i || !s){
+            resultBox.innerHTML =
+              `<div class="invalid-box">QR format tidak valid</div>`;
+            return;
+          }
 
           const res = await window.validateScanParams(c,i,s);
 
@@ -568,6 +591,7 @@ async function setupCheckinQR(){
           }
 
         }catch(err){
+          console.error("Scan error:", err);
           resultBox.innerHTML =
             `<div class="invalid-box">QR tidak valid</div>`;
         }
@@ -576,7 +600,6 @@ async function setupCheckinQR(){
     );
   }
 
-  // 🔄 SWITCH CAMERA
   if(switchBtn){
     switchBtn.onclick = async () => {
 
@@ -591,7 +614,6 @@ async function setupCheckinQR(){
     };
   }
 
-  // ❌ CLOSE
   closeBtn.onclick = async () => {
 
     if(html5QrInstance){
