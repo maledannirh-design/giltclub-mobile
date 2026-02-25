@@ -15,6 +15,9 @@ import {
 import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
 
+const BASE_SCAN_URL =
+  "https://maledannirh-design.github.io/giltclub-mobile/app/scan.html";
+
 /* =====================================================
    RENDER ADMIN PANEL
 ===================================================== */
@@ -282,45 +285,32 @@ async function handleBalanceAdjustment(){
   }
 }
 
-window.generateMemberCode = async function(uid){
+window.generateQrForAllUsers = async function(){
 
-  const userRef = doc(db,"users",uid);
-  const snap = await getDoc(userRef);
+  const usersSnap = await getDocs(collection(db,"users"));
 
-  if(!snap.exists()){
-    console.log("User not found");
+  if(usersSnap.empty){
+    console.log("No users found");
     return;
   }
 
-  const data = snap.data();
+  for(const docSnap of usersSnap.docs){
 
-  if(!data.createdAt){
-    console.log("User belum punya createdAt");
-    return;
+    const uid = docSnap.id;
+
+    try{
+
+      await generateMemberCode(uid);
+      await generateQrUrl(uid);
+
+      console.log("Generated:", uid);
+
+    }catch(err){
+      console.error("Error on user:", uid, err);
+    }
   }
 
-  const created = data.createdAt.toDate();
-
-  const dd = String(created.getDate()).padStart(2,"0");
-  const HH = String(created.getHours()).padStart(2,"0");
-  const yy = String(created.getFullYear()).slice(-2);
-  const ss = String(created.getSeconds()).padStart(2,"0");
-
-  const roleMap = {
-    MEMBER: "M",
-    ADMIN: "A",
-    SUPERCOACH: "S",
-    COACH: "C"
-  };
-
-  const roleLetter =
-    roleMap[(data.role || "MEMBER").toUpperCase()] || "M";
-
-  const memberCode = `GC-${dd}${roleLetter}${HH}-${yy}0${ss}`;
-
-  await updateDoc(userRef,{ memberCode });
-
-  console.log("MemberCode:", memberCode);
+  console.log("✅ All users processed");
 };
 
 window.generateQrUrl = async function(uid){
@@ -334,27 +324,30 @@ window.generateQrUrl = async function(uid){
     return;
   }
 
+  const userData = userSnap.data();
+
+  if(!userData.memberCode){
+    console.log("MemberCode missing");
+    return;
+  }
+
   let secureSnap = await getDoc(secureRef);
 
-  // 🔥 AUTO CREATE PRIVATE IF MISSING
+  // Auto create secure if missing
   if(!secureSnap.exists()){
 
     const secretKey = crypto.randomUUID().replace(/-/g,"");
     const issue = 1;
 
-    await setDoc(secureRef,{
-      secretKey,
-      issue
-    });
-
+    await setDoc(secureRef,{ secretKey, issue });
     secureSnap = await getDoc(secureRef);
+
     console.log("Private secure auto-created");
   }
 
-  const memberCode = userSnap.data().memberCode;
   const { secretKey, issue } = secureSnap.data();
 
-  const raw = memberCode + issue + secretKey;
+  const raw = userData.memberCode + issue + secretKey;
 
   const hashBuffer = await crypto.subtle.digest(
     "SHA-256",
@@ -366,46 +359,12 @@ window.generateQrUrl = async function(uid){
     .map(b=>b.toString(16).padStart(2,"0"))
     .join("");
 
-  const url = `https://giltclub.app/scan?c=${memberCode}&i=${issue}&s=${signature}`;
+  const finalUrl =
+    `${BASE_SCAN_URL}?c=${userData.memberCode}&i=${issue}&s=${signature}`;
 
-  await updateDoc(userRef,{ qrUrl: url });
+  await updateDoc(userRef,{ qrUrl: finalUrl });
 
-  console.log("QR URL:", url);
-};
-
-window.generateQrForAllUsers = async function(){
-
-  const usersSnap = await getDocs(collection(db,"users"));
-
-  if(usersSnap.empty){
-    console.log("No users found");
-    return;
-  }
-
-  for(const docSnap of usersSnap.docs){
-
-    const uid = docSnap.id;
-    const data = docSnap.data();
-
-    try{
-
-      // Skip kalau sudah punya qrUrl (biar aman)
-      if(data.qrUrl){
-        console.log("Skip (already exists):", uid);
-        continue;
-      }
-
-      await generateMemberCode(uid);
-      await generateQrUrl(uid);
-
-      console.log("Generated:", uid);
-
-    }catch(err){
-      console.error("Error on user:", uid, err);
-    }
-  }
-
-  console.log("✅ All users processed");
+  console.log("QR URL:", finalUrl);
 };
 
 
