@@ -71,17 +71,21 @@ export async function createBooking({ userId, scheduleId }) {
     }
 
     // 🔐 PRIVACY CHECK
-    const showName = userData.privacy?.showNameInBooking !== false;
+const showName =
+  userData.privacy &&
+  userData.privacy.showNameInBooking === true;
 
-    const publicName =
-      userData.username ||
-      userData.fullName ||
-      "Member";
+let publicName = "Member";
 
-    const displayName = showName ? publicName : "Anonymous";
-    const avatarInitial = showName
-      ? publicName.charAt(0).toUpperCase()
-      : "A";
+if (typeof userData.username === "string" && userData.username.trim() !== "") {
+  publicName = userData.username.trim();
+}
+
+const displayName = showName ? publicName : "Anonymous";
+
+const avatarInitial = showName
+  ? publicName.charAt(0).toUpperCase()
+  : "A";
 
     // 3️⃣ DUPLICATE GUARD
     const duplicateQuery = query(
