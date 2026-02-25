@@ -329,11 +329,26 @@ window.generateQrUrl = async function(uid){
   const secureRef = doc(db,"users",uid,"private","secure");
 
   const userSnap = await getDoc(userRef);
-  const secureSnap = await getDoc(secureRef);
-
-  if(!userSnap.exists() || !secureSnap.exists()){
-    console.log("Missing data");
+  if(!userSnap.exists()){
+    console.log("User not found");
     return;
+  }
+
+  let secureSnap = await getDoc(secureRef);
+
+  // 🔥 AUTO CREATE PRIVATE IF MISSING
+  if(!secureSnap.exists()){
+
+    const secretKey = crypto.randomUUID().replace(/-/g,"");
+    const issue = 1;
+
+    await setDoc(secureRef,{
+      secretKey,
+      issue
+    });
+
+    secureSnap = await getDoc(secureRef);
+    console.log("Private secure auto-created");
   }
 
   const memberCode = userSnap.data().memberCode;
