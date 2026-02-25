@@ -630,22 +630,40 @@ async function setupCheckinQR(){
 window.generateMemberCode = async function(uid){
 
   const userRef = doc(db,"users",uid);
-  const userSnap = await getDoc(userRef);
+  const snap = await getDoc(userRef);
 
-  if(!userSnap.exists()){
+  if(!snap.exists()){
     console.log("User not found");
     return;
   }
 
-  // 🔥 Generate kode unik
-  const year = new Date().getFullYear().toString().slice(-2);
-  const random = Math.floor(10000 + Math.random() * 90000);
+  const data = snap.data();
 
-  const memberCode = `GC-${year}C${random}`;
+  if(!data.createdAt){
+    console.log("User belum punya createdAt");
+    return;
+  }
 
-  await updateDoc(userRef,{
-    memberCode: memberCode
-  });
+  const created = data.createdAt.toDate();
+
+  const dd = String(created.getDate()).padStart(2,"0");
+  const HH = String(created.getHours()).padStart(2,"0");
+  const yy = String(created.getFullYear()).slice(-2);
+  const ss = String(created.getSeconds()).padStart(2,"0");
+
+  const roleMap = {
+    MEMBER: "M",
+    ADMIN: "A",
+    SUPERCOACH: "S",
+    COACH: "C"
+  };
+
+  const roleLetter =
+    roleMap[(data.role || "MEMBER").toUpperCase()] || "M";
+
+  const memberCode = `GC-${dd}${roleLetter}${HH}-${yy}0${ss}`;
+
+  await updateDoc(userRef,{ memberCode });
 
   console.log("MemberCode:", memberCode);
 };
