@@ -8,6 +8,7 @@ export async function renderProfil(){
   if(!content) return;
 
   const user = auth.currentUser;
+
   if(!user){
     content.innerHTML = "<p>User tidak ditemukan.</p>";
     return;
@@ -33,16 +34,12 @@ export async function renderProfil(){
       <div class="akun-card">
 
         <input id="username"
-  placeholder="Nama Publik"
-  value="${userData.username || ""}">
+          placeholder="Nama Publik"
+          value="${userData.username || ""}">
 
-        <input id="displayName"
-          placeholder="Display Name"
-          value="${userData.displayName || ""}">
-
-        <input id="fullName"
+        <input id="name"
           placeholder="Nama Lengkap"
-          value="${userData.fullName || ""}">
+          value="${userData.name || ""}">
 
         <input id="email"
           value="${userData.email || user.email || ""}"
@@ -57,9 +54,12 @@ export async function renderProfil(){
           placeholder="Tempat Lahir"
           value="${userData.birthPlace || ""}">
 
-        <input type="date"
-          id="birthDate"
-          value="${userData.birthDate || ""}">
+        <div class="akun-field-group">
+  <label class="akun-label">Tanggal Lahir</label>
+  <input type="date"
+    id="birthDate"
+    value="${userData.birthDate || ""}">
+</div>
 
         <textarea id="bio"
           placeholder="Bio (maks 200 karakter)"
@@ -74,70 +74,67 @@ export async function renderProfil(){
     </div>
   `;
 
-  // 🔙 BACK TO ACCOUNT MAIN
+  // BACK BUTTON
   document.getElementById("backToAccount").onclick = async ()=>{
     const module = await import("../profile.js");
     module.renderAccountUI();
   };
 
-  // 💾 SAVE PROFILE
- document.getElementById("saveProfileBtn").onclick = async () => {
+  // SAVE PROFILE
+  document.getElementById("saveProfileBtn").onclick = async () => {
 
-  const username   = document.getElementById("username").value.trim();
-  const name       = document.getElementById("name").value.trim();
-  const phone      = document.getElementById("phone").value.trim();
-  const birthPlace = document.getElementById("birthPlace").value.trim();
-  const birthDate  = document.getElementById("birthDate").value;
-  const bio        = document.getElementById("bio").value.trim();
+    const username   = document.getElementById("username").value.trim();
+    const name       = document.getElementById("name").value.trim();
+    const phone      = document.getElementById("phone").value.trim();
+    const birthPlace = document.getElementById("birthPlace").value.trim();
+    const birthDate  = document.getElementById("birthDate").value;
+    const bio        = document.getElementById("bio").value.trim();
 
-  // ===== VALIDATION =====
+    // VALIDATION
 
-  // Username boleh huruf, angka, titik, spasi
-  const usernameRegex = /^[A-Za-z0-9.\s]{3,30}$/;
-  if(!usernameRegex.test(username)){
-    alert("Nama publik hanya huruf, angka, titik, dan spasi (3–30 karakter).");
-    return;
-  }
+    const usernameRegex = /^[A-Za-z0-9.\s]{3,30}$/;
+    if(!usernameRegex.test(username)){
+      alert("Nama publik hanya huruf, angka, titik, dan spasi (3–30 karakter).");
+      return;
+    }
 
-  if(!name || name.length < 3){
-    alert("Nama lengkap minimal 3 karakter.");
-    return;
-  }
+    if(!name || name.length < 3){
+      alert("Nama lengkap minimal 3 karakter.");
+      return;
+    }
 
-  const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
-  if(birthPlace && !birthPlaceRegex.test(birthPlace)){
-    alert("Tempat lahir hanya boleh huruf dan spasi.");
-    return;
-  }
+    const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
+    if(birthPlace && !birthPlaceRegex.test(birthPlace)){
+      alert("Tempat lahir hanya boleh huruf dan spasi.");
+      return;
+    }
 
-  if(bio.length > 200){
-    alert("Bio maksimal 200 karakter.");
-    return;
-  }
+    if(bio.length > 200){
+      alert("Bio maksimal 200 karakter.");
+      return;
+    }
 
-  try {
+    try{
 
-    await updateDoc(
-      doc(db, "users", user.uid),
-      {
+      await updateDoc(doc(db, "users", user.uid), {
         username: username,
         name: name,
         phone: phone,
         birthPlace: birthPlace,
         birthDate: birthDate,
         bio: bio
-      }
-    );
+      });
 
-    alert("Profil berhasil diperbarui.");
+      alert("Profil berhasil diperbarui.");
 
-    // Refresh tampilan akun supaya langsung berubah
-    const module = await import("../profile.js");
-    module.renderAccountUI();
+      const module = await import("../profile.js");
+      module.renderAccountUI();
 
-  } catch (err) {
-    console.error("Update profile error:", err);
-    alert("Gagal menyimpan perubahan.");
-  }
+    }catch(err){
+      console.error("Update profile error:", err);
+      alert("Gagal menyimpan perubahan.");
+    }
 
-};
+  };
+
+}
