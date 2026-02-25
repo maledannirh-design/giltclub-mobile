@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Scan Result</title>
+</head>
+<body>
+
+  <div id="scanResult">Validating...</div>
+
+  <script type="module">
+    import "./scanQR.js";
+
+    const result = await window.validateScan();
+
+    const el = document.getElementById("scanResult");
+
+    if(result.valid){
+      el.innerHTML = `
+        <h2>✅ VALID MEMBER</h2>
+        <p>${result.user.username}</p>
+      `;
+    }else{
+      el.innerHTML = `
+        <h2>❌ INVALID QR</h2>
+        <p>${result.reason}</p>
+      `;
+    }
+  </script>
+
+</body>
+</html>
