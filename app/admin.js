@@ -6,6 +6,7 @@ import {
   getDocs,
   getDoc,
   doc,
+  setDoc,
   runTransaction,
   updateDoc,
   serverTimestamp
@@ -279,6 +280,84 @@ async function handleBalanceAdjustment(){
   } catch(err){
     alert(err.message || "Gagal adjustment");
   }
+}
+
+async function generateMemberCode(uid){
+
+  const userRef = doc(db,"users",uid);
+  const snap = await getDoc(userRef);
+
+  if(!snap.exists()){
+    console.log("User not found");
+    return;
+  }
+
+  const data = snap.data();
+
+  if(!data.createdAt){
+    console.log("User belum punya createdAt");
+    return;
+  }
+
+  const created = data.createdAt.toDate();
+
+  const dd = String(created.getDate()).padStart(2,"0");
+  const HH = String(created.getHours()).padStart(2,"0");
+  const yy = String(created.getFullYear()).slice(-2);
+  const ss = String(created.getSeconds()).padStart(2,"0");
+
+  const roleMap = {
+    MEMBER: "M",
+    ADMIN: "A",
+    SUPERCOACH: "S",
+    COACH: "C"
+  };
+
+  const roleLetter =
+    roleMap[(data.role || "MEMBER").toUpperCase()] || "M";
+
+  const memberCode = `GC-${dd}${roleLetter}${HH}-${yy}0${ss}`;
+
+  await updateDoc(userRef,{ memberCode });
+
+  console.log("MemberCode:", memberCode);
+}
+
+async function generateQrUrl(uid){
+
+  const userRef = doc(db,"users",uid);
+  const secureRef = doc(db,"users",uid,"private","secure");
+
+  const userSnap = await getDoc(userRef);
+  const secureSnap = await getDoc(secureRef);
+
+  if(!userSnap.exists() || !secureSnap.exists()){
+    console.log("Missing data");
+    return;
+  }
+
+  const memberCode = userSnap.data().memberCode;
+  const { secretKey, issue } = secureSnap.data();
+
+  const raw = memberCode + issue + secretKey;
+
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(raw)
+  );
+
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const signature = hashArray
+    .map(b=>b.toString(16).padStart(2,"0"))
+    .join("");
+
+  const url = `https://giltclub.app/scan?c=${memberCode}&i=${issue}&s=${signature}`;
+
+  await updateDoc(userRef,{
+    qrUrl: url
+  });
+
+  console.log("QR URL:", url);
 }
 
 // expose
