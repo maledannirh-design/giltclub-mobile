@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Scan Member</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: #fff;
+    }
+
+    #reader {
+      width: 300px;
+      margin: 20px auto;
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .valid {
+      background: #0f5132;
+      color: #d1e7dd;
+    }
+
+    .invalid {
+      background: #842029;
+      color: #f8d7da;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Scan Member QR</h2>
+  <div id="reader"></div>
+  <div id="result"></div>
+
+  <script type="module">
+    import "./scanQR.js";
+
+    const resultBox = document.getElementById("result");
+
+    function onScanSuccess(decodedText) {
+
+      html5QrcodeScanner.clear();
+
+      try {
+
+        const url = new URL(decodedText);
+        const c = url.searchParams.get("c");
+        const i = url.searchParams.get("i");
+        const s = url.searchParams.get("s");
+
+        window.validateScanParams(c, i, s)
+          .then(res => {
+
+            if(res.valid){
+              resultBox.innerHTML =
+                `<div class="result-box valid">
+                   ✅ VALID MEMBER<br>
+                   ${res.user.username}
+                 </div>`;
+            }else{
+              resultBox.innerHTML =
+                `<div class="result-box invalid">
+                   ❌ INVALID QR<br>
+                   ${res.reason}
+                 </div>`;
+            }
+
+          });
+
+      } catch (err) {
+        resultBox.innerHTML =
+          `<div class="result-box invalid">
+             ❌ QR tidak valid
+           </div>`;
+      }
+    }
+
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: 250 }
+    );
+
+    html5QrcodeScanner.render(onScanSuccess);
+
+  </script>
+
+</body>
+</html>
