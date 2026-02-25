@@ -475,12 +475,15 @@ window.exportMembersToCSV = async function(){
 };
 
 let html5QrInstance = null;
+let cameraList = [];
+let currentCameraIndex = 0;
 
 async function setupCheckinQR(){
 
   const openBtn = document.getElementById("openCheckinQR");
   const modal = document.getElementById("checkinModal");
   const closeBtn = document.getElementById("closeCheckin");
+  const switchBtn = document.getElementById("switchCameraBtn");
   const resultBox = document.getElementById("checkinResult");
 
   if(!openBtn) return;
@@ -494,97 +497,106 @@ async function setupCheckinQR(){
 
     html5QrInstance = new Html5Qrcode("reader");
 
-    const devices = await Html5Qrcode.getCameras();
+    cameraList = await Html5Qrcode.getCameras();
 
-    if(!devices || !devices.length){
+    if(!cameraList || !cameraList.length){
       alert("Camera tidak ditemukan");
       return;
     }
 
-    // 🔥 PRIORITAS KAMERA BELAKANG
-    let selectedCamera = devices.find(device =>
+    // 🔥 Cari kamera belakang dulu
+    const backIndex = cameraList.findIndex(device =>
       device.label.toLowerCase().includes("back") ||
       device.label.toLowerCase().includes("environment")
     );
 
-    // Kalau tidak ketemu, pakai kamera terakhir
-    if(!selectedCamera){
-      selectedCamera = devices[devices.length - 1];
-    }
+    currentCameraIndex = backIndex >= 0 ? backIndex : cameraList.length - 1;
 
-    try {
-
-      await html5QrInstance.start(
-        selectedCamera.id,
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        async (decodedText) => {
-
-          await html5QrInstance.stop();
-
-          try {
-
-            const url = new URL(decodedText);
-            const c = url.searchParams.get("c");
-            const i = url.searchParams.get("i");
-            const s = url.searchParams.get("s");
-
-            const res = await window.validateScanParams(c,i,s);
-
-            if(res.valid){
-
-              const userRef = doc(db,"users",res.uid);
-
-              await updateDoc(userRef,{
-                attendanceCount: (res.user.attendanceCount || 0) + 1,
-                gPoint: (res.user.gPoint || 0) + 10
-              });
-
-              resultBox.innerHTML = `
-                <div class="valid-box">
-                  ✅ VALID<br>
-                  ${res.user.username}<br>
-                  Attendance +1<br>
-                  GPoint +10
-                </div>
-              `;
-
-            } else {
-
-              resultBox.innerHTML = `
-                <div class="invalid-box">
-                  ❌ INVALID<br>
-                  ${res.reason}
-                </div>
-              `;
-            }
-
-          } catch(err) {
-
-            resultBox.innerHTML =
-              `<div class="invalid-box">QR tidak valid</div>`;
-          }
-
-        }
-      );
-
-    } catch(error) {
-
-      alert("Gagal mengakses kamera");
-      console.error(error);
-    }
-
+    await startCamera();
   };
 
+  async function startCamera(){
+
+    if(!cameraList.length) return;
+
+    const cameraId = cameraList[currentCameraIndex].id;
+
+    await html5QrInstance.start(
+      cameraId,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      async (decodedText) => {
+
+        await html5QrInstance.stop();
+
+        try{
+
+          const url = new URL(decodedText);
+          const c = url.searchParams.get("c");
+          const i = url.searchParams.get("i");
+          const s = url.searchParams.get("s");
+
+          const res = await window.validateScanParams(c,i,s);
+
+          if(res.valid){
+
+            const userRef = doc(db,"users",res.uid);
+
+            await updateDoc(userRef,{
+              attendanceCount: (res.user.attendanceCount || 0) + 1,
+              gPoint: (res.user.gPoint || 0) + 10
+            });
+
+            resultBox.innerHTML = `
+              <div class="valid-box">
+                ✅ VALID<br>
+                ${res.user.username}<br>
+                Attendance +1<br>
+                GPoint +10
+              </div>
+            `;
+
+          } else {
+
+            resultBox.innerHTML = `
+              <div class="invalid-box">
+                ❌ INVALID<br>
+                ${res.reason}
+              </div>
+            `;
+          }
+
+        }catch(err){
+          resultBox.innerHTML =
+            `<div class="invalid-box">QR tidak valid</div>`;
+        }
+
+      }
+    );
+  }
+
+  // 🔄 SWITCH CAMERA
+  if(switchBtn){
+    switchBtn.onclick = async () => {
+
+      if(!html5QrInstance || !cameraList.length) return;
+
+      await html5QrInstance.stop();
+
+      currentCameraIndex =
+        (currentCameraIndex + 1) % cameraList.length;
+
+      await startCamera();
+    };
+  }
+
+  // ❌ CLOSE
   closeBtn.onclick = async () => {
 
     if(html5QrInstance){
-      try {
+      try{
         await html5QrInstance.stop();
         await html5QrInstance.clear();
-      } catch(e){}
+      }catch(e){}
     }
 
     modal.classList.add("hidden");
