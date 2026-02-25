@@ -36,10 +36,8 @@ function loadQrLibrary(){
   });
 }
 
-
-
 /* =====================================================
-   RENDER ADMIN PANEL
+   RENDER ADMIN PANEL (FIXED VERSION)
 ===================================================== */
 export async function renderAdmin(){
 
@@ -64,69 +62,86 @@ export async function renderAdmin(){
 
   let html = `
     <div class="admin-container">
-
       <h2>Pending Top Up</h2>
   `;
 
+  // ==============================
+  // PENDING TOPUP SECTION
+  // ==============================
+
   if(snap.empty){
-    html += `<div style="opacity:.6;margin-bottom:20px;">
-      Tidak ada top up pending
-    </div>`;
-  }
-
-  for(const docSnap of snap.docs){
-
-    const d = docSnap.data();
-
-    const userSnap = await getDoc(doc(db,"users", d.userId));
-    const username = userSnap.exists()
-      ? userSnap.data().username || "User"
-      : "User";
 
     html += `
-      <div class="admin-trx">
-        <div>
-          <div>${username}</div>
-          <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
-        </div>
-        <div>
-          <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
-            Approve
-          </button>
-          <button style="margin-left:6px;"
-            onclick="rejectTopup('${docSnap.id}', this)">
-            Reject
-          </button>
-        </div>
+      <div style="opacity:.6;margin-bottom:20px;">
+        Tidak ada top up pending
       </div>
-      <button id="openCheckinQR" class="admin-btn">
-  Check-In QR
-</button>
-
-<div id="checkinModal" class="checkin-modal hidden">
-  <div class="checkin-card">
-    <h3>Scan Member</h3>
-    <div id="reader" style="width:280px;margin:auto;"></div>
-    <div id="checkinResult"></div>
-    <button id="closeCheckin">Tutup</button>
-  </div>
-</div>
     `;
+
+  } else {
+
+    for(const docSnap of snap.docs){
+
+      const d = docSnap.data();
+
+      const userSnap = await getDoc(doc(db,"users", d.userId));
+      const username = userSnap.exists()
+        ? userSnap.data().username || "User"
+        : "User";
+
+      html += `
+        <div class="admin-trx">
+          <div>
+            <div>${username}</div>
+            <div>Rp ${d.amount.toLocaleString("id-ID")}</div>
+          </div>
+          <div>
+            <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
+              Approve
+            </button>
+            <button style="margin-left:6px;"
+              onclick="rejectTopup('${docSnap.id}', this)">
+              Reject
+            </button>
+          </div>
+        </div>
+      `;
+    }
   }
 
-  // 🔥 CONTAINER ADJUSTMENT
+  // ==============================
+  // CHECK-IN SECTION (SEPARATE)
+  // ==============================
+
   html += `
-      <div id="adminBalanceAdjustment" style="margin-top:40px;"></div>
+    <hr style="margin:30px 0;opacity:.15;">
+
+    <button id="openCheckinQR" class="admin-btn">
+      Check-In QR
+    </button>
+
+    <div id="checkinModal" class="checkin-modal hidden">
+      <div class="checkin-card">
+        <h3>Scan Member</h3>
+        <div id="reader" style="width:280px;margin:auto;"></div>
+        <div id="checkinResult"></div>
+        <button id="closeCheckin">Tutup</button>
+      </div>
     </div>
+
+    <div id="adminBalanceAdjustment" style="margin-top:40px;"></div>
   `;
+
+  html += `</div>`;
 
   content.innerHTML = html;
 
-  // 🔥 WAJIB PANGGIL
+  // ==============================
+  // INIT AFTER RENDER
+  // ==============================
+
   await renderBalanceAdjustmentPanel();
   setupCheckinQR();
 }
-
 /* =====================================================
    APPROVE TOP UP
 ===================================================== */
