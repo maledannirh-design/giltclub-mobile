@@ -37,9 +37,9 @@ export async function renderProfil(){
           placeholder="Nama Publik"
           value="${userData.username || ""}">
 
-        <input id="name"
-          placeholder="Nama Lengkap"
-          value="${userData.name || ""}">
+        <input id="fullName"
+       placeholder="Nama Lengkap"
+       value="${userData.fullName || ""}">
 
         <input id="email"
           value="${userData.email || user.email || ""}"
@@ -84,7 +84,7 @@ export async function renderProfil(){
   document.getElementById("saveProfileBtn").onclick = async () => {
 
     const username   = document.getElementById("username").value.trim();
-    const name       = document.getElementById("name").value.trim();
+    const fullName = document.getElementById("fullName").value.trim();
     const phone      = document.getElementById("phone").value.trim();
     const birthPlace = document.getElementById("birthPlace").value.trim();
     const birthDate  = document.getElementById("birthDate").value;
@@ -98,10 +98,10 @@ export async function renderProfil(){
       return;
     }
 
-    if(!name || name.length < 3){
-      alert("Nama lengkap minimal 3 karakter.");
-      return;
-    }
+    if(!fullName || fullName.trim().length < 3){
+  alert("Nama lengkap minimal 3 karakter.");
+  return;
+}
 
     const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
     if(birthPlace && !birthPlaceRegex.test(birthPlace)){
@@ -118,7 +118,7 @@ export async function renderProfil(){
 
       await updateDoc(doc(db, "users", user.uid), {
         username: username,
-        name: name,
+        fullName: fullName,
         phone: phone,
         birthPlace: birthPlace,
         birthDate: birthDate,
