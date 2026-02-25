@@ -53,6 +53,12 @@ export async function renderPrivasi(){
             Tampilkan Dashboard Skill
           </label>
         </div>
+        
+        <div class="akun-checkbox-row">
+  <input type="checkbox" id="showNameInBooking"
+    ${privacy.showNameInBooking !== false ? "checked" : ""}>
+  <label for="showNameInBooking">Tampilkan nama saat booking sesi</label>
+</div>
 
         <div style="margin-top:12px;">
           <label style="font-size:13px;color:var(--color-text-muted);">
@@ -92,26 +98,39 @@ export async function renderPrivasi(){
   };
 
   // 💾 SAVE PRIVACY
-  document.getElementById("savePrivacyBtn").onclick = async () => {
+ document.getElementById("savePrivacyBtn").onclick = async () => {
 
-    const showOnlineStatus   = document.getElementById("showOnlineStatus").checked;
-    const showSkillDashboard = document.getElementById("showSkillDashboard").checked;
-    const chatPermission     = document.getElementById("chatPermission").value;
+  const showOnlineStatus =
+    document.getElementById("showOnlineStatus").checked;
 
-    try{
-      await updateDoc(doc(db,"users",user.uid),{
+  const showSkillDashboard =
+    document.getElementById("showSkillDashboard").checked;
+
+  const showNameInBooking =
+    document.getElementById("showNameInBooking").checked;
+
+  const chatPermission =
+    document.getElementById("chatPermission").value;
+
+  try{
+
+    await updateDoc(
+      doc(db,"users",user.uid),
+      {
         privacy:{
           showOnlineStatus,
           showSkillDashboard,
+          showNameInBooking,
           chatPermission
         }
-      });
+      }
+    );
 
-      alert("Pengaturan privasi diperbarui.");
+    alert("Pengaturan privasi diperbarui.");
 
-    }catch(err){
-      console.error("Update privacy error:", err);
-      alert("Gagal menyimpan perubahan.");
-    }
-  };
-}
+  }catch(err){
+    console.error("Update privacy error:", err);
+    alert("Gagal menyimpan perubahan.");
+  }
+
+};
