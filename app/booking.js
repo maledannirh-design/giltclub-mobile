@@ -1196,7 +1196,6 @@ async function openEditSessionSheet(scheduleId){
 
   await openCreateSessionSheet();
 
-  // Delay kecil supaya DOM sudah render
   setTimeout(()=>{
 
     document.getElementById("tier").value = s.tier || "Newbie";
@@ -1223,6 +1222,41 @@ async function openEditSessionSheet(scheduleId){
 
       try{
 
+        const newMaxPlayers = Number(document.getElementById("maxPlayers").value);
+
+        if(!newMaxPlayers || newMaxPlayers <= 0){
+          showToast("Maksimal pemain tidak valid","error");
+          return;
+        }
+
+        // 🔥 Hitung booking aktif
+        const bookingSnap = await getDocs(
+          query(
+            collection(db,"bookings"),
+            where("scheduleId","==",scheduleId),
+            where("status","==","active")
+          )
+        );
+
+        const activeBookings = bookingSnap.size;
+
+        // 🔥 Hitung locked slot
+        const currentSnap = await getDoc(scheduleRef);
+        const currentData = currentSnap.data();
+        const lockedCount = (currentData.lockedSlots || []).length;
+
+        const totalUsed = activeBookings + lockedCount;
+
+        if(newMaxPlayers < totalUsed){
+          showToast(
+            `Tidak bisa mengurangi maksimal pemain. Sudah terisi ${totalUsed} slot.`,
+            "error"
+          );
+          return;
+        }
+
+        const newSlots = newMaxPlayers - totalUsed;
+
         await updateDoc(scheduleRef,{
 
           tier: document.getElementById("tier").value,
@@ -1233,7 +1267,9 @@ async function openEditSessionSheet(scheduleId){
           startTime: document.getElementById("startTime").value,
           endTime: document.getElementById("endTime").value,
 
-          maxPlayers: Number(document.getElementById("maxPlayers").value),
+          maxPlayers: newMaxPlayers,
+          slots: newSlots,   // 🔥 sinkron ulang
+
           court: document.getElementById("court").value.trim(),
 
           pricePerHour: Number(document.getElementById("ratePerHour").value),
@@ -1252,6 +1288,7 @@ async function openEditSessionSheet(scheduleId){
         renderBooking();
 
       }catch(err){
+        console.error(err);
         showToast("Gagal update session","error");
       }
 
