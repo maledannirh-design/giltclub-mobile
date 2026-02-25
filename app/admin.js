@@ -368,5 +368,63 @@ window.generateQrUrl = async function(uid){
 };
 
 
+window.exportMembersToCSV = async function(){
+
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  if(usersSnap.empty){
+    alert("Tidak ada data user");
+    return;
+  }
+
+  let rows = [];
+
+  // HEADER
+  rows.push([
+    "UID",
+    "Username",
+    "Full Name",
+    "Role",
+    "MemberCode",
+    "QR URL",
+    "Verified",
+    "Wallet Balance"
+  ]);
+
+  usersSnap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    rows.push([
+      docSnap.id,
+      d.username || "",
+      d.fullName || "",
+      d.role || "",
+      d.memberCode || "",
+      d.qrUrl || "",
+      d.verified ? "YES" : "NO",
+      d.walletBalance || 0
+    ]);
+  });
+
+  // Convert ke CSV string
+  const csvContent = rows
+    .map(row => row.map(value => `"${value}"`).join(","))
+    .join("\n");
+
+  // Buat file download
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "giltclub_members.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  console.log("✅ Export selesai");
+};
+
 // expose
 window.runMigration = runMigration;
