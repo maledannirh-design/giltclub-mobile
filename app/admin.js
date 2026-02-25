@@ -14,6 +14,7 @@ import {
 
 import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
+import "https://unpkg.com/html5-qrcode";
 
 const BASE_SCAN_URL =
   "https://maledannirh-design.github.io/giltclub-mobile/app/scan.html";
@@ -79,6 +80,18 @@ export async function renderAdmin(){
           </button>
         </div>
       </div>
+      <button id="openCheckinQR" class="admin-btn">
+  Check-In QR
+</button>
+
+<div id="checkinModal" class="checkin-modal hidden">
+  <div class="checkin-card">
+    <h3>Scan Member</h3>
+    <div id="reader" style="width:280px;margin:auto;"></div>
+    <div id="checkinResult"></div>
+    <button id="closeCheckin">Tutup</button>
+  </div>
+</div>
     `;
   }
 
@@ -92,6 +105,7 @@ export async function renderAdmin(){
 
   // 🔥 WAJIB PANGGIL
   await renderBalanceAdjustmentPanel();
+  setupCheckinQR();
 }
 
 /* =====================================================
@@ -426,5 +440,98 @@ window.exportMembersToCSV = async function(){
   console.log("✅ Export selesai");
 };
 
+
+let html5QrInstance = null;
+
+function setupCheckinQR(){
+
+  const openBtn = document.getElementById("openCheckinQR");
+  const modal = document.getElementById("checkinModal");
+  const closeBtn = document.getElementById("closeCheckin");
+  const resultBox = document.getElementById("checkinResult");
+
+  if(!openBtn) return;
+
+  openBtn.onclick = () => {
+
+    modal.classList.remove("hidden");
+
+    html5QrInstance = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+
+      if(devices && devices.length){
+
+        html5QrInstance.start(
+          devices[0].id,
+          { fps: 10, qrbox: 250 },
+          async (decodedText) => {
+
+            html5QrInstance.stop();
+
+            try{
+
+              const url = new URL(decodedText);
+              const c = url.searchParams.get("c");
+              const i = url.searchParams.get("i");
+              const s = url.searchParams.get("s");
+
+              const res = await validateScanParams(c,i,s);
+
+              if(res.valid){
+
+                await updateDoc(
+                  doc(db,"users",res.user.uid),
+                  {
+                    attendanceCount: (res.user.attendanceCount || 0) + 1,
+                    gPoint: (res.user.gPoint || 0) + 10
+                  }
+                );
+
+                resultBox.innerHTML = `
+                  <div class="valid-box">
+                    ✅ VALID<br>
+                    ${res.user.username}<br>
+                    Attendance +1<br>
+                    GPoint +10
+                  </div>
+                `;
+
+              } else {
+
+                resultBox.innerHTML = `
+                  <div class="invalid-box">
+                    ❌ INVALID<br>
+                    ${res.reason}
+                  </div>
+                `;
+              }
+
+            }catch(err){
+
+              resultBox.innerHTML =
+                `<div class="invalid-box">QR tidak valid</div>`;
+            }
+
+          }
+        );
+
+      }
+
+    });
+
+  };
+
+  closeBtn.onclick = async () => {
+
+    if(html5QrInstance){
+      await html5QrInstance.stop();
+      html5QrInstance.clear();
+    }
+
+    modal.classList.add("hidden");
+    resultBox.innerHTML = "";
+  };
+}
 // expose
 window.runMigration = runMigration;
