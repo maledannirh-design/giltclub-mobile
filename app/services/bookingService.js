@@ -34,7 +34,7 @@ function calculateSessionPrice(scheduleData){
 
 
 /* =====================================================
-   CREATE BOOKING (PER JAM - CEIL VERSION)
+   CREATE BOOKING (ANONYM SUPPORT VERSION)
 ===================================================== */
 export async function createBooking({ userId, scheduleId }) {
 
@@ -45,12 +45,11 @@ export async function createBooking({ userId, scheduleId }) {
 
   await runTransaction(db, async (transaction) => {
 
-    // 1️⃣ Get Schedule
+    // 1️⃣ GET SCHEDULE
     const scheduleSnap = await transaction.get(scheduleRef);
     if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
     const scheduleData = scheduleSnap.data();
-
     const availableSlots = scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
 
     if (availableSlots <= 0) {
@@ -60,7 +59,7 @@ export async function createBooking({ userId, scheduleId }) {
     // 🔥 HITUNG HARGA FINAL
     const price = calculateSessionPrice(scheduleData);
 
-    // 2️⃣ Get User
+    // 2️⃣ GET USER
     const userSnap = await transaction.get(userRef);
     if (!userSnap.exists()) throw new Error("User not found");
 
@@ -71,7 +70,20 @@ export async function createBooking({ userId, scheduleId }) {
       throw new Error("Saldo tidak cukup");
     }
 
-    // 3️⃣ Duplicate Guard
+    // 🔐 PRIVACY CHECK
+    const showName = userData.privacy?.showNameInBooking !== false;
+
+    const publicName =
+      userData.username ||
+      userData.fullName ||
+      "Member";
+
+    const displayName = showName ? publicName : "Anonymous";
+    const avatarInitial = showName
+      ? publicName.charAt(0).toUpperCase()
+      : "A";
+
+    // 3️⃣ DUPLICATE GUARD
     const duplicateQuery = query(
       bookingsCol,
       where("userId", "==", userId),
@@ -84,30 +96,33 @@ export async function createBooking({ userId, scheduleId }) {
       throw new Error("Sudah booking sesi ini");
     }
 
-    // 4️⃣ Create Booking
+    // 4️⃣ CREATE BOOKING
     const bookingRef = doc(bookingsCol);
 
     transaction.set(bookingRef, {
       userId,
       scheduleId,
-      price, // 🔥 simpan harga final
+      price,
+      displayName,
+      avatarInitial,
+      isAnonymous: !showName,
       status: "active",
       createdAt: serverTimestamp()
     });
 
-    // 5️⃣ Reduce Slot
+    // 5️⃣ REDUCE SLOT
     transaction.update(scheduleRef, {
       slots: availableSlots - 1
     });
 
-    // 6️⃣ Deduct Wallet
+    // 6️⃣ DEDUCT WALLET
     const newBalance = currentBalance - price;
 
     transaction.update(userRef, {
       walletBalance: newBalance
     });
 
-    // 7️⃣ Ledger Entry
+    // 7️⃣ LEDGER ENTRY
     const ledgerRef = doc(ledgerCol);
 
     transaction.set(ledgerRef, {
@@ -123,7 +138,6 @@ export async function createBooking({ userId, scheduleId }) {
 
   return { success: true };
 }
-
 
 /* =====================================================
    CANCEL BOOKING (FULL REFUND SIMPLE)
@@ -157,20 +171,20 @@ export async function cancelBooking({ bookingId }) {
 
     const price = bookingData.price || 0;
 
-    // 1️⃣ Update Booking
+    // 1️⃣ UPDATE BOOKING
     transaction.update(bookingRef, {
       status: "cancelled",
       cancelledAt: serverTimestamp()
     });
 
-    // 2️⃣ Restore Slot
+    // 2️⃣ RESTORE SLOT
     const currentSlots = scheduleData.slots ?? 0;
 
     transaction.update(scheduleRef, {
       slots: currentSlots + 1
     });
 
-    // 3️⃣ Refund
+    // 3️⃣ REFUND WALLET
     const newBalance = (userData.walletBalance || 0) + price;
 
     transaction.update(userRef, {
