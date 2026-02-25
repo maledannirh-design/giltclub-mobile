@@ -373,5 +373,41 @@ window.generateQrUrl = async function(uid){
   console.log("QR URL:", url);
 };
 
+window.generateQrForAllUsers = async function(){
+
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  if(usersSnap.empty){
+    console.log("No users found");
+    return;
+  }
+
+  for(const docSnap of usersSnap.docs){
+
+    const uid = docSnap.id;
+    const data = docSnap.data();
+
+    try{
+
+      // Skip kalau sudah punya qrUrl (biar aman)
+      if(data.qrUrl){
+        console.log("Skip (already exists):", uid);
+        continue;
+      }
+
+      await generateMemberCode(uid);
+      await generateQrUrl(uid);
+
+      console.log("Generated:", uid);
+
+    }catch(err){
+      console.error("Error on user:", uid, err);
+    }
+  }
+
+  console.log("✅ All users processed");
+};
+
+
 // expose
 window.runMigration = runMigration;
