@@ -476,11 +476,11 @@ window.exportMembersToCSV = async function(){
   console.log("✅ Export selesai");
 };
 
-let cameraList = [];
-let currentCameraIndex = 0;
 let html5QrInstance = null;
 let cameraList = [];
 let currentCameraIndex = 0;
+
+
 
 async function setupCheckinQR(){
 
