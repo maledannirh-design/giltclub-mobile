@@ -14,10 +14,29 @@ import {
 
 import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
-import "https://unpkg.com/html5-qrcode";
+
 
 const BASE_SCAN_URL =
   "https://maledannirh-design.github.io/giltclub-mobile/app/scan.html";
+
+function loadQrLibrary(){
+  return new Promise((resolve, reject) => {
+
+    if(window.Html5Qrcode){
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/html5-qrcode";
+    script.onload = resolve;
+    script.onerror = reject;
+
+    document.body.appendChild(script);
+  });
+}
+
+
 
 /* =====================================================
    RENDER ADMIN PANEL
@@ -440,10 +459,9 @@ window.exportMembersToCSV = async function(){
   console.log("✅ Export selesai");
 };
 
-
 let html5QrInstance = null;
 
-function setupCheckinQR(){
+async function setupCheckinQR(){
 
   const openBtn = document.getElementById("openCheckinQR");
   const modal = document.getElementById("checkinModal");
@@ -452,73 +470,73 @@ function setupCheckinQR(){
 
   if(!openBtn) return;
 
-  openBtn.onclick = () => {
+  openBtn.onclick = async () => {
+
+    await loadQrLibrary();
 
     modal.classList.remove("hidden");
 
     html5QrInstance = new Html5Qrcode("reader");
 
-    Html5Qrcode.getCameras().then(devices => {
+    const devices = await Html5Qrcode.getCameras();
 
-      if(devices && devices.length){
+    if(!devices || !devices.length){
+      alert("Camera tidak ditemukan");
+      return;
+    }
 
-        html5QrInstance.start(
-          devices[0].id,
-          { fps: 10, qrbox: 250 },
-          async (decodedText) => {
+    await html5QrInstance.start(
+      devices[0].id,
+      { fps: 10, qrbox: 250 },
+      async (decodedText) => {
 
-            html5QrInstance.stop();
+        await html5QrInstance.stop();
 
-            try{
+        try{
 
-              const url = new URL(decodedText);
-              const c = url.searchParams.get("c");
-              const i = url.searchParams.get("i");
-              const s = url.searchParams.get("s");
+          const url = new URL(decodedText);
+          const c = url.searchParams.get("c");
+          const i = url.searchParams.get("i");
+          const s = url.searchParams.get("s");
 
-              const res = await validateScanParams(c,i,s);
+          const res = await window.validateScanParams(c,i,s);
 
-              if(res.valid){
+          if(res.valid){
 
-                await updateDoc(
-                  doc(db,"users",res.user.uid),
-                  {
-                    attendanceCount: (res.user.attendanceCount || 0) + 1,
-                    gPoint: (res.user.gPoint || 0) + 10
-                  }
-                );
+            const userRef = doc(db,"users",res.uid);
 
-                resultBox.innerHTML = `
-                  <div class="valid-box">
-                    ✅ VALID<br>
-                    ${res.user.username}<br>
-                    Attendance +1<br>
-                    GPoint +10
-                  </div>
-                `;
+            await updateDoc(userRef,{
+              attendanceCount: (res.user.attendanceCount || 0) + 1,
+              gPoint: (res.user.gPoint || 0) + 10
+            });
 
-              } else {
+            resultBox.innerHTML = `
+              <div class="valid-box">
+                ✅ VALID<br>
+                ${res.user.username}<br>
+                Attendance +1<br>
+                GPoint +10
+              </div>
+            `;
 
-                resultBox.innerHTML = `
-                  <div class="invalid-box">
-                    ❌ INVALID<br>
-                    ${res.reason}
-                  </div>
-                `;
-              }
+          }else{
 
-            }catch(err){
-
-              resultBox.innerHTML =
-                `<div class="invalid-box">QR tidak valid</div>`;
-            }
-
+            resultBox.innerHTML = `
+              <div class="invalid-box">
+                ❌ INVALID<br>
+                ${res.reason}
+              </div>
+            `;
           }
-        );
+
+        }catch(err){
+
+          resultBox.innerHTML =
+            `<div class="invalid-box">QR tidak valid</div>`;
+        }
 
       }
-
-    });
+    );
 
   };
 
@@ -526,12 +544,13 @@ function setupCheckinQR(){
 
     if(html5QrInstance){
       await html5QrInstance.stop();
-      html5QrInstance.clear();
+      await html5QrInstance.clear();
     }
 
     modal.classList.add("hidden");
     resultBox.innerHTML = "";
   };
 }
+
 // expose
 window.runMigration = runMigration;
