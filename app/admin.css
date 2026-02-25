@@ -178,3 +178,41 @@ body.dark .admin-card select option {
   background: #1a1a1a;
   color: #ffffff;
 }
+
+.checkin-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.checkin-card {
+  background: var(--color-card);
+  padding: 20px;
+  border-radius: 18px;
+  width: 320px;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.valid-box {
+  background: #0f5132;
+  color: #d1e7dd;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.invalid-box {
+  background: #842029;
+  color: #f8d7da;
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
