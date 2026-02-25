@@ -66,7 +66,7 @@ export async function renderAdmin(){
   `;
 
   // ==============================
-  // PENDING TOPUP SECTION
+  // PENDING TOPUP
   // ==============================
 
   if(snap.empty){
@@ -109,40 +109,37 @@ export async function renderAdmin(){
   }
 
   // ==============================
-  // CHECK-IN SECTION (SEPARATE)
+  // CHECK-IN SECTION
   // ==============================
 
   html += `
-  <div style="margin-top:30px;">
-    <button id="openCheckinQR" class="admin-btn">
-      Check-In QR
-    </button>
-  </div>
-
-  <div id="checkinModal" class="checkin-modal hidden">
-    <div class="checkin-card">
-      <h3>Scan Member</h3>
-
-      <div id="reader" style="width:280px;margin:auto;"></div>
-
-      <div style="margin-top:10px;">
-        <button id="switchCameraBtn">🔄 Ganti Kamera</button>
-      </div>
-
-      <div id="checkinResult"></div>
-
-      <button id="closeCheckin">Tutup</button>
+    <div style="margin-top:30px;">
+      <button id="openCheckinQR" class="admin-btn">
+        Check-In QR
+      </button>
     </div>
-  </div>
-`;
 
-  html += `</div>`;
+    <div id="checkinModal" class="checkin-modal hidden">
+      <div class="checkin-card">
+        <h3>Scan Member</h3>
+
+        <div id="reader" style="width:280px;margin:auto;"></div>
+
+        <div style="margin-top:10px;">
+          <button id="switchCameraBtn">🔄 Ganti Kamera</button>
+        </div>
+
+        <div id="checkinResult"></div>
+
+        <button id="closeCheckin">Tutup</button>
+      </div>
+    </div>
+
+    <div id="adminBalanceAdjustment" style="margin-top:40px;"></div>
+  </div>
+  `;
 
   content.innerHTML = html;
-
-  // ==============================
-  // INIT AFTER RENDER
-  // ==============================
 
   await renderBalanceAdjustmentPanel();
   setupCheckinQR();
