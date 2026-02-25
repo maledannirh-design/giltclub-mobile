@@ -214,7 +214,7 @@ function renderCalendarMonth() {
 }
 
 /* ===============================
-   CALENDAR POPUP (FINAL CLEAN)
+   CALENDAR POPUP (FINAL CLEAN - ANONYM SUPPORT)
 ================================= */
 async function openSessionPopup(dateStr) {
 
@@ -263,16 +263,17 @@ async function openSessionPopup(dateStr) {
       const members = [];
 
       for (const docSnap of bookingSnap.docs) {
+
         const bookingData = docSnap.data();
-        const userSnap = await getDoc(doc(db,"users",bookingData.userId));
-        if (userSnap.exists()) {
-          const u = userSnap.data();
-          members.push({
-            userId: bookingData.userId,
-            username: u.username || u.fullName || "Member",
-            photoURL: u.photoURL || null
-          });
-        }
+
+        members.push({
+          userId: bookingData.userId,
+          username: bookingData.displayName || "Member",
+          avatarInitial: bookingData.avatarInitial || "M",
+          photoURL: bookingData.photoURL || null,
+          isAnonymous: bookingData.isAnonymous || false
+        });
+
       }
 
       const alreadyJoined = currentUser
@@ -287,7 +288,6 @@ async function openSessionPopup(dateStr) {
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
       const isFinished = now > sessionEnd;
 
-      // ✅ SINGLE SOURCE OF TRUTH
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
 
@@ -324,7 +324,7 @@ async function openSessionPopup(dateStr) {
                   member.photoURL
                     ? `<img src="${member.photoURL}">`
                     : `<div class="avatar-initial">
-                         ${member.username.charAt(0).toUpperCase()}
+                         ${member.avatarInitial}
                        </div>`
                 }
               </div>
