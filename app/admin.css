@@ -161,27 +161,20 @@ body.dark .admin-btn:hover {
   }
 }
 
-
 /* =========================
-   DARK MODE FORM FIX
+   DARK MODE SELECT FIX
 ========================= */
 
-body.dark-mode input,
-body.dark-mode select,
-body.dark-mode textarea {
-
-  background-color: rgba(255,255,255,0.06);
-  color: #ffffff;
-  border: 1px solid rgba(255,255,255,0.15);
-
+body.dark .admin-card select,
+body.dark .admin-card input,
+body.dark .admin-card textarea {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #e8e8e8; /* lebih soft dari #fff */
 }
 
-body.dark-mode input::placeholder,
-body.dark-mode textarea::placeholder {
-  color: rgba(255,255,255,0.5);
-}
-
-body.dark-mode select option {
-  background-color: #1c1c1c;
+/* Fix option dropdown */
+body.dark .admin-card select option {
+  background: #1a1a1a;
   color: #ffffff;
 }
