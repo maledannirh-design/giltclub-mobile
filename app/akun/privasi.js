@@ -27,6 +27,7 @@ export async function renderPrivasi(){
   const privacy = userData.privacy || {
     showOnlineStatus: true,
     showSkillDashboard: true,
+    showNameInBooking: true,
     chatPermission: "all"
   };
 
@@ -53,19 +54,21 @@ export async function renderPrivasi(){
             Tampilkan Dashboard Skill
           </label>
         </div>
-        
+
         <div class="akun-checkbox-row">
-  <input type="checkbox" id="showNameInBooking"
-    ${privacy.showNameInBooking !== false ? "checked" : ""}>
-  <label for="showNameInBooking">Tampilkan nama saat booking sesi</label>
-</div>
+          <input type="checkbox" id="showNameInBooking"
+            ${privacy.showNameInBooking !== false ? "checked" : ""}>
+          <label for="showNameInBooking">
+            Tampilkan nama saat booking sesi
+          </label>
+        </div>
 
         <div style="margin-top:12px;">
           <label style="font-size:13px;color:var(--color-text-muted);">
             Siapa bisa chat
           </label>
           <select id="chatPermission" style="margin-top:6px;">
-            <option value="all" 
+            <option value="all"
               ${privacy.chatPermission === "all" ? "selected" : ""}>
               Semua
             </option>
@@ -91,46 +94,48 @@ export async function renderPrivasi(){
     </div>
   `;
 
-  // 🔙 BACK TO ACCOUNT MAIN
+  // BACK TO ACCOUNT
   document.getElementById("backToAccount").onclick = async ()=>{
     const module = await import("../profile.js");
     module.renderAccountUI();
   };
 
-  // 💾 SAVE PRIVACY
- document.getElementById("savePrivacyBtn").onclick = async () => {
+  // SAVE PRIVACY
+  document.getElementById("savePrivacyBtn").onclick = async () => {
 
-  const showOnlineStatus =
-    document.getElementById("showOnlineStatus").checked;
+    const showOnlineStatus =
+      document.getElementById("showOnlineStatus").checked;
 
-  const showSkillDashboard =
-    document.getElementById("showSkillDashboard").checked;
+    const showSkillDashboard =
+      document.getElementById("showSkillDashboard").checked;
 
-  const showNameInBooking =
-    document.getElementById("showNameInBooking").checked;
+    const showNameInBooking =
+      document.getElementById("showNameInBooking").checked;
 
-  const chatPermission =
-    document.getElementById("chatPermission").value;
+    const chatPermission =
+      document.getElementById("chatPermission").value;
 
-  try{
+    try{
 
-    await updateDoc(
-      doc(db,"users",user.uid),
-      {
-        privacy:{
-          showOnlineStatus,
-          showSkillDashboard,
-          showNameInBooking,
-          chatPermission
+      await updateDoc(
+        doc(db,"users",user.uid),
+        {
+          privacy:{
+            showOnlineStatus,
+            showSkillDashboard,
+            showNameInBooking,
+            chatPermission
+          }
         }
-      }
-    );
+      );
 
-    alert("Pengaturan privasi diperbarui.");
+      alert("Pengaturan privasi diperbarui.");
 
-  }catch(err){
-    console.error("Update privacy error:", err);
-    alert("Gagal menyimpan perubahan.");
-  }
+    }catch(err){
+      console.error("Update privacy error:", err);
+      alert("Gagal menyimpan perubahan.");
+    }
 
-};
+  };
+
+}
