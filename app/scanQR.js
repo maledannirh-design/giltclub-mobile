@@ -68,3 +68,49 @@ window.validateScan = async function(){
     user:userDoc.data()
   };
 };
+
+window.validateScanParams = async function(memberCode, issue, signature){
+
+  if(!memberCode || !issue || !signature){
+    return { valid:false, reason:"Parameter tidak lengkap" };
+  }
+
+  const usersSnap = await getDocs(collection(db,"users"));
+  
+  for(const docSnap of usersSnap.docs){
+
+    const user = docSnap.data();
+
+    if(user.memberCode === memberCode){
+
+      const privateRef = doc(db,"users",docSnap.id,"private","secure");
+      const privateSnap = await getDoc(privateRef);
+
+      if(!privateSnap.exists()){
+        return { valid:false, reason:"Secure data not found" };
+      }
+
+      const secure = privateSnap.data();
+
+      if(Number(issue) !== secure.issue){
+        return { valid:false, reason:"Issue mismatch" };
+      }
+
+      const raw = memberCode + issue + secure.secretKey;
+
+      const encoder = new TextEncoder();
+      const data = encoder.encode(raw);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2,"0")).join("");
+
+      if(hashHex !== signature){
+        return { valid:false, reason:"Signature mismatch" };
+      }
+
+      return { valid:true, user };
+    }
+  }
+
+  return { valid:false, reason:"Member tidak ditemukan" };
+};
