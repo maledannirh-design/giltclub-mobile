@@ -282,7 +282,7 @@ async function handleBalanceAdjustment(){
   }
 }
 
-async function generateMemberCode(uid){
+window.generateMemberCode = async function(uid){
 
   const userRef = doc(db,"users",uid);
   const snap = await getDoc(userRef);
@@ -321,9 +321,9 @@ async function generateMemberCode(uid){
   await updateDoc(userRef,{ memberCode });
 
   console.log("MemberCode:", memberCode);
-}
+};
 
-async function generateQrUrl(uid){
+window.generateQrUrl = async function(uid){
 
   const userRef = doc(db,"users",uid);
   const secureRef = doc(db,"users",uid,"private","secure");
@@ -353,12 +353,10 @@ async function generateQrUrl(uid){
 
   const url = `https://giltclub.app/scan?c=${memberCode}&i=${issue}&s=${signature}`;
 
-  await updateDoc(userRef,{
-    qrUrl: url
-  });
+  await updateDoc(userRef,{ qrUrl: url });
 
   console.log("QR URL:", url);
-}
+};
 
 // expose
 window.runMigration = runMigration;
