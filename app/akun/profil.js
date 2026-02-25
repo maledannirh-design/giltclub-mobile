@@ -32,9 +32,9 @@ export async function renderProfil(){
 
       <div class="akun-card">
 
-        <input id="usernameID"
-          placeholder="UsernameID"
-          value="${userData.usernameID || ""}">
+        <input id="username"
+  placeholder="Nama Publik"
+  value="${userData.username || ""}">
 
         <input id="displayName"
           placeholder="Display Name"
@@ -81,51 +81,63 @@ export async function renderProfil(){
   };
 
   // 💾 SAVE PROFILE
-  document.getElementById("saveProfileBtn").onclick = async () => {
+ document.getElementById("saveProfileBtn").onclick = async () => {
 
-    const usernameID  = document.getElementById("usernameID").value.trim();
-    const displayName = document.getElementById("displayName").value.trim();
-    const fullName    = document.getElementById("fullName").value.trim();
-    const phone       = document.getElementById("phone").value.trim();
-    const birthPlace  = document.getElementById("birthPlace").value.trim();
-    const birthDate   = document.getElementById("birthDate").value;
-    const bio         = document.getElementById("bio").value.trim();
+  const username   = document.getElementById("username").value.trim();
+  const name       = document.getElementById("name").value.trim();
+  const phone      = document.getElementById("phone").value.trim();
+  const birthPlace = document.getElementById("birthPlace").value.trim();
+  const birthDate  = document.getElementById("birthDate").value;
+  const bio        = document.getElementById("bio").value.trim();
 
-    // ===== VALIDATION =====
+  // ===== VALIDATION =====
 
-    const usernameRegex = /^[a-z0-9_]{4,20}$/;
-    if(usernameID && !usernameRegex.test(usernameID)){
-      alert("UsernameID hanya huruf kecil, angka, underscore (4–20 karakter).");
-      return;
-    }
+  // Username boleh huruf, angka, titik, spasi
+  const usernameRegex = /^[A-Za-z0-9.\s]{3,30}$/;
+  if(!usernameRegex.test(username)){
+    alert("Nama publik hanya huruf, angka, titik, dan spasi (3–30 karakter).");
+    return;
+  }
 
-    const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
-    if(birthPlace && !birthPlaceRegex.test(birthPlace)){
-      alert("Tempat lahir hanya boleh huruf dan spasi.");
-      return;
-    }
+  if(!name || name.length < 3){
+    alert("Nama lengkap minimal 3 karakter.");
+    return;
+  }
 
-    if(bio.length > 200){
-      alert("Bio maksimal 200 karakter.");
-      return;
-    }
+  const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
+  if(birthPlace && !birthPlaceRegex.test(birthPlace)){
+    alert("Tempat lahir hanya boleh huruf dan spasi.");
+    return;
+  }
 
-    try{
-      await updateDoc(doc(db,"users",user.uid),{
-        usernameID,
-        displayName,
-        fullName,
-        phone,
-        birthPlace,
-        birthDate,
-        bio
-      });
+  if(bio.length > 200){
+    alert("Bio maksimal 200 karakter.");
+    return;
+  }
 
-      alert("Profil berhasil diperbarui.");
+  try {
 
-    }catch(err){
-      console.error("Update profile error:", err);
-      alert("Gagal menyimpan perubahan.");
-    }
-  };
-}
+    await updateDoc(
+      doc(db, "users", user.uid),
+      {
+        username: username,
+        name: name,
+        phone: phone,
+        birthPlace: birthPlace,
+        birthDate: birthDate,
+        bio: bio
+      }
+    );
+
+    alert("Profil berhasil diperbarui.");
+
+    // Refresh tampilan akun supaya langsung berubah
+    const module = await import("../profile.js");
+    module.renderAccountUI();
+
+  } catch (err) {
+    console.error("Update profile error:", err);
+    alert("Gagal menyimpan perubahan.");
+  }
+
+};
