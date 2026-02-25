@@ -490,6 +490,7 @@ async function setupCheckinQR(){
     await loadQrLibrary();
 
     modal.classList.remove("hidden");
+    resultBox.innerHTML = "";
 
     html5QrInstance = new Html5Qrcode("reader");
 
@@ -500,72 +501,95 @@ async function setupCheckinQR(){
       return;
     }
 
-    await html5QrInstance.start(
-      devices[0].id,
-      { fps: 10, qrbox: 250 },
-      async (decodedText) => {
+    // 🔥 PRIORITAS KAMERA BELAKANG
+    let selectedCamera = devices.find(device =>
+      device.label.toLowerCase().includes("back") ||
+      device.label.toLowerCase().includes("environment")
+    );
 
-        await html5QrInstance.stop();
+    // Kalau tidak ketemu, pakai kamera terakhir
+    if(!selectedCamera){
+      selectedCamera = devices[devices.length - 1];
+    }
 
-        try{
+    try {
 
-          const url = new URL(decodedText);
-          const c = url.searchParams.get("c");
-          const i = url.searchParams.get("i");
-          const s = url.searchParams.get("s");
+      await html5QrInstance.start(
+        selectedCamera.id,
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        async (decodedText) => {
 
-          const res = await window.validateScanParams(c,i,s);
+          await html5QrInstance.stop();
 
-          if(res.valid){
+          try {
 
-            const userRef = doc(db,"users",res.uid);
+            const url = new URL(decodedText);
+            const c = url.searchParams.get("c");
+            const i = url.searchParams.get("i");
+            const s = url.searchParams.get("s");
 
-            await updateDoc(userRef,{
-              attendanceCount: (res.user.attendanceCount || 0) + 1,
-              gPoint: (res.user.gPoint || 0) + 10
-            });
+            const res = await window.validateScanParams(c,i,s);
 
-            resultBox.innerHTML = `
-              <div class="valid-box">
-                ✅ VALID<br>
-                ${res.user.username}<br>
-                Attendance +1<br>
-                GPoint +10
-              </div>
-            `;
+            if(res.valid){
 
-          }else{
+              const userRef = doc(db,"users",res.uid);
 
-            resultBox.innerHTML = `
-              <div class="invalid-box">
-                ❌ INVALID<br>
-                ${res.reason}
-              </div>
-            `;
+              await updateDoc(userRef,{
+                attendanceCount: (res.user.attendanceCount || 0) + 1,
+                gPoint: (res.user.gPoint || 0) + 10
+              });
+
+              resultBox.innerHTML = `
+                <div class="valid-box">
+                  ✅ VALID<br>
+                  ${res.user.username}<br>
+                  Attendance +1<br>
+                  GPoint +10
+                </div>
+              `;
+
+            } else {
+
+              resultBox.innerHTML = `
+                <div class="invalid-box">
+                  ❌ INVALID<br>
+                  ${res.reason}
+                </div>
+              `;
+            }
+
+          } catch(err) {
+
+            resultBox.innerHTML =
+              `<div class="invalid-box">QR tidak valid</div>`;
           }
 
-        }catch(err){
-
-          resultBox.innerHTML =
-            `<div class="invalid-box">QR tidak valid</div>`;
         }
+      );
 
-      }
-    );
+    } catch(error) {
+
+      alert("Gagal mengakses kamera");
+      console.error(error);
+    }
 
   };
 
   closeBtn.onclick = async () => {
 
     if(html5QrInstance){
-      await html5QrInstance.stop();
-      await html5QrInstance.clear();
+      try {
+        await html5QrInstance.stop();
+        await html5QrInstance.clear();
+      } catch(e){}
     }
 
     modal.classList.add("hidden");
     resultBox.innerHTML = "";
   };
 }
-
 // expose
 window.runMigration = runMigration;
