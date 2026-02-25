@@ -528,7 +528,7 @@ async function setupCheckinQR(){
       cameraId,
       { fps: 10, qrbox: { width: 250, height: 250 } },
       async (decodedText) => {
-
+      console.log("RAW SCAN:", decodedText); 
         await html5QrInstance.stop();
 
         try{
