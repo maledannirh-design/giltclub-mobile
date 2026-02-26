@@ -267,21 +267,30 @@ async function openSessionPopup(dateStr) {
 
       for (const docSnap of bookingSnap.docs) {
 
-        const bookingData = docSnap.data();
+  const bookingData = docSnap.data();
 
-        const name =
-          bookingData.displayName ||
-          bookingData.username ||
-          bookingData.fullName ||
-          "Member";
+  const userSnap = await getDoc(
+    doc(db, "users", bookingData.userId)
+  );
 
-        members.push({
-          userId: bookingData.userId,
-          username: name,
-          avatarInitial: name.charAt(0).toUpperCase(),
-          photoURL: bookingData.photoURL || null
-        });
-      }
+  let name = "Member";
+
+  if (userSnap.exists()) {
+    const userData = userSnap.data();
+    name =
+      userData.usernameID ||
+      userData.fullName ||
+      userData.username ||
+      "Member";
+  }
+
+  members.push({
+    userId: bookingData.userId,
+    username: name,
+    avatarInitial: name.charAt(0).toUpperCase(),
+    photoURL: null
+  });
+}
 
       const alreadyJoined = currentUser
         ? members.some(m => m.userId === currentUser.uid)
