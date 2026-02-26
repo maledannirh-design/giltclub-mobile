@@ -382,24 +382,13 @@ async function openSessionPopup(dateStr) {
           <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
 
-          ${
-            s.racketStock > 0
-              ? `
-              <div class="racket-selector">
-                <label>Raket Sewaan</label>
-                <input type="number"
-                  class="racket-input"
-                  data-id="${s.id}"
-                  min="0"
-                  max="${s.racketStock}"
-                  value="0">
-                <div class="racket-price">
-                  Rp ${(s.racketPrice || 0).toLocaleString("id-ID")} / sesi
-                </div>
-              </div>
-              `
-              : ""
-          }
+          ${s.racketStock && s.racketStock > 0 ? `
+  <div class="racket-availability">
+    Raket Sewaan Tersedia: ${s.racketStock} unit
+    <br>
+    Rp ${(s.racketPrice || 0).toLocaleString("id-ID")} / sesi
+  </div>
+` : ""}
 
           ${
             currentUser
@@ -480,76 +469,119 @@ async function openSessionPopup(dateStr) {
     };
   });
 
-  /* ===============================
-     JOIN BUTTON
-  =============================== */
-  document.querySelectorAll(".join-btn").forEach(btn=>{
-    btn.onclick = async ()=>{
-      if (btn.disabled) return;
-      if (!currentUser) {
-        showToast("Login terlebih dahulu","warning");
+ /* ===============================
+   JOIN BUTTON (FINAL CLEAN FLOW)
+================================= */
+document.querySelectorAll(".join-btn").forEach(btn => {
+
+  btn.onclick = async () => {
+
+    if (btn.disabled) return;
+
+    if (!currentUser) {
+      showToast("Login terlebih dahulu","warning");
+      return;
+    }
+
+    if (bookingLock) return;
+    bookingLock = true;
+
+    try {
+
+      const scheduleId = btn.dataset.id;
+      const s = sessions.find(x => x.id === scheduleId);
+
+      if (!s) {
+        showToast("Sesi tidak ditemukan","error");
+        bookingLock = false;
         return;
       }
-      if (bookingLock) return;
 
-      bookingLock = true;
+      /* ===============================
+         CANCEL JOIN
+      =============================== */
+      if (btn.innerText.includes("Cancel")) {
 
-      try {
+        const q = query(
+          collection(db, "bookings"),
+          where("userId", "==", currentUser.uid),
+          where("scheduleId", "==", scheduleId),
+          where("status", "==", "active")
+        );
 
-        const scheduleId = btn.dataset.id;
-        const s = sessions.find(x => x.id === scheduleId);
+        const snap = await getDocs(q);
 
-        if (!btn.innerText.includes("Cancel")) {
-
-          const racketInput = document.querySelector(
-            `.racket-input[data-id="${scheduleId}"]`
-          );
-
-          const racketQty = racketInput
-            ? Number(racketInput.value || 0)
-            : 0;
-
-          const basePrice = s.pricePerHour || 0;
-          const racketTotal = racketQty * (s.racketPrice || 0);
-          const total = basePrice + racketTotal;
-
-          const confirmPay = confirm(
-  `Total pembayaran Rp ${total.toLocaleString("id-ID")}`
-);
-
-          if (!confirmPay) {
-            bookingLock = false;
-            return;
-          }
-
-          const pin = await window.requestTransactionPin();
-
-          if (!pin) {
-            bookingLock = false;
-            return;
-          }
-
-          await createBooking({
-            userId: currentUser.uid,
-            scheduleId,
-            racketQty,
-            pin
-          });
-
-          showToast("Berhasil join sesi","success");
+        if (snap.empty) {
+          showToast("Booking tidak ditemukan","error");
+          bookingLock = false;
+          return;
         }
 
-        renderBooking();
+        const bookingId = snap.docs[0].id;
 
-      } catch(err){
-        showToast(err.message || "Gagal","error");
+        const pin = await window.requestTransactionPin();
+        if (!pin) {
+          bookingLock = false;
+          return;
+        }
+
+        await cancelBooking({
+          bookingId,
+          pin
+        });
+
+        showToast("Booking dibatalkan","success");
+        renderBooking();
+        bookingLock = false;
+        return;
       }
 
-      bookingLock = false;
-    };
-  });
+      /* ===============================
+         JOIN FLOW
+      =============================== */
 
-}
+      let racketQty = 0;
+
+      if (s.racketStock && s.racketStock > 0) {
+
+        const selectedQty = await window.openRacketSelector(s);
+
+        if (selectedQty === null) {
+          bookingLock = false;
+          return;
+        }
+
+        racketQty = selectedQty;
+      }
+
+      const pin = await window.requestTransactionPin();
+      if (!pin) {
+        bookingLock = false;
+        return;
+      }
+
+      await createBooking({
+        userId: currentUser.uid,
+        scheduleId: scheduleId,
+        racketQty: racketQty,
+        pin: pin
+      });
+
+      showToast("Berhasil join sesi","success");
+      renderBooking();
+
+    } catch (err) {
+
+      console.error(err);
+      showToast(err.message || "Gagal","error");
+
+    }
+
+    bookingLock = false;
+
+  };
+
+});
 
 async function attachSlotInteraction(currentUserRole) {
 
@@ -1623,4 +1655,67 @@ window.requestTransactionPin = function() {
 
     renderDots();
   });
+};
+
+window.openRacketSelector = function(scheduleData){
+
+  return new Promise((resolve)=>{
+
+    const existing = document.getElementById("racketModalOverlay");
+    if(existing) existing.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "racketModalOverlay";
+    overlay.className = "racket-modal-overlay";
+
+    const maxStock = scheduleData.racketStock || 0;
+    const racketPrice = scheduleData.racketPrice || 0;
+    const basePrice = scheduleData.pricePerHour || 0;
+
+    overlay.innerHTML = `
+      <div class="racket-modal">
+        <h3>Jumlah Raket Disewa</h3>
+
+        <select id="racketQtySelect" class="racket-select">
+          ${Array.from({length:maxStock+1},(_,i)=>{
+            return `<option value="${i}">${i} Raket</option>`
+          }).join("")}
+        </select>
+
+        <div id="racketTotalPreview" class="racket-total-preview">
+          Total: Rp ${basePrice.toLocaleString("id-ID")}
+        </div>
+
+        <button class="racket-confirm-btn">Lanjutkan</button>
+        <button class="racket-cancel-btn">Batal</button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const select = overlay.querySelector("#racketQtySelect");
+    const preview = overlay.querySelector("#racketTotalPreview");
+
+    function updateTotal(){
+      const qty = Number(select.value);
+      const total = basePrice + (qty * racketPrice);
+      preview.innerText = `Total: Rp ${total.toLocaleString("id-ID")}`;
+    }
+
+    select.onchange = updateTotal;
+    updateTotal();
+
+    overlay.querySelector(".racket-confirm-btn").onclick = ()=>{
+      const qty = Number(select.value);
+      overlay.remove();
+      resolve(qty);
+    };
+
+    overlay.querySelector(".racket-cancel-btn").onclick = ()=>{
+      overlay.remove();
+      resolve(null);
+    };
+
+  });
+
 };
