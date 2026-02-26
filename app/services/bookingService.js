@@ -34,7 +34,7 @@ function calculateSessionPrice(scheduleData){
 }
 
 /* =====================================================
-   CREATE BOOKING (FINAL COMPLETE VERSION - PRIVACY ENABLED)
+   CREATE BOOKING (FINAL COMPLETE VERSION - PRIVACY ENABLED + AUTO PIN)
 ===================================================== */
 export async function createBooking({
   userId,
@@ -42,6 +42,13 @@ export async function createBooking({
   racketQty = 0,
   pin
 }) {
+
+  // AUTO REQUEST PIN JIKA BELUM ADA
+  if (!pin) {
+    if (typeof window.requestTransactionPin === "function") {
+      pin = await window.requestTransactionPin();
+    }
+  }
 
   if (!pin) {
     throw new Error("PIN transaksi diperlukan");
@@ -155,7 +162,6 @@ export async function createBooking({
       userId,
       scheduleId,
 
-      // ===== PRIVACY SNAPSHOT =====
       displayName,
       avatarInitial,
       photoURL,
