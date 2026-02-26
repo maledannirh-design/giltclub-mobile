@@ -1788,3 +1788,18 @@ html, body {
   background: #e5e5e5;
   margin-top: 8px;
 }
+
+
+.session-notes {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0,0,0,0.04);
+  border-radius: 10px;
+}
+
+.notes-content {
+  white-space: pre-line;
+  font-size: 14px;
+  margin-top: 6px;
+  opacity: 0.85;
+}
