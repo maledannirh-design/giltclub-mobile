@@ -1296,3 +1296,40 @@ async function openEditSessionSheet(scheduleId){
 
   },200);
 }
+
+
+/* ===============================
+   AUTO CLOSE FINISHED SESSIONS
+================================= */
+async function autoCloseFinishedSessions() {
+
+  const now = new Date();
+
+  const q = query(
+    collection(db, "schedules"),
+    where("status", "==", "open")
+  );
+
+  const snap = await getDocs(q);
+
+  for (const docSnap of snap.docs) {
+
+    const data = docSnap.data();
+
+    if (!data.date || !data.endTime) continue;
+
+    const sessionEnd = new Date(
+      data.date + "T" + data.endTime
+    );
+
+    if (now > sessionEnd) {
+
+      await updateDoc(
+        doc(db, "schedules", docSnap.id),
+        {
+          status: "closed"
+        }
+      );
+    }
+  }
+}
