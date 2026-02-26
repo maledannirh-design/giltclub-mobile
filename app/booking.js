@@ -582,6 +582,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
   };
 
 });
+}
 
 async function attachSlotInteraction(currentUserRole) {
 
