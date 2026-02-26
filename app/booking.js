@@ -504,9 +504,9 @@ async function openSessionPopup(dateStr) {
           const racketTotal = racketQty * (s.racketPrice || 0);
           const total = basePrice + racketTotal;
 
-          const confirmPay = await showConfirm(
-            `Total pembayaran Rp ${total.toLocaleString("id-ID")}`
-          );
+          const confirmPay = confirm(
+  `Total pembayaran Rp ${total.toLocaleString("id-ID")}`
+);
 
           if (!confirmPay) {
             bookingLock = false;
