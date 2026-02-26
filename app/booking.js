@@ -215,7 +215,7 @@ function renderCalendarMonth() {
 }
 
 /* ===============================
-   CALENDAR POPUP (FINAL CLEAN - ANONYM SUPPORT)
+   CALENDAR POPUP FINAL CLEAN 
 ================================= */
 async function openSessionPopup(dateStr) {
 
@@ -274,7 +274,6 @@ async function openSessionPopup(dateStr) {
           photoURL: bookingData.photoURL || null,
           isAnonymous: bookingData.isAnonymous || false
         });
-
       }
 
       const alreadyJoined = currentUser
@@ -285,8 +284,19 @@ async function openSessionPopup(dateStr) {
         ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
         s.hostId === currentUser?.uid;
 
+      const isAdmin =
+        ["ADMIN","SUPERCOACH"].includes(currentUserRole);
+
+      const isHost =
+        s.hostId === currentUser?.uid;
+
+      const canCheckIn = isAdmin || isHost;
+
       const now = new Date();
+      const sessionStart = new Date(s.date + "T" + (s.startTime || "00:00"));
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
+
+      const isRunning = now >= sessionStart && now <= sessionEnd;
       const isFinished = now > sessionEnd;
 
       const sisaSlot = s.slots ?? 0;
@@ -388,6 +398,17 @@ async function openSessionPopup(dateStr) {
           }
 
           ${
+            canCheckIn && isRunning
+              ? `
+                <button class="checkin-btn"
+                  data-id="${s.id}">
+                  Check In
+                </button>
+              `
+              : ""
+          }
+
+          ${
             isPrivileged
               ? `
               <div class="session-admin-actions">
@@ -422,6 +443,14 @@ async function openSessionPopup(dateStr) {
   document.querySelectorAll(".edit-session-btn").forEach(btn=>{
     btn.onclick = ()=>{
       openEditSessionSheet(btn.dataset.id);
+    };
+  });
+
+  document.querySelectorAll(".checkin-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      if (typeof window.openScanForCheckIn === "function") {
+        window.openScanForCheckIn(btn.dataset.id);
+      }
     };
   });
 
