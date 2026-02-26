@@ -381,6 +381,14 @@ async function openSessionPopup(dateStr) {
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
           <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
+          ${s.notes ? `
+  <div class="session-notes">
+    <strong>Catatan:</strong>
+    <div class="notes-content">
+      ${s.notes.replace(/\n/g, "<br>")}
+    </div>
+  </div>
+` : ""}
 
           ${s.racketStock && s.racketStock > 0 ? `
   <div class="racket-availability">
