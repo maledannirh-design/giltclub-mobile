@@ -12,9 +12,9 @@ import { recalculateUserStats } from "./userStats.js";
 
 const migrationData = [
   {
-   username: "Wiji",
-   totalTopup: 847000,
-   walletBalance: 257000
+   username: "Jati Aswary",
+   totalTopup: 1000000,
+   walletBalance: 872500
  }
 
 ];
