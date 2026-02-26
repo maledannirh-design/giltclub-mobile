@@ -154,7 +154,7 @@ export async function createBooking({ userId, scheduleId, racketQty = 0 }) {
 }
 
 /* =====================================================
-   CANCEL BOOKING (FULL REFUND SIMPLE)
+   CANCEL BOOKING (FINAL VERSION - WITH RACKET & GUARD)
 ===================================================== */
 export async function cancelBooking({ bookingId }) {
 
@@ -167,8 +167,14 @@ export async function cancelBooking({ bookingId }) {
     if (!bookingSnap.exists()) throw new Error("Booking not found");
 
     const bookingData = bookingSnap.data();
+
     if (bookingData.status !== "active") {
       throw new Error("Booking already cancelled");
+    }
+
+    // Block jika sudah check-in
+    if (bookingData.attendance === true) {
+      throw new Error("Tidak bisa cancel setelah check-in");
     }
 
     const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
@@ -183,22 +189,36 @@ export async function cancelBooking({ bookingId }) {
     const scheduleData = scheduleSnap.data();
     const userData = userSnap.data();
 
-    const price = bookingData.price || 0;
+    // Block jika sesi sudah selesai
+    if (scheduleData.date && scheduleData.endTime) {
+      const sessionEnd = new Date(
+        scheduleData.date + "T" + scheduleData.endTime
+      );
+      const now = new Date();
+      if (now > sessionEnd) {
+        throw new Error("Sesi sudah selesai");
+      }
+    }
 
-    // 1️⃣ UPDATE BOOKING
+    const price = bookingData.price || 0;
+    const racketQty = bookingData.racketQty || 0;
+
+    // 1. Update booking
     transaction.update(bookingRef, {
       status: "cancelled",
       cancelledAt: serverTimestamp()
     });
 
-    // 2️⃣ RESTORE SLOT
+    // 2. Restore slot dan raket
     const currentSlots = scheduleData.slots ?? 0;
+    const currentRacketStock = scheduleData.racketStock ?? 0;
 
     transaction.update(scheduleRef, {
-      slots: currentSlots + 1
+      slots: currentSlots + 1,
+      racketStock: currentRacketStock + racketQty
     });
 
-    // 3️⃣ REFUND WALLET
+    // 3. Refund wallet
     const newBalance = (userData.walletBalance || 0) + price;
 
     transaction.update(userRef, {
