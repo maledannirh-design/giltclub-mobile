@@ -228,13 +228,6 @@ async function openSessionPopup(dateStr) {
   const currentUser = auth.currentUser;
   let currentUserRole = "member";
 
-  if (currentUser) {
-    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
-    if (userSnap.exists()) {
-      currentUserRole = (userSnap.data().role || "member").toUpperCase();
-    }
-  }
-
   const sessions = allSchedules
     .filter(s => s.date === dateStr)
     .sort((a,b)=> (a.startTime || "").localeCompare(b.startTime || ""));
