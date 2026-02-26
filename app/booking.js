@@ -32,7 +32,8 @@ export async function renderBooking() {
 
   const content = document.getElementById("content");
   if (!content) return;
-
+  await autoCloseFinishedSessions();
+  
   if (unsubscribeSchedules) {
     unsubscribeSchedules();
     unsubscribeSchedules = null;
