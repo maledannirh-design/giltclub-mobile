@@ -474,10 +474,18 @@ async function openSessionPopup(dateStr) {
 
         } else {
 
-          await createBooking({
-            userId: currentUser.uid,
-            scheduleId: btn.dataset.id
-          });
+          const pin = await window.requestTransactionPin();
+
+if (!pin) {
+  bookingLock = false;
+  return;
+}
+
+await createBooking({
+  userId: currentUser.uid,
+  scheduleId: btn.dataset.id,
+  pin
+});
 
           showToast("Berhasil join sesi","success");
         }
