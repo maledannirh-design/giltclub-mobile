@@ -16,8 +16,7 @@ import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
 import "./scanQR.js";
 
-const BASE_SCAN_URL =
-  "https://maledannirh-design.github.io/giltclub-mobile/app/scan.html";
+const BASE_SCAN_URL = "https://giltclub.app/scan";
 
 function loadQrLibrary(){
   return new Promise((resolve, reject) => {
