@@ -258,37 +258,37 @@ async function openSessionPopup(dateStr) {
       const lockedSlots = s.lockedSlots || [];
       const members = [];
 
-      for (const docSnap of bookingSnap.docs) {
+     for (const docSnap of bookingSnap.docs) {
 
   const bookingData = docSnap.data();
 
-  members.push({
-    userId: bookingData.userId,
-    username: bookingData.displayName || "Member",
-    avatarInitial: bookingData.avatarInitial || "M",
-    photoURL: bookingData.photoURL || null,
-    isAnonymous: bookingData.isAnonymous || false
-  });
+  const isPrivilegedViewer =
+    ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
+    bookingData.userId === currentUser?.uid;
 
-}
+  let resolvedName;
 
-  let name = "Member";
-
-  if (userSnap.exists()) {
-    const userData = userSnap.data();
-    name =
-      userData.usernameID ||
-      userData.fullName ||
-      userData.username ||
+  if (bookingData.isAnonymous && !isPrivilegedViewer) {
+    resolvedName = "Anonymous";
+  } else {
+    resolvedName =
+      bookingData.displayName ||
+      bookingData.usernameID ||
+      bookingData.fullName ||
+      bookingData.username ||
       "Member";
   }
 
   members.push({
     userId: bookingData.userId,
-    username: name,
-    avatarInitial: name.charAt(0).toUpperCase(),
-    photoURL: null
+    username: resolvedName,
+    avatarInitial: resolvedName.charAt(0).toUpperCase(),
+    photoURL: bookingData.isAnonymous && !isPrivilegedViewer
+      ? null
+      : bookingData.photoURL || null,
+    isAnonymous: bookingData.isAnonymous || false
   });
+
 }
 
       const alreadyJoined = currentUser
