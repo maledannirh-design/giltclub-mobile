@@ -218,7 +218,7 @@ function renderCalendarMonth() {
 }
 
 /* ===============================
-   CALENDAR POPUP FINAL CLEAN 
+   CALENDAR POPUP COMPLETE VERSION
 ================================= */
 async function openSessionPopup(dateStr) {
 
@@ -302,6 +302,8 @@ async function openSessionPopup(dateStr) {
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
 
+      /* SLOT RENDER */
+
       let slotHtml = "";
       let memberPointer = 0;
 
@@ -357,7 +359,7 @@ async function openSessionPopup(dateStr) {
       html += `
         <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
 
-          ${isClosed ? `<div style="color:#999;font-weight:bold;margin-bottom:8px;">SESSION CLOSED</div>` : ""}
+          ${isClosed ? `<div class="session-closed-label">SESSION CLOSED</div>` : ""}
 
           <div class="session-meta">
             <div><strong>Tier:</strong> ${s.tier || "-"}</div>
@@ -370,7 +372,25 @@ async function openSessionPopup(dateStr) {
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
           <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
-          <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
+
+          ${
+            s.racketStock > 0
+              ? `
+              <div class="racket-selector">
+                <label>Raket Sewaan</label>
+                <input type="number"
+                  class="racket-input"
+                  data-id="${s.id}"
+                  min="0"
+                  max="${s.racketStock}"
+                  value="0">
+                <div class="racket-price">
+                  Rp ${(s.racketPrice || 0).toLocaleString("id-ID")} / sesi
+                </div>
+              </div>
+              `
+              : ""
+          }
 
           ${
             currentUser
@@ -431,12 +451,18 @@ async function openSessionPopup(dateStr) {
 
   attachSlotInteraction(currentUserRole);
 
+  /* ===============================
+     EDIT BUTTON
+  =============================== */
   document.querySelectorAll(".edit-session-btn").forEach(btn=>{
     btn.onclick = ()=>{
       openEditSessionSheet(btn.dataset.id);
     };
   });
 
+  /* ===============================
+     CHECK IN BUTTON
+  =============================== */
   document.querySelectorAll(".checkin-btn").forEach(btn=>{
     btn.onclick = ()=>{
       if (typeof window.openScanForCheckIn === "function") {
@@ -445,6 +471,9 @@ async function openSessionPopup(dateStr) {
     };
   });
 
+  /* ===============================
+     JOIN BUTTON
+  =============================== */
   document.querySelectorAll(".join-btn").forEach(btn=>{
     btn.onclick = async ()=>{
       if (btn.disabled) return;
@@ -453,35 +482,39 @@ async function openSessionPopup(dateStr) {
         return;
       }
       if (bookingLock) return;
+
       bookingLock = true;
 
       try {
 
-        if (btn.innerText.includes("Cancel")) {
+        const scheduleId = btn.dataset.id;
+        const s = sessions.find(x => x.id === scheduleId);
 
-          const q = query(
-            collection(db,"bookings"),
-            where("userId","==",currentUser.uid),
-            where("scheduleId","==",btn.dataset.id),
-            where("status","==","active")
+        if (!btn.innerText.includes("Cancel")) {
+
+          const racketInput = document.querySelector(
+            `.racket-input[data-id="${scheduleId}"]`
           );
 
-          const snap = await getDocs(q);
+          const racketQty = racketInput
+            ? Number(racketInput.value || 0)
+            : 0;
 
-          if(snap.empty){
-            showToast("Booking tidak ditemukan","error");
+          const basePrice = s.pricePerHour || 0;
+          const racketTotal = racketQty * (s.racketPrice || 0);
+          const total = basePrice + racketTotal;
+
+          const confirmPay = await showConfirm(
+            `Total pembayaran Rp ${total.toLocaleString("id-ID")}`
+          );
+
+          if (!confirmPay) {
             bookingLock = false;
             return;
           }
 
-          const bookingId = snap.docs[0].id;
-          await cancelBooking({ bookingId });
-
-          showToast("Booking dibatalkan","success");
-
-        } else {
-
           const pin = await window.requestTransactionPin();
+
           if (!pin) {
             bookingLock = false;
             return;
@@ -489,7 +522,8 @@ async function openSessionPopup(dateStr) {
 
           await createBooking({
             userId: currentUser.uid,
-            scheduleId: btn.dataset.id,
+            scheduleId,
+            racketQty,
             pin
           });
 
