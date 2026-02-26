@@ -914,47 +914,6 @@ function attachGlobalEvents(){
 }
 
 /* ===============================
-   BOOKING UI HANDLER
-================================= */
-
-function attachBookingButtons(){
-
-  const joinButtons = document.querySelectorAll(".join-btn");
-
-  joinButtons.forEach(btn=>{
-    btn.addEventListener("click", async ()=>{
-
-      if(!auth.currentUser){
-        showToast("Login terlebih dahulu","warning");
-        return;
-      }
-
-      if(bookingLock) return;
-
-      bookingLock = true;
-
-      try{
-
-        await createBooking({
-          userId: auth.currentUser.uid,
-          scheduleId: btn.dataset.id
-        });
-
-        showToast("Booking berhasil","success");
-        renderBooking(); // refresh UI
-
-      }catch(err){
-        showToast(err.message || "Booking gagal","error");
-      }
-
-      bookingLock = false;
-
-    });
-  });
-
-}
-
-/* ===============================
    CREATE SESSION SUBMIT (FINAL CLEAN)
 ================================= */
 async function setupCreateSessionSubmit(){
