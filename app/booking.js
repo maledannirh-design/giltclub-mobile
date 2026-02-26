@@ -269,9 +269,15 @@ async function openSessionPopup(dateStr) {
 
   const bookingData = docSnap.data();
 
-  const userSnap = await getDoc(
-    doc(db, "users", bookingData.userId)
-  );
+  members.push({
+    userId: bookingData.userId,
+    username: bookingData.displayName || "Member",
+    avatarInitial: bookingData.avatarInitial || "M",
+    photoURL: bookingData.photoURL || null,
+    isAnonymous: bookingData.isAnonymous || false
+  });
+
+}
 
   let name = "Member";
 
