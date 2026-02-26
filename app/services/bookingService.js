@@ -34,7 +34,7 @@ function calculateSessionPrice(scheduleData){
 }
 
 /* =====================================================
-   CREATE BOOKING (FINAL COMPLETE VERSION)
+   CREATE BOOKING (FINAL COMPLETE VERSION - PRIVACY ENABLED)
 ===================================================== */
 export async function createBooking({
   userId,
@@ -47,7 +47,7 @@ export async function createBooking({
     throw new Error("PIN transaksi diperlukan");
   }
 
-  // 1. VALIDATE PIN DULU (sebelum transaksi)
+  // 1. VALIDATE PIN
   const pinCheck = await validateTransactionPin(userId, pin);
   if (!pinCheck.valid) {
     throw new Error(pinCheck.reason);
@@ -65,7 +65,8 @@ export async function createBooking({
     if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
     const scheduleData = scheduleSnap.data();
-    const availableSlots = scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
+    const availableSlots =
+      scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
 
     if (availableSlots <= 0) {
       throw new Error("Slot penuh");
@@ -84,7 +85,6 @@ export async function createBooking({
     }
 
     const billedHours = Math.ceil(totalMinutes / 60);
-
     const sessionPrice =
       billedHours * (scheduleData.pricePerHour || 0);
 
@@ -98,7 +98,6 @@ export async function createBooking({
 
     const racketUnitPrice = scheduleData.racketPrice || 0;
     const racketTotal = safeRacketQty * racketUnitPrice;
-
     const totalPayment = sessionPrice + racketTotal;
 
     // 5. GET USER
@@ -111,6 +110,30 @@ export async function createBooking({
     if (currentBalance < totalPayment) {
       throw new Error("Saldo tidak cukup");
     }
+
+    // =========================
+    // PRIVACY LOGIC (ON / OFF)
+    // =========================
+    const realName =
+      userData.usernameID ||
+      userData.fullName ||
+      userData.username ||
+      "Member";
+
+    const showName =
+      userData.privacy?.showNameInBooking === true;
+
+    const displayName = showName ? realName : "Member";
+
+    const avatarInitial = showName
+      ? realName.charAt(0).toUpperCase()
+      : "M";
+
+    const photoURL = showName
+      ? userData.photoURL || null
+      : null;
+
+    const isAnonymous = !showName;
 
     // 6. DUPLICATE GUARD
     const duplicateQuery = query(
@@ -131,6 +154,12 @@ export async function createBooking({
     transaction.set(bookingRef, {
       userId,
       scheduleId,
+
+      // ===== PRIVACY SNAPSHOT =====
+      displayName,
+      avatarInitial,
+      photoURL,
+      isAnonymous,
 
       sessionPrice,
       price: totalPayment,
