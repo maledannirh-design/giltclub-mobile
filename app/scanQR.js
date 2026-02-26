@@ -8,6 +8,8 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import { checkInAttendance } from "./services/attendanceService.js";
+
 /* =====================================================
    CORE VALIDATION ENGINE
 ===================================================== */
@@ -104,4 +106,84 @@ window.validateScan = async function(){
 window.validateScanParams = async function(memberCode, issue, signature){
 
   return await validateCore(memberCode, issue, signature);
+};
+
+/* =====================================================
+   HOST CHECK-IN MODE
+===================================================== */
+window.processCheckIn = async function(memberCode, issue, signature, scheduleId, currentUser){
+
+  const validation = await validateCore(memberCode, issue, signature);
+
+  if (!validation.valid) {
+    return validation;
+  }
+
+  const uid = validation.uid;
+
+  try {
+
+    // Ambil data schedule
+    const scheduleRef = doc(db, "schedules", scheduleId);
+    const scheduleSnap = await getDoc(scheduleRef);
+
+    if (!scheduleSnap.exists()) {
+      return { valid:false, reason:"Schedule tidak ditemukan" };
+    }
+
+    const scheduleData = scheduleSnap.data();
+
+    // ===============================
+    // ROLE VALIDATION
+    // ===============================
+
+    const userRole = (currentUser.role || "").toUpperCase();
+
+    const isAdmin =
+      userRole === "ADMIN" ||
+      userRole === "SUPERCOACH";
+
+    const isHost =
+      scheduleData.hostId === currentUser.uid;
+
+    if (!isAdmin && !isHost) {
+      return { valid:false, reason:"Tidak memiliki akses check-in" };
+    }
+
+    // ===============================
+    // CARI BOOKING AKTIF
+    // ===============================
+
+    const q = query(
+      collection(db,"bookings"),
+      where("userId","==",uid),
+      where("scheduleId","==",scheduleId),
+      where("status","==","active")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      return { valid:false, reason:"Booking tidak ditemukan untuk sesi ini" };
+    }
+
+    const bookingId = snap.docs[0].id;
+
+    await checkInAttendance({
+      bookingId,
+      scannedUid: uid
+    });
+
+    return {
+      valid: true,
+      message: "Check-in berhasil"
+    };
+
+  } catch (error) {
+
+    return {
+      valid: false,
+      reason: error.message || "Check-in gagal"
+    };
+  }
 };
