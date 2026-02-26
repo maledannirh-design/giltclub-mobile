@@ -32,8 +32,10 @@ export async function renderBooking() {
 
   const content = document.getElementById("content");
   if (!content) return;
+
+  // Auto close session yang sudah lewat (engine level)
   await autoCloseFinishedSessions();
-  
+
   if (unsubscribeSchedules) {
     unsubscribeSchedules();
     unsubscribeSchedules = null;
@@ -41,8 +43,9 @@ export async function renderBooking() {
 
   content.innerHTML = `<div style="padding:20px;text-align:center;opacity:.6;">Loading...</div>`;
 
+  // 🔥 Ambil SEMUA session (open + closed)
   unsubscribeSchedules = onSnapshot(
-    query(collection(db, "schedules"), where("status", "==", "open")),
+    collection(db, "schedules"),
     async (snapshot) => {
 
       allSchedules = snapshot.docs.map(doc => ({
@@ -214,9 +217,6 @@ function renderCalendarMonth() {
   return html;
 }
 
-/* ===============================
-   CALENDAR POPUP FINAL CLEAN 
-================================= */
 /* ===============================
    CALENDAR POPUP FINAL CLEAN 
 ================================= */
