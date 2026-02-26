@@ -263,19 +263,23 @@ async function openSessionPopup(dateStr) {
 
       const maxPlayers = s.maxPlayers || 0;
       const lockedSlots = s.lockedSlots || [];
-
       const members = [];
 
       for (const docSnap of bookingSnap.docs) {
 
         const bookingData = docSnap.data();
 
+        const name =
+          bookingData.displayName ||
+          bookingData.username ||
+          bookingData.fullName ||
+          "Member";
+
         members.push({
           userId: bookingData.userId,
-          username: bookingData.displayName || "Member",
-          avatarInitial: bookingData.avatarInitial || "M",
-          photoURL: bookingData.photoURL || null,
-          isAnonymous: bookingData.isAnonymous || false
+          username: name,
+          avatarInitial: name.charAt(0).toUpperCase(),
+          photoURL: bookingData.photoURL || null
         });
       }
 
@@ -293,13 +297,10 @@ async function openSessionPopup(dateStr) {
 
       const isRunning = now >= sessionStart && now <= sessionEnd;
       const isFinished = now > sessionEnd;
-
       const isClosed = s.status === "closed";
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
-
-      /* SLOT RENDER */
 
       let slotHtml = "";
       let memberPointer = 0;
@@ -331,9 +332,7 @@ async function openSessionPopup(dateStr) {
                 ${
                   member.photoURL
                     ? `<img src="${member.photoURL}">`
-                    : `<div class="avatar-initial">
-                         ${member.avatarInitial}
-                       </div>`
+                    : `<div class="avatar-initial">${member.avatarInitial}</div>`
                 }
               </div>
               <div class="member-name">${member.username}</div>
@@ -358,11 +357,7 @@ async function openSessionPopup(dateStr) {
       html += `
         <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
 
-          ${
-            isClosed
-              ? `<div style="color:#999;font-weight:bold;margin-bottom:8px;">SESSION CLOSED</div>`
-              : ""
-          }
+          ${isClosed ? `<div style="color:#999;font-weight:bold;margin-bottom:8px;">SESSION CLOSED</div>` : ""}
 
           <div class="session-meta">
             <div><strong>Tier:</strong> ${s.tier || "-"}</div>
@@ -372,10 +367,8 @@ async function openSessionPopup(dateStr) {
 
           <div><strong>Jam:</strong> ${s.startTime || "-"} - ${s.endTime || "-"}</div>
           <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
-
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
           <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
-
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
           <div><strong>Catatan:</strong> ${s.notes || "-"}</div>
 
@@ -402,12 +395,20 @@ async function openSessionPopup(dateStr) {
           }
 
           ${
-            isPrivileged && isRunning && !isClosed
+            isPrivileged
               ? `
-              <button class="checkin-btn" data-id="${s.id}">
-                Check In
-              </button>
+              <div class="session-admin-actions">
+                <button class="edit-session-btn" data-id="${s.id}">
+                  ✏️ Edit Session
+                </button>
+              </div>
               `
+              : ""
+          }
+
+          ${
+            isPrivileged && isRunning && !isClosed
+              ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
               : ""
           }
 
@@ -429,6 +430,12 @@ async function openSessionPopup(dateStr) {
   popup.innerHTML = html;
 
   attachSlotInteraction(currentUserRole);
+
+  document.querySelectorAll(".edit-session-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      openEditSessionSheet(btn.dataset.id);
+    };
+  });
 
   document.querySelectorAll(".checkin-btn").forEach(btn=>{
     btn.onclick = ()=>{
@@ -475,17 +482,16 @@ async function openSessionPopup(dateStr) {
         } else {
 
           const pin = await window.requestTransactionPin();
+          if (!pin) {
+            bookingLock = false;
+            return;
+          }
 
-if (!pin) {
-  bookingLock = false;
-  return;
-}
-
-await createBooking({
-  userId: currentUser.uid,
-  scheduleId: btn.dataset.id,
-  pin
-});
+          await createBooking({
+            userId: currentUser.uid,
+            scheduleId: btn.dataset.id,
+            pin
+          });
 
           showToast("Berhasil join sesi","success");
         }
