@@ -34,9 +34,9 @@ function calculateSessionPrice(scheduleData){
 
 
 /* =====================================================
-   CREATE BOOKING (ANONYM SUPPORT VERSION)
+   CREATE BOOKING (WITH RACKET SUPPORT) + SUPPORT ANONYM
 ===================================================== */
-export async function createBooking({ userId, scheduleId }) {
+export async function createBooking({ userId, scheduleId, racketQty = 0 }) {
 
   const scheduleRef = doc(db, "schedules", scheduleId);
   const userRef = doc(db, "users", userId);
@@ -45,49 +45,38 @@ export async function createBooking({ userId, scheduleId }) {
 
   await runTransaction(db, async (transaction) => {
 
-    // 1️⃣ GET SCHEDULE
+    // 1. GET SCHEDULE
     const scheduleSnap = await transaction.get(scheduleRef);
     if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
     const scheduleData = scheduleSnap.data();
-    const availableSlots = scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
 
-    if (availableSlots <= 0) {
-      throw new Error("Slot penuh");
+    const availableSlots = scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
+    if (availableSlots <= 0) throw new Error("Slot penuh");
+
+    const availableRacket = scheduleData.racketStock || 0;
+    if (racketQty > availableRacket) {
+      throw new Error("Stok raket tidak cukup");
     }
 
-    // 🔥 HITUNG HARGA FINAL
-    const price = calculateSessionPrice(scheduleData);
+    // 2. HITUNG HARGA
+    const sessionPrice = calculateSessionPrice(scheduleData);
+    const racketPrice = scheduleData.racketPrice || 0;
+    const racketTotal = racketQty * racketPrice;
+    const totalPrice = sessionPrice + racketTotal;
 
-    // 2️⃣ GET USER
+    // 3. GET USER
     const userSnap = await transaction.get(userRef);
     if (!userSnap.exists()) throw new Error("User not found");
 
     const userData = userSnap.data();
     const currentBalance = userData.walletBalance || 0;
 
-    if (currentBalance < price) {
+    if (currentBalance < totalPrice) {
       throw new Error("Saldo tidak cukup");
     }
 
-    // 🔐 PRIVACY CHECK
-const showName =
-  userData.privacy &&
-  userData.privacy.showNameInBooking === true;
-
-let publicName = "Member";
-
-if (typeof userData.username === "string" && userData.username.trim() !== "") {
-  publicName = userData.username.trim();
-}
-
-const displayName = showName ? publicName : "Anonymous";
-
-const avatarInitial = showName
-  ? publicName.charAt(0).toUpperCase()
-  : "A";
-
-    // 3️⃣ DUPLICATE GUARD
+    // 4. DUPLICATE GUARD
     const duplicateQuery = query(
       bookingsCol,
       where("userId", "==", userId),
@@ -100,39 +89,60 @@ const avatarInitial = showName
       throw new Error("Sudah booking sesi ini");
     }
 
-    // 4️⃣ CREATE BOOKING
+    // 5. PRIVACY
+    const showName =
+      userData.privacy &&
+      userData.privacy.showNameInBooking === true;
+
+    let publicName = "Member";
+
+    if (typeof userData.username === "string" && userData.username.trim() !== "") {
+      publicName = userData.username.trim();
+    }
+
+    const displayName = showName ? publicName : "Anonymous";
+    const avatarInitial = showName
+      ? publicName.charAt(0).toUpperCase()
+      : "A";
+
+    // 6. CREATE BOOKING
     const bookingRef = doc(bookingsCol);
 
     transaction.set(bookingRef, {
       userId,
       scheduleId,
-      price,
+      price: totalPrice,
+      sessionPrice,
+      racketQty,
+      racketTotal,
       displayName,
       avatarInitial,
       isAnonymous: !showName,
+      attendance: false,
       status: "active",
       createdAt: serverTimestamp()
     });
 
-    // 5️⃣ REDUCE SLOT
+    // 7. UPDATE SLOT DAN RAKET
     transaction.update(scheduleRef, {
-      slots: availableSlots - 1
+      slots: availableSlots - 1,
+      racketStock: availableRacket - racketQty
     });
 
-    // 6️⃣ DEDUCT WALLET
-    const newBalance = currentBalance - price;
+    // 8. DEDUCT WALLET
+    const newBalance = currentBalance - totalPrice;
 
     transaction.update(userRef, {
       walletBalance: newBalance
     });
 
-    // 7️⃣ LEDGER ENTRY
+    // 9. LEDGER ENTRY
     const ledgerRef = doc(ledgerCol);
 
     transaction.set(ledgerRef, {
       userId,
       type: "booking_debit",
-      amount: -price,
+      amount: -totalPrice,
       balanceAfter: newBalance,
       referenceId: bookingRef.id,
       createdAt: serverTimestamp()
