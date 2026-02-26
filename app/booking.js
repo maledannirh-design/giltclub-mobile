@@ -217,6 +217,9 @@ function renderCalendarMonth() {
 /* ===============================
    CALENDAR POPUP FINAL CLEAN 
 ================================= */
+/* ===============================
+   CALENDAR POPUP FINAL CLEAN 
+================================= */
 async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
@@ -284,20 +287,14 @@ async function openSessionPopup(dateStr) {
         ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
         s.hostId === currentUser?.uid;
 
-      const isAdmin =
-        ["ADMIN","SUPERCOACH"].includes(currentUserRole);
-
-      const isHost =
-        s.hostId === currentUser?.uid;
-
-      const canCheckIn = isAdmin || isHost;
-
       const now = new Date();
       const sessionStart = new Date(s.date + "T" + (s.startTime || "00:00"));
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
 
       const isRunning = now >= sessionStart && now <= sessionEnd;
       const isFinished = now > sessionEnd;
+
+      const isClosed = s.status === "closed";
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
@@ -359,7 +356,13 @@ async function openSessionPopup(dateStr) {
       }
 
       html += `
-        <div class="popup-session-card">
+        <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
+
+          ${
+            isClosed
+              ? `<div style="color:#999;font-weight:bold;margin-bottom:8px;">SESSION CLOSED</div>`
+              : ""
+          }
 
           <div class="session-meta">
             <div><strong>Tier:</strong> ${s.tier || "-"}</div>
@@ -379,18 +382,19 @@ async function openSessionPopup(dateStr) {
           ${
             currentUser
               ? `
-              <button class="join-btn 
-                ${isFinished ? "session-finished" : ""}"
+              <button class="join-btn"
                 data-id="${s.id}"
-                ${isFinished || (isFull && !alreadyJoined) ? "disabled" : ""}>
+                ${isClosed || isFinished || (isFull && !alreadyJoined) ? "disabled" : ""}>
                 ${
-                  isFinished
-                    ? "Sesi Selesai"
-                    : isFull && !alreadyJoined
-                      ? "Slot Penuh"
-                      : alreadyJoined
-                        ? "Cancel Join"
-                        : "Gabung Sesi Ini"
+                  isClosed
+                    ? "Session Closed"
+                    : isFinished
+                      ? "Sesi Selesai"
+                      : isFull && !alreadyJoined
+                        ? "Slot Penuh"
+                        : alreadyJoined
+                          ? "Cancel Join"
+                          : "Gabung Sesi Ini"
                 }
               </button>
               `
@@ -398,25 +402,11 @@ async function openSessionPopup(dateStr) {
           }
 
           ${
-            canCheckIn && isRunning
+            isPrivileged && isRunning && !isClosed
               ? `
-                <button class="checkin-btn"
-                  data-id="${s.id}">
-                  Check In
-                </button>
-              `
-              : ""
-          }
-
-          ${
-            isPrivileged
-              ? `
-              <div class="session-admin-actions">
-                <button class="edit-session-btn" data-id="${s.id}">
-                  <span class="edit-icon">✏️</span>
-                  Edit Session
-                </button>
-              </div>
+              <button class="checkin-btn" data-id="${s.id}">
+                Check In
+              </button>
               `
               : ""
           }
@@ -439,12 +429,6 @@ async function openSessionPopup(dateStr) {
   popup.innerHTML = html;
 
   attachSlotInteraction(currentUserRole);
-
-  document.querySelectorAll(".edit-session-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      openEditSessionSheet(btn.dataset.id);
-    };
-  });
 
   document.querySelectorAll(".checkin-btn").forEach(btn=>{
     btn.onclick = ()=>{
