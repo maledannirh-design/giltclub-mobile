@@ -485,13 +485,18 @@ export function renderMembershipLayer(userData){
 
   let success = 0;
 
-  for(const field of requiredFields){
+  for (const field of requiredFields) {
 
-    // HANYA CEK ADA & BUKAN NULL
-    if(userData[field] !== undefined && userData[field] !== null){
-      success++;
-    }
-  }
+  const value = userData[field];
+
+  if (
+  value !== undefined &&
+  value !== null &&
+  String(value).trim() !== ""
+) {
+  success++;
+}
+}
 
   const total = requiredFields.length;
   const percentage = Math.floor((success / total) * 100);
