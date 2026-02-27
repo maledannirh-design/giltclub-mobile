@@ -1171,8 +1171,7 @@ export function renderMembershipLayer(userData){
 
   if(!progressFill || !progressText || !container) return;
 
-  // Guard: pastikan userData valid
-  if(!userData || typeof userData !== "object"){
+  if(!userData){
     progressFill.style.width = "0%";
     progressText.innerText = "0%";
     container.innerHTML = "";
@@ -1180,7 +1179,7 @@ export function renderMembershipLayer(userData){
   }
 
   /* ===============================
-     FIELD WAJIB AKTIVASI
+     FIELD WAJIB
   =============================== */
 
   const requiredFields = [
@@ -1190,28 +1189,22 @@ export function renderMembershipLayer(userData){
     "genre"
   ];
 
-  const total = requiredFields.length;
-
-  let completed = 0;
+  let success = 0;
 
   for(const field of requiredFields){
 
-    const value = userData[field];
-
-    // valid kalau:
-    // - bukan undefined
-    // - bukan null
-    // - bukan string kosong
-    if(
-      value !== undefined &&
-      value !== null &&
-      String(value).trim() !== ""
-    ){
-      completed++;
+    // HANYA CEK ADA & BUKAN NULL
+    if(userData[field] !== undefined && userData[field] !== null){
+      success++;
     }
   }
 
-  const percentage = Math.floor((completed / total) * 100);
+  const total = requiredFields.length;
+  const percentage = Math.floor((success / total) * 100);
+
+  /* ===============================
+     UPDATE PROGRESS BAR
+  =============================== */
 
   progressFill.style.width = percentage + "%";
   progressText.innerText = percentage + "%";
@@ -1220,13 +1213,12 @@ export function renderMembershipLayer(userData){
      JIKA BELUM 100% → STOP
   =============================== */
 
-  if(percentage !== 100){
+  if(percentage < 100){
     container.innerHTML = "";
     return;
   }
 
-  // lanjut ke bagian render card (bagian kamu sudah benar)
-
+  // lanjut render card (bagian kamu sudah benar)
   /* ===============================
      TEMPLATE SELECTION
      DEFAULT = GREEN
