@@ -167,6 +167,8 @@ async function renderLedger(){
   const user = auth.currentUser;
   const content = document.getElementById("content");
 
+  if(!user || !content) return;
+
   const snap = await getDocs(
     query(
       collection(db,"walletTransactions"),
@@ -183,6 +185,31 @@ async function renderLedger(){
   for(const docSnap of snap.docs){
 
     const d = docSnap.data();
+    const amount = d.amount || 0;
+
+    // 🔥 DETECT TYPE
+    const isGPoint =
+      d.type === "gpoint_gameplay";
+
+    // 🔥 FORMAT AMOUNT
+    let amountText = "";
+
+    if(isGPoint){
+      amountText = `⭐ ${amount}`;
+    }else{
+      amountText = `Rp ${amount.toLocaleString("id-ID")}`;
+    }
+
+    // 🔥 FORMAT BALANCE (HANYA UNTUK UANG)
+    let balanceText = "";
+
+    if(!isGPoint){
+      balanceText = `
+        <div class="ledger-balance">
+          Saldo: Rp ${d.balanceAfter?.toLocaleString("id-ID") || "-"}
+        </div>
+      `;
+    }
 
     html += `
       <div class="ledger-item">
@@ -195,11 +222,9 @@ async function renderLedger(){
 
         <div style="text-align:right;">
           <div class="ledger-amount">
-            Rp ${d.amount?.toLocaleString("id-ID")}
+            ${amountText}
           </div>
-          <div class="ledger-balance">
-            Saldo: Rp ${d.balanceAfter?.toLocaleString("id-ID") || "-"}
-          </div>
+          ${balanceText}
         </div>
       </div>
     `;
@@ -208,7 +233,6 @@ async function renderLedger(){
   html += `</div>`;
   content.innerHTML = html;
 }
-
 /* =========================================
    TOP UP SHEET
 ========================================= */
