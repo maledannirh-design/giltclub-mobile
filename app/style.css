@@ -1997,3 +1997,60 @@ body.scan-mode{
   height:100%;
   object-fit:cover;
 }
+
+.membership-progress-box{
+  background:#1f3a2d;
+  border-radius:18px;
+  padding:16px;
+  margin:12px 0 18px;
+  text-align:center;
+}
+
+.progress-bar{
+  height:8px;
+  background:#2c4c3c;
+  border-radius:20px;
+  margin:8px 0;
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:#00ff99;
+  transition:.4s ease;
+}
+
+.membership-card{
+  position:relative;
+  width:100%;
+  max-width:360px;
+  margin:16px auto;
+}
+
+.membership-card img{
+  width:100%;
+  border-radius:22px;
+}
+
+.card-overlay{
+  position:absolute;
+  inset:0;
+  padding:24px;
+  color:white;
+}
+
+.card-name{
+  position:absolute;
+  bottom:60px;
+  left:24px;
+  font-weight:600;
+}
+
+.card-code{
+  position:absolute;
+  bottom:35px;
+  left:24px;
+  font-size:13px;
+  opacity:.9;
+}
