@@ -492,12 +492,12 @@ if (currentUser) {
   });
 
   /* ===============================
-     CHECK IN BUTTON
-  =============================== */
-  document.querySelectorAll(".checkin-btn").forEach(btn=>{
+   CHECK IN BUTTON
+=============================== */
+document.querySelectorAll(".checkin-btn").forEach(btn=>{
   btn.onclick = ()=>{
     sessionStorage.setItem("checkinScheduleId", btn.dataset.id);
-    window.location.href = "/scan-checkin.html";
+    window.location.href = "scan-checkin.html";
   };
 });
 
