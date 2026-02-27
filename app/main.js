@@ -6,6 +6,7 @@ import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
 import { doc, getDoc } from "./firestore.js";
+import { showToast, showConfirm } from "./ui.js";
 
 import {
   collection,
