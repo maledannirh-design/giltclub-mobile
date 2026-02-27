@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Scan Check-In</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: #fff;
+    }
+    #reader {
+      width: 300px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Scan Check-In</h2>
+  <div id="reader"></div>
+  <div id="result"></div>
+
+  <script type="module">
+    import { initCheckinScanner } from "./scanCheckin.js";
+
+    const scheduleId = sessionStorage.getItem("checkinScheduleId");
+
+    initCheckinScanner({
+      readerId: "reader",
+      resultId: "result",
+      scheduleId
+    });
+  </script>
+
+</body>
+</html>
