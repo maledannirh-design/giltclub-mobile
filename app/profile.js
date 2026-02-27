@@ -1172,21 +1172,21 @@ export function renderMembershipLayer(userData){
   if(!progressFill || !progressText || !container) return;
 
   /* ===============================
-     VALIDASI DATA & PROGRESS
+     FIELD WAJIB AKTIVASI
   =============================== */
 
   const requiredFields = [
-    "fullName",
-    "memberCode",
-    "membership",
-    "genre",
-    "alamat"
+    "phone",
+    "alamat",
+    "birthDate",
+    "genre"
   ];
 
   let completed = 0;
 
   requiredFields.forEach(field=>{
-    if(userData?.[field] && userData[field].toString().trim() !== ""){
+    const value = userData?.[field];
+    if(value && value.toString().trim() !== ""){
       completed++;
     }
   });
@@ -1207,6 +1207,7 @@ export function renderMembershipLayer(userData){
 
   /* ===============================
      TEMPLATE SELECTION
+     DEFAULT = GREEN
   =============================== */
 
   const GREEN_CARD =
@@ -1218,18 +1219,18 @@ export function renderMembershipLayer(userData){
   const BLACK_CARD =
     "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
 
-  let templateUrl = GREEN_CARD;
+  let templateUrl = GREEN_CARD; // default jika genre belum ada
 
   if(userData.membership === "VVIP"){
     templateUrl = BLACK_CARD;
   }else if(userData.genre === "female"){
     templateUrl = PINK_CARD;
-  }else{
+  }else if(userData.genre === "male"){
     templateUrl = GREEN_CARD;
   }
 
   /* ===============================
-     RENDER CARD LAYER
+     RENDER CARD
   =============================== */
 
   const displayName =
