@@ -172,6 +172,7 @@ export async function createBooking({
 
       racketQty: safeRacketQty,
       racketUnitPrice,
+      racketTotal,
 
       attendance: false,
       completed: false,
@@ -212,7 +213,7 @@ export async function createBooking({
 }
 
 /* =====================================================
-   CANCEL BOOKING (FINAL PRODUCTION VERSION)
+   CANCEL BOOKING (FINAL PRODUCTION STABLE VERSION)
 ===================================================== */
 export async function cancelBooking({
   bookingId,
@@ -228,18 +229,28 @@ export async function cancelBooking({
 
   await runTransaction(db, async (transaction) => {
 
+    // ===============================
+    // GET BOOKING
+    // ===============================
+
     const bookingSnap = await transaction.get(bookingRef);
-    if (!bookingSnap.exists()) throw new Error("Booking not found");
+    if (!bookingSnap.exists()) {
+      throw new Error("Booking tidak ditemukan");
+    }
 
     const bookingData = bookingSnap.data();
 
     if (bookingData.status !== "active") {
-      throw new Error("Booking already cancelled");
+      throw new Error("Booking sudah dibatalkan");
     }
 
     if (bookingData.attendance === true) {
       throw new Error("Tidak bisa cancel setelah check-in");
     }
+
+    // ===============================
+    // GET SCHEDULE & USER
+    // ===============================
 
     const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
     const userRef = doc(db, "users", bookingData.userId);
@@ -247,24 +258,35 @@ export async function cancelBooking({
     const scheduleSnap = await transaction.get(scheduleRef);
     const userSnap = await transaction.get(userRef);
 
-    if (!scheduleSnap.exists()) throw new Error("Schedule not found");
-    if (!userSnap.exists()) throw new Error("User not found");
+    if (!scheduleSnap.exists()) {
+      throw new Error("Schedule tidak ditemukan");
+    }
+
+    if (!userSnap.exists()) {
+      throw new Error("User tidak ditemukan");
+    }
 
     const scheduleData = scheduleSnap.data();
     const userData = userSnap.data();
 
-    // Block jika sesi sudah selesai
-    if (scheduleData.date && scheduleData.startTime) {
-      const sessionStart = new Date(
-        scheduleData.date + "T" + scheduleData.startTime
-      );
-      const now = new Date();
-      if (now >= sessionStart) {
-        throw new Error("Sesi sudah dimulai atau selesai");
-      }
+    // ===============================
+    // BLOCK IF SESSION STARTED
+    // ===============================
+
+    const sessionStart = new Date(
+      scheduleData.date + "T" + scheduleData.startTime
+    );
+
+    const now = new Date();
+
+    if (now >= sessionStart) {
+      throw new Error("Sesi sudah dimulai atau selesai");
     }
 
-    // VALIDATE PIN
+    // ===============================
+    // VALIDATE PIN (SECURITY LAYER)
+    // ===============================
+
     const pinCheck = await validateTransactionPin(
       bookingData.userId,
       pin
@@ -274,37 +296,29 @@ export async function cancelBooking({
       throw new Error(pinCheck.reason);
     }
 
-    const originalPrice = bookingData.price || 0;
-    const racketQty = bookingData.racketQty || 0;
-
     // ===============================
     // HITUNG PENALTY
     // ===============================
 
-    const sessionStart = new Date(
-      scheduleData.date + "T" + scheduleData.startTime
-    );
-    const now = new Date();
+    const originalPrice = bookingData.price || 0;
+    const racketQty = bookingData.racketQty || 0;
 
-    const diffMs = sessionStart - now;
-    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffHours =
+      (sessionStart - now) / (1000 * 60 * 60);
 
-    let refundAmount = 0;
     let penaltyAmount = 0;
 
     if (diffHours > 48) {
       penaltyAmount = originalPrice * 0.10;
-      refundAmount = originalPrice - penaltyAmount;
     } else if (diffHours > 36) {
       penaltyAmount = originalPrice * 0.50;
-      refundAmount = originalPrice - penaltyAmount;
     } else {
       penaltyAmount = originalPrice;
-      refundAmount = 0;
     }
 
-    refundAmount = Math.floor(refundAmount);
     penaltyAmount = Math.floor(penaltyAmount);
+    const refundAmount =
+      Math.floor(originalPrice - penaltyAmount);
 
     // ===============================
     // UPDATE BOOKING
@@ -319,23 +333,22 @@ export async function cancelBooking({
     // RESTORE SLOT & RACKET
     // ===============================
 
-    const currentSlots = scheduleData.slots ?? 0;
-    const currentRacketStock = scheduleData.racketStock ?? 0;
-
     transaction.update(scheduleRef, {
-      slots: currentSlots + 1,
-      racketStock: currentRacketStock + racketQty
+      slots: (scheduleData.slots ?? 0) + 1,
+      racketStock: (scheduleData.racketStock ?? 0) + racketQty
     });
 
     // ===============================
-    // UPDATE USER WALLET & TOTAL PAYMENT
+    // UPDATE USER WALLET
     // ===============================
 
-    const newBalance = (userData.walletBalance || 0) + refundAmount;
+    const newBalance =
+      (userData.walletBalance || 0) + refundAmount;
 
     transaction.update(userRef, {
       walletBalance: newBalance,
-      totalPayment: (userData.totalPayment || 0) - originalPrice
+      totalPayment:
+        (userData.totalPayment || 0) - refundAmount
     });
 
     // ===============================
@@ -343,10 +356,7 @@ export async function cancelBooking({
     // ===============================
 
     if (refundAmount > 0) {
-
-      const refundRef = doc(ledgerCol);
-
-      transaction.set(refundRef, {
+      transaction.set(doc(ledgerCol), {
         userId: bookingData.userId,
         type: "refund",
         amount: refundAmount,
@@ -361,13 +371,11 @@ export async function cancelBooking({
     // ===============================
 
     if (penaltyAmount > 0) {
-
-      const penaltyRef = doc(ledgerCol);
-
-      transaction.set(penaltyRef, {
+      transaction.set(doc(ledgerCol), {
         userId: bookingData.userId,
         type: "cancel_penalty",
         amount: penaltyAmount,
+        balanceAfter: newBalance,
         referenceId: bookingId,
         createdAt: serverTimestamp()
       });
