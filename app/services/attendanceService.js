@@ -28,9 +28,9 @@ export async function checkInAttendance({
       throw new Error("Booking tidak aktif");
     }
 
-    if (bookingData.attendance === true) {
-      throw new Error("Sudah check-in");
-    }
+    if (bookingData.attendedAt) {
+  throw new Error("Sudah check-in");
+}
 
     if (bookingData.userId !== scannedUid) {
       throw new Error("QR tidak sesuai booking");
