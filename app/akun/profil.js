@@ -38,8 +38,8 @@ export async function renderProfil(){
           value="${userData.username || ""}">
 
         <input id="fullName"
-       placeholder="Nama Lengkap"
-       value="${userData.fullName || ""}">
+          placeholder="Nama Lengkap"
+          value="${userData.fullName || ""}">
 
         <input id="email"
           value="${userData.email || user.email || ""}"
@@ -50,16 +50,26 @@ export async function renderProfil(){
           inputmode="numeric"
           value="${userData.phone || ""}">
 
+        <select id="genre">
+          <option value="">Pilih Gender</option>
+          <option value="male" ${userData.genre === "male" ? "selected" : ""}>Male</option>
+          <option value="female" ${userData.genre === "female" ? "selected" : ""}>Female</option>
+        </select>
+
         <input id="birthPlace"
           placeholder="Tempat Lahir"
           value="${userData.birthPlace || ""}">
 
         <div class="akun-field-group">
-  <label class="akun-label">Tanggal Lahir</label>
-  <input type="date"
-    id="birthDate"
-    value="${userData.birthDate || ""}">
-</div>
+          <label class="akun-label">Tanggal Lahir</label>
+          <input type="date"
+            id="birthDate"
+            value="${userData.birthDate || ""}">
+        </div>
+
+        <textarea id="alamat"
+          placeholder="Alamat Lengkap"
+          maxlength="200">${userData.alamat || ""}</textarea>
 
         <textarea id="bio"
           placeholder="Bio (maks 200 karakter)"
@@ -74,23 +84,21 @@ export async function renderProfil(){
     </div>
   `;
 
-  // BACK BUTTON
   document.getElementById("backToAccount").onclick = async ()=>{
     const module = await import("../profile.js");
     module.renderAccountUI();
   };
 
-  // SAVE PROFILE
   document.getElementById("saveProfileBtn").onclick = async () => {
 
     const username   = document.getElementById("username").value.trim();
-    const fullName = document.getElementById("fullName").value.trim();
+    const fullName   = document.getElementById("fullName").value.trim();
     const phone      = document.getElementById("phone").value.trim();
     const birthPlace = document.getElementById("birthPlace").value.trim();
     const birthDate  = document.getElementById("birthDate").value;
     const bio        = document.getElementById("bio").value.trim();
-
-    // VALIDATION
+    const genre      = document.getElementById("genre").value;
+    const alamat     = document.getElementById("alamat").value.trim();
 
     const usernameRegex = /^[A-Za-z0-9.\s]{3,30}$/;
     if(!usernameRegex.test(username)){
@@ -98,31 +106,36 @@ export async function renderProfil(){
       return;
     }
 
-    if(!fullName || fullName.trim().length < 3){
-  alert("Nama lengkap minimal 3 karakter.");
-  return;
-}
-
-    const birthPlaceRegex = /^[A-Za-z\s]{3,50}$/;
-    if(birthPlace && !birthPlaceRegex.test(birthPlace)){
-      alert("Tempat lahir hanya boleh huruf dan spasi.");
+    if(!fullName || fullName.length < 3){
+      alert("Nama lengkap minimal 3 karakter.");
       return;
     }
 
-    if(bio.length > 200){
-      alert("Bio maksimal 200 karakter.");
+    if(!genre){
+      alert("Silakan pilih gender.");
       return;
     }
 
     try{
 
+      // Auto generate memberCode jika belum ada
+      let memberCode = userData.memberCode;
+      if(!memberCode){
+        const year = new Date().getFullYear().toString().slice(-2);
+        memberCode = `GC-${year}${Math.floor(Math.random()*90000)+10000}`;
+      }
+
       await updateDoc(doc(db, "users", user.uid), {
-        username: username,
-        fullName: fullName,
-        phone: phone,
-        birthPlace: birthPlace,
-        birthDate: birthDate,
-        bio: bio
+        username,
+        fullName,
+        phone,
+        birthPlace,
+        birthDate,
+        bio,
+        genre,
+        alamat,
+        memberCode,
+        membership: userData.membership || "Regular"
       });
 
       alert("Profil berhasil diperbarui.");
