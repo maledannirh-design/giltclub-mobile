@@ -284,3 +284,44 @@
   font-size:11px;
   opacity:.6;
 }
+
+/* ===============================
+   MEMBERSHIP LAYER (WALLET)
+================================ */
+
+.wallet-member-layer{
+  position:relative;
+  width:100%;
+}
+
+.wallet-member-big-img{
+  width:100%;
+  border-radius:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,.15);
+  display:block;
+}
+
+.wallet-member-overlay{
+  position:absolute;
+  inset:0;
+  padding:20px;
+  color:white;
+  pointer-events:none;
+}
+
+.wallet-member-name{
+  position:absolute;
+  bottom:58px;
+  left:20px;
+  font-weight:600;
+  font-size:14px;
+  letter-spacing:.5px;
+}
+
+.wallet-member-code{
+  position:absolute;
+  bottom:36px;
+  left:20px;
+  font-size:12px;
+  opacity:.85;
+}
