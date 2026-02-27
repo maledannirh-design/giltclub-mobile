@@ -1165,32 +1165,96 @@ async function renderChatList(){
 
 export function renderMembershipLayer(userData){
 
+  const progressFill = document.getElementById("memberProgressFill");
+  const progressText = document.getElementById("memberProgressText");
   const container = document.getElementById("membershipCardContainer");
-  if(!container) return;
 
-  const required = ["fullName","genre","alamat","memberCode","membership"];
-  let complete = 0;
+  if(!progressFill || !progressText || !container) return;
 
-  required.forEach(f=>{
-    if(userData[f] && userData[f] !== ""){
-      complete++;
+  /* ===============================
+     VALIDASI DATA & PROGRESS
+  =============================== */
+
+  const requiredFields = [
+    "fullName",
+    "memberCode",
+    "membership",
+    "genre",
+    "alamat"
+  ];
+
+  let completed = 0;
+
+  requiredFields.forEach(field=>{
+    if(userData?.[field] && userData[field].toString().trim() !== ""){
+      completed++;
     }
   });
 
-  const percent = Math.floor((complete/required.length)*100);
+  const percentage = Math.floor((completed / requiredFields.length) * 100);
 
-  document.getElementById("memberProgressFill").style.width = percent + "%";
-  document.getElementById("memberProgressText").innerText = percent + "%";
+  progressFill.style.width = percentage + "%";
+  progressText.innerText = percentage + "%";
 
-  if(percent < 100){
+  /* ===============================
+     JIKA BELUM 100% → STOP
+  =============================== */
+
+  if(percentage < 100){
     container.innerHTML = "";
     return;
   }
 
-  let template = "";
+  /* ===============================
+     TEMPLATE SELECTION
+  =============================== */
 
-  if(userData.membership
+  const GREEN_CARD =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
 
+  const PINK_CARD =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_pink.webp";
+
+  const BLACK_CARD =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
+
+  let templateUrl = GREEN_CARD;
+
+  if(userData.membership === "VVIP"){
+    templateUrl = BLACK_CARD;
+  }else if(userData.genre === "female"){
+    templateUrl = PINK_CARD;
+  }else{
+    templateUrl = GREEN_CARD;
+  }
+
+  /* ===============================
+     RENDER CARD LAYER
+  =============================== */
+
+  const displayName =
+    (userData.fullName || userData.username || "MEMBER").toUpperCase();
+
+  const memberCode =
+    userData.memberCode || "-";
+
+  container.innerHTML = `
+    <div class="membership-card">
+
+      <img src="${templateUrl}" class="wallet-member-big-img"/>
+
+      <div class="wallet-member-overlay">
+        <div class="wallet-member-name">
+          ${displayName}
+        </div>
+        <div class="wallet-member-code">
+          ${memberCode}
+        </div>
+      </div>
+
+    </div>
+  `;
+}
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
