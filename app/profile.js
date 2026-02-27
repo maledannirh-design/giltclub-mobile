@@ -1226,7 +1226,7 @@ export function renderMembershipLayer(userData){
   }
 
   // lanjut ke bagian render card (bagian kamu sudah benar)
-}
+
   /* ===============================
      TEMPLATE SELECTION
      DEFAULT = GREEN
