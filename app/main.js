@@ -160,9 +160,27 @@ function listenAttendanceNotification(uid){
 
       if(change.type === "modified" || change.type === "added"){
 
+        const data = change.doc.data();
         const bookingId = change.doc.id;
 
-        showToast("✅ Anda berhasil check-in!");
+        const cashback = data.rewardCashback || 0;
+        const gpoint = data.rewardGPoint || 0;
+        const role = data.rewardRole || "MEMBER";
+        const date = data.rewardSessionDate || "-";
+
+        let message = "✅ Check-in berhasil!\n";
+
+        if(cashback > 0){
+          message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
+        }
+
+        if(gpoint > 0){
+          message += `⭐ GPoint +${gpoint}\n`;
+        }
+
+        message += `📅 ${date}`;
+
+        showToast(message);
 
         try{
           await updateDoc(
