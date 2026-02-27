@@ -47,7 +47,7 @@ export async function initCheckinScanner({
 }
 
 /* =========================================
-   START CAMERA (RETURN MODE)
+   START CAMERA (FULLSCREEN + RETURN)
 ========================================= */
 async function startCamera(scheduleId, resultBox) {
 
@@ -55,10 +55,21 @@ async function startCamera(scheduleId, resultBox) {
 
   await html5QrInstance.start(
     cameraId,
-    { fps: 10, qrbox: { width: 250, height: 250 } },
+    {
+      fps: 10,
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        const qrSize = Math.floor(minEdge * 0.7); // 70% layar
+        return { width: qrSize, height: qrSize };
+      }
+    },
     async (decodedText) => {
 
-      await html5QrInstance.pause(true);
+      try {
+
+        await html5QrInstance.stop();
+
+      } catch (e) {}
 
       try {
 
@@ -116,10 +127,59 @@ async function startCamera(scheduleId, resultBox) {
 
       }
 
-      goBack();
+      // Setelah 1.5 detik kembali ke halaman sebelumnya
+      setTimeout(() => {
+        goBack();
+      }, 1500);
 
     }
   );
+}
+
+/* =========================================
+   UI HELPERS
+========================================= */
+
+function showSuccess(resultBox, res){
+
+  resultBox.innerHTML = `
+    <div style="
+      background:#1f2d1f;
+      border:2px solid #2ecc71;
+      padding:18px;
+      border-radius:14px;
+      text-align:center;
+    ">
+      <div style="font-size:18px;margin-bottom:8px;">
+        ✅ CHECK-IN BERHASIL
+      </div>
+    </div>
+  `;
+}
+
+function showInvalid(message){
+
+  const box = document.getElementById("result");
+
+  box.innerHTML = `
+    <div style="
+      background:#3a1c1c;
+      border:2px solid #e74c3c;
+      padding:18px;
+      border-radius:14px;
+      text-align:center;
+    ">
+      ❌ ${message}
+    </div>
+  `;
+}
+
+/* =========================================
+   GO BACK
+========================================= */
+
+function goBack(){
+  window.history.back();
 }
 
 /* =========================================
