@@ -301,27 +301,59 @@
   display:block;
 }
 
+/* ===============================
+   MEMBERSHIP GOLD TEXT
+================================ */
+
 .wallet-member-overlay{
   position:absolute;
   inset:0;
   padding:20px;
-  color:white;
   pointer-events:none;
+
+  /* EMAS GRADIENT */
+  color:#d4af37;
+  text-shadow:
+    0 1px 2px rgba(0,0,0,.4),
+    0 0 6px rgba(212,175,55,.3);
 }
 
+/* NAIK SEDIKIT & LEBIH ELEGAN */
 .wallet-member-name{
   position:absolute;
-  bottom:58px;
-  left:20px;
-  font-weight:600;
-  font-size:14px;
-  letter-spacing:.5px;
+  bottom:70px;          /* sebelumnya 58px */
+  left:22px;
+
+  font-weight:700;
+  font-size:15px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+
+  background:linear-gradient(
+    90deg,
+    #f6e27a,
+    #d4af37,
+    #b8860b
+  );
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
 
+/* NAIK SEDIKIT */
 .wallet-member-code{
   position:absolute;
-  bottom:36px;
-  left:20px;
+  bottom:48px;          /* sebelumnya 36px */
+  left:22px;
+
   font-size:12px;
-  opacity:.85;
+  font-weight:500;
+  letter-spacing:.8px;
+
+  background:linear-gradient(
+    90deg,
+    #f6e27a,
+    #d4af37
+  );
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
