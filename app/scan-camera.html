@@ -76,16 +76,19 @@
     const html5Qr = new Html5Qrcode("reader");
 
     const config = {
-      fps: 20, // lebih responsif
-      qrbox: (viewfinderWidth, viewfinderHeight) => {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        const qrSize = Math.floor(minEdge * 0.85); // 85% layar
-        return { width: qrSize, height: qrSize };
-      },
-      experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true
-      }
+  fps: 25,
+  qrbox: (viewfinderWidth, viewfinderHeight) => {
+    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+    return {
+      width: Math.floor(minEdge * 0.9),
+      height: Math.floor(minEdge * 0.9)
     };
+  },
+  aspectRatio: 1.0,
+  experimentalFeatures: {
+    useBarCodeDetectorIfSupported: true
+  }
+};
 
     async function startScanner(){
 
