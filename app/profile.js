@@ -449,6 +449,117 @@ export async function renderAccountUI(){
       module.renderPrivasi();
     };
   }
+
+
+
+export function renderMembershipLayer(userData){
+
+  const progressFill = document.getElementById("memberProgressFill");
+  const progressText = document.getElementById("memberProgressText");
+  const container = document.getElementById("membershipCardContainer");
+
+  if(!progressFill || !progressText || !container) return;
+
+  if(!userData){
+    progressFill.style.width = "0%";
+    progressText.innerText = "0%";
+    container.innerHTML = "";
+    return;
+  }
+
+  /* ===============================
+     FIELD WAJIB
+  =============================== */
+
+  const requiredFields = [
+    "phone",
+    "alamat",
+    "birthDate",
+    "genre"
+  ];
+
+  let success = 0;
+
+  for(const field of requiredFields){
+
+    // HANYA CEK ADA & BUKAN NULL
+    if(userData[field] !== undefined && userData[field] !== null){
+      success++;
+    }
+  }
+
+  const total = requiredFields.length;
+  const percentage = Math.floor((success / total) * 100);
+
+  /* ===============================
+     UPDATE PROGRESS BAR
+  =============================== */
+
+  progressFill.style.width = percentage + "%";
+  progressText.innerText = percentage + "%";
+
+  /* ===============================
+     JIKA BELUM 100% → STOP
+  =============================== */
+
+  if(percentage < 100){
+    container.innerHTML = "";
+    return;
+  }
+
+  // lanjut render card (bagian kamu sudah benar)
+  /* ===============================
+     TEMPLATE SELECTION
+     DEFAULT = GREEN
+  =============================== */
+
+  const GREEN_CARD =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
+
+  const PINK_CARD =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_pink.webp";
+
+  const BLACK_CARD =
+    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
+
+  let templateUrl = GREEN_CARD; // default jika genre belum ada
+
+  if(userData.membership === "VVIP"){
+    templateUrl = BLACK_CARD;
+  }else if(userData.genre === "female"){
+    templateUrl = PINK_CARD;
+  }else if(userData.genre === "male"){
+    templateUrl = GREEN_CARD;
+  }
+
+  /* ===============================
+     RENDER CARD
+  =============================== */
+
+  const displayName =
+    (userData.fullName || userData.username || "MEMBER").toUpperCase();
+
+  const memberCode =
+    userData.memberCode || "-";
+
+  container.innerHTML = `
+    <div class="membership-card">
+
+      <img src="${templateUrl}" class="wallet-member-big-img"/>
+
+      <div class="wallet-member-overlay">
+        <div class="wallet-member-name">
+          ${displayName}
+        </div>
+        <div class="wallet-member-code">
+          ${memberCode}
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+  
 }
 
 /* =========================================
@@ -1163,115 +1274,7 @@ async function renderChatList(){
   );
 }
 
-console.log("MembershipLayer userData:", userData);
 
-export function renderMembershipLayer(userData){
-
-  const progressFill = document.getElementById("memberProgressFill");
-  const progressText = document.getElementById("memberProgressText");
-  const container = document.getElementById("membershipCardContainer");
-
-  if(!progressFill || !progressText || !container) return;
-
-  if(!userData){
-    progressFill.style.width = "0%";
-    progressText.innerText = "0%";
-    container.innerHTML = "";
-    return;
-  }
-
-  /* ===============================
-     FIELD WAJIB
-  =============================== */
-
-  const requiredFields = [
-    "phone",
-    "alamat",
-    "birthDate",
-    "genre"
-  ];
-
-  let success = 0;
-
-  for(const field of requiredFields){
-
-    // HANYA CEK ADA & BUKAN NULL
-    if(userData[field] !== undefined && userData[field] !== null){
-      success++;
-    }
-  }
-
-  const total = requiredFields.length;
-  const percentage = Math.floor((success / total) * 100);
-
-  /* ===============================
-     UPDATE PROGRESS BAR
-  =============================== */
-
-  progressFill.style.width = percentage + "%";
-  progressText.innerText = percentage + "%";
-
-  /* ===============================
-     JIKA BELUM 100% → STOP
-  =============================== */
-
-  if(percentage < 100){
-    container.innerHTML = "";
-    return;
-  }
-
-  // lanjut render card (bagian kamu sudah benar)
-  /* ===============================
-     TEMPLATE SELECTION
-     DEFAULT = GREEN
-  =============================== */
-
-  const GREEN_CARD =
-    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
-
-  const PINK_CARD =
-    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_pink.webp";
-
-  const BLACK_CARD =
-    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
-
-  let templateUrl = GREEN_CARD; // default jika genre belum ada
-
-  if(userData.membership === "VVIP"){
-    templateUrl = BLACK_CARD;
-  }else if(userData.genre === "female"){
-    templateUrl = PINK_CARD;
-  }else if(userData.genre === "male"){
-    templateUrl = GREEN_CARD;
-  }
-
-  /* ===============================
-     RENDER CARD
-  =============================== */
-
-  const displayName =
-    (userData.fullName || userData.username || "MEMBER").toUpperCase();
-
-  const memberCode =
-    userData.memberCode || "-";
-
-  container.innerHTML = `
-    <div class="membership-card">
-
-      <img src="${templateUrl}" class="wallet-member-big-img"/>
-
-      <div class="wallet-member-overlay">
-        <div class="wallet-member-name">
-          ${displayName}
-        </div>
-        <div class="wallet-member-code">
-          ${memberCode}
-        </div>
-      </div>
-
-    </div>
-  `;
-}
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
