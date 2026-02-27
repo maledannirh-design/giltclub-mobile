@@ -7,25 +7,35 @@ import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
 import { doc, getDoc } from "./firestore.js";
 
-import { getDatabase, ref, set, onDisconnect }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { onAuthStateChanged }
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
 /* =========================================
    GLOBAL INIT
 ========================================= */
 
-// Init theme once
 initTheme();
 
-// Expose to window
 window.navigate = navigate;
 window.toggleTheme = toggleTheme;
 
-// Init Realtime Database
 const rtdb = getDatabase();
 
 
@@ -38,13 +48,8 @@ window.addEventListener("load", () => {
   const splash = document.getElementById("splashScreen");
   if (!splash) return;
 
-  setTimeout(() => {
-    splash.classList.add("fade-out");
-  }, 1200);
-
-  setTimeout(() => {
-    splash.classList.add("hide");
-  }, 2000);
+  setTimeout(() => splash.classList.add("fade-out"), 1200);
+  setTimeout(() => splash.classList.add("hide"), 2000);
 
 });
 
@@ -60,12 +65,11 @@ onAuthStateChanged(auth, async (user)=>{
 
   if(user){
 
-    // Navigate once
     navigate("home");
 
-    // =============================
-    // PRESENCE SYSTEM
-    // =============================
+    /* =============================
+       PRESENCE SYSTEM
+    ============================= */
     const statusRef = ref(rtdb, "status/" + user.uid);
 
     set(statusRef,{
@@ -78,9 +82,9 @@ onAuthStateChanged(auth, async (user)=>{
       lastSeen: Date.now()
     });
 
-    // =============================
-    // LOAD USER DATA (ROLE + LABEL)
-    // =============================
+    /* =============================
+       LOAD USER DATA
+    ============================= */
     try{
 
       const snap = await getDoc(doc(db, "users", user.uid));
@@ -89,17 +93,13 @@ onAuthStateChanged(auth, async (user)=>{
 
         const data = snap.data();
 
-        // Simpan global role (optional but good)
         window.currentUserRole = data.role || "MEMBER";
 
-        // Update label
         if(label){
-          label.innerText = `${data.username || "User"} (${data.role || "-"})`;
+          label.innerText =
+            `${data.username || "User"} (${data.role || "-"})`;
         }
 
-        // =============================
-        // SHOW / HIDE ADMIN MENU
-        // =============================
         if(adminButton){
           if(data.role === "ADMIN" || data.role === "SUPERCOACH"){
             adminButton.style.display = "flex";
@@ -110,13 +110,8 @@ onAuthStateChanged(auth, async (user)=>{
 
       }else{
 
-        if(label){
-          label.innerText = "User data missing";
-        }
-
-        if(adminButton){
-          adminButton.style.display = "none";
-        }
+        if(label) label.innerText = "User data missing";
+        if(adminButton) adminButton.style.display = "none";
 
       }
 
@@ -124,27 +119,64 @@ onAuthStateChanged(auth, async (user)=>{
 
       console.error("User load error:", error);
 
-      if(label){
-        label.innerText = "Error loading user";
-      }
+      if(label) label.innerText = "Error loading user";
+      if(adminButton) adminButton.style.display = "none";
 
-      if(adminButton){
-        adminButton.style.display = "none";
-      }
     }
+
+    /* =============================
+       ATTENDANCE REALTIME LISTENER
+    ============================= */
+    listenAttendanceNotification(user.uid);
 
   }else{
 
     navigate("account");
 
-    if(label){
-      label.innerText = "Not logged in";
-    }
-
-    if(adminButton){
-      adminButton.style.display = "none";
-    }
+    if(label) label.innerText = "Not logged in";
+    if(adminButton) adminButton.style.display = "none";
 
   }
 
 });
+
+
+/* =========================================
+   ATTENDANCE NOTIFICATION
+========================================= */
+
+function listenAttendanceNotification(uid){
+
+  const q = query(
+    collection(db,"bookings"),
+    where("userId","==",uid),
+    where("attendance","==",true),
+    where("attendanceNotified","==",false)
+  );
+
+  onSnapshot(q, snap=>{
+
+    snap.docChanges().forEach(async change=>{
+
+      if(change.type === "modified" || change.type === "added"){
+
+        const bookingId = change.doc.id;
+
+        showToast("✅ Anda berhasil check-in!");
+
+        try{
+          await updateDoc(
+            doc(db,"bookings",bookingId),
+            { attendanceNotified: true }
+          );
+        }catch(e){
+          console.warn("Notify flag update error:", e);
+        }
+
+      }
+
+    });
+
+  });
+
+}
