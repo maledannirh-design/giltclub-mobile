@@ -377,7 +377,10 @@ export async function renderAccountUI(){
     </button>
   </div>
   `;
-
+// 🔥 WAJIB TAMBAH INI
+if(currentUserData){
+  renderMembershipLayer(currentUserData);
+}
   // =============================
   // PROFILE NAME & VERIFIED
   // =============================
