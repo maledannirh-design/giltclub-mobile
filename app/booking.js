@@ -380,6 +380,20 @@ async function openSessionPopup(dateStr) {
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
           <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
+          ${
+  (s.cashbackMember || s.cashbackVerified || s.cashbackVVIP)
+    ? `
+    <div class="session-cashback-info">
+      <strong>Cashback Check-In:</strong>
+      <div class="cashback-list">
+        ${s.cashbackMember ? `<div>Member: Rp ${(s.cashbackMember).toLocaleString("id-ID")}</div>` : ""}
+        ${s.cashbackVerified ? `<div>Verified: Rp ${(s.cashbackVerified).toLocaleString("id-ID")}</div>` : ""}
+        ${s.cashbackVVIP ? `<div>VVIP: Rp ${(s.cashbackVVIP).toLocaleString("id-ID")}</div>` : ""}
+      </div>
+    </div>
+    `
+    : ""
+}
           ${s.notes ? `
   <div class="session-notes">
     <strong>Catatan:</strong>
