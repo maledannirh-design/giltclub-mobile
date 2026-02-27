@@ -116,10 +116,17 @@ export async function checkInAttendance({
     =============================== */
 
     transaction.update(bookingRef, {
-      attendance: true,
-      completed: true,
-      attendedAt: serverTimestamp()
-    });
+  attendance: true,
+  attendanceNotified: false,
+  completed: true,
+  attendedAt: serverTimestamp(),
+
+  // 🔥 Snapshot reward
+  rewardCashback: cashback,
+  rewardGPoint: earnedGPoint,
+  rewardRole: userData.role || "MEMBER",
+  rewardSessionDate: scheduleData.date
+});
 
     /* ===============================
        UPDATE USER
