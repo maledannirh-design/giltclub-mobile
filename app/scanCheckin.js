@@ -47,7 +47,7 @@ export async function initCheckinScanner({
 }
 
 /* =========================================
-   START CAMERA
+   START CAMERA (RETURN MODE)
 ========================================= */
 async function startCamera(scheduleId, resultBox) {
 
@@ -82,14 +82,14 @@ async function startCamera(scheduleId, resultBox) {
 
         if (!c || !i || !s) {
           showInvalid("QR format tidak valid");
-          return resumeScanner(resultBox);
+          return goBack();
         }
 
         const currentUser = auth.currentUser;
 
         if (!currentUser) {
           showInvalid("Host tidak login");
-          return resumeScanner(resultBox);
+          return goBack();
         }
 
         const res = await window.processCheckIn(
@@ -104,13 +104,9 @@ async function startCamera(scheduleId, resultBox) {
         );
 
         if (res.valid) {
-
           showSuccess(resultBox, res);
-
         } else {
-
           showInvalid(res.reason);
-
         }
 
       } catch (err) {
@@ -120,7 +116,7 @@ async function startCamera(scheduleId, resultBox) {
 
       }
 
-      resumeScanner(resultBox);
+      goBack();
 
     }
   );
@@ -194,28 +190,37 @@ function showInvalid(message){
     </div>
   `;
 }
-
-/* =========================================
-   AUTO RESUME
-========================================= */
-
-function resumeScanner(resultBox){
+function goBack(){
   setTimeout(async ()=>{
-    resultBox.innerHTML = "";
-    try {
-      await html5QrInstance.resume();
-    } catch(e){}
-  },2000);
+    try{
+      await html5QrInstance.stop();
+      await html5QrInstance.clear();
+    }catch(e){}
+    window.history.back(); // kembali ke halaman sebelumnya
+  },1500);
 }
 
 /* =========================================
    STOP SCANNER
 ========================================= */
 export async function stopCheckinScanner() {
-  if (html5QrInstance) {
-    try{
+
+  if (!html5QrInstance) return;
+
+  try {
+
+    const state = html5QrInstance.getState();
+
+    if (state === 2) { 
+      // SCANNING
       await html5QrInstance.stop();
-      await html5QrInstance.clear();
-    }catch(e){}
+    }
+
+    await html5QrInstance.clear();
+
+  } catch (e) {
+    console.warn("Scanner stop error:", e);
   }
+
+  html5QrInstance = null;
 }
