@@ -233,6 +233,7 @@ async function renderLedger(){
   html += `</div>`;
   content.innerHTML = html;
 }
+
 /* =========================================
    TOP UP SHEET
 ========================================= */
