@@ -449,6 +449,8 @@ export async function renderAccountUI(){
       module.renderPrivasi();
     };
   }
+  
+}
 
 
 
@@ -559,9 +561,6 @@ export function renderMembershipLayer(userData){
     </div>
   `;
 }
-  
-}
-
 /* =========================================
    PHOTO UPLOAD
 ========================================= */
