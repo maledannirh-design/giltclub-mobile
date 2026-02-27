@@ -1163,6 +1163,34 @@ async function renderChatList(){
   );
 }
 
+export function renderMembershipLayer(userData){
+
+  const container = document.getElementById("membershipCardContainer");
+  if(!container) return;
+
+  const required = ["fullName","genre","alamat","memberCode","membership"];
+  let complete = 0;
+
+  required.forEach(f=>{
+    if(userData[f] && userData[f] !== ""){
+      complete++;
+    }
+  });
+
+  const percent = Math.floor((complete/required.length)*100);
+
+  document.getElementById("memberProgressFill").style.width = percent + "%";
+  document.getElementById("memberProgressText").innerText = percent + "%";
+
+  if(percent < 100){
+    container.innerHTML = "";
+    return;
+  }
+
+  let template = "";
+
+  if(userData.membership
+
 /* =========================================
    STUBS - WINDOW SECTION B
 ========================================= */
