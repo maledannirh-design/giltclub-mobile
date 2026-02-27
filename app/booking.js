@@ -893,7 +893,20 @@ export async function openCreateSessionSheet(){
         <label>Catatan</label>
         <textarea id="notes" rows="3"></textarea>
       </div>
+      <div class="sheet-section">
+  <label>Cashback Member</label>
+  <input type="number" id="cashbackMember" step="1000">
+</div>
 
+<div class="sheet-section">
+  <label>Cashback Verified</label>
+  <input type="number" id="cashbackVerified" step="1000">
+</div>
+
+<div class="sheet-section">
+  <label>Cashback VVIP</label>
+  <input type="number" id="cashbackVVIP" step="1000">
+</div>
       <button class="btn-create-session" id="submitCreateSession">
         Buat Sesi
       </button>
@@ -990,6 +1003,9 @@ async function setupCreateSessionSubmit(){
       const racketRate  = Number(document.getElementById("racketRate").value);
 
       const notes       = document.getElementById("notes").value.trim();
+      const cashbackMember   = Number(document.getElementById("cashbackMember").value);
+const cashbackVerified = Number(document.getElementById("cashbackVerified").value);
+const cashbackVVIP     = Number(document.getElementById("cashbackVVIP").value);
 
       if(!date || !startTime || !endTime){
         showToast("Lengkapi tanggal dan jam","error");
@@ -1031,8 +1047,11 @@ async function setupCreateSessionSubmit(){
 
         notes: notes || "",
         status: "open",
-        createdAt: serverTimestamp()
-
+        createdAt: serverTimestamp(),
+        cashbackMember: cashbackMember || 0,
+cashbackVerified: cashbackVerified || 0,
+cashbackVVIP: cashbackVVIP || 0,
+        
       });
 
       showToast("Sesi berhasil dibuat","success");
@@ -1284,6 +1303,9 @@ async function openEditSessionSheet(scheduleId){
     document.getElementById("racketRate").value = s.racketPrice || 0;
 
     document.getElementById("notes").value = s.notes || "";
+    document.getElementById("cashbackMember").value = s.cashbackMember || 0;
+document.getElementById("cashbackVerified").value = s.cashbackVerified || 0;
+document.getElementById("cashbackVVIP").value = s.cashbackVVIP || 0;
 
     const submitBtn = document.getElementById("submitCreateSession");
     submitBtn.innerText = "Update Session";
@@ -1347,6 +1369,9 @@ async function openEditSessionSheet(scheduleId){
           racketPrice: Number(document.getElementById("racketRate").value),
 
           notes: document.getElementById("notes").value.trim(),
+          cashbackMember: Number(document.getElementById("cashbackMember").value) || 0,
+cashbackVerified: Number(document.getElementById("cashbackVerified").value) || 0,
+cashbackVVIP: Number(document.getElementById("cashbackVVIP").value) || 0,
         });
 
         showToast("Session berhasil diperbarui","success");
