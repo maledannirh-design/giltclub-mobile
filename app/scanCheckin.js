@@ -47,7 +47,7 @@ export async function initCheckinScanner({
 }
 
 /* =========================================
-   START CAMERA (FULLSCREEN + RETURN)
+   START CAMERA
 ========================================= */
 async function startCamera(scheduleId, resultBox) {
 
@@ -59,16 +59,14 @@ async function startCamera(scheduleId, resultBox) {
       fps: 10,
       qrbox: (viewfinderWidth, viewfinderHeight) => {
         const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        const qrSize = Math.floor(minEdge * 0.7); // 70% layar
+        const qrSize = Math.floor(minEdge * 0.7);
         return { width: qrSize, height: qrSize };
       }
     },
     async (decodedText) => {
 
       try {
-
         await html5QrInstance.stop();
-
       } catch (e) {}
 
       try {
@@ -92,14 +90,14 @@ async function startCamera(scheduleId, resultBox) {
         }
 
         if (!c || !i || !s) {
-          showInvalid("QR format tidak valid");
+          showInvalid(resultBox, "QR format tidak valid");
           return goBack();
         }
 
         const currentUser = auth.currentUser;
 
         if (!currentUser) {
-          showInvalid("Host tidak login");
+          showInvalid(resultBox, "Host tidak login");
           return goBack();
         }
 
@@ -117,17 +115,14 @@ async function startCamera(scheduleId, resultBox) {
         if (res.valid) {
           showSuccess(resultBox, res);
         } else {
-          showInvalid(res.reason);
+          showInvalid(resultBox, res.reason);
         }
 
       } catch (err) {
-
         console.error("Checkin scan error:", err);
-        showInvalid("QR tidak valid");
-
+        showInvalid(resultBox, "QR tidak valid");
       }
 
-      // Setelah 1.5 detik kembali ke halaman sebelumnya
       setTimeout(() => {
         goBack();
       }, 1500);
@@ -137,55 +132,8 @@ async function startCamera(scheduleId, resultBox) {
 }
 
 /* =========================================
-   UI HELPERS
+   UI SUCCESS
 ========================================= */
-
-function showSuccess(resultBox, res){
-
-  resultBox.innerHTML = `
-    <div style="
-      background:#1f2d1f;
-      border:2px solid #2ecc71;
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-    ">
-      <div style="font-size:18px;margin-bottom:8px;">
-        ✅ CHECK-IN BERHASIL
-      </div>
-    </div>
-  `;
-}
-
-function showInvalid(message){
-
-  const box = document.getElementById("result");
-
-  box.innerHTML = `
-    <div style="
-      background:#3a1c1c;
-      border:2px solid #e74c3c;
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-    ">
-      ❌ ${message}
-    </div>
-  `;
-}
-
-/* =========================================
-   GO BACK
-========================================= */
-
-function goBack(){
-  window.history.back();
-}
-
-/* =========================================
-   UI HELPERS
-========================================= */
-
 function showSuccess(resultBox, res){
 
   const role = (res.role || "MEMBER").toUpperCase();
@@ -209,6 +157,7 @@ function showSuccess(resultBox, res){
       border:2px solid #2ecc71;
       padding:18px;
       border-radius:14px;
+      text-align:center;
     ">
       <div style="font-size:18px;margin-bottom:8px;">
         ✅ CHECK-IN BERHASIL
@@ -229,39 +178,56 @@ function showSuccess(resultBox, res){
 
       <div>${cashbackText}</div>
       <div>${gpointText}</div>
+
       <div style="font-size:12px;opacity:0.6;margin-top:8px;">
         📅 ${res.sessionDate}
       </div>
     </div>
   `;
-
 }
 
-function showInvalid(message){
-  const box = document.getElementById("result");
-  box.innerHTML = `
+/* =========================================
+   UI INVALID
+========================================= */
+function showInvalid(resultBox, message){
+
+  resultBox.innerHTML = `
     <div style="
       background:#3a1c1c;
       border:2px solid #e74c3c;
       padding:18px;
       border-radius:14px;
+      text-align:center;
     ">
       ❌ ${message}
     </div>
   `;
 }
-function goBack(){
-  setTimeout(async ()=>{
-    try{
-      await html5QrInstance.stop();
+
+/* =========================================
+   GO BACK
+========================================= */
+async function goBack(){
+
+  try{
+    if (html5QrInstance) {
+      const state = html5QrInstance.getState();
+      if (state === 2) {
+        await html5QrInstance.stop();
+      }
       await html5QrInstance.clear();
-    }catch(e){}
-    window.history.back(); // kembali ke halaman sebelumnya
-  },1500);
+    }
+  }catch(e){
+    console.warn("Scanner stop error:", e);
+  }
+
+  html5QrInstance = null;
+
+  window.history.back();
 }
 
 /* =========================================
-   STOP SCANNER
+   STOP SCANNER MANUAL
 ========================================= */
 export async function stopCheckinScanner() {
 
@@ -271,8 +237,7 @@ export async function stopCheckinScanner() {
 
     const state = html5QrInstance.getState();
 
-    if (state === 2) { 
-      // SCANNING
+    if (state === 2) {
       await html5QrInstance.stop();
     }
 
