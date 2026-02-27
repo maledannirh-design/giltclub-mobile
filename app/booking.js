@@ -501,8 +501,8 @@ document.querySelectorAll(".checkin-btn").forEach(btn=>{
   };
 });
 
- /* ===============================
-   JOIN BUTTON (FINAL CLEAN FLOW)
+/* ===============================
+   JOIN BUTTON (FINAL PRO VERSION)
 ================================= */
 document.querySelectorAll(".join-btn").forEach(btn => {
 
@@ -549,7 +549,51 @@ document.querySelectorAll(".join-btn").forEach(btn => {
           return;
         }
 
-        const bookingId = snap.docs[0].id;
+        const bookingDoc = snap.docs[0];
+        const bookingData = bookingDoc.data();
+        const bookingId = bookingDoc.id;
+
+        const originalPrice = bookingData.price || 0;
+
+        const sessionStart = new Date(
+          s.date + "T" + s.startTime
+        );
+
+        const now = new Date();
+        const diffHours =
+          (sessionStart - now) / (1000 * 60 * 60);
+
+        let penaltyAmount = 0;
+
+        if (diffHours > 48) {
+          penaltyAmount = originalPrice * 0.10;
+        } else if (diffHours > 36) {
+          penaltyAmount = originalPrice * 0.50;
+        } else {
+          penaltyAmount = originalPrice;
+        }
+
+        penaltyAmount = Math.floor(penaltyAmount);
+        const refundAmount =
+          Math.floor(originalPrice - penaltyAmount);
+
+        const confirmed = await showConfirm({
+          title: "Batalkan Sesi?",
+          message: `
+            Total penalty:
+            <br><strong>Rp ${penaltyAmount.toLocaleString("id-ID")}</strong>
+            <br><br>
+            Total pengembalian dana:
+            <br><strong>Rp ${refundAmount.toLocaleString("id-ID")}</strong>
+          `,
+          confirmText: "Ya, Batalkan",
+          cancelText: "Tidak"
+        });
+
+        if (!confirmed) {
+          bookingLock = false;
+          return;
+        }
 
         const pin = await window.requestTransactionPin();
         if (!pin) {
@@ -573,6 +617,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
       =============================== */
 
       let racketQty = 0;
+      let racketTotal = 0;
 
       if (s.racketStock && s.racketStock > 0) {
 
@@ -584,6 +629,42 @@ document.querySelectorAll(".join-btn").forEach(btn => {
         }
 
         racketQty = selectedQty;
+        racketTotal = racketQty * (s.racketPrice || 0);
+      }
+
+      // HITUNG DURASI
+      const [startH, startM] = s.startTime.split(":").map(Number);
+      const [endH, endM] = s.endTime.split(":").map(Number);
+
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      const totalMinutes = endMinutes - startMinutes;
+
+      const billedHours = Math.ceil(totalMinutes / 60);
+      const sessionTotal =
+        billedHours * (s.pricePerHour || 0);
+
+      const totalPayment = sessionTotal + racketTotal;
+
+      const confirmed = await showConfirm({
+        title: "Konfirmasi Join Sesi",
+        message: `
+          Total sesi:
+          <br><strong>Rp ${sessionTotal.toLocaleString("id-ID")}</strong>
+          <br><br>
+          Total raket:
+          <br><strong>Rp ${racketTotal.toLocaleString("id-ID")}</strong>
+          <br><br>
+          Total pembayaran:
+          <br><strong>Rp ${totalPayment.toLocaleString("id-ID")}</strong>
+        `,
+        confirmText: "Ya, Bayar",
+        cancelText: "Tidak"
+      });
+
+      if (!confirmed) {
+        bookingLock = false;
+        return;
       }
 
       const pin = await window.requestTransactionPin();
@@ -765,6 +846,7 @@ async function attachSlotInteraction(currentUserRole) {
   });
 
 }
+
 /* ===============================
    CREATE SESSION CARD
 ================================= */
