@@ -321,7 +321,7 @@
 /* NAIK SEDIKIT & LEBIH ELEGAN */
 .wallet-member-name{
   position:absolute;
-  bottom:70px;          /* sebelumnya 58px */
+  bottom:58px;          /* sebelumnya 58px */
   left:22px;
 
   font-weight:700;
@@ -342,7 +342,7 @@
 /* NAIK SEDIKIT */
 .wallet-member-code{
   position:absolute;
-  bottom:48px;          /* sebelumnya 36px */
+  bottom:34px;          /* sebelumnya 36px */
   left:22px;
 
   font-size:12px;
