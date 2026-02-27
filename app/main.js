@@ -141,54 +141,46 @@ onAuthStateChanged(auth, async (user)=>{
 });
 
 
-/* =========================================
-   ATTENDANCE NOTIFICATION
-========================================= */
-
 function listenAttendanceNotification(uid){
 
   const q = query(
     collection(db,"bookings"),
     where("userId","==",uid),
-    where("attendance","==",true),
-    where("attendanceNotified","==",false)
+    where("attendance","==",true)
   );
 
   onSnapshot(q, snap=>{
 
-    snap.docChanges().forEach(async change=>{
+    snap.docChanges().forEach(change=>{
 
-      if(change.type === "modified" || change.type === "added"){
+      if(change.type === "modified"){
 
         const data = change.doc.data();
-        const bookingId = change.doc.id;
+        const attendedAt = data.attendedAt?.toDate?.();
 
-        const cashback = data.rewardCashback || 0;
-        const gpoint = data.rewardGPoint || 0;
-        const role = data.rewardRole || "MEMBER";
-        const date = data.rewardSessionDate || "-";
+        if(!attendedAt) return;
 
-        let message = "✅ Check-in berhasil!\n";
+        const diff = Date.now() - attendedAt.getTime();
 
-        if(cashback > 0){
-          message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
-        }
+        if(diff < 2 * 60 * 1000){  // 2 menit window
 
-        if(gpoint > 0){
-          message += `⭐ GPoint +${gpoint}\n`;
-        }
+          const cashback = data.rewardCashback || 0;
+          const gpoint = data.rewardGPoint || 0;
+          const date = data.rewardSessionDate || "-";
 
-        message += `📅 ${date}`;
+          let message = "✅ Check-in berhasil!\n";
 
-        showToast(message);
+          if(cashback > 0){
+            message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
+          }
 
-        try{
-          await updateDoc(
-            doc(db,"bookings",bookingId),
-            { attendanceNotified: true }
-          );
-        }catch(e){
-          console.warn("Notify flag update error:", e);
+          if(gpoint > 0){
+            message += `⭐ GPoint +${gpoint}\n`;
+          }
+
+          message += `📅 ${date}`;
+
+          showToast(message);
         }
 
       }
