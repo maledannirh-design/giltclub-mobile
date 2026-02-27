@@ -111,7 +111,13 @@ window.validateScanParams = async function(memberCode, issue, signature){
 /* =====================================================
    HOST CHECK-IN MODE
 ===================================================== */
-window.processCheckIn = async function(memberCode, issue, signature, scheduleId, currentUser){
+window.processCheckIn = async function(
+  memberCode,
+  issue,
+  signature,
+  scheduleId,
+  currentUser
+){
 
   const validation = await validateCore(memberCode, issue, signature);
 
@@ -123,7 +129,18 @@ window.processCheckIn = async function(memberCode, issue, signature, scheduleId,
 
   try {
 
-    // Ambil data schedule
+    if (!scheduleId) {
+      return { valid:false, reason:"Schedule tidak ditemukan" };
+    }
+
+    if (!currentUser || !currentUser.uid) {
+      return { valid:false, reason:"Host tidak login" };
+    }
+
+    // ===============================
+    // AMBIL DATA SCHEDULE
+    // ===============================
+
     const scheduleRef = doc(db, "schedules", scheduleId);
     const scheduleSnap = await getDoc(scheduleRef);
 
@@ -169,14 +186,18 @@ window.processCheckIn = async function(memberCode, issue, signature, scheduleId,
 
     const bookingId = snap.docs[0].id;
 
-    await checkInAttendance({
+    // ===============================
+    // PANGGIL ENGINE ATTENDANCE
+    // ===============================
+
+    const attendanceResult = await checkInAttendance({
       bookingId,
       scannedUid: uid
     });
 
     return {
       valid: true,
-      message: "Check-in berhasil"
+      ...attendanceResult
     };
 
   } catch (error) {
@@ -186,4 +207,5 @@ window.processCheckIn = async function(memberCode, issue, signature, scheduleId,
       reason: error.message || "Check-in gagal"
     };
   }
+
 };
