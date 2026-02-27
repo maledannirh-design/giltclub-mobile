@@ -226,7 +226,19 @@ async function openSessionPopup(dateStr) {
   if (!popup) return;
 
   const currentUser = auth.currentUser;
-  let currentUserRole = "member";
+let currentUserRole = "MEMBER";
+
+if (currentUser) {
+  try {
+    const userRef = doc(db, "users", currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      currentUserRole = (userSnap.data().role || "MEMBER").toUpperCase();
+    }
+  } catch (e) {
+    console.error("Failed to fetch role", e);
+  }
+}
 
   const sessions = allSchedules
     .filter(s => s.date === dateStr)
