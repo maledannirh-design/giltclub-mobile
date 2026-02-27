@@ -1163,6 +1163,8 @@ async function renderChatList(){
   );
 }
 
+console.log("MembershipLayer userData:", userData);
+
 export function renderMembershipLayer(userData){
 
   const progressFill = document.getElementById("memberProgressFill");
