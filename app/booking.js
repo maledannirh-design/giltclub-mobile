@@ -495,12 +495,11 @@ if (currentUser) {
      CHECK IN BUTTON
   =============================== */
   document.querySelectorAll(".checkin-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      if (typeof window.openScanForCheckIn === "function") {
-        window.openScanForCheckIn(btn.dataset.id);
-      }
-    };
-  });
+  btn.onclick = ()=>{
+    sessionStorage.setItem("checkinScheduleId", btn.dataset.id);
+    window.location.href = "/scan-checkin.html";
+  };
+});
 
  /* ===============================
    JOIN BUTTON (FINAL CLEAN FLOW)
