@@ -1171,6 +1171,14 @@ export function renderMembershipLayer(userData){
 
   if(!progressFill || !progressText || !container) return;
 
+  // Guard: pastikan userData valid
+  if(!userData || typeof userData !== "object"){
+    progressFill.style.width = "0%";
+    progressText.innerText = "0%";
+    container.innerHTML = "";
+    return;
+  }
+
   /* ===============================
      FIELD WAJIB AKTIVASI
   =============================== */
@@ -1182,16 +1190,28 @@ export function renderMembershipLayer(userData){
     "genre"
   ];
 
+  const total = requiredFields.length;
+
   let completed = 0;
 
-  requiredFields.forEach(field=>{
-    const value = userData?.[field];
-    if(value && value.toString().trim() !== ""){
+  for(const field of requiredFields){
+
+    const value = userData[field];
+
+    // valid kalau:
+    // - bukan undefined
+    // - bukan null
+    // - bukan string kosong
+    if(
+      value !== undefined &&
+      value !== null &&
+      String(value).trim() !== ""
+    ){
       completed++;
     }
-  });
+  }
 
-  const percentage = Math.floor((completed / requiredFields.length) * 100);
+  const percentage = Math.floor((completed / total) * 100);
 
   progressFill.style.width = percentage + "%";
   progressText.innerText = percentage + "%";
@@ -1200,11 +1220,13 @@ export function renderMembershipLayer(userData){
      JIKA BELUM 100% → STOP
   =============================== */
 
-  if(percentage < 100){
+  if(percentage !== 100){
     container.innerHTML = "";
     return;
   }
 
+  // lanjut ke bagian render card (bagian kamu sudah benar)
+}
   /* ===============================
      TEMPLATE SELECTION
      DEFAULT = GREEN
