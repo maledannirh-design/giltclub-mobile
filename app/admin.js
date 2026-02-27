@@ -231,7 +231,7 @@ window.rejectTopup = async function(trxId){
 };
 
 /* =====================================================
-   HANDLE WALLET + GPOINTS ADJUSTMENT
+   HANDLE BALANCE / GPOINTS ADJUSTMENT (FOLLOW MUTASI)
 ===================================================== */
 async function handleBalanceAdjustment(){
 
@@ -247,12 +247,7 @@ async function handleBalanceAdjustment(){
   }
 
   if (!walletAmount && !gPointsAmount) {
-    alert("Isi minimal salah satu nominal (Wallet atau GPoints)");
-    return;
-  }
-
-  if (!reason) {
-    alert("Pilih reason terlebih dahulu");
+    alert("Isi minimal salah satu nominal");
     return;
   }
 
@@ -267,39 +262,56 @@ async function handleBalanceAdjustment(){
       if (!userSnap.exists()) throw new Error("User tidak ditemukan");
 
       const data = userSnap.data();
+
       const currentWallet = data.walletBalance || 0;
       const currentGPoints = data.gPoints || 0;
 
       const newWallet = currentWallet + walletAmount;
       const newGPoints = currentGPoints + gPointsAmount;
 
-      if (newWallet < 0) {
-        throw new Error("Saldo wallet tidak boleh minus");
-      }
+      if (newWallet < 0) throw new Error("Saldo tidak boleh minus");
+      if (newGPoints < 0) throw new Error("GPoints tidak boleh minus");
 
-      if (newGPoints < 0) {
-        throw new Error("GPoints tidak boleh minus");
-      }
-
+      // UPDATE USER
       transaction.update(userRef,{
         walletBalance: newWallet,
         gPoints: newGPoints
       });
 
-      const ledgerRef = doc(ledgerCol);
+      // ==========================
+      // 🔥 WALLET LEDGER ENTRY
+      // ==========================
+      if(walletAmount !== 0){
 
-      transaction.set(ledgerRef,{
-        userId,
-        type: "admin_adjustment",
-        reason,
-        walletAmount,
-        gPointsAmount,
-        balanceAfter: newWallet,
-        gPointsAfter: newGPoints,
-        note: note || "",
-        createdBy: auth.currentUser.uid,
-        createdAt: serverTimestamp()
-      });
+        const walletLedgerRef = doc(ledgerCol);
+
+        transaction.set(walletLedgerRef,{
+          userId,
+          type: reason || "admin_wallet_adjustment",
+          amount: walletAmount,
+          balanceAfter: newWallet,
+          createdBy: auth.currentUser.uid,
+          createdAt: serverTimestamp(),
+          note: note || ""
+        });
+      }
+
+      // ==========================
+      // 🔥 GPOINT LEDGER ENTRY
+      // ==========================
+      if(gPointsAmount !== 0){
+
+        const gLedgerRef = doc(ledgerCol);
+
+        transaction.set(gLedgerRef,{
+          userId,
+          type: "gpoint_gameplay", // 🔥 supaya muncul ⭐
+          amount: gPointsAmount,
+          createdBy: auth.currentUser.uid,
+          createdAt: serverTimestamp(),
+          note: note || ""
+        });
+      }
 
     });
 
