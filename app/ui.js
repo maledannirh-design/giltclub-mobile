@@ -12,19 +12,35 @@ export function showToast(message, type = "default"){
 }
 
 
-export function showConfirm(message){
+export function showConfirm(options){
 
   return new Promise((resolve) => {
+
+    // Support string lama (backward compatible)
+    if (typeof options === "string") {
+      options = {
+        message: options
+      };
+    }
+
+    const {
+      title = "Konfirmasi",
+      message = "",
+      confirmText = "Confirm",
+      cancelText = "Cancel",
+      type = "default" // default | danger | success
+    } = options;
 
     const overlay = document.createElement("div");
     overlay.className = "modal-overlay";
 
     overlay.innerHTML = `
-      <div class="modal-box">
+      <div class="modal-box modal-${type}">
+        <div class="modal-title">${title}</div>
         <div class="modal-message">${message}</div>
         <div class="modal-actions">
-          <button class="modal-cancel">Cancel</button>
-          <button class="modal-confirm">Confirm</button>
+          <button class="modal-cancel">${cancelText}</button>
+          <button class="modal-confirm">${confirmText}</button>
         </div>
       </div>
     `;
