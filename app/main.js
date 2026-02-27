@@ -156,33 +156,41 @@ function listenAttendanceNotification(uid){
 
         const data = change.doc.data();
         const attendedAt = data.attendedAt?.toDate?.();
-
         if(!attendedAt) return;
 
         const diff = Date.now() - attendedAt.getTime();
+        if(diff > 60 * 60 * 1000) return; // 1 jam window
 
-        // window 10 menit biar aman
-        if(diff < 60 * 60 * 1000){
+        const bookingId = change.doc.id;
 
-          const cashback = data.rewardCashback || 0;
-          const gpoint = data.rewardGPoint || 0;
-          const date = data.rewardSessionDate || "-";
+        const notified =
+          JSON.parse(localStorage.getItem("notifiedBookings") || "[]");
 
-          let message = "✅ Check-in berhasil!\n";
+        if(notified.includes(bookingId)) return;
 
-          if(cashback > 0){
-            message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
-          }
+        const cashback = data.rewardCashback || 0;
+        const gpoint = data.rewardGPoint || 0;
+        const date = data.rewardSessionDate || "-";
 
-          if(gpoint > 0){
-            message += `⭐ GPoint +${gpoint}\n`;
-          }
+        let message = "✅ Check-in berhasil!\n";
 
-          message += `📅 ${date}`;
-
-          showToast(message);
+        if(cashback > 0){
+          message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
         }
 
+        if(gpoint > 0){
+          message += `⭐ GPoint +${gpoint}\n`;
+        }
+
+        message += `📅 ${date}`;
+
+        showToast(message);
+
+        notified.push(bookingId);
+        localStorage.setItem(
+          "notifiedBookings",
+          JSON.stringify(notified)
+        );
       }
 
     });
