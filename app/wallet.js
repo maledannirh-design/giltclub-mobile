@@ -20,20 +20,38 @@ export async function renderWallet(){
   if(!content || !user) return;
 
   try{
-    
+
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
+
     const balance = userData.walletBalance || 0;
     const membership = userData.membership || "MEMBER";
+    const genre = userData.genre || "";
+    const fullName = userData.fullName || userData.username || "MEMBER";
+    const memberCode = userData.memberCode || "-";
 
-    const MEMBER_CARD =
+    /* =============================
+       TEMPLATE SELECTION
+    ============================= */
+
+    const GREEN_CARD =
       "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
 
-    const VVIP_CARD =
+    const PINK_CARD =
+      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_pink.webp";
+
+    const BLACK_CARD =
       "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
 
-    const memberCardUrl =
-      membership === "MEMBER" ? MEMBER_CARD : VVIP_CARD;
+    let memberCardUrl = GREEN_CARD;
+
+    if(membership === "VVIP"){
+      memberCardUrl = BLACK_CARD;
+    }else if(genre === "female"){
+      memberCardUrl = PINK_CARD;
+    }else{
+      memberCardUrl = GREEN_CARD;
+    }
 
     content.innerHTML = `
       <div class="wallet-page">
@@ -55,7 +73,21 @@ export async function renderWallet(){
           </div>
 
           <div class="wallet-big-card">
-            <img src="${memberCardUrl}" class="wallet-member-big-img" />
+            <div class="wallet-member-layer">
+
+              <img src="${memberCardUrl}" 
+                   class="wallet-member-big-img"/>
+
+              <div class="wallet-member-overlay">
+                <div class="wallet-member-name">
+                  ${fullName.toUpperCase()}
+                </div>
+                <div class="wallet-member-code">
+                  ${memberCode}
+                </div>
+              </div>
+
+            </div>
           </div>
 
         </div>
@@ -105,27 +137,17 @@ export async function renderWallet(){
        ACTION BUTTONS
     ============================= */
 
-    const topupBtn = document.querySelector(".topup-card");
-    const withdrawBtn = document.querySelector(".withdraw-card");
-    const ledgerBtn = document.querySelector(".ledger-card");
+    document.querySelector(".topup-card").onclick = ()=>{
+      renderTopUpSheet();
+    };
 
-    if(topupBtn){
-      topupBtn.onclick = ()=>{
-        renderTopUpSheet();
-      };
-    }
+    document.querySelector(".withdraw-card").onclick = ()=>{
+      alert("Sementara penarikan saldo langsung menghubungi admin club.");
+    };
 
-    if(withdrawBtn){
-      withdrawBtn.onclick = ()=>{
-        alert("Sementara penarikan saldo langsung menghubungi admin club.");
-      };
-    }
-
-    if(ledgerBtn){
-      ledgerBtn.onclick = ()=>{
-        renderLedger();
-      };
-    }
+    document.querySelector(".ledger-card").onclick = ()=>{
+      renderLedger();
+    };
 
   }catch(error){
     console.error("Wallet error:", error);
@@ -136,7 +158,6 @@ export async function renderWallet(){
     `;
   }
 }
-
 
 /* =========================================
    SVG ICON
