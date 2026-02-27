@@ -1,5 +1,5 @@
 import { auth } from "./firebase.js";
-import "./scanQR.js"; // supaya processCheckIn tersedia di window
+import "./scanQR.js";
 
 let html5QrInstance = null;
 let cameraList = [];
@@ -18,6 +18,7 @@ export async function initCheckinScanner({
   const resultBox = document.getElementById(resultId);
 
   if (!readerEl || !resultBox) return;
+
   if (!scheduleId) {
     resultBox.innerHTML =
       `<div class="invalid-box">Schedule tidak ditemukan</div>`;
@@ -57,11 +58,11 @@ async function startCamera(scheduleId, resultBox) {
     { fps: 10, qrbox: { width: 250, height: 250 } },
     async (decodedText) => {
 
-      await html5QrInstance.stop();
+      await html5QrInstance.pause(true);
 
       try {
 
-        let cleaned = decodedText.trim().replace(/\n/g,"");
+        const cleaned = decodedText.trim().replace(/\n/g,"");
 
         let c = null;
         let i = null;
@@ -80,17 +81,15 @@ async function startCamera(scheduleId, resultBox) {
         }
 
         if (!c || !i || !s) {
-          resultBox.innerHTML =
-            `<div class="invalid-box">QR format tidak valid</div>`;
-          return;
+          showInvalid("QR format tidak valid");
+          return resumeScanner(resultBox);
         }
 
         const currentUser = auth.currentUser;
 
         if (!currentUser) {
-          resultBox.innerHTML =
-            `<div class="invalid-box">Host tidak login</div>`;
-          return;
+          showInvalid("Host tidak login");
+          return resumeScanner(resultBox);
         }
 
         const res = await window.processCheckIn(
@@ -105,29 +104,108 @@ async function startCamera(scheduleId, resultBox) {
         );
 
         if (res.valid) {
-          resultBox.innerHTML = `
-            <div class="valid-box">
-              ✅ CHECK-IN BERHASIL
-            </div>
-          `;
+
+          showSuccess(resultBox, res);
+
         } else {
-          resultBox.innerHTML = `
-            <div class="invalid-box">
-              ❌ ${res.reason}
-            </div>
-          `;
+
+          showInvalid(res.reason);
+
         }
 
       } catch (err) {
 
         console.error("Checkin scan error:", err);
+        showInvalid("QR tidak valid");
 
-        resultBox.innerHTML =
-          `<div class="invalid-box">QR tidak valid</div>`;
       }
+
+      resumeScanner(resultBox);
 
     }
   );
+}
+
+/* =========================================
+   UI HELPERS
+========================================= */
+
+function showSuccess(resultBox, res){
+
+  const role = (res.role || "MEMBER").toUpperCase();
+
+  const roleColor =
+    role === "VVIP" ? "#FFD700" :
+    role === "VERIFIED" ? "#00C2FF" :
+    "#aaa";
+
+  const cashbackText = res.cashback > 0
+    ? `💰 Cashback Rp ${res.cashback.toLocaleString("id-ID")}`
+    : `💰 Tidak ada cashback`;
+
+  const gpointText = res.earnedGPoint > 0
+    ? `⭐ GPoint +${res.earnedGPoint}`
+    : "";
+
+  resultBox.innerHTML = `
+    <div style="
+      background:#1f2d1f;
+      border:2px solid #2ecc71;
+      padding:18px;
+      border-radius:14px;
+    ">
+      <div style="font-size:18px;margin-bottom:8px;">
+        ✅ CHECK-IN BERHASIL
+      </div>
+
+      <div style="
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:20px;
+        font-size:12px;
+        font-weight:bold;
+        background:${roleColor};
+        color:#000;
+        margin-bottom:12px;
+      ">
+        ${role}
+      </div>
+
+      <div>${cashbackText}</div>
+      <div>${gpointText}</div>
+      <div style="font-size:12px;opacity:0.6;margin-top:8px;">
+        📅 ${res.sessionDate}
+      </div>
+    </div>
+  `;
+
+}
+
+function showInvalid(message){
+  const box = document.getElementById("result");
+  box.innerHTML = `
+    <div style="
+      background:#3a1c1c;
+      border:2px solid #e74c3c;
+      padding:18px;
+      border-radius:14px;
+    ">
+      ❌ ${message}
+    </div>
+  `;
+}
+
+/* =========================================
+   AUTO RESUME
+========================================= */
+
+function resumeScanner(resultBox){
+  setTimeout(async ()=>{
+    resultBox.innerHTML = "";
+    try {
+      await html5QrInstance.resume();
+    } catch(e){}
+  },2000);
 }
 
 /* =========================================
@@ -135,9 +213,9 @@ async function startCamera(scheduleId, resultBox) {
 ========================================= */
 export async function stopCheckinScanner() {
   if (html5QrInstance) {
-    try {
+    try{
       await html5QrInstance.stop();
       await html5QrInstance.clear();
-    } catch (e) {}
+    }catch(e){}
   }
 }
