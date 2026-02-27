@@ -697,7 +697,7 @@ async function renderBalanceAdjustmentPanel(){
       <label>Reason</label>
       <select id="adjustReason">
         <option value="cashback_session">Cashback Session</option>
-        <option value="cancel_penalty">Cancel Penalty</option>
+        <option value="cancel_penalty">Bonus Attendance</option>
         <option value="refund">Refund</option>
         <option value="admin_adjustment">Admin Adjustment</option>
       </select>
