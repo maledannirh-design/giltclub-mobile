@@ -231,63 +231,28 @@ window.rejectTopup = async function(trxId){
 };
 
 /* =====================================================
-   RENDER BALANCE ADJUSTMENT PANEL
-===================================================== */
-async function renderBalanceAdjustmentPanel(){
-
-  const container = document.getElementById("adminBalanceAdjustment");
-  if (!container) return;
-
-  const usersSnap = await getDocs(collection(db,"users"));
-
-  let options = "";
-
-  usersSnap.docs.forEach(docSnap=>{
-    const u = docSnap.data();
-    options += `
-      <option value="${docSnap.id}">
-        ${u.username || u.fullName || docSnap.id}
-      </option>
-    `;
-  });
-
-  container.innerHTML = `
-    <div class="admin-card">
-
-      <h3>Manual Balance Adjustment</h3>
-
-      <label>User</label>
-      <select id="adjustUser">
-        ${options}
-      </select>
-
-      <label>Nominal (boleh minus)</label>
-      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
-
-      <label>Catatan</label>
-      <input type="text" id="adjustNote" placeholder="Alasan adjustment">
-
-      <button id="saveAdjustment" class="admin-btn">
-        Simpan
-      </button>
-
-    </div>
-  `;
-
-  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
-}
-
-/* =====================================================
-   HANDLE ADJUSTMENT
+   HANDLE WALLET + GPOINTS ADJUSTMENT
 ===================================================== */
 async function handleBalanceAdjustment(){
 
   const userId = document.getElementById("adjustUser").value;
-  const amount = Number(document.getElementById("adjustAmount").value);
+  const walletAmount = Number(document.getElementById("adjustAmount").value || 0);
+  const gPointsAmount = Number(document.getElementById("adjustGPoints").value || 0);
+  const reason = document.getElementById("adjustReason").value;
   const note = document.getElementById("adjustNote").value.trim();
 
-  if (!amount || isNaN(amount)) {
+  if (isNaN(walletAmount) || isNaN(gPointsAmount)) {
     alert("Nominal tidak valid");
+    return;
+  }
+
+  if (!walletAmount && !gPointsAmount) {
+    alert("Isi minimal salah satu nominal (Wallet atau GPoints)");
+    return;
+  }
+
+  if (!reason) {
+    alert("Pilih reason terlebih dahulu");
     return;
   }
 
@@ -301,15 +266,24 @@ async function handleBalanceAdjustment(){
       const userSnap = await transaction.get(userRef);
       if (!userSnap.exists()) throw new Error("User tidak ditemukan");
 
-      const currentBalance = userSnap.data().walletBalance || 0;
-      const newBalance = currentBalance + amount;
+      const data = userSnap.data();
+      const currentWallet = data.walletBalance || 0;
+      const currentGPoints = data.gPoints || 0;
 
-      if (newBalance < 0) {
-        throw new Error("Saldo tidak boleh minus");
+      const newWallet = currentWallet + walletAmount;
+      const newGPoints = currentGPoints + gPointsAmount;
+
+      if (newWallet < 0) {
+        throw new Error("Saldo wallet tidak boleh minus");
+      }
+
+      if (newGPoints < 0) {
+        throw new Error("GPoints tidak boleh minus");
       }
 
       transaction.update(userRef,{
-        walletBalance: newBalance
+        walletBalance: newWallet,
+        gPoints: newGPoints
       });
 
       const ledgerRef = doc(ledgerCol);
@@ -317,8 +291,11 @@ async function handleBalanceAdjustment(){
       transaction.set(ledgerRef,{
         userId,
         type: "admin_adjustment",
-        amount,
-        balanceAfter: newBalance,
+        reason,
+        walletAmount,
+        gPointsAmount,
+        balanceAfter: newWallet,
+        gPointsAfter: newGPoints,
         note: note || "",
         createdBy: auth.currentUser.uid,
         createdAt: serverTimestamp()
