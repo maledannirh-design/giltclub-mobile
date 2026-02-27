@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =====================================================
-   CHECK-IN ATTENDANCE (FINAL CLEAN VERSION)
+   CHECK-IN ATTENDANCE (PRODUCTION VERSION)
 ===================================================== */
 export async function checkInAttendance({
   bookingId,
@@ -16,6 +16,12 @@ export async function checkInAttendance({
 
   const bookingRef = doc(db, "bookings", bookingId);
   const ledgerCol = collection(db, "walletTransactions");
+
+  // 🔥 variables to return to UI
+  let cashback = 0;
+  let earnedGPoint = 0;
+  let role = "MEMBER";
+  let sessionDate = null;
 
   await runTransaction(db, async (transaction) => {
 
@@ -29,8 +35,8 @@ export async function checkInAttendance({
     }
 
     if (bookingData.attendedAt) {
-  throw new Error("Sudah check-in");
-}
+      throw new Error("Sudah check-in");
+    }
 
     if (bookingData.userId !== scannedUid) {
       throw new Error("QR tidak sesuai booking");
@@ -47,6 +53,9 @@ export async function checkInAttendance({
 
     const scheduleData = scheduleSnap.data();
     const userData = userSnap.data();
+
+    role = userData.role || "MEMBER";
+    sessionDate = scheduleData.date;
 
     const now = new Date();
 
@@ -76,23 +85,21 @@ export async function checkInAttendance({
 
     let multiplier = 1;
 
-    if (userData.role === "VVIP") {
+    if (role === "VVIP") {
       multiplier = 2.5;
-    } else if (userData.role === "VERIFIED") {
+    } else if (role === "VERIFIED") {
       multiplier = 1.5;
     }
 
-    const earnedGPoint = Math.floor(baseUnit * multiplier);
+    earnedGPoint = Math.floor(baseUnit * multiplier);
 
     /* ===============================
        HITUNG CASHBACK
     =============================== */
 
-    let cashback = 0;
-
-    if (userData.role === "VVIP") {
+    if (role === "VVIP") {
       cashback = scheduleData.cashbackVVIP || 0;
-    } else if (userData.role === "VERIFIED") {
+    } else if (role === "VERIFIED") {
       cashback = scheduleData.cashbackVerified || 0;
     } else {
       cashback = scheduleData.cashbackMember || 0;
@@ -154,7 +161,30 @@ export async function checkInAttendance({
       });
     }
 
+    /* ===============================
+       LEDGER GPOINT
+    =============================== */
+
+    if (earnedGPoint > 0) {
+
+      const gLedgerRef = doc(ledgerCol);
+
+      transaction.set(gLedgerRef, {
+        userId: bookingData.userId,
+        type: "gpoint_gameplay",
+        amount: earnedGPoint,
+        referenceId: bookingId,
+        createdAt: serverTimestamp()
+      });
+    }
+
   });
 
-  return { success: true };
+  return {
+    success: true,
+    cashback,
+    earnedGPoint,
+    role,
+    sessionDate
+  };
 }
