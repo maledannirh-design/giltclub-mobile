@@ -140,7 +140,6 @@ onAuthStateChanged(auth, async (user)=>{
 
 });
 
-
 function listenAttendanceNotification(uid){
 
   const q = query(
@@ -153,7 +152,7 @@ function listenAttendanceNotification(uid){
 
     snap.docChanges().forEach(change=>{
 
-      if(change.type === "modified"){
+      if(change.type === "added" || change.type === "modified"){
 
         const data = change.doc.data();
         const attendedAt = data.attendedAt?.toDate?.();
@@ -162,7 +161,8 @@ function listenAttendanceNotification(uid){
 
         const diff = Date.now() - attendedAt.getTime();
 
-        if(diff < 2 * 60 * 1000){  // 2 menit window
+        // window 10 menit biar aman
+        if(diff < 60 * 60 * 1000){
 
           const cashback = data.rewardCashback || 0;
           const gpoint = data.rewardGPoint || 0;
@@ -188,5 +188,7 @@ function listenAttendanceNotification(uid){
     });
 
   });
+
+}
 
 }
