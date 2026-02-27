@@ -655,5 +655,64 @@ window.generateMemberCode = async function(uid){
 
   console.log("MemberCode:", memberCode);
 };
+
+
+/* =====================================================
+   RENDER BALANCE ADJUSTMENT PANEL
+===================================================== */
+async function renderBalanceAdjustmentPanel(){
+
+  const container = document.getElementById("adminBalanceAdjustment");
+  if (!container) return;
+
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  let options = "";
+
+  usersSnap.docs.forEach(docSnap=>{
+    const u = docSnap.data();
+    options += `
+      <option value="${docSnap.id}">
+        ${u.username || u.fullName || docSnap.id}
+      </option>
+    `;
+  });
+
+  container.innerHTML = `
+    <div class="admin-card">
+
+      <h3>Manual Adjustment</h3>
+
+      <label>User</label>
+      <select id="adjustUser">
+        ${options}
+      </select>
+
+      <label>Wallet Adjustment (boleh minus)</label>
+      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
+
+      <label>GPoints Adjustment (boleh minus)</label>
+      <input type="number" id="adjustGPoints" placeholder="10 atau -5">
+
+      <label>Reason</label>
+      <select id="adjustReason">
+        <option value="cashback_session">Cashback Session</option>
+        <option value="cancel_penalty">Cancel Penalty</option>
+        <option value="refund">Refund</option>
+        <option value="admin_adjustment">Admin Adjustment</option>
+      </select>
+
+      <label>Catatan (optional)</label>
+      <input type="text" id="adjustNote" placeholder="Detail">
+
+      <button id="saveAdjustment" class="admin-btn">
+        Simpan
+      </button>
+
+    </div>
+  `;
+
+  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+}
 // expose
 window.runMigration = runMigration;
