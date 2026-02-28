@@ -66,7 +66,7 @@ export async function initDailyScanner(readerId, resultId){
     await html5QrInstance.start(
       cameraId,
       {
-        fps: 35,
+        fps: 45,
         qrbox: (viewfinderWidth, viewfinderHeight) => {
           const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
           const size = Math.floor(minEdge * 0.8);
@@ -124,11 +124,11 @@ export async function initDailyScanner(readerId, resultId){
 ========================================= */
 async function runDailyStreakReward(uid){
 
-  const ref = doc(db,"users",uid);
+  const userRef = doc(db,"users",uid);
 
   return await runTransaction(db, async (transaction)=>{
 
-    const snap = await transaction.get(ref);
+    const snap = await transaction.get(userRef);
     if(!snap.exists()) throw new Error("User tidak ditemukan");
 
     const data = snap.data();
@@ -160,10 +160,24 @@ async function runDailyStreakReward(uid){
       ? (streak === 7 ? 200 : 15)
       : (streak === 7 ? 150 : 10);
 
-    transaction.update(ref,{
+    // 🔹 1️⃣ Update total
+    transaction.update(userRef,{
       currentStreak: streak,
       lastCheckinDate: today,
-      gPoint: (data.gPoint || 0) + reward
+      gPoint: (data.gPoint || 0) + reward,
+      gPointLastUpdated: new Date()
+    });
+
+    // 🔹 2️⃣ Create ledger entry
+    const ledgerRef = doc(
+      collection(userRef,"gpointLedger")
+    );
+
+    transaction.set(ledgerRef,{
+      type: "daily_checkin",
+      amount: reward,
+      streakDay: streak,
+      createdAt: new Date()
     });
 
     return reward;
