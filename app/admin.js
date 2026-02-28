@@ -361,78 +361,87 @@ async function setupQrValidator(){
     await startCamera();
   };
 
-  /* ===============================
-     CAMERA START
-  =============================== */
-  async function startCamera(){
 
-    const config = {
-      fps: 25,
-      qrbox: (viewfinderWidth, viewfinderHeight) => {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        return {
-          width: Math.floor(minEdge * 0.9),
-          height: Math.floor(minEdge * 0.9)
-        };
-      },
-      aspectRatio: 1.0,
-      experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true
-      }
-    };
+ /* ===============================
+   CAMERA START (STABLE VERSION)
+=============================== */
+async function startCamera(){
 
-    const cameraId = cameraList[currentCameraIndex].id;
+  const config = {
+    fps: 25,
+    qrbox: (viewfinderWidth, viewfinderHeight) => {
+      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+      return {
+        width: Math.floor(minEdge * 0.9),
+        height: Math.floor(minEdge * 0.9)
+      };
+    },
+    aspectRatio: 1.0,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
+    }
+  };
 
-    await html5QrInstance.start(
-      cameraId,
-      config,
-      async (decodedText) => {
+  const cameraId = cameraList[currentCameraIndex].id;
 
-        try{
-          await html5QrInstance.pause(true);
-        }catch(e){}
+  let processing = false; // 🔥 anti double scan
 
-        try{
+  await html5QrInstance.start(
+    cameraId,
+    config,
+    async (decodedText) => {
 
-          let cleaned = decodedText.trim().replace(/\n/g,"");
+      if(processing) return; // prevent spam
+      processing = true;
 
-          let c = null;
-          let i = null;
-          let s = null;
+      try{
 
-          if(cleaned.startsWith("http")){
-            const parsed = new URL(cleaned);
-            c = parsed.searchParams.get("c");
-            i = parsed.searchParams.get("i");
-            s = parsed.searchParams.get("s");
-          }else{
-            const params = new URLSearchParams(cleaned);
-            c = params.get("c");
-            i = params.get("i");
-            s = params.get("s");
-          }
+        let cleaned = decodedText.trim().replace(/\n/g,"");
 
-          if(!c || !i || !s){
-            showInvalid("QR format tidak valid");
-            return resume();
-          }
+        let c = null;
+        let i = null;
+        let s = null;
 
-          const res = await window.validateScanParams(c,i,s);
-
-          if(res.valid){
-            showValid(res.user.username);
-          }else{
-            showInvalid(res.reason);
-          }
-
-        }catch(err){
-          showInvalid("QR tidak valid");
+        if(cleaned.startsWith("http")){
+          const parsed = new URL(cleaned);
+          c = parsed.searchParams.get("c");
+          i = parsed.searchParams.get("i");
+          s = parsed.searchParams.get("s");
+        }else{
+          const params = new URLSearchParams(cleaned);
+          c = params.get("c");
+          i = params.get("i");
+          s = params.get("s");
         }
 
-        resume();
+        if(!c || !i || !s){
+          showInvalid("QR format tidak valid");
+          return resetProcessing();
+        }
+
+        const res = await window.validateScanParams(c,i,s);
+
+        if(res.valid){
+          showValid(res.user.username);
+        }else{
+          showInvalid(res.reason);
+        }
+
+      }catch(err){
+        showInvalid("QR tidak valid");
       }
-    );
+
+      resetProcessing();
+    }
+  );
+
+  function resetProcessing(){
+    setTimeout(()=>{
+      resultBox.innerHTML = "";
+      processing = false;
+    },1500);
   }
+}
 
   /* ===============================
      CAMERA SWITCH
