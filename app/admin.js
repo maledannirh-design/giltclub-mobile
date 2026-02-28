@@ -155,47 +155,75 @@ window.approveTopup = async function(trxId, userId, amount, btn){
       btn.innerText = "Processing...";
     }
 
-    const userRef = doc(db,"users", userId);
-    const trxRef  = doc(db,"walletTransactions",trxId);
+    const userRef   = doc(db,"users", userId);
+    const trxRef    = doc(db,"walletTransactions", trxId);
+    const ledgerRef = doc(collection(db,"walletLedger"));
 
-    const trxSnap = await getDoc(trxRef);
-    if(!trxSnap.exists() || trxSnap.data().status !== "PENDING"){
-      alert("Transaksi sudah diproses.");
-      renderAdmin();
-      return;
-    }
+    await runTransaction(db, async (transaction)=>{
 
-    const userSnap = await getDoc(userRef);
-    const userData = userSnap.data();
+      // 🔥 GET USER
+      const userSnap = await transaction.get(userRef);
+      if(!userSnap.exists()){
+        throw new Error("User tidak ditemukan");
+      }
 
-    const newBalance = (userData.walletBalance || 0) + amount;
-    const newTopup = (userData.totalTopup || 0) + amount;
+      const userData = userSnap.data();
 
-    const stats = recalculateUserStats({
-      totalTopup: newTopup,
-      totalPayment: userData.totalPayment || 0,
-      membership: userData.membership
+      // 🔥 GET TRANSACTION
+      const trxSnap = await transaction.get(trxRef);
+      if(!trxSnap.exists()){
+        throw new Error("Transaksi tidak ditemukan");
+      }
+
+      const trxData = trxSnap.data();
+
+      if(trxData.status !== "PENDING"){
+        throw new Error("Transaksi sudah diproses.");
+      }
+
+      const balanceBefore = userData.walletBalance || 0;
+      const newBalance    = balanceBefore + amount;
+      const newTotalTopup = (userData.totalTopup || 0) + amount;
+
+      // 🔥 UPDATE USER BALANCE
+      transaction.update(userRef,{
+        walletBalance: newBalance,
+        totalTopup: newTotalTopup
+      });
+
+      // 🔥 UPDATE TRANSACTION (SNAPSHOT + FINAL STATE)
+      transaction.update(trxRef,{
+        status: "SUCCESS",
+        balanceBefore: balanceBefore,
+        balanceAfter: newBalance,
+        processedAt: serverTimestamp(),
+        processedBy: auth.currentUser.uid,
+        usernameSnapshot: userData.username || "",
+        fullNameSnapshot: userData.fullName || ""
+      });
+
+      // 🔥 INSERT LEDGER ENTRY (ACCOUNTING LAYER)
+      transaction.set(ledgerRef,{
+        userId: userId,
+        txId: trxId,
+        entryType: "CREDIT",
+        amount: amount,
+        balanceBefore: balanceBefore,
+        balanceAfter: newBalance,
+        description: "Top Up Approved",
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.uid
+      });
+
     });
 
-    await updateDoc(userRef,{
-      walletBalance: newBalance,
-      totalTopup: newTopup,
-      level: stats.level,
-      exp: stats.expTotal,
-      gPoint: stats.gPoint
-    });
-
-    await updateDoc(trxRef,{
-      status:"APPROVED",
-      approvedAt: serverTimestamp()
-    });
-
-    alert("Approved");
+    alert("Top up berhasil di-approve.");
     renderAdmin();
 
   }catch(error){
+
     console.error(error);
-    alert("Error approve");
+    alert(error.message || "Gagal approve");
     renderAdmin();
   }
 };
