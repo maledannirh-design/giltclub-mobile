@@ -72,115 +72,112 @@ const streak = userData.currentStreak || 0;
              (a.lastMessageAt?.seconds || 0);
     });
 
-    /* =============================
-       RENDER UI
-    ============================= */
-    content.innerHTML = `
-      <div class="home-container">
+   /* =============================
+   RENDER UI
+============================= */
+content.innerHTML = `
+  <div class="home-container">
 
-        <div class="home-header">
-          <div class="home-profile-left">
-            <div class="home-avatar">
-              ${
-                userData.photoURL
-                  ? `<img src="${userData.photoURL}" />`
-                  : `<div class="avatar-placeholder">👤</div>`
-              }
-            </div>
-
-            <div class="home-user-text">
-              <div class="home-username">
-                ${userData.username || "User"}
-              </div>
-              <div class="home-gpoint">
-                ${userData.gPoint || 0} G-Point
-              </div>
-            </div>
-          </div>
-
-          <div class="home-right-section">
-            <div class="home-unread-icon">
-              <div class="mail-icon">✉️</div>
-              ${
-                totalUnread > 0
-                  ? `<div class="home-unread-badge">${totalUnread}</div>`
-                  : ``
-              }
-            </div>
-          </div>
+    <div class="home-header">
+      <div class="home-profile-left">
+        <div class="home-avatar">
+          ${
+            userData.photoURL
+              ? `<img src="${userData.photoURL}" />`
+              : `<div class="avatar-placeholder">👤</div>`
+          }
         </div>
 
-        <div id="homeUnreadScroll" class="home-unread-scroll"></div>
+        <div class="home-user-text">
+          <div class="home-username">
+            ${userData.username || "User"}
+          </div>
+          <div class="home-gpoint">
+            ${userData.gPoint || 0} G-Point
+          </div>
+        </div>
+      </div>
 
-        <!-- WALLET CARD -->
-        <div class="wallet-card-pink">
+      <div class="home-right-section">
+        <div class="home-unread-icon">
+          <div class="mail-icon">✉️</div>
+          ${
+            totalUnread > 0
+              ? `<div class="home-unread-badge">${totalUnread}</div>`
+              : ``
+          }
+        </div>
+      </div>
+    </div>
 
-          <div class="wallet-card-header">
-            <div class="wallet-title">G-WALLET</div>
-            <div class="wallet-saldo-toggle">
-              <span>G-Saldo</span>
-              <span id="toggleSaldoBtn" class="eye-btn">
-                ${eyeOpenSVG()}
-              </span>
-            </div>
+    <div id="homeUnreadScroll" class="home-unread-scroll"></div>
+
+    <!-- WALLET CARD -->
+    <div class="wallet-card-pink">
+
+      <div class="wallet-card-header">
+        <div class="wallet-title">G-WALLET</div>
+        <div class="wallet-saldo-toggle">
+          <span>G-Saldo</span>
+          <span id="toggleSaldoBtn" class="eye-btn">
+            ${eyeOpenSVG()}
+          </span>
+        </div>
+      </div>
+
+      <div class="wallet-main-content">
+
+        <div class="wallet-left">
+          <div id="walletAmount" class="wallet-amount">
+            Rp ******
           </div>
 
-          <div class="wallet-main-content">
-
-            <div class="wallet-left">
-              <div id="walletAmount" class="wallet-amount">
-                Rp ******
-              </div>
-
-              <button class="wallet-topup-btn">
-                ➕ Top Up
-              </button>
-            </div>
-
-            <div class="wallet-right" id="homeMemberCard"></div>
-
-          </div>
-
+          <button class="wallet-topup-btn">
+            ➕ Top Up
+          </button>
         </div>
 
-<!-- DAILY CHECK-IN -->
-<div class="daily-card">
-
-  <div class="daily-header">
-    <div class="daily-title">Check-In Harian</div>
-    <div class="daily-info">Informasi Check-In</div>
-  </div>
-
-  <div class="daily-days">
-    ${rewardMatrix.map((reward, index)=>{
-      const dayNumber = index + 1;
-      const claimed = dayNumber <= streak;
-
-      return `
-        <div class="daily-box ${claimed ? 'claimed' : ''}">
-          <div class="daily-day">Hari ${dayNumber}</div>
-          <div class="daily-reward">🪙 +${reward}</div>
-        </div>
-      `;
-    }).join("")}
-  </div>
-
-  <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
-    ${
-      alreadyClaimed
-        ? "Poin diterima, Check-In lagi besok ya!"
-        : "Scan kartu Anda untuk check-in hari ini"
-    }
-  </div>
-
-</div>
-
-</div>
-
-        </div>
+        <div class="wallet-right" id="homeMemberCard"></div>
 
       </div>
-    `;
+
+    </div>
+
+    <!-- DAILY CHECK-IN -->
+    <div class="daily-card">
+
+      <div class="daily-header">
+        <div class="daily-title">Check-In Harian</div>
+        <div class="daily-info">Informasi Check-In</div>
+      </div>
+
+      <div class="daily-days">
+        ${rewardMatrix.map((reward, index)=>{
+          const dayNumber = index + 1;
+          const claimed = dayNumber <= streak;
+
+          return `
+            <div class="daily-box ${claimed ? 'claimed' : ''}"
+                 ${alreadyClaimed ? '' : `onclick="openDailyScan(${dayNumber})"`}>
+              <div class="daily-day">Hari ${dayNumber}</div>
+              <div class="daily-reward">🪙 +${reward}</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
+        ${
+          alreadyClaimed
+            ? "Poin diterima, Check-In lagi besok ya!"
+            : "Scan kartu Anda untuk check-in hari ini"
+        }
+      </div>
+
+    </div>
+
+  </div>
+`;
 /* =============================
    DAILY SUCCESS EFFECT
 ============================= */
@@ -390,5 +387,5 @@ window.openDailyScan = function(day){
 
   dailyLock = true;
 
-  window.location.href = "scanDaily.html";
+  window.location.href = `scanDaily.html?day=${day}`;
 };
