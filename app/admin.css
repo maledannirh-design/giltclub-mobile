@@ -319,6 +319,25 @@ body.dark .admin-card select option {
   background: #000;
   border-radius: 0;
 }
+
+#reader{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  z-index:1;
+}
+<button id="closeBtn" style="
+position:absolute;
+top:20px;
+left:20px;
+z-index:10;
+background:#000a;
+color:#fff;
+border:none;
+padding:8px 12px;
+border-radius:10px;
+">← Kembali</button>
 /* =====================================================
    ANIMATION
 ===================================================== */
