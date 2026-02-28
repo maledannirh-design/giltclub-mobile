@@ -2071,3 +2071,19 @@ body.scan-mode{
   transform: scale(0.7);
   transform-origin: top left;
 }
+/* =============================
+   HOME CARD TEXT POSITION FIX
+============================= */
+
+#homeMemberCard .wallet-member-overlay {
+  bottom: 18px;   /* turunkan posisi */
+  left: 18px;     /* sesuaikan margin kiri */
+}
+
+#homeMemberCard .wallet-member-name {
+  font-size: 11px;
+}
+
+#homeMemberCard .wallet-member-code {
+  font-size: 9px;
+}
