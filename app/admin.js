@@ -16,6 +16,7 @@ import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
 import "./scanQR.js";
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import "./recalculate.js";
 
 const BASE_SCAN_URL = "https://giltclub.app/scan";
 
