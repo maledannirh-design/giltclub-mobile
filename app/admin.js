@@ -130,6 +130,9 @@ export async function renderAdmin(){
       <button onclick="exportTopupHistory()">Export History Top Up</button>
       <button onclick="exportBookingHistory()">Export History Booking</button>
       <button onclick="exportAdjustmentHistory()">Export History Adjustment</button>
+      <button onclick="exportMembersToCSV()">
+  Export Data Members
+</button>
 
     </div>
   `;
@@ -596,5 +599,78 @@ window.exportAdjustmentHistory = async function(){
 
   downloadCSV("adjustment_history.csv", rows);
 };
+/* =====================================================
+   EXPORT MEMBERS CSV (ADMIN ONLY)
+===================================================== */
 
+window.exportMembersToCSV = async function(){
+
+  try{
+
+    const snap = await getDocs(collection(db,"users"));
+
+    if(snap.empty){
+      alert("Tidak ada data user");
+      return;
+    }
+
+    let rows = [];
+
+    // HEADER
+    rows.push([
+      "UID",
+      "Username",
+      "Full Name",
+      "Email",
+      "Phone",
+      "Role",
+      "Membership",
+      "Level",
+      "Wallet Balance",
+      "GPoints",
+      "Created At",
+      "Status"
+    ]);
+
+    snap.forEach(docSnap => {
+
+      const d = docSnap.data();
+
+      rows.push([
+        docSnap.id,
+        d.username || "",
+        d.fullName || "",
+        d.email || "",
+        d.phone || "",
+        d.role || "",
+        d.membership || "",
+        d.level || 0,
+        d.walletBalance || 0,
+        d.gPoints || 0,
+        d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
+        d.status || ""
+      ]);
+    });
+
+    const csvContent = rows
+      .map(row => row.map(val => `"${val}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "giltclub_members.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert("Export Members selesai");
+
+  }catch(err){
+    console.error(err);
+    alert("Gagal export members");
+  }
+};
 window.runMigration = runMigration;
