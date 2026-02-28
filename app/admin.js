@@ -296,6 +296,8 @@ async function renderBalanceAdjustmentPanel(){
       </button>
 <button onclick="exportFullMutation()">
   Export Mutasi Semua Orang (Current System)
+</button><button onclick="auditOldSystemReconciliation()">
+  Audit Rekonsil Sistem Lama
 </button>
     </div>
   `;
@@ -800,6 +802,88 @@ window.exportFullMutation = async function(){
   }catch(err){
     console.error(err);
     alert("Gagal export mutation");
+  }
+};
+
+window.auditOldSystemReconciliation = async function(){
+
+  try{
+
+    const usersSnap = await getDocs(collection(db,"users"));
+    const trxSnap = await getDocs(collection(db,"walletTransactions"));
+
+    if(usersSnap.empty){
+      alert("Tidak ada user");
+      return;
+    }
+
+    // Map untuk simpan hasil hitung
+    const calculatedBalance = {};
+
+    trxSnap.forEach(docSnap => {
+
+      const d = docSnap.data();
+      const uid = d.userId;
+
+      if(!uid) return;
+
+      // hanya transaksi sukses
+      if(d.status && d.status !== "APPROVED" && d.status !== "SUCCESS") return;
+
+      if(!calculatedBalance[uid]){
+        calculatedBalance[uid] = 0;
+      }
+
+      calculatedBalance[uid] += Number(d.amount || 0);
+    });
+
+    let rows = [];
+
+    rows.push([
+      "UID",
+      "Username",
+      "Stored WalletBalance",
+      "Calculated From Transactions",
+      "Difference"
+    ]);
+
+    usersSnap.forEach(userDoc => {
+
+      const uid = userDoc.id;
+      const userData = userDoc.data();
+
+      const stored = Number(userData.walletBalance || 0);
+      const calculated = Number(calculatedBalance[uid] || 0);
+      const diff = stored - calculated;
+
+      rows.push([
+        uid,
+        userData.username || "",
+        stored,
+        calculated,
+        diff
+      ]);
+    });
+
+    const csvContent = rows
+      .map(row => row.map(val => `"${val}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "audit_reconciliation_old_system.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert("Audit Rekonsiliasi selesai");
+
+  }catch(err){
+    console.error(err);
+    alert("Gagal audit");
   }
 };
 
