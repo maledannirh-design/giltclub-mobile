@@ -2064,15 +2064,6 @@ body.scan-mode{
 }
 
 /* =============================
-   HOME CARD POSITION FIX
-============================= */
-
-#homeMemberCard .wallet-member-overlay {
-  bottom: 6%;
-  left: 6%;
-}
-
-/* =============================
    HOME CARD TEXT POSITION FIX
 ============================= */
 
