@@ -603,6 +603,10 @@ window.exportAdjustmentHistory = async function(){
    EXPORT MEMBERS CSV (ADMIN ONLY)
 ===================================================== */
 
+/* =====================================================
+   EXPORT MEMBERS – FULL AUDIT VERSION
+===================================================== */
+
 window.exportMembersToCSV = async function(){
 
   try{
@@ -616,20 +620,39 @@ window.exportMembersToCSV = async function(){
 
     let rows = [];
 
-    // HEADER
+    // HEADER AUDIT GRADE
     rows.push([
       "UID",
       "Username",
       "Full Name",
       "Email",
       "Phone",
+      "Birth Place",
+      "Birth Date",
       "Role",
       "Membership",
+      "Member Code",
       "Level",
+      "EXP",
       "Wallet Balance",
+      "Total Top Up",
+      "Total Payment",
+      "GPoint",
       "GPoints",
-      "Created At",
-      "Status"
+      "Points",
+      "Attendance Count",
+      "Matches",
+      "Wins",
+      "Followers",
+      "Following",
+      "Verified",
+      "Verified Approved",
+      "Verified Eligible",
+      "Status",
+      "Playing Level",
+      "Monthly Contribution",
+      "QR URL",
+      "Created At"
     ]);
 
     snap.forEach(docSnap => {
@@ -642,13 +665,32 @@ window.exportMembersToCSV = async function(){
         d.fullName || "",
         d.email || "",
         d.phone || "",
+        d.birthPlace || "",
+        d.birthDate || "",
         d.role || "",
         d.membership || "",
+        d.memberCode || "",
         d.level || 0,
+        d.exp || 0,
         d.walletBalance || 0,
+        d.totalTopup || 0,
+        d.totalPayment || 0,
+        d.gPoint || 0,
         d.gPoints || 0,
-        d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
-        d.status || ""
+        d.points || 0,
+        d.attendanceCount || 0,
+        d.matches || 0,
+        d.wins || 0,
+        d.followersCount || 0,
+        d.followingCount || 0,
+        d.verified === true ? "YES" : "NO",
+        d.verifiedApproved === true ? "YES" : "NO",
+        d.verifiedEligible === true ? "YES" : "NO",
+        d.status || "",
+        d.playingLevel || "",
+        d.monthlyContribution || 0,
+        d.qrUrl || "",
+        d.createdAt?.toDate?.().toLocaleString("id-ID") || ""
       ]);
     });
 
@@ -661,16 +703,18 @@ window.exportMembersToCSV = async function(){
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = "giltclub_members.csv";
+    link.download = "giltclub_members_full_audit.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    alert("Export Members selesai");
+    alert("Export Members Full Audit selesai");
 
   }catch(err){
     console.error(err);
     alert("Gagal export members");
   }
 };
+
+
 window.runMigration = runMigration;
