@@ -1,100 +1,116 @@
+/* =====================================================
+   ADMIN CONTAINER
+===================================================== */
+
 .admin-container {
-  padding: 20px;
+  padding: 24px;
   color: var(--text-primary);
 }
 
+/* =====================================================
+   PENDING TOPUP CARD
+===================================================== */
+
 .admin-trx {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border-radius: 16px;
-  padding: 14px 16px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 16px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  transition: all .2s ease;
+}
+
+.admin-trx:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
 }
 
 .admin-trx button {
   background: transparent;
-  color: var(--text-primary);
   border: none;
   cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.2s ease;
-}
-
-.admin-trx button:hover {
-  opacity: 0.7;
+  font-weight: 600;
+  font-size: 14px;
+  transition: opacity .2s ease;
 }
 
 .admin-trx button:first-child {
-  color: var(--accent);
+  color: var(--color-primary);
 }
 
 .admin-trx button:last-child {
   color: var(--text-secondary);
 }
 
-/* ===============================
-   ADMIN BALANCE ADJUSTMENT CARD
-================================= */
+.admin-trx button:hover {
+  opacity: .7;
+}
+
+/* =====================================================
+   ADMIN CARD (ADJUSTMENT PANEL)
+===================================================== */
 
 .admin-card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: 22px;
-  padding: 22px;
-  margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  border-radius: 24px;
+  padding: 26px;
+  margin-bottom: 28px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.06);
   animation: fadeUp .25s ease;
 }
 
 .admin-card h3 {
   font-size: 18px;
   font-weight: 700;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-/* ===============================
-   FORM LAYOUT
-================================= */
+/* =====================================================
+   FORM STYLE
+===================================================== */
 
 .admin-card label {
   display: block;
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 6px;
-  opacity: .8;
+  opacity: .85;
 }
 
 .admin-card select,
-.admin-card input {
+.admin-card input,
+.admin-card textarea {
   width: 100%;
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
   background: var(--color-bg-soft);
   font-size: 14px;
+  margin-bottom: 16px;
   transition: all .2s ease;
-  margin-bottom: 14px;
+  appearance: none;
 }
 
-/* Focus state */
 .admin-card select:focus,
-.admin-card input:focus {
+.admin-card input:focus,
+.admin-card textarea:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0,0,0,.05);
 }
 
-/* ===============================
-   BUTTON
-================================= */
+/* =====================================================
+   BUTTON STYLE
+===================================================== */
 
 .admin-btn {
   width: 100%;
   padding: 14px;
-  border-radius: 16px;
+  border-radius: 18px;
   border: none;
   font-size: 15px;
   font-weight: 600;
@@ -102,42 +118,60 @@
   transition: all .2s ease;
 }
 
-/* Light Mode */
+/* ================= LIGHT MODE ================= */
+
 body.light .admin-btn {
-  background: linear-gradient(
-    135deg,
-    #111,
-    #333
-  );
+  background: linear-gradient(135deg, #1f1f1f, #333);
   color: #fff;
-  box-shadow: 0 8px 20px rgba(0,0,0,.2);
+  box-shadow: 0 10px 25px rgba(0,0,0,.2);
 }
 
 body.light .admin-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 25px rgba(0,0,0,.25);
+  box-shadow: 0 14px 30px rgba(0,0,0,.25);
 }
 
-/* Dark Mode */
-body.dark .admin-card {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
-  box-shadow: 0 15px 35px rgba(0,0,0,.6);
+/* Light dropdown premium look */
+
+body.light .admin-card select {
+  background: #f7f3e8;        /* cream */
+  color: #1b3d2f;             /* dark green */
+  border: 1px solid #e2dbc9;
 }
+
+body.light .admin-card select option {
+  background: #f7f3e8;
+  color: #1b3d2f;
+}
+
+/* ================= DARK MODE ================= */
+
+body.dark .admin-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 20px 45px rgba(0,0,0,.6);
+}
+
+/* DARK FORM */
 
 body.dark .admin-card select,
-body.dark .admin-card input {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  color: #fff;
+body.dark .admin-card input,
+body.dark .admin-card textarea {
+  background: #0f2a1f;       /* deep green */
+  border: 1px solid #1d4736;
+  color: #f5f5f5;
 }
 
+/* FIX DROPDOWN LIST TEXT (important) */
+body.dark .admin-card select option {
+  background: #0f2a1f;
+  color: #f5f5f5;
+}
+
+/* DARK BUTTON */
+
 body.dark .admin-btn {
-  background: linear-gradient(
-    135deg,
-    #fff,
-    #bbb
-  );
+  background: linear-gradient(135deg, #e6e6e6, #cfcfcf);
   color: #000;
 }
 
@@ -146,43 +180,14 @@ body.dark .admin-btn:hover {
   box-shadow: 0 12px 30px rgba(0,0,0,.5);
 }
 
-/* ===============================
-   ANIMATION
-================================= */
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* =========================
-   DARK MODE SELECT FIX
-========================= */
-
-body.dark .admin-card select,
-body.dark .admin-card input,
-body.dark .admin-card textarea {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  color: #e8e8e8; /* lebih soft dari #fff */
-}
-
-/* Fix option dropdown */
-body.dark .admin-card select option {
-  background: #1a1a1a;
-  color: #ffffff;
-}
+/* =====================================================
+   CHECKIN MODAL
+===================================================== */
 
 .checkin-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.7);
+  background: rgba(0,0,0,.75);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -191,28 +196,48 @@ body.dark .admin-card select option {
 
 .checkin-card {
   background: var(--color-card);
-  padding: 20px;
-  border-radius: 18px;
-  width: 320px;
+  padding: 24px;
+  border-radius: 22px;
+  width: 340px;
   text-align: center;
+  box-shadow: 0 20px 45px rgba(0,0,0,.3);
 }
 
 .hidden {
   display: none;
 }
 
+/* =====================================================
+   RESULT BOX
+===================================================== */
+
 .valid-box {
-  background: #0f5132;
-  color: #d1e7dd;
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 10px;
+  background: #103b2a;
+  color: #c9f1de;
+  padding: 14px;
+  border-radius: 14px;
+  margin-top: 12px;
 }
 
 .invalid-box {
-  background: #842029;
-  color: #f8d7da;
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 10px;
+  background: #5c1b22;
+  color: #ffd6db;
+  padding: 14px;
+  border-radius: 14px;
+  margin-top: 12px;
+}
+
+/* =====================================================
+   ANIMATION
+===================================================== */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
