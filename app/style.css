@@ -2063,15 +2063,19 @@ body.scan-mode{
   max-width: 160px;
 }
 
+/* =============================
+   HOME CARD POSITION FIX
+============================= */
+
 #homeMemberCard .wallet-member-overlay {
-  bottom: 14px;   /* atur di sini */
-  left: 16px;
+  bottom: 6%;
+  left: 6%;
 }
 
 #homeMemberCard .wallet-member-name {
-  font-size: 11px;
+  font-size: 8px;
 }
 
 #homeMemberCard .wallet-member-code {
-  font-size: 9px;
+  font-size: 8px;
 }
