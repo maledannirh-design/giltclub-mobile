@@ -175,7 +175,8 @@ async function renderLedger(){
 
   if(!user || !content) return;
 
-  const snap = await getDocs(
+  // 🔵 RUPIAH
+  const walletSnap = await getDocs(
     query(
       collection(db,"walletTransactions"),
       where("userId","==", user.uid),
@@ -183,33 +184,59 @@ async function renderLedger(){
     )
   );
 
+  // 🟡 GPOINT
+  const gPointSnap = await getDocs(
+    query(
+      collection(db,"gPointLedger"),
+      where("userId","==", user.uid),
+      orderBy("createdAt","desc")
+    )
+  );
+
+  // 🔥 Gabungkan dua array
+  const combined = [];
+
+  walletSnap.forEach(docSnap=>{
+    combined.push({
+      ...docSnap.data(),
+      _source: "WALLET"
+    });
+  });
+
+  gPointSnap.forEach(docSnap=>{
+    combined.push({
+      ...docSnap.data(),
+      _source: "GPOINT"
+    });
+  });
+
+  // 🔥 Sort manual by createdAt
+  combined.sort((a,b)=>{
+    const aTime = a.createdAt?.seconds || 0;
+    const bTime = b.createdAt?.seconds || 0;
+    return bTime - aTime;
+  });
+
   let html = `
     <div class="ledger-container">
       <h3>Mutasi Rekening</h3>
   `;
 
-  for(const docSnap of snap.docs){
+  for(const d of combined){
 
-    const d = docSnap.data();
     const amount = d.amount || 0;
 
-    // 🔥 DETECT TYPE
-    const isGPoint =
-      d.type === "gpoint_gameplay";
-
-    // 🔥 FORMAT AMOUNT
     let amountText = "";
-
-    if(isGPoint){
-      amountText = `⭐ ${amount}`;
-    }else{
-      amountText = `Rp ${amount.toLocaleString("id-ID")}`;
-    }
-
-    // 🔥 FORMAT BALANCE (HANYA UNTUK UANG)
     let balanceText = "";
 
-    if(!isGPoint){
+    if(d._source === "GPOINT"){
+
+      amountText = `⭐ ${amount}`;
+
+    }else{
+
+      amountText = `Rp ${amount.toLocaleString("id-ID")}`;
+
       balanceText = `
         <div class="ledger-balance">
           Saldo: Rp ${d.balanceAfter?.toLocaleString("id-ID") || "-"}
@@ -220,7 +247,7 @@ async function renderLedger(){
     html += `
       <div class="ledger-item">
         <div>
-          <div class="ledger-type">${d.type}</div>
+          <div class="ledger-type">${d.referenceType || d.type || "-"}</div>
           <div class="ledger-date">
             ${d.createdAt?.toDate().toLocaleString("id-ID") || "-"}
           </div>
