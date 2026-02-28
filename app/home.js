@@ -27,7 +27,8 @@ export async function renderHome(){
     const userData = userSnap.exists() ? userSnap.data() : {};
 
     const balance = userData.walletBalance || 0;
-
+const today = new Date().toISOString().split("T")[0];
+const alreadyClaimed = userData.lastCheckinDate === today;
     /* =============================
        CHAT ROOMS (UNREAD)
     ============================= */
@@ -144,8 +145,8 @@ export async function renderHome(){
 
           <div class="elite-days">
   ${[1,2,3,4,5,6,7].map(d=>`
-    <div class="elite-day"
-         onclick="openDailyScan(${d})">
+    <div class="elite-day ${alreadyClaimed ? 'disabled' : ''}"
+         ${alreadyClaimed ? '' : `onclick="openDailyScan(${d})"`}>
       H${d}
     </div>
   `).join("")}
