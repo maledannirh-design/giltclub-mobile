@@ -150,6 +150,9 @@ content.innerHTML = html;
 
 await renderBalanceAdjustmentPanel();
 await setupQrValidator();   // 🔥 WAJIB supaya scanner aktif
+
+  }  // 🔥 INI YANG KURANG
+  
 /* =====================================================
    RENDER BALANCE ADJUSTMENT PANEL
 ===================================================== */
