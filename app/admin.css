@@ -312,6 +312,13 @@ body.dark .admin-card select option {
   background: #0f2a1f !important;
   color: #f5f5f5 !important;
 }
+
+.checkin-card {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  border-radius: 0;
+}
 /* =====================================================
    ANIMATION
 ===================================================== */
