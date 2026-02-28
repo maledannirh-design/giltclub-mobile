@@ -33,7 +33,15 @@ export async function initDailyScanner(readerId, resultId){
 
   await html5QrInstance.start(
     backCamera.id,
-    { fps: 10 },
+    {
+      fps: 35,
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        const size = Math.floor(minEdge * 0.8); // 80% besar
+        return { width: size, height: size };
+      },
+      aspectRatio: 1.0
+    },
     async (decodedText) => {
 
       try { await html5QrInstance.stop(); } catch(e){}
@@ -42,16 +50,27 @@ export async function initDailyScanner(readerId, resultId){
 
         const cleaned = decodedText.trim().replace(/\n/g,"");
 
-        const parsed = new URL(cleaned);
-        const c = parsed.searchParams.get("c");
-        const i = parsed.searchParams.get("i");
-        const s = parsed.searchParams.get("s");
+        let c = null;
+        let i = null;
+        let s = null;
+
+        if(cleaned.startsWith("http")){
+          const parsed = new URL(cleaned);
+          c = parsed.searchParams.get("c");
+          i = parsed.searchParams.get("i");
+          s = parsed.searchParams.get("s");
+        }else{
+          const params = new URLSearchParams(cleaned);
+          c = params.get("c");
+          i = params.get("i");
+          s = params.get("s");
+        }
 
         const validation = await window.processDailySelfCheckin(c,i,s);
 
         if (!validation.valid) {
           showInvalid(resultBox, validation.reason);
-          return goBack();
+          return setTimeout(goBack,1500);
         }
 
         const reward = await runDailyStreakReward(validation.uid);
@@ -63,7 +82,7 @@ export async function initDailyScanner(readerId, resultId){
         showInvalid(resultBox, err.message || "QR tidak valid");
       }
 
-      setTimeout(()=>goBack(),1500);
+      setTimeout(goBack,1500);
     }
   );
 }
@@ -131,6 +150,7 @@ function showSuccess(resultBox, reward){
       padding:18px;
       border-radius:14px;
       text-align:center;
+      color:white;
     ">
       <div style="font-size:18px;margin-bottom:8px;">
         ⭐ DAILY STREAK SUCCESS
@@ -152,6 +172,7 @@ function showInvalid(resultBox, message){
       padding:18px;
       border-radius:14px;
       text-align:center;
+      color:white;
     ">
       ❌ ${message}
     </div>
@@ -159,7 +180,7 @@ function showInvalid(resultBox, message){
 }
 
 /* =========================================
-   GO BACK (DAILY SUCCESS SAFE REDIRECT)
+   GO BACK (SAFE REDIRECT)
 ========================================= */
 async function goBack(){
 
@@ -177,6 +198,5 @@ async function goBack(){
 
   html5QrInstance = null;
 
-  // redirect ke home dengan flag success
   window.location.href = "index.html?dailySuccess=1";
 }
