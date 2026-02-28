@@ -263,6 +263,67 @@ function downloadCSV(filename, rows){
   document.body.removeChild(link);
 }
 
+
+/* =====================================================
+   RENDER BALANCE ADJUSTMENT PANEL
+===================================================== */
+async function renderBalanceAdjustmentPanel(){
+
+  const container = document.getElementById("adminBalanceAdjustment");
+  if(!container) return;
+
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  let options = "";
+
+  usersSnap.forEach(docSnap=>{
+    const u = docSnap.data();
+    options += `
+      <option value="${docSnap.id}">
+        ${u.username || u.fullName || docSnap.id}
+      </option>
+    `;
+  });
+
+  container.innerHTML = `
+    <div class="admin-card">
+
+      <h3>Manual Adjustment</h3>
+
+      <label>User</label>
+      <select id="adjustUser">
+        ${options}
+      </select>
+
+      <label>Wallet Adjustment (+ / -)</label>
+      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
+
+      <label>Reason</label>
+      <select id="adjustReason">
+        <option value="admin_adjustment">Admin Adjustment</option>
+        <option value="cashback_session">Cashback Session</option>
+        <option value="refund">Refund</option>
+        <option value="penalty">Penalty</option>
+      </select>
+
+      <label>Note (optional)</label>
+      <input type="text" id="adjustNote" placeholder="Detail keterangan">
+
+      <button id="saveAdjustment" class="admin-btn">
+        Simpan Adjustment
+      </button>
+
+    </div>
+  `;
+
+  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+}
+
+
+
+/* =====================================================
+   FUNGSI WINDOW
+===================================================== */
 window.exportTopupHistory = async function(){
 
   const snap = await getDocs(
