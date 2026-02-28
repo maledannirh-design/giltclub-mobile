@@ -25,13 +25,10 @@ export async function renderWallet(){
     const userData = userSnap.exists() ? userSnap.data() : {};
 
     const balance = userData.walletBalance || 0;
-    const membership = userData.membership || "MEMBER";
-    const genre = userData.genre || "";
-    const fullName = userData.fullName || userData.username || "MEMBER";
-    const memberCode = userData.memberCode || "-";
 
-  const memberCardUrl = resolveMemberCard(membership, genre);
-
+    // =============================
+    // RENDER WALLET UI
+    // =============================
     content.innerHTML = `
       <div class="wallet-page">
 
@@ -51,23 +48,7 @@ export async function renderWallet(){
             Rp ******
           </div>
 
-          <div class="wallet-big-card">
-            <div class="wallet-member-layer">
-
-              <img src="${memberCardUrl}" 
-                   class="wallet-member-big-img"/>
-
-              <div class="wallet-member-overlay">
-                <div class="wallet-member-name">
-                  ${fullName.toUpperCase()}
-                </div>
-                <div class="wallet-member-code">
-                  ${memberCode}
-                </div>
-              </div>
-
-            </div>
-          </div>
+          <div class="wallet-big-card" id="walletBigCard"></div>
 
         </div>
 
@@ -93,14 +74,19 @@ export async function renderWallet(){
       </div>
     `;
 
-    /* =============================
-       TOGGLE SALDO
-    ============================= */
+    // =============================
+    // INSERT MEMBER CARD
+    // =============================
+    const walletBigCard = document.getElementById("walletBigCard");
+    walletBigCard.innerHTML = renderMemberCard(userData);
 
-    let saldoVisible = false;
-
+    // =============================
+    // TOGGLE SALDO
+    // =============================
     const toggleBtn = document.getElementById("toggleSaldoBtn");
     const walletAmountEl = document.getElementById("walletAmount");
+
+    let saldoVisible = false;
 
     if(toggleBtn){
       toggleBtn.onclick = ()=>{
@@ -109,13 +95,15 @@ export async function renderWallet(){
           saldoVisible
             ? `Rp ${balance.toLocaleString("id-ID")}`
             : "Rp ******";
+
+        toggleBtn.innerHTML =
+          saldoVisible ? eyeCloseSVG() : eyeOpenSVG();
       };
     }
 
-    /* =============================
-       ACTION BUTTONS
-    ============================= */
-
+    // =============================
+    // ACTION BUTTONS
+    // =============================
     document.querySelector(".topup-card").onclick = ()=>{
       renderTopUpSheet();
     };
@@ -129,7 +117,9 @@ export async function renderWallet(){
     };
 
   }catch(error){
+
     console.error("Wallet error:", error);
+
     content.innerHTML = `
       <div style="padding:20px;color:red;">
         Failed to load wallet.
