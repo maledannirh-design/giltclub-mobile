@@ -1,189 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Scan Member</title>
-  <script src="https://unpkg.com/html5-qrcode"></script>
+<script type="module">
+  import { startUniversalScanner } from "./scannerEngine.js";
+  import "./scanQR.js";
+  import { auth } from "./firebase.js";
 
-  <style>
-    html, body{
-      margin:0;
-      padding:0;
-      height:100%;
-      background:#000;
-      color:#fff;
-      font-family: Arial;
-    }
+  const resultBox = document.getElementById("result");
 
-    h2{
-      position:absolute;
-      top:20px;
-      width:100%;
-      text-align:center;
-      z-index:5;
-      font-size:18px;
-    }
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get("mode") || "member";
+  const scheduleId = urlParams.get("schedule");
 
-    #reader{
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
-    }
-
-    #result{
-      position:absolute;
-      bottom:40px;
-      width:100%;
-      text-align:center;
-      z-index:5;
-    }
-
-    .result-box{
-      display:inline-block;
-      padding:14px 20px;
-      border-radius:14px;
-      font-weight:bold;
-      backdrop-filter: blur(6px);
-    }
-
-    .valid{
-      background:#0f5132cc;
-      border:2px solid #2ecc71;
-      color:#d1e7dd;
-    }
-
-    .invalid{
-      background:#842029cc;
-      border:2px solid #e74c3c;
-      color:#f8d7da;
-    }
-  </style>
-</head>
-
-<body>
-
-  <h2>Scan Member QR</h2>
-  <div id="reader"></div>
-  <div id="result"></div>
-
-  <script type="module">
-
-    import "./scanQR.js";
-
-    const resultBox = document.getElementById("result");
-
-    const html5Qr = new Html5Qrcode("reader");
-
-    const config = {
-  fps: 25,
-  qrbox: (viewfinderWidth, viewfinderHeight) => {
-    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-    return {
-      width: Math.floor(minEdge * 0.9),
-      height: Math.floor(minEdge * 0.9)
-    };
-  },
-  aspectRatio: 1.0,
-  experimentalFeatures: {
-    useBarCodeDetectorIfSupported: true
-  }
-};
-
-    async function startScanner(){
-
-      const cameras = await Html5Qrcode.getCameras();
-      if(!cameras.length){
-        resultBox.innerHTML =
-          `<div class="result-box invalid">Camera tidak ditemukan</div>`;
-        return;
+  const currentUser = auth.currentUser
+    ? {
+        uid: auth.currentUser.uid,
+        role: window.currentUserData?.role
       }
+    : null;
 
-      const backCamera =
-        cameras.find(c =>
-          c.label.toLowerCase().includes("back") ||
-          c.label.toLowerCase().includes("environment")
-        ) || cameras[0];
-
-      await html5Qr.start(
-        backCamera.id,
-        config,
-        async (decodedText) => {
-
-          try{
-            await html5Qr.pause(true);
-          }catch(e){}
-
-          try{
-
-            let cleaned = decodedText.trim().replace(/\n/g,"");
-
-            let c = null;
-            let i = null;
-            let s = null;
-
-            if(cleaned.startsWith("http")){
-              const parsed = new URL(cleaned);
-              c = parsed.searchParams.get("c");
-              i = parsed.searchParams.get("i");
-              s = parsed.searchParams.get("s");
-            }else{
-              const params = new URLSearchParams(cleaned);
-              c = params.get("c");
-              i = params.get("i");
-              s = params.get("s");
-            }
-
-            if(!c || !i || !s){
-              showInvalid("QR format tidak valid");
-              return resume();
-            }
-
-            const res = await window.validateScanParams(c,i,s);
-
-            if(res.valid){
-              showValid(res.user.username);
-            }else{
-              showInvalid(res.reason);
-            }
-
-          }catch(err){
-            showInvalid("QR tidak valid");
-          }
-
-          resume();
-
-        }
-      );
-    }
-
-    
-    function showValid(name){
-      resultBox.innerHTML =
-        `<div class="result-box valid">
-          ✅ VALID MEMBER<br>${name}
-        </div>`;
-    }
-
-    function showInvalid(message){
-      resultBox.innerHTML =
-        `<div class="result-box invalid">
-          ❌ ${message}
-        </div>`;
-    }
-
-    async function resume(){
-      setTimeout(async ()=>{
-        resultBox.innerHTML = "";
-        try{
-          await html5Qr.resume();
-        }catch(e){}
-      },1500);
-    }
-
-    startScanner();
-
-  </script>
-
-</body>
-</html>
+  startUniversalScanner({
+    readerId: "reader",
+    resultId: "result",
+    mode,
+    scheduleId,
+    currentUser
+  });
+</script>
