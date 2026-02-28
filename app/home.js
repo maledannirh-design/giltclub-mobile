@@ -7,7 +7,7 @@ import {
   query,
   where
 } from "./firestore.js";
-import { resolveMemberCard } from "./utils.js";
+import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
 /* =========================================
    HOME DASHBOARD
