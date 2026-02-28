@@ -18,6 +18,7 @@ import "./scanQR.js";
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import "./recalculate.js";
 
+import "./scanQR.js";
 const BASE_SCAN_URL = "https://giltclub.app/scan";
 
 /* =====================================================
