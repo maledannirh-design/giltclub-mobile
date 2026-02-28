@@ -269,58 +269,74 @@ function downloadCSV(filename, rows){
 
 
 /* =====================================================
-   RENDER BALANCE ADJUSTMENT PANEL
+   ADJUSTMENT (WALLET ONLY - SYNC WITH PANEL)
 ===================================================== */
-async function renderBalanceAdjustmentPanel(){
+async function handleBalanceAdjustment(){
 
-  const container = document.getElementById("adminBalanceAdjustment");
-  if(!container) return;
+  const userEl = document.getElementById("adjustUser");
+  const walletEl = document.getElementById("adjustAmount");
+  const reasonEl = document.getElementById("adjustReason");
+  const noteEl = document.getElementById("adjustNote");
 
-  const usersSnap = await getDocs(collection(db,"users"));
+  if(!userEl || !walletEl || !reasonEl || !noteEl){
+    alert("Panel adjustment belum siap. Refresh halaman.");
+    return;
+  }
 
-  let options = "";
+  const userId = userEl.value;
+  const walletAmount = Number(walletEl.value || 0);
+  const reason = reasonEl.value;
+  const note = noteEl.value.trim();
 
-  usersSnap.forEach(docSnap=>{
-    const u = docSnap.data();
-    options += `
-      <option value="${docSnap.id}">
-        ${u.username || u.fullName || docSnap.id}
-      </option>
-    `;
-  });
+  if(walletAmount === 0){
+    alert("Masukkan nominal adjustment.");
+    return;
+  }
 
-  container.innerHTML = `
-    <div class="admin-card">
+  const userRef = doc(db,"users",userId);
+  const walletLedgerRef = doc(collection(db,"walletLedger"));
 
-      <h3>Manual Adjustment</h3>
+  try{
 
-      <label>User</label>
-      <select id="adjustUser">
-        ${options}
-      </select>
+    await runTransaction(db, async (transaction)=>{
 
-      <label>Wallet Adjustment (+ / -)</label>
-      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
+      const snap = await transaction.get(userRef);
+      if(!snap.exists()) throw new Error("User tidak ditemukan");
 
-      <label>Reason</label>
-      <select id="adjustReason">
-        <option value="admin_adjustment">Admin Adjustment</option>
-        <option value="cashback_session">Cashback Session</option>
-        <option value="refund">Refund</option>
-        <option value="penalty">Penalty</option>
-      </select>
+      const data = snap.data();
 
-      <label>Note (optional)</label>
-      <input type="text" id="adjustNote" placeholder="Detail keterangan">
+      const walletBefore = data.walletBalance || 0;
+      const walletAfter = walletBefore + walletAmount;
 
-      <button id="saveAdjustment" class="admin-btn">
-        Simpan Adjustment
-      </button>
+      if(walletAfter < 0){
+        throw new Error("Saldo tidak boleh minus");
+      }
 
-    </div>
-  `;
+      transaction.update(userRef,{
+        walletBalance: walletAfter
+      });
 
-  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+      transaction.set(walletLedgerRef,{
+        userId,
+        txId: "ADMIN_ADJUST_" + Date.now(),
+        entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
+        amount: walletAmount,
+        balanceBefore: walletBefore,
+        balanceAfter: walletAfter,
+        description: reason,
+        note,
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.uid
+      });
+
+    });
+
+    alert("Adjustment berhasil");
+    renderAdmin();
+
+  }catch(err){
+    alert(err.message || "Gagal adjustment");
+  }
 }
 /* =====================================================
    QR VALIDATOR (NO FINANCIAL IMPACT)
@@ -904,5 +920,5 @@ window.auditOldSystemReconciliation = async function(){
     alert("Gagal audit");
   }
 };
-
+window.handleBalanceAdjustment = handleBalanceAdjustment;
 window.runMigration = runMigration;
