@@ -8,7 +8,9 @@ import {
   where
 } from "./firestore.js";
 import { resolveMemberCard, renderMemberCard } from "./utils.js";
+import { onSnapshot } from "./firestore.js";
 
+let userUnsubscribe = null;
 /* =========================================
    HOME DASHBOARD 
 ========================================= */
@@ -235,7 +237,36 @@ const alreadyClaimed = userData.lastCheckinDate === today;
         module.renderTopUpSheet();
       };
     }
+/* =============================
+   REALTIME GPOINT LISTENER
+============================= */
+if(userUnsubscribe){
+  userUnsubscribe();
+}
 
+userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
+
+  if(!snap.exists()) return;
+
+  const data = snap.data();
+
+  const gPointEl = document.querySelector(".home-gpoint");
+  if(gPointEl){
+    gPointEl.textContent = `${data.gPoint || 0} G-Point`;
+  }
+
+  const todayNow = new Date().toISOString().split("T")[0];
+  const claimed = data.lastCheckinDate === todayNow;
+
+  document.querySelectorAll(".elite-day").forEach(el=>{
+    if(claimed){
+      el.classList.add("disabled");
+    }else{
+      el.classList.remove("disabled");
+    }
+  });
+
+});
     /* =============================
        START COUNTDOWN
     ============================= */
