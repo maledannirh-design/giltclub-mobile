@@ -151,12 +151,68 @@ export async function renderAdmin(){
   await setupQrValidator();   // 🔥 PENTING supaya QR aktif
 }
 
+/* =====================================================
+   RENDER BALANCE ADJUSTMENT PANEL
+===================================================== */
+async function renderBalanceAdjustmentPanel(){
 
+  const container = document.getElementById("adminBalanceAdjustment");
+  if(!container) return;
+
+  try{
+
+    const usersSnap = await getDocs(collection(db,"users"));
+
+    let options = "";
+
+    usersSnap.forEach(docSnap=>{
+      const u = docSnap.data();
+      options += `
+        <option value="${docSnap.id}">
+          ${u.username || u.fullName || docSnap.id}
+        </option>
+      `;
+    });
+
+    container.innerHTML = `
+      <div class="admin-card">
+
+        <h3>Manual Adjustment</h3>
+
+        <label>User</label>
+        <select id="adjustUser">
+          ${options}
+        </select>
+
+        <label>Wallet Adjustment (+ / -)</label>
+        <input type="number" id="adjustAmount" placeholder="50000 atau -2000">
+
+        <label>Reason</label>
+        <select id="adjustReason">
+          <option value="admin_adjustment">Admin Adjustment</option>
+          <option value="cashback_session">Cashback Session</option>
+          <option value="refund">Refund</option>
+          <option value="penalty">Penalty</option>
+        </select>
+
+        <label>Note (optional)</label>
+        <input type="text" id="adjustNote" placeholder="Detail keterangan">
+
+        <button id="saveAdjustment" class="admin-btn">
+          Simpan Adjustment
+        </button>
+
+      </div>
+    `;
+
+    document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+
+  }catch(err){
+    console.error("Render adjustment panel error:", err);
+  }
+}
 /* =====================================================
    ADJUSTMENT (LEDGER CLEAN)
-===================================================== */
-/* =====================================================
-   ADJUSTMENT (LEDGER CLEAN - WALLET ONLY)
 ===================================================== */
 async function handleBalanceAdjustment(){
 
