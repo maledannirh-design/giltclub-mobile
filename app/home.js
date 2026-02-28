@@ -143,10 +143,13 @@ export async function renderHome(){
           </div>
 
           <div class="elite-days">
-            ${[1,2,3,4,5,6,7].map(d=>`
-              <div class="elite-day">H${d}</div>
-            `).join("")}
-          </div>
+  ${[1,2,3,4,5,6,7].map(d=>`
+    <div class="elite-day"
+         onclick="openDailyScan(${d})">
+      H${d}
+    </div>
+  `).join("")}
+</div>
 
         </div>
 
@@ -300,4 +303,9 @@ function startResetCountdown(){
 
   update();
   countdownInterval = setInterval(update,1000);
+}
+
+
+window.openDailyScan = function(day){
+  window.location.href = `scanCheckin.html?mode=daily&day=${day}`;
 }
