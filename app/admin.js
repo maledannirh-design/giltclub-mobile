@@ -96,63 +96,60 @@ export async function renderAdmin(){
     }
   }
 
-  /* =========================
-     QR VALIDATOR SECTION
-  ========================= */
+ /* =========================
+   QR VALIDATOR SECTION
+========================= */
 
-  html += `
-      <hr style="margin:30px 0;">
+html += `
+  <hr style="margin:30px 0;">
 
-      <button id="openCheckinQR" class="admin-btn">
-        Scan Member QR
-      </button>
+  <button id="openCheckinQR" class="admin-btn">
+    Scan Member QR
+  </button>
 
-      <div id="checkinModal" class="checkin-modal hidden">
-        <div class="checkin-card">
-          <h3>Scan Member</h3>
+  <!-- FULLSCREEN SCANNER MODAL -->
+  <div id="checkinModal" class="checkin-modal hidden">
+    <div class="checkin-card">
 
-          <div id="reader" style="width:280px;margin:auto;"></div>
-
-          <div style="margin-top:10px;">
-            <button id="switchCameraBtn">🔄 Ganti Kamera</button>
-          </div>
-
-          <div id="checkinResult" style="margin-top:10px;"></div>
-
-          <button id="closeCheckin">Tutup</button>
-        </div>
+      <!-- HEADER -->
+      <div class="scanner-header">
+        <button id="closeCheckin">← Kembali</button>
+        <button id="switchCameraBtn" style="margin-left:auto;">
+          🔄 Kamera
+        </button>
       </div>
 
-      <hr style="margin:30px 0;">
+      <!-- CAMERA FULLSCREEN -->
+      <div id="reader"></div>
 
-      <div id="adminBalanceAdjustment"></div>
+      <!-- RESULT CENTER POPUP -->
+      <div id="checkinResult"></div>
 
-      <hr style="margin:30px 0;">
-
-      <button onclick="exportTopupHistory()">Export History Top Up</button>
-      <button onclick="exportBookingHistory()">Export History Booking</button>
-      <button onclick="exportAdjustmentHistory()">Export History Adjustment</button>
-      <button onclick="exportMembersToCSV()">
-  Export Data Members
-</button>
-<button onclick="exportFullMutation()">
-  Export Mutasi Semua Orang (Current System)
-</button><button onclick="auditOldSystemReconciliation()">
-  Audit Rekonsil Sistem Lama
-</button>
     </div>
-  `;
+  </div>
 
-  content.innerHTML = html;
+  <hr style="margin:30px 0;">
 
-  /* =========================
-     INIT SUB MODULES
-  ========================= */
+  <div id="adminBalanceAdjustment"></div>
 
-  await renderBalanceAdjustmentPanel();
-  await setupQrValidator();   // 🔥 PENTING supaya QR aktif
-}
+  <hr style="margin:30px 0;">
 
+  <button onclick="exportTopupHistory()">Export History Top Up</button>
+  <button onclick="exportBookingHistory()">Export History Booking</button>
+  <button onclick="exportAdjustmentHistory()">Export History Adjustment</button>
+  <button onclick="exportMembersToCSV()">Export Data Members</button>
+  <button onclick="exportFullMutation()">Export Mutasi Semua Orang (Current System)</button>
+  <button onclick="auditOldSystemReconciliation()">Audit Rekonsil Sistem Lama</button>
+`;
+
+content.innerHTML = html;
+
+/* =========================
+   INIT SUB MODULES
+========================= */
+
+await renderBalanceAdjustmentPanel();
+await setupQrValidator();   // 🔥 WAJIB supaya scanner aktif
 /* =====================================================
    RENDER BALANCE ADJUSTMENT PANEL
 ===================================================== */
@@ -370,23 +367,17 @@ async function startCamera(){
   const cameraId = cameraList[currentCameraIndex].id;
 
   const config = {
-    fps: 35,
-    qrbox: (vw, vh) => {
-
-      // Gunakan tinggi layar sebagai acuan supaya benar-benar besar
-      const size = Math.floor(Math.min(vw, vh) * 0.92); // 92% layar
-
-      return {
-        width: size,
-        height: size
-      };
-    },
-    aspectRatio: window.innerWidth / window.innerHeight,
-    disableFlip: false,
-    experimentalFeatures: {
-      useBarCodeDetectorIfSupported: true
-    }
-  };
+  fps: 35,
+  qrbox: (vw, vh) => {
+    const size = Math.floor(Math.min(vw, vh) * 0.9);
+    return { width: size, height: size };
+  },
+  aspectRatio: 1.0, // 🔥 penting: pakai square stabil
+  disableFlip: false,
+  experimentalFeatures: {
+    useBarCodeDetectorIfSupported: true
+  }
+};
 
   let processing = false;
 
