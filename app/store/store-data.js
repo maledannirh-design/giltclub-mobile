@@ -78,7 +78,7 @@ export const STORE_FLASH = [
     redeemedCount: 0,
     eligibleRoles: ["member", "coach"],
     startTime: "2026-02-28T00:00:00+07:00",
-endTime:   "2026-03-06T23:59:00+07:00",
+endTime:   "2026-03-06T20:00:00+07:00",
     perUserLimit: 1,
     active: true,
     isFlash: true,
