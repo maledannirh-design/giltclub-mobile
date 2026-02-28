@@ -361,24 +361,23 @@ async function setupQrValidator(){
     await startCamera();
   };
 
-
- /* ===============================
-   CAMERA START (STABLE VERSION)
-=============================== */
 /* ===============================
    CAMERA START (HIGH PERFORMANCE)
+=============================== */
+/* ===============================
+   CAMERA START (OPTIMIZED 35FPS)
 =============================== */
 async function startCamera(){
 
   const cameraId = cameraList[currentCameraIndex].id;
 
   const config = {
-    fps: 45, // 50 sering di-throttle browser, 45 lebih stabil
+    fps: 35,
     qrbox: (vw, vh) => {
       const min = Math.min(vw, vh);
 
-      // Fokus kecil supaya QR kecil cepat kebaca
-      const size = Math.floor(min * 0.65);
+      // diperbesar dari 0.65 → 0.85
+      const size = Math.floor(min * 0.85);
 
       return {
         width: size,
@@ -434,7 +433,6 @@ async function startCamera(){
         }
 
       }catch(err){
-        console.error(err);
         showInvalid("QR tidak valid");
       }
 
@@ -446,10 +444,9 @@ async function startCamera(){
     setTimeout(()=>{
       resultBox.innerHTML = "";
       processing = false;
-    },1200); // lebih cepat supaya cepat scan ulang
+    },1200);
   }
 }
-
   /* ===============================
      CAMERA SWITCH
   =============================== */
