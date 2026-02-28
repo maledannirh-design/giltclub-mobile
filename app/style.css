@@ -2056,28 +2056,16 @@ body.scan-mode{
 }
 
 /* =============================
-   HOME CARD SIZE OVERRIDE
+   HOME CARD SIZE FIX
 ============================= */
 
 #homeMemberCard .membership-card {
   max-width: 160px;
 }
 
-#homeMemberCard .wallet-member-big-img {
-  width: 100%;
-}
-
 #homeMemberCard .wallet-member-overlay {
-  transform: scale(0.7);
-  transform-origin: top left;
-}
-/* =============================
-   HOME CARD TEXT POSITION FIX
-============================= */
-
-#homeMemberCard .wallet-member-overlay {
-  bottom: 18px;   /* turunkan posisi */
-  left: 18px;     /* sesuaikan margin kiri */
+  bottom: 14px;   /* atur di sini */
+  left: 16px;
 }
 
 #homeMemberCard .wallet-member-name {
