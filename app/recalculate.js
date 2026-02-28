@@ -1,12 +1,10 @@
-// recalculate.js
-
 import { getDocs, collection, updateDoc, doc } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { db } from "./firebase.js";
 import { recalculateUserStats } from "./userStats.js";
 
-export async function recalculateAllUsersOnce(){
+async function recalculateAllUsersOnce(){
 
   try{
 
@@ -38,5 +36,5 @@ export async function recalculateAllUsersOnce(){
   }
 }
 
-// expose to console
+// 🔥 WAJIB ADA BARIS INI
 window.recalculateAllUsersOnce = recalculateAllUsersOnce;
