@@ -213,9 +213,11 @@ function renderFlash(){
    COUNTDOWN ENGINE
 ================================= */
 function startCountdown(){
+
   const timers = document.querySelectorAll(".countdown");
 
   timers.forEach(timer => {
+
     const endTime = new Date(timer.dataset.end);
 
     const interval = setInterval(() => {
@@ -224,17 +226,37 @@ function startCountdown(){
       const diff = endTime - now;
 
       if (diff <= 0){
-        timer.innerHTML = "Ended";
+        timer.innerHTML = "00:00:00";
         clearInterval(interval);
         return;
       }
 
-      const mins = Math.floor(diff / 60000);
-      const secs = Math.floor((diff % 60000) / 1000);
+      const totalSeconds = Math.floor(diff / 1000);
 
-      timer.innerHTML = `Ends in ${mins}m ${secs}s`;
+      const days = Math.floor(totalSeconds / (3600 * 24));
+      const hours = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      const pad = n => n.toString().padStart(2, "0");
+
+      if (days > 0) {
+        timer.innerHTML = `
+          <span class="cd">${pad(days)}</span>:
+          <span class="cd">${pad(hours)}</span>:
+          <span class="cd">${pad(minutes)}</span>:
+          <span class="cd">${pad(seconds)}</span>
+        `;
+      } else {
+        timer.innerHTML = `
+          <span class="cd">${pad(hours)}</span>:
+          <span class="cd">${pad(minutes)}</span>:
+          <span class="cd">${pad(seconds)}</span>
+        `;
+      }
 
     }, 1000);
+
   });
 }
 
