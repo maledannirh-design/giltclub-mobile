@@ -181,33 +181,6 @@ body.dark .admin-btn:hover {
 }
 
 /* =====================================================
-   CHECKIN MODAL
-===================================================== */
-
-.checkin-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.75);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.checkin-card {
-  background: var(--color-card);
-  padding: 24px;
-  border-radius: 22px;
-  width: 340px;
-  text-align: center;
-  box-shadow: 0 20px 45px rgba(0,0,0,.3);
-}
-
-.hidden {
-  display: none;
-}
-
-/* =====================================================
    RESULT BOX
 ===================================================== */
 
@@ -313,32 +286,82 @@ body.dark .admin-card select option {
   color: #f5f5f5 !important;
 }
 
-.checkin-card {
+
+/* =====================================================
+   CHECKIN MODAL (FULLSCREEN SCANNER)
+===================================================== */
+
+.checkin-modal {
   position: fixed;
   inset: 0;
   background: #000;
-  border-radius: 0;
+  z-index: 9999;
 }
+
+/* Fullscreen container */
+.checkin-card {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Hide helper */
+.hidden {
+  display: none !important;
+}
+
+/* =====================================================
+   CAMERA
+===================================================== */
 
 #reader{
-  position:fixed;
+  position:absolute;
   inset:0;
-  width:100vw;
-  height:100vh;
+  width:100%;
+  height:100%;
   z-index:1;
 }
-<button id="closeBtn" style="
-position:absolute;
-top:20px;
-left:20px;
-z-index:10;
-background:#000a;
-color:#fff;
-border:none;
-padding:8px 12px;
-border-radius:10px;
-">← Kembali</button>
 
+#reader video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+#closeBtn,
+#switchBtn{
+  position:absolute;
+  z-index:20;
+  background:rgba(0,0,0,0.6);
+  color:#fff;
+  border:none;
+  padding:8px 14px;
+  border-radius:12px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+#closeBtn{
+  top:20px;
+  left:20px;
+}
+
+#switchBtn{
+  top:20px;
+  right:20px;
+}
+
+/* =====================================================
+   RESULT POPUP (CENTER)
+===================================================== */
 
 #result{
   position:fixed;
@@ -346,36 +369,36 @@ border-radius:10px;
   display:flex;
   align-items:center;
   justify-content:center;
-  z-index:9;
-  pointer-events:none; /* biar tidak ganggu klik tombol */
+  z-index:15;
+  pointer-events:none;
 }
 
 .result-popup{
   min-width:240px;
   max-width:80%;
-  padding:20px;
-  border-radius:16px;
+  padding:22px;
+  border-radius:18px;
   text-align:center;
   font-weight:bold;
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(12px);
   animation:popScale 0.18s ease-out;
 }
 
 .valid-box{
-  background:rgba(31,45,31,0.9);
+  background:rgba(31,45,31,0.92);
   border:2px solid #2ecc71;
   color:#2ecc71;
 }
 
 .invalid-box{
-  background:rgba(58,28,28,0.9);
+  background:rgba(58,28,28,0.92);
   border:2px solid #e74c3c;
   color:#ff6b6b;
 }
 
 @keyframes popScale{
   from{
-    transform:scale(0.8);
+    transform:scale(0.85);
     opacity:0;
   }
   to{
@@ -383,6 +406,7 @@ border-radius:10px;
     opacity:1;
   }
 }
+
 /* =====================================================
    ANIMATION
 ===================================================== */
