@@ -2059,8 +2059,10 @@ body.scan-mode{
    HOME CARD SIZE FIX
 ============================= */
 
-#homeMemberCard .membership-card {
+#homeMemberCard .membership-card{
   max-width: 120px;
+  border-radius: 14px !important;   /* kurangi curve biar lebih premium */
+  overflow: hidden;                 /* jaga biar radius clean */
 }
 
 /* =============================
@@ -2068,13 +2070,15 @@ body.scan-mode{
 ============================= */
 
 #homeMemberCard .wallet-member-name{
-  bottom: 25px;   /* turun dari 58px */
-  left: 10px;     /* lebih ke kiri */
-  font-size: 4px;
+  bottom: 20px;
+  left: 10px;
+  font-size: 6px;        /* 4px terlalu kecil & pecah */
+  letter-spacing: 0.3px; /* lebih tajam */
 }
 
 #homeMemberCard .wallet-member-code{
-  bottom: 16px;   /* turun dari 34px */
+  bottom: 12px;
   left: 10px;
-  font-size: 4px;
+  font-size: 5px;
+  letter-spacing: 0.4px;
 }
