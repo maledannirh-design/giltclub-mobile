@@ -279,36 +279,7 @@ async function handleBalanceAdjustment(){
 
 
 /* =====================================================
-   QR VALIDATOR (NO FINANCIAL IMPACT)
-   STABLE PRODUCTION VERSION
-===================================================== */
-
-let html5QrInstance = null;
-let cameraList = [];
-let currentCameraIndex = 0;
-
-/* =====================================================
-   LOAD LIBRARY (SAFE)
-===================================================== */
-async function loadQrLibrary(){
-  return new Promise((resolve, reject) => {
-
-    if(window.Html5Qrcode){
-      resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/html5-qrcode";
-    script.onload = resolve;
-    script.onerror = reject;
-
-    document.body.appendChild(script);
-  });
-}
-
-/* =====================================================
-   MAIN SETUP
+   MAIN SETUP (CHECKIN STYLE – STABLE)
 ===================================================== */
 async function setupQrValidator(){
 
@@ -330,7 +301,6 @@ async function setupQrValidator(){
     modal.classList.remove("hidden");
     resultBox.innerHTML = "";
 
-    // Destroy old instance if exists
     if(html5QrInstance){
       try{
         await html5QrInstance.stop();
@@ -348,7 +318,6 @@ async function setupQrValidator(){
       return;
     }
 
-    // Auto pilih kamera belakang
     const backCam =
       cameraList.find(c =>
         c.label.toLowerCase().includes("back") ||
@@ -362,157 +331,156 @@ async function setupQrValidator(){
     await startCamera();
   };
 
+  /* ===============================
+     START CAMERA
+  =============================== */
+  async function startCamera(){
+
+    const cameraId = cameraList[currentCameraIndex].id;
+
+    await html5QrInstance.start(
+      cameraId,
+      {
+        fps: 35,
+        qrbox: (vw, vh) => {
+          const size = Math.floor(Math.min(vw, vh) * 0.9);
+          return { width: size, height: size };
+        },
+        aspectRatio: 1.0,
+        disableFlip: false,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      },
+      async (decodedText) => {
+
+        try{
+          // 🔥 Stop dulu supaya hasil pasti muncul
+          await html5QrInstance.stop();
+        }catch(e){}
+
+        try{
+
+          const cleaned = decodedText.trim().replace(/\n/g,"");
+
+          let c,i,s;
+
+          try{
+            const parsed = new URL(cleaned);
+            c = parsed.searchParams.get("c");
+            i = parsed.searchParams.get("i");
+            s = parsed.searchParams.get("s");
+          }catch{
+            const params = new URLSearchParams(cleaned);
+            c = params.get("c");
+            i = params.get("i");
+            s = params.get("s");
+          }
+
+          if(!c || !i || !s){
+            showInvalid("QR format tidak valid");
+            return restart();
+          }
+
+          const res = await window.validateScanParams(c,i,s);
+
+          if(res.valid){
+            showValid(res.user.username);
+          }else{
+            showInvalid(res.reason);
+          }
+
+        }catch(err){
+          console.error(err);
+          showInvalid("QR tidak valid");
+        }
+
+        restart();
+      }
+    );
+  }
 
   /* ===============================
-     SETTING CAMERA
+     RESTART SCANNER
   =============================== */
-async function startCamera(){
-
-  const cameraId = cameraList[currentCameraIndex].id;
-
-  const config = {
-  fps: 35,
-  qrbox: (vw, vh) => {
-    const size = Math.floor(Math.min(vw, vh) * 0.9);
-    return { width: size, height: size };
-  },
-  aspectRatio: 1.0, // 🔥 penting: pakai square stabil
-  disableFlip: false,
-  experimentalFeatures: {
-    useBarCodeDetectorIfSupported: true
-  }
-};
-
-  let processing = false;
-
-  await html5QrInstance.start(
-    cameraId,
-    config,
-    async (decodedText) => {
-
-      if(processing) return;
-      processing = true;
+  async function restart(){
+    setTimeout(async ()=>{
+      resultBox.innerHTML = "";
 
       try{
+        await html5QrInstance.clear();
+      }catch(e){}
 
-        const cleaned = decodedText.trim().replace(/\n/g,"");
-
-        let c,i,s;
-
-        if(cleaned.startsWith("http")){
-          const parsed = new URL(cleaned);
-          c = parsed.searchParams.get("c");
-          i = parsed.searchParams.get("i");
-          s = parsed.searchParams.get("s");
-        }else{
-          const params = new URLSearchParams(cleaned);
-          c = params.get("c");
-          i = params.get("i");
-          s = params.get("s");
-        }
-
-        if(!c || !i || !s){
-          showInvalid("QR format tidak valid");
-          return reset();
-        }
-
-        const res = await window.validateScanParams(c,i,s);
-
-        if(res.valid){
-          showValid(res.user.username);
-        }else{
-          showInvalid(res.reason);
-        }
-
-      }catch(err){
-        showInvalid("QR tidak valid");
-      }
-
-      reset();
-    }
-  );
-
-  function reset(){
-    setTimeout(()=>{
-      resultBox.innerHTML = "";
-      processing = false;
-    },1200);
+      html5QrInstance = new Html5Qrcode("reader");
+      await startCamera();
+    },1500);
   }
-}
+
   /* ===============================
      CAMERA SWITCH
   =============================== */
-if(switchBtn){
-  switchBtn.onclick = async () => {
+  if(switchBtn){
+    switchBtn.onclick = async () => {
 
-    if(!html5QrInstance || !cameraList.length) return;
+      if(!html5QrInstance || !cameraList.length) return;
 
-    try{
-      await html5QrInstance.stop();
-    }catch(e){}
+      try{
+        await html5QrInstance.stop();
+        await html5QrInstance.clear();
+      }catch(e){}
 
-    currentCameraIndex =
-      (currentCameraIndex + 1) % cameraList.length;
+      currentCameraIndex =
+        (currentCameraIndex + 1) % cameraList.length;
 
-    setTimeout(()=>{
-      startCamera();
-    },200);
-  };
-}
+      html5QrInstance = new Html5Qrcode("reader");
+      await startCamera();
+    };
+  }
 
   /* ===============================
      CLOSE SCANNER
   =============================== */
-if(closeBtn){
-  closeBtn.onclick = async () => {
+  if(closeBtn){
+    closeBtn.onclick = async () => {
 
-    try{
-      if(html5QrInstance){
-        await html5QrInstance.stop();
-        await html5QrInstance.clear();
+      try{
+        if(html5QrInstance){
+          await html5QrInstance.stop();
+          await html5QrInstance.clear();
+        }
+      }catch(e){
+        console.warn(e);
       }
-    }catch(e){
-      console.warn(e);
-    }
 
-    html5QrInstance = null;
+      html5QrInstance = null;
+      modal.classList.add("hidden");
+      resultBox.innerHTML = "";
+    };
+  }
 
-    modal.classList.add("hidden");
-    resultBox.innerHTML = "";
-  };
-}
   /* ===============================
      RESULT UI
   =============================== */
-function showValid(name){
-  resultBox.innerHTML =
-    `<div class="result-popup valid-box">
-      ✅ VALID MEMBER<br>
-      <div style="margin-top:8px;font-size:14px;">
-        ${name}
-      </div>
-    </div>`;
-}
+  function showValid(name){
+    resultBox.innerHTML =
+      `<div class="result-popup valid-box">
+        ✅ VALID MEMBER<br>
+        <div style="margin-top:8px;font-size:14px;">
+          ${name}
+        </div>
+      </div>`;
+  }
 
-function showInvalid(message){
-  resultBox.innerHTML =
-    `<div class="result-popup invalid-box">
-      ❌ ${message}
-    </div>`;
-}
-  async function resume(){
-    setTimeout(async ()=>{
-      resultBox.innerHTML = "";
-      try{
-        await html5QrInstance.resume();
-      }catch(e){}
-    },1500);
+  function showInvalid(message){
+    resultBox.innerHTML =
+      `<div class="result-popup invalid-box">
+        ❌ ${message}
+      </div>`;
   }
 }
 /* =====================================================
-   FUNGSI WINDOW
+   FUNGSI-FUNGSI WINDOW DARI SINI
 ===================================================== */
-
 
 /* =====================================================
    APPROVE TOP UP (ATOMIC + LEDGER)
