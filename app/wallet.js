@@ -147,7 +147,22 @@ function eyeOpenSVG(){
     </svg>
   `;
 }
-
+function eyeCloseSVG(){
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="18" height="18"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="1.6"
+         stroke-linecap="round"
+         stroke-linejoin="round">
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a21.77 21.77 0 0 1 5.06-7.94"/>
+      <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-2.06 3.19"/>
+      <path d="M1 1l22 22"/>
+    </svg>
+  `;
+}
 
 /* =========================================
    MUTASI
