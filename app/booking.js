@@ -1810,7 +1810,22 @@ window.openRacketSelector = function(scheduleData){
 
     const maxStock = scheduleData.racketStock || 0;
     const racketPrice = scheduleData.racketPrice || 0;
-    const basePrice = scheduleData.pricePerHour || 0;
+
+    // 🔥 HITUNG DURASI SAMA PERSIS SEPERTI ENGINE
+    let basePrice = 0;
+
+    if(scheduleData.startTime && scheduleData.endTime){
+
+      const [startH,startM] = scheduleData.startTime.split(":").map(Number);
+      const [endH,endM] = scheduleData.endTime.split(":").map(Number);
+
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      const totalMinutes = endMinutes - startMinutes;
+
+      const billedHours = Math.ceil(totalMinutes / 60);
+      basePrice = billedHours * (scheduleData.pricePerHour || 0);
+    }
 
     overlay.innerHTML = `
       <div class="racket-modal">
@@ -1818,7 +1833,7 @@ window.openRacketSelector = function(scheduleData){
 
         <select id="racketQtySelect" class="racket-select">
           ${Array.from({length:maxStock+1},(_,i)=>{
-            return `<option value="${i}">${i} Raket</option>`
+            return `<option value="${i}" ${i===0?"selected":""}>${i} Raket</option>`
           }).join("")}
         </select>
 
@@ -1837,16 +1852,19 @@ window.openRacketSelector = function(scheduleData){
     const preview = overlay.querySelector("#racketTotalPreview");
 
     function updateTotal(){
-      const qty = Number(select.value);
+      const qty = parseInt(select.value,10) || 0;
       const total = basePrice + (qty * racketPrice);
       preview.innerText = `Total: Rp ${total.toLocaleString("id-ID")}`;
     }
 
     select.onchange = updateTotal;
+
+    // 🔥 FORCE INITIAL ZERO
+    select.value = "0";
     updateTotal();
 
     overlay.querySelector(".racket-confirm-btn").onclick = ()=>{
-      const qty = Number(select.value);
+      const qty = parseInt(select.value,10) || 0;
       overlay.remove();
       resolve(qty);
     };
