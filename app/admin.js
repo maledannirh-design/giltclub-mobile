@@ -216,6 +216,9 @@ async function renderBalanceAdjustmentPanel(){
 /* =====================================================
    ADJUSTMENT (LEDGER CLEAN)
 ===================================================== */
+/* =====================================================
+   ADJUSTMENT (WALLET + GPOINT SEPARATED LEDGER)
+===================================================== */
 async function handleBalanceAdjustment(){
 
   const userEl = document.getElementById("adjustUser");
@@ -223,9 +226,8 @@ async function handleBalanceAdjustment(){
   const reasonEl = document.getElementById("adjustReason");
   const noteEl = document.getElementById("adjustNote");
 
-  // 🔒 Guard supaya tidak null error
   if(!userEl || !walletEl || !reasonEl || !noteEl){
-    alert("Panel adjustment belum siap. Refresh halaman.");
+    alert("Panel adjustment belum siap.");
     return;
   }
 
@@ -242,51 +244,38 @@ async function handleBalanceAdjustment(){
   const userRef = doc(db,"users",userId);
   const walletLedgerRef = doc(collection(db,"walletLedger"));
 
-  try{
+  await runTransaction(db, async (transaction)=>{
 
-    await runTransaction(db, async (transaction)=>{
+    const snap = await transaction.get(userRef);
+    if(!snap.exists()) throw new Error("User tidak ditemukan");
 
-      const snap = await transaction.get(userRef);
-      if(!snap.exists()){
-        throw new Error("User tidak ditemukan");
-      }
+    const data = snap.data();
+    const walletBefore = data.walletBalance || 0;
+    const walletAfter = walletBefore + walletAmount;
 
-      const data = snap.data();
+    if(walletAfter < 0) throw new Error("Saldo tidak boleh minus");
 
-      const walletBefore = data.walletBalance || 0;
-      const walletAfter = walletBefore + walletAmount;
-
-      if(walletAfter < 0){
-        throw new Error("Saldo tidak boleh minus");
-      }
-
-      // Update saldo user
-      transaction.update(userRef,{
-        walletBalance: walletAfter
-      });
-
-      // Insert ledger
-      transaction.set(walletLedgerRef,{
-        userId,
-        txId: "ADMIN_ADJUST_" + Date.now(),
-        entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
-        amount: walletAmount,
-        balanceBefore: walletBefore,
-        balanceAfter: walletAfter,
-        description: reason,
-        note,
-        createdAt: serverTimestamp(),
-        createdBy: auth.currentUser.uid
-      });
-
+    transaction.update(userRef,{
+      walletBalance: walletAfter
     });
 
-    alert("Adjustment berhasil");
-    renderAdmin();
+    transaction.set(walletLedgerRef,{
+      userId,
+      entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
+      referenceType: "ADMIN_ADJUSTMENT",
+      amount: walletAmount,
+      balanceBefore: walletBefore,
+      balanceAfter: walletAfter,
+      description: reason,
+      note,
+      createdAt: serverTimestamp(),
+      createdBy: auth.currentUser.uid
+    });
 
-  }catch(err){
-    alert(err.message || "Gagal adjustment");
-  }
+  });
+
+  alert("Adjustment berhasil");
+  renderAdmin();
 }
 
 /* =====================================================
@@ -623,9 +612,6 @@ window.exportAdjustmentHistory = async function(){
 
   downloadCSV("adjustment_history.csv", rows);
 };
-/* =====================================================
-   EXPORT MEMBERS CSV (ADMIN ONLY)
-===================================================== */
 
 /* =====================================================
    EXPORT MEMBERS – FULL AUDIT VERSION
@@ -746,83 +732,43 @@ window.exportMembersToCSV = async function(){
 
 window.exportFullMutation = async function(){
 
-  try{
+  const snap = await getDocs(collection(db,"walletLedger"));
 
-    const snap = await getDocs(collection(db,"walletTransactions"));
-
-    if(snap.empty){
-      alert("Tidak ada data mutasi");
-      return;
-    }
-
-    let rows = [];
-
-    rows.push([
-      "Tanggal",
-      "UID",
-      "Username",
-      "Full Name",
-      "Type",
-      "Amount",
-      "Status",
-      "Balance Before",
-      "Balance After",
-      "Created By",
-      "Note"
-    ]);
-
-    for(const docSnap of snap.docs){
-
-      const d = docSnap.data();
-      const uid = d.userId || "";
-
-      let username = "";
-      let fullName = "";
-
-      if(uid){
-        const userSnap = await getDoc(doc(db,"users",uid));
-        if(userSnap.exists()){
-          const userData = userSnap.data();
-          username = userData.username || "";
-          fullName = userData.fullName || "";
-        }
-      }
-
-      rows.push([
-        d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
-        uid,
-        username,
-        fullName,
-        d.type || "",
-        d.amount || 0,
-        d.status || "",
-        d.balanceBefore ?? "",
-        d.balanceAfter ?? "",
-        d.createdBy || "",
-        d.note || ""
-      ]);
-    }
-
-    const csvContent = rows
-      .map(row => row.map(val => `"${val}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "giltclub_full_mutation_current_system.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    alert("Export full mutation selesai");
-
-  }catch(err){
-    console.error(err);
-    alert("Gagal export mutation");
+  if(snap.empty){
+    alert("Tidak ada data mutasi");
+    return;
   }
+
+  let rows = [];
+
+  rows.push([
+    "Tanggal",
+    "UID",
+    "EntryType",
+    "ReferenceType",
+    "ReferenceId",
+    "Amount",
+    "BalanceBefore",
+    "BalanceAfter",
+    "Note"
+  ]);
+
+  snap.forEach(docSnap=>{
+    const d = docSnap.data();
+    rows.push([
+      d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
+      d.userId || "",
+      d.entryType || "",
+      d.referenceType || "",
+      d.referenceId || "",
+      d.amount || 0,
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.note || ""
+    ]);
+  });
+
+  downloadCSV("wallet_full_mutation.csv", rows);
 };
 
 window.auditOldSystemReconciliation = async function(){
