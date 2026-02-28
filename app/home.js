@@ -31,6 +31,15 @@ export async function renderHome(){
     const balance = userData.walletBalance || 0;
 const today = new Date().toISOString().split("T")[0];
 const alreadyClaimed = userData.lastCheckinDate === today;
+/* =============================
+   DAILY CHECK-IN DATA
+============================= */
+const rewardMatrix = userData.membership === "VVIP"
+  ? [15,15,15,15,15,15,200]
+  : [10,10,10,10,10,10,150];
+
+const streak = userData.currentStreak || 0;
+    
     /* =============================
        CHAT ROOMS (UNREAD)
     ============================= */
@@ -133,27 +142,38 @@ const alreadyClaimed = userData.lastCheckinDate === today;
 
         </div>
 
-        <!-- ELITE DAILY CHECKIN (OUTSIDE WALLET) -->
-        <div class="elite-zone">
+<!-- DAILY CHECK-IN -->
+<div class="daily-card">
 
-          <div class="elite-header">
-            <div class="elite-title">DAILY ELITE STREAK</div>
-            <div class="elite-tier">${userData.membership || "MEMBER"}</div>
-          </div>
-
-          <div class="elite-countdown">
-            Reset dalam <span id="resetTimer">--:--:--</span>
-          </div>
-
-         <div class="elite-days-wrapper">
-  <div class="elite-days-scroll">
-    ${[1,2,3,4,5,6,7].map(d=>`
-      <div class="elite-day-circle ${alreadyClaimed ? 'disabled' : ''}"
-           ${alreadyClaimed ? '' : `onclick="openDailyScan(${d})"`}>
-        <div class="day-label">H${d}</div>
-      </div>
-    `).join("")}
+  <div class="daily-header">
+    <div class="daily-title">Check-In Harian</div>
+    <div class="daily-info">Informasi Check-In</div>
   </div>
+
+  <div class="daily-days">
+    ${rewardMatrix.map((reward, index)=>{
+      const dayNumber = index + 1;
+      const claimed = dayNumber <= streak;
+
+      return `
+        <div class="daily-box ${claimed ? 'claimed' : ''}">
+          <div class="daily-day">Hari ${dayNumber}</div>
+          <div class="daily-reward">🪙 +${reward}</div>
+        </div>
+      `;
+    }).join("")}
+  </div>
+
+  <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
+    ${
+      alreadyClaimed
+        ? "Poin diterima, Check-In lagi besok ya!"
+        : "Scan kartu Anda untuk check-in hari ini"
+    }
+  </div>
+
+</div>
+
 </div>
 
         </div>
@@ -270,13 +290,15 @@ userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
   const todayNow = new Date().toISOString().split("T")[0];
   const claimed = data.lastCheckinDate === todayNow;
 
-  document.querySelectorAll(".elite-day").forEach(el=>{
-    if(claimed){
-      el.classList.add("disabled");
-    }else{
-      el.classList.remove("disabled");
-    }
-  });
+document.querySelectorAll(".daily-box").forEach((el, index) => {
+  const dayNumber = index + 1;
+
+  if (dayNumber <= (data.currentStreak || 0)) {
+    el.classList.add("claimed");
+  } else {
+    el.classList.remove("claimed");
+  }
+});
 
 });
     /* =============================
