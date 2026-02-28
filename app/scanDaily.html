@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Check-In</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body style="margin:0;background:#000;color:#fff;font-family:Arial;">
+
+  <h2 style="text-align:center;margin-top:20px;">
+    Scan Kartu Anda
+  </h2>
+
+  <div id="reader" style="width:100vw;height:70vh;"></div>
+  <div id="result" style="text-align:center;margin-top:20px;"></div>
+
+  <script type="module">
+    import { initDailyScanner } from "./scanDaily.js";
+    initDailyScanner("reader","result");
+  </script>
+
+</body>
+</html>
