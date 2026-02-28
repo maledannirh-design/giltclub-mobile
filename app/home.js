@@ -130,6 +130,26 @@ export async function renderHome(){
 
         </div>
 
+        <!-- ELITE DAILY CHECKIN (OUTSIDE WALLET) -->
+        <div class="elite-zone">
+
+          <div class="elite-header">
+            <div class="elite-title">DAILY ELITE STREAK</div>
+            <div class="elite-tier">${userData.membership || "MEMBER"}</div>
+          </div>
+
+          <div class="elite-countdown">
+            Reset dalam <span id="resetTimer">--:--:--</span>
+          </div>
+
+          <div class="elite-days">
+            ${[1,2,3,4,5,6,7].map(d=>`
+              <div class="elite-day">H${d}</div>
+            `).join("")}
+          </div>
+
+        </div>
+
       </div>
     `;
 
@@ -212,6 +232,11 @@ export async function renderHome(){
       };
     }
 
+    /* =============================
+       START COUNTDOWN
+    ============================= */
+    startResetCountdown();
+
   }catch(error){
 
     console.error("Home error:", error);
@@ -228,34 +253,51 @@ export async function renderHome(){
    SVG ICON
 ========================================= */
 function eyeOpenSVG(){
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="18" height="18"
-         viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="1.6"
-         stroke-linecap="round"
-         stroke-linejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  `;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+  <circle cx="12" cy="12" r="3"/></svg>`;
 }
 
 function eyeCloseSVG(){
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg"
-         width="18" height="18"
-         viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="1.6"
-         stroke-linecap="round"
-         stroke-linejoin="round">
-      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a21.77 21.77 0 0 1 5.06-7.94"/>
-      <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-2.06 3.19"/>
-      <path d="M1 1l22 22"/>
-    </svg>
-  `;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+  viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a21.77 21.77 0 0 1 5.06-7.94"/>
+  <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-2.06 3.19"/>
+  <path d="M1 1l22 22"/></svg>`;
+}
+
+/* =========================================
+   COUNTDOWN ENGINE (SAFE)
+========================================= */
+let countdownInterval = null;
+
+function startResetCountdown(){
+
+  if(countdownInterval){
+    clearInterval(countdownInterval);
+  }
+
+  function update(){
+
+    const now = new Date();
+    const tomorrow = new Date();
+    tomorrow.setHours(24,0,0,0);
+
+    const diff = tomorrow - now;
+
+    const hours = String(Math.floor(diff / (1000*60*60))).padStart(2,"0");
+    const minutes = String(Math.floor((diff % (1000*60*60)) / (1000*60))).padStart(2,"0");
+    const seconds = String(Math.floor((diff % (1000*60)) / 1000)).padStart(2,"0");
+
+    const el = document.getElementById("resetTimer");
+    if(el){
+      el.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+  }
+
+  update();
+  countdownInterval = setInterval(update,1000);
 }
