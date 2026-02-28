@@ -213,7 +213,7 @@ export async function createBooking({
 }
 
 /* =====================================================
-   CANCEL BOOKING (FINAL PRODUCTION STABLE VERSION)
+   CANCEL BOOKING (LEDGER CLEAN VERSION)
 ===================================================== */
 export async function cancelBooking({
   bookingId,
@@ -228,10 +228,6 @@ export async function cancelBooking({
   const ledgerCol = collection(db, "walletTransactions");
 
   await runTransaction(db, async (transaction) => {
-
-    // ===============================
-    // GET BOOKING
-    // ===============================
 
     const bookingSnap = await transaction.get(bookingRef);
     if (!bookingSnap.exists()) {
@@ -248,30 +244,17 @@ export async function cancelBooking({
       throw new Error("Tidak bisa cancel setelah check-in");
     }
 
-    // ===============================
-    // GET SCHEDULE & USER
-    // ===============================
-
     const scheduleRef = doc(db, "schedules", bookingData.scheduleId);
     const userRef = doc(db, "users", bookingData.userId);
 
     const scheduleSnap = await transaction.get(scheduleRef);
     const userSnap = await transaction.get(userRef);
 
-    if (!scheduleSnap.exists()) {
-      throw new Error("Schedule tidak ditemukan");
-    }
-
-    if (!userSnap.exists()) {
-      throw new Error("User tidak ditemukan");
-    }
+    if (!scheduleSnap.exists()) throw new Error("Schedule tidak ditemukan");
+    if (!userSnap.exists()) throw new Error("User tidak ditemukan");
 
     const scheduleData = scheduleSnap.data();
     const userData = userSnap.data();
-
-    // ===============================
-    // BLOCK IF SESSION STARTED
-    // ===============================
 
     const sessionStart = new Date(
       scheduleData.date + "T" + scheduleData.startTime
@@ -283,10 +266,6 @@ export async function cancelBooking({
       throw new Error("Sesi sudah dimulai atau selesai");
     }
 
-    // ===============================
-    // VALIDATE PIN (SECURITY LAYER)
-    // ===============================
-
     const pinCheck = await validateTransactionPin(
       bookingData.userId,
       pin
@@ -296,9 +275,9 @@ export async function cancelBooking({
       throw new Error(pinCheck.reason);
     }
 
-    // ===============================
-    // HITUNG PENALTY
-    // ===============================
+    /* ===============================
+       HITUNG PENALTY
+    =============================== */
 
     const originalPrice = bookingData.price || 0;
     const racketQty = bookingData.racketQty || 0;
@@ -308,42 +287,43 @@ export async function cancelBooking({
 
     let penaltyAmount = 0;
 
-    if (diffHours > 48) {
-      penaltyAmount = originalPrice * 0.10;
-    } else if (diffHours > 36) {
-      penaltyAmount = originalPrice * 0.50;
-    } else {
-      penaltyAmount = originalPrice;
-    }
+    if (diffHours > 48) penaltyAmount = originalPrice * 0.10;
+    else if (diffHours > 36) penaltyAmount = originalPrice * 0.50;
+    else penaltyAmount = originalPrice;
 
     penaltyAmount = Math.floor(penaltyAmount);
     const refundAmount =
       Math.floor(originalPrice - penaltyAmount);
 
-    // ===============================
-    // UPDATE BOOKING
-    // ===============================
+    /* ===============================
+       UPDATE BOOKING
+    =============================== */
 
     transaction.update(bookingRef, {
       status: "cancelled",
-      cancelledAt: serverTimestamp()
+      cancelledAt: serverTimestamp(),
+      refundAmount,
+      penaltyAmount
     });
 
-    // ===============================
-    // RESTORE SLOT & RACKET
-    // ===============================
+    /* ===============================
+       RESTORE SLOT & RACKET
+    =============================== */
 
     transaction.update(scheduleRef, {
       slots: (scheduleData.slots ?? 0) + 1,
       racketStock: (scheduleData.racketStock ?? 0) + racketQty
     });
 
-    // ===============================
-    // UPDATE USER WALLET
-    // ===============================
+    /* ===============================
+       UPDATE USER WALLET
+    =============================== */
+
+    const balanceBefore =
+      userData.walletBalance || 0;
 
     const newBalance =
-      (userData.walletBalance || 0) + refundAmount;
+      balanceBefore + refundAmount;
 
     transaction.update(userRef, {
       walletBalance: newBalance,
@@ -351,32 +331,46 @@ export async function cancelBooking({
         (userData.totalPayment || 0) - refundAmount
     });
 
-    // ===============================
-    // LEDGER REFUND
-    // ===============================
+    /* ===============================
+       LEDGER REFUND (RUPIAH)
+    =============================== */
 
     if (refundAmount > 0) {
+
       transaction.set(doc(ledgerCol), {
         userId: bookingData.userId,
-        type: "refund",
-        amount: refundAmount,
-        balanceAfter: newBalance,
+        entryType: "CREDIT",
+        referenceType: "BOOKING_REFUND",
         referenceId: bookingId,
+
+        amount: refundAmount,
+        refundRate:
+          originalPrice > 0
+            ? refundAmount / originalPrice
+            : 0,
+
+        balanceBefore,
+        balanceAfter: newBalance,
+
         createdAt: serverTimestamp()
       });
     }
 
-    // ===============================
-    // LEDGER PENALTY
-    // ===============================
+    /* ===============================
+       LEDGER PENALTY (INFORMATIONAL)
+    =============================== */
 
     if (penaltyAmount > 0) {
+
       transaction.set(doc(ledgerCol), {
         userId: bookingData.userId,
-        type: "cancel_penalty",
-        amount: penaltyAmount,
-        balanceAfter: newBalance,
+        entryType: "INFO",
+        referenceType: "BOOKING_PENALTY",
         referenceId: bookingId,
+
+        amount: penaltyAmount,
+        note: "Cancel penalty",
+
         createdAt: serverTimestamp()
       });
     }
