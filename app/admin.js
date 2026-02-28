@@ -296,8 +296,6 @@ async function setupQrValidator(){
   =============================== */
   openBtn.onclick = async () => {
 
-    await loadQrLibrary();
-
     modal.classList.remove("hidden");
     resultBox.innerHTML = "";
 
