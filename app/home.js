@@ -7,6 +7,7 @@ import {
   query,
   where
 } from "./firestore.js";
+import { resolveMemberCard } from "./utils.js";
 
 /* =========================================
    HOME DASHBOARD
@@ -30,14 +31,7 @@ export async function renderHome(){
     /* =============================
        MEMBER CARD LOOKUP
     ============================= */
-    const MEMBER_CARD =
-      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
-
-    const VVIP_CARD =
-      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
-
-    const memberCardUrl =
-      membership === "MEMBER" ? MEMBER_CARD : VVIP_CARD;
+ const memberCardUrl = resolveMemberCard(membership, genre);
 
     /* =============================
        CHAT ROOMS (UNREAD)
