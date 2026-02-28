@@ -11,6 +11,7 @@ import { resolveMemberCard, renderMemberCard } from "./utils.js";
 import { onSnapshot } from "./firestore.js";
 
 let userUnsubscribe = null;
+let dailyLock = false;
 /* =========================================
    HOME DASHBOARD 
 ========================================= */
@@ -383,8 +384,11 @@ function startResetCountdown(){
   countdownInterval = setInterval(update,1000);
 }
 
-
-
 window.openDailyScan = function(day){
+
+  if(dailyLock) return;
+
+  dailyLock = true;
+
   window.location.href = "scanDaily.html";
-}
+};
