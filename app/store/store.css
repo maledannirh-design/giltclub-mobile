@@ -321,3 +321,18 @@
     grid-template-columns:repeat(4,1fr);
   }
 }
+
+.countdown {
+  display: flex;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ff3b3b;
+}
+
+.countdown .cd {
+  background: rgba(255,0,0,.1);
+  padding: 4px 6px;
+  border-radius: 6px;
+}
