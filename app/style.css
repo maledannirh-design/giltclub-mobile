@@ -2072,10 +2072,18 @@ body.scan-mode{
   left: 6%;
 }
 
-#homeMemberCard .wallet-member-name {
-  font-size: 8px;
+/* =============================
+   HOME CARD TEXT POSITION FIX
+============================= */
+
+#homeMemberCard .wallet-member-name{
+  bottom: 26px;   /* turun dari 58px */
+  left: 14px;     /* lebih ke kiri */
+  font-size: 10px;
 }
 
-#homeMemberCard .wallet-member-code {
+#homeMemberCard .wallet-member-code{
+  bottom: 12px;   /* turun dari 34px */
+  left: 14px;
   font-size: 8px;
 }
