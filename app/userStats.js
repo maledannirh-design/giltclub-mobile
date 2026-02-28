@@ -10,10 +10,9 @@ export function recalculateUserStats({
   // LEVEL & EXP (FROM TOTAL TOPUP)
   // =============================
 
-  const level = Math.floor(totalTopup / 50000);
+  const level = Math.max(1, Math.floor(totalTopup / 50000));
 
   const expTotal = Math.floor(totalTopup / 500) * 10;
-  const expCurrent = expTotal % 1000;
 
   // =============================
   // GPOINT (FROM TOTAL PAYMENT)
@@ -21,11 +20,12 @@ export function recalculateUserStats({
 
   let gPointPerLevel = 150;
 
-  if(membership === "VVIP"){
+  if (membership === "VVIP") {
     gPointPerLevel = 250;
   }
 
-  const gPoint = Math.floor(totalPayment / 50000) * gPointPerLevel;
+  const gPoint =
+    Math.floor(totalPayment / 50000) * gPointPerLevel;
 
   // =============================
   // RETURN OBJECT
@@ -34,7 +34,7 @@ export function recalculateUserStats({
   return {
     level,
     expTotal,
-    expCurrent,
     gPoint
   };
 }
+
