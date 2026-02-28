@@ -2054,3 +2054,20 @@ body.scan-mode{
   font-size:13px;
   opacity:.9;
 }
+
+/* =============================
+   HOME CARD SIZE OVERRIDE
+============================= */
+
+#homeMemberCard .membership-card {
+  max-width: 160px;
+}
+
+#homeMemberCard .wallet-member-big-img {
+  width: 100%;
+}
+
+#homeMemberCard .wallet-member-overlay {
+  transform: scale(0.7);
+  transform-origin: top left;
+}
