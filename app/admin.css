@@ -338,6 +338,51 @@ border:none;
 padding:8px 12px;
 border-radius:10px;
 ">← Kembali</button>
+
+
+#result{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9;
+  pointer-events:none; /* biar tidak ganggu klik tombol */
+}
+
+.result-popup{
+  min-width:240px;
+  max-width:80%;
+  padding:20px;
+  border-radius:16px;
+  text-align:center;
+  font-weight:bold;
+  backdrop-filter:blur(10px);
+  animation:popScale 0.18s ease-out;
+}
+
+.valid-box{
+  background:rgba(31,45,31,0.9);
+  border:2px solid #2ecc71;
+  color:#2ecc71;
+}
+
+.invalid-box{
+  background:rgba(58,28,28,0.9);
+  border:2px solid #e74c3c;
+  color:#ff6b6b;
+}
+
+@keyframes popScale{
+  from{
+    transform:scale(0.8);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
 /* =====================================================
    ANIMATION
 ===================================================== */
