@@ -27,7 +27,7 @@ export async function renderHome(){
     const userData = userSnap.exists() ? userSnap.data() : {};
     const balance = userData.walletBalance || 0;
     const membership = userData.membership || "MEMBER"; // FIXED
-    const genre = userData.genre || "male";
+    const genre = userData.genre || "female";
 
     /* =============================
        MEMBER CARD LOOKUP
