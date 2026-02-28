@@ -361,12 +361,10 @@ async function setupQrValidator(){
     await startCamera();
   };
 
-/* ===============================
-   CAMERA START (HIGH PERFORMANCE)
-=============================== */
-/* ===============================
-   CAMERA START (OPTIMIZED 35FPS)
-=============================== */
+
+  /* ===============================
+     SETTING CAMERA
+  =============================== */
 async function startCamera(){
 
   const cameraId = cameraList[currentCameraIndex].id;
@@ -374,10 +372,9 @@ async function startCamera(){
   const config = {
     fps: 35,
     qrbox: (vw, vh) => {
-      const min = Math.min(vw, vh);
 
-      // diperbesar dari 0.65 → 0.85
-      const size = Math.floor(min * 0.85);
+      // Gunakan tinggi layar sebagai acuan supaya benar-benar besar
+      const size = Math.floor(Math.min(vw, vh) * 0.92); // 92% layar
 
       return {
         width: size,
