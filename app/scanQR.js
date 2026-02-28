@@ -209,3 +209,28 @@ window.processCheckIn = async function(
   }
 
 };
+
+window.processDailySelfCheckin = async function(c, i, s){
+
+  const validation = await validateCore(c, i, s);
+
+  if(!validation.valid){
+    return validation;
+  }
+
+  const currentUser = auth.currentUser;
+
+  if(!currentUser){
+    return { valid:false, reason:"User tidak login" };
+  }
+
+  if(validation.uid !== currentUser.uid){
+    return { valid:false, reason:"QR bukan milik Anda" };
+  }
+
+  return {
+    valid:true,
+    uid: validation.uid,
+    user: validation.user
+  };
+}
