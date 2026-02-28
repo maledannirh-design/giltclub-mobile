@@ -11,7 +11,7 @@ import {
   where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { resolveMemberCard } from "./utils.js";
+import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
 export async function renderWallet(){
 
