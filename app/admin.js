@@ -277,7 +277,12 @@ async function handleBalanceAdjustment(){
   renderAdmin();
 }
 
-
+/* =====================================================
+   GLOBAL SCANNER STATE
+===================================================== */
+let html5QrInstance = null;
+let cameraList = [];
+let currentCameraIndex = 0;
 /* =====================================================
    MAIN SETUP (CHECKIN STYLE – STABLE)
 ===================================================== */
@@ -353,7 +358,6 @@ async function setupQrValidator(){
       async (decodedText) => {
 
         try{
-          // 🔥 Stop dulu supaya hasil pasti muncul
           await html5QrInstance.stop();
         }catch(e){}
 
@@ -456,6 +460,26 @@ async function setupQrValidator(){
     };
   }
 
+  /* ===============================
+     RESULT UI
+  =============================== */
+  function showValid(name){
+    resultBox.innerHTML =
+      `<div class="result-popup valid-box">
+        ✅ VALID MEMBER<br>
+        <div style="margin-top:8px;font-size:14px;">
+          ${name}
+        </div>
+      </div>`;
+  }
+
+  function showInvalid(message){
+    resultBox.innerHTML =
+      `<div class="result-popup invalid-box">
+        ❌ ${message}
+      </div>`;
+  }
+}
   /* ===============================
      RESULT UI
   =============================== */
