@@ -213,9 +213,7 @@ async function renderBalanceAdjustmentPanel(){
     console.error("Render adjustment panel error:", err);
   }
 }
-/* =====================================================
-   ADJUSTMENT (LEDGER CLEAN)
-===================================================== */
+
 /* =====================================================
    ADJUSTMENT (WALLET + GPOINT SEPARATED LEDGER)
 ===================================================== */
@@ -277,28 +275,6 @@ async function handleBalanceAdjustment(){
   alert("Adjustment berhasil");
   renderAdmin();
 }
-
-/* =====================================================
-   EXPORT FUNCTIONS (RAPI & AMAN)
-===================================================== */
-
-function downloadCSV(filename, rows){
-
-  const csvContent = rows
-    .map(row => row.map(val => `"${val}"`).join(","))
-    .join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
 
 
 /* =====================================================
@@ -455,6 +431,7 @@ async function setupQrValidator(){
    FUNGSI WINDOW
 ===================================================== */
 
+
 /* =====================================================
    APPROVE TOP UP (ATOMIC + LEDGER)
 ===================================================== */
@@ -552,23 +529,45 @@ window.rejectTopup = async function(trxId){
 
 
 
+/* =====================================================
+   EXPORT FUNCTIONS (RAPI & AMAN)
+===================================================== */
+
+function downloadCSV(filename, rows){
+
+  const csvContent = rows
+    .map(row => row.map(val => `"${val}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 window.exportTopupHistory = async function(){
 
-  const snap = await getDocs(
-    query(collection(db,"walletTransactions"), where("type","==","TOPUP"))
-  );
+  const snap = await getDocs(collection(db,"walletLedger"));
 
-  let rows = [["Tanggal","UID","Amount","Status","BalanceAfter"]];
+  let rows = [["Tanggal","UID","Amount","BalanceBefore","BalanceAfter","Source"]];
 
   snap.forEach(docSnap=>{
     const d = docSnap.data();
+
+    if(d.referenceType !== "TOPUP") return;
+
     rows.push([
       d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
       d.userId || "",
       d.amount || 0,
-      d.status || "",
-      d.balanceAfter ?? ""
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.source || ""
     ]);
   });
 
@@ -578,15 +577,20 @@ window.exportTopupHistory = async function(){
 window.exportBookingHistory = async function(){
 
   const snap = await getDocs(collection(db,"bookings"));
-  let rows = [["BookingID","UID","Amount","Status"]];
+
+  let rows = [["BookingID","UID","SessionPrice","RacketTotal","TotalPrice","Status","Attendance"]];
 
   snap.forEach(docSnap=>{
     const d = docSnap.data();
+
     rows.push([
       docSnap.id,
       d.userId || "",
-      d.amount || 0,
-      d.status || ""
+      d.sessionPrice || 0,
+      d.racketTotal || 0,
+      d.price || 0,
+      d.status || "",
+      d.attendance === true ? "YES" : "NO"
     ]);
   });
 
@@ -596,17 +600,22 @@ window.exportBookingHistory = async function(){
 window.exportAdjustmentHistory = async function(){
 
   const snap = await getDocs(collection(db,"walletLedger"));
-  let rows = [["LedgerID","UID","EntryType","Amount","Description"]];
+
+  let rows = [["Tanggal","UID","EntryType","Amount","BalanceBefore","BalanceAfter","Note"]];
 
   snap.forEach(docSnap=>{
     const d = docSnap.data();
-    if(d.description === "Top Up Approved") return;
+
+    if(d.referenceType !== "ADMIN_ADJUSTMENT") return;
+
     rows.push([
-      docSnap.id,
+      d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
       d.userId || "",
       d.entryType || "",
       d.amount || 0,
-      d.description || ""
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.note || ""
     ]);
   });
 
@@ -630,12 +639,10 @@ window.exportMembersToCSV = async function(){
 
     let rows = [];
 
-    // HEADER AUDIT GRADE
     rows.push([
       "UID",
       "Username",
       "Full Name",
-      "Email",
       "Phone",
       "Birth Place",
       "Birth Date",
@@ -648,20 +655,13 @@ window.exportMembersToCSV = async function(){
       "Total Top Up",
       "Total Payment",
       "GPoint",
-      "GPoints",
-      "Points",
       "Attendance Count",
-      "Matches",
-      "Wins",
+      "Total Attendance",
       "Followers",
       "Following",
       "Verified",
-      "Verified Approved",
-      "Verified Eligible",
-      "Status",
       "Playing Level",
-      "Monthly Contribution",
-      "QR URL",
+      "Is Public",
       "Created At"
     ]);
 
@@ -673,7 +673,6 @@ window.exportMembersToCSV = async function(){
         docSnap.id,
         d.username || "",
         d.fullName || "",
-        d.email || "",
         d.phone || "",
         d.birthPlace || "",
         d.birthDate || "",
@@ -686,39 +685,20 @@ window.exportMembersToCSV = async function(){
         d.totalTopup || 0,
         d.totalPayment || 0,
         d.gPoint || 0,
-        d.gPoints || 0,
-        d.points || 0,
         d.attendanceCount || 0,
-        d.matches || 0,
-        d.wins || 0,
+        d.totalAttendance || 0,
         d.followersCount || 0,
         d.followingCount || 0,
         d.verified === true ? "YES" : "NO",
-        d.verifiedApproved === true ? "YES" : "NO",
-        d.verifiedEligible === true ? "YES" : "NO",
-        d.status || "",
         d.playingLevel || "",
-        d.monthlyContribution || 0,
-        d.qrUrl || "",
+        d.isPublic === true ? "YES" : "NO",
         d.createdAt?.toDate?.().toLocaleString("id-ID") || ""
       ]);
     });
 
-    const csvContent = rows
-      .map(row => row.map(val => `"${val}"`).join(","))
-      .join("\n");
+    downloadCSV("giltclub_members_clean.csv", rows);
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "giltclub_members_full_audit.csv";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    alert("Export Members Full Audit selesai");
+    alert("Export Members selesai");
 
   }catch(err){
     console.error(err);
@@ -732,43 +712,42 @@ window.exportMembersToCSV = async function(){
 
 window.exportFullMutation = async function(){
 
-  const snap = await getDocs(collection(db,"walletLedger"));
+  const walletSnap = await getDocs(collection(db,"walletLedger"));
+  const gPointSnap = await getDocs(collection(db,"gPointLedger"));
 
-  if(snap.empty){
-    alert("Tidak ada data mutasi");
-    return;
-  }
+  let rows = [["Tanggal","UID","Type","Amount","BalanceBefore","BalanceAfter","ReferenceType","Note"]];
 
-  let rows = [];
-
-  rows.push([
-    "Tanggal",
-    "UID",
-    "EntryType",
-    "ReferenceType",
-    "ReferenceId",
-    "Amount",
-    "BalanceBefore",
-    "BalanceAfter",
-    "Note"
-  ]);
-
-  snap.forEach(docSnap=>{
+  walletSnap.forEach(docSnap=>{
     const d = docSnap.data();
+
     rows.push([
       d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
       d.userId || "",
-      d.entryType || "",
-      d.referenceType || "",
-      d.referenceId || "",
+      "WALLET_" + (d.entryType || ""),
       d.amount || 0,
       d.balanceBefore ?? "",
       d.balanceAfter ?? "",
+      d.referenceType || "",
       d.note || ""
     ]);
   });
 
-  downloadCSV("wallet_full_mutation.csv", rows);
+  gPointSnap.forEach(docSnap=>{
+    const d = docSnap.data();
+
+    rows.push([
+      d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
+      d.userId || "",
+      "GPOINT_" + (d.entryType || ""),
+      d.amount || 0,
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.referenceType || "",
+      d.note || ""
+    ]);
+  });
+
+  downloadCSV("full_mutation.csv", rows);
 };
 
 window.auditOldSystemReconciliation = async function(){
