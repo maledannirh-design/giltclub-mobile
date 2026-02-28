@@ -461,34 +461,6 @@ async function setupQrValidator(){
   };
 }
 
-
-async function massiveCleanupFields(){
-
-  try{
-
-    const usersSnap = await getDocs(collection(db,"users"));
-
-    for(const docSnap of usersSnap.docs){
-
-      await updateDoc(doc(db,"users",docSnap.id),{
-        points: deleteField(),
-        usernameID: deleteField(),
-        displayName: deleteField(),
-        matches: deleteField(),
-        verifiedApproved: deleteField(),
-        wins: deleteField(),
-        gPoints: deleteField()
-      });
-
-      console.log("Cleaned:", docSnap.id);
-    }
-
-    console.log("Massive field cleanup DONE.");
-
-  }catch(err){
-    console.error("Cleanup error:", err);
-  }
-}
 /* =====================================================
    FUNGSI WINDOW
 ===================================================== */
@@ -920,6 +892,34 @@ window.auditOldSystemReconciliation = async function(){
   }catch(err){
     console.error(err);
     alert("Gagal audit");
+  }
+};
+
+window.massiveCleanupFields = async function(){
+
+  try{
+
+    const usersSnap = await getDocs(collection(db,"users"));
+
+    for(const docSnap of usersSnap.docs){
+
+      await updateDoc(doc(db,"users",docSnap.id),{
+        points: deleteField(),
+        usernameID: deleteField(),
+        displayName: deleteField(),
+        matches: deleteField(),
+        verifiedApproved: deleteField(),
+        wins: deleteField(),
+        gPoints: deleteField()
+      });
+
+      console.log("Cleaned:", docSnap.id);
+    }
+
+    console.log("Massive field cleanup DONE.");
+
+  }catch(err){
+    console.error("Cleanup error:", err);
   }
 };
 window.handleBalanceAdjustment = handleBalanceAdjustment;
