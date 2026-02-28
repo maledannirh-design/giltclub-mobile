@@ -17,74 +17,106 @@ export async function initDailyScanner(readerId, resultId){
 
   html5QrInstance = new Html5Qrcode(readerId);
 
-  const cameras = await Html5Qrcode.getCameras();
+  let currentCameraId = null;
 
+  const cameras = await Html5Qrcode.getCameras();
   if (!cameras.length) {
     resultBox.innerHTML =
       `<div class="invalid-box">Camera tidak ditemukan</div>`;
     return;
   }
 
-  const backCamera =
-    cameras.find(c =>
-      c.label.toLowerCase().includes("back") ||
-      c.label.toLowerCase().includes("environment")
-    ) || cameras[0];
-
-  await html5QrInstance.start(
-    backCamera.id,
-    {
-      fps: 35,
-      qrbox: (viewfinderWidth, viewfinderHeight) => {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        const size = Math.floor(minEdge * 0.8); // 80% besar
-        return { width: size, height: size };
-      },
-      aspectRatio: 1.0
-    },
-    async (decodedText) => {
-
-      try { await html5QrInstance.stop(); } catch(e){}
-
-      try {
-
-        const cleaned = decodedText.trim().replace(/\n/g,"");
-
-        let c = null;
-        let i = null;
-        let s = null;
-
-        if(cleaned.startsWith("http")){
-          const parsed = new URL(cleaned);
-          c = parsed.searchParams.get("c");
-          i = parsed.searchParams.get("i");
-          s = parsed.searchParams.get("s");
-        }else{
-          const params = new URLSearchParams(cleaned);
-          c = params.get("c");
-          i = params.get("i");
-          s = params.get("s");
-        }
-
-        const validation = await window.processDailySelfCheckin(c,i,s);
-
-        if (!validation.valid) {
-          showInvalid(resultBox, validation.reason);
-          return setTimeout(goBack,1500);
-        }
-
-        const reward = await runDailyStreakReward(validation.uid);
-
-        showSuccess(resultBox, reward);
-
-      } catch (err) {
-
-        showInvalid(resultBox, err.message || "QR tidak valid");
-      }
-
-      setTimeout(goBack,1500);
-    }
+  // ===============================
+  // PRIORITAS BACK CAMERA (IOS SAFE)
+  // ===============================
+  let backCamera = cameras.find(c =>
+    c.label.toLowerCase().includes("back")
   );
+
+  if (!backCamera) {
+    backCamera = cameras.find(c =>
+      c.label.toLowerCase().includes("environment")
+    );
+  }
+
+  currentCameraId = backCamera ? backCamera.id : cameras[0].id;
+
+  await startCamera(currentCameraId);
+
+  // ===============================
+  // SWITCH CAMERA BUTTON
+  // ===============================
+  window.switchDailyCamera = async function(){
+
+    if(!html5QrInstance) return;
+
+    try{
+      await html5QrInstance.stop();
+    }catch(e){}
+
+    const index = cameras.findIndex(c => c.id === currentCameraId);
+    const nextIndex = (index + 1) % cameras.length;
+    currentCameraId = cameras[nextIndex].id;
+
+    await startCamera(currentCameraId);
+  };
+
+  async function startCamera(cameraId){
+
+    await html5QrInstance.start(
+      cameraId,
+      {
+        fps: 35,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const size = Math.floor(minEdge * 0.8);
+          return { width: size, height: size };
+        },
+        aspectRatio: 1.0
+      },
+      async (decodedText) => {
+
+        try { await html5QrInstance.stop(); } catch(e){}
+
+        try {
+
+          const cleaned = decodedText.trim().replace(/\n/g,"");
+
+          let c = null;
+          let i = null;
+          let s = null;
+
+          if(cleaned.startsWith("http")){
+            const parsed = new URL(cleaned);
+            c = parsed.searchParams.get("c");
+            i = parsed.searchParams.get("i");
+            s = parsed.searchParams.get("s");
+          }else{
+            const params = new URLSearchParams(cleaned);
+            c = params.get("c");
+            i = params.get("i");
+            s = params.get("s");
+          }
+
+          const validation = await window.processDailySelfCheckin(c,i,s);
+
+          if (!validation.valid) {
+            showInvalid(resultBox, validation.reason);
+            return setTimeout(goBack,1500);
+          }
+
+          const reward = await runDailyStreakReward(validation.uid);
+
+          showSuccess(resultBox, reward);
+
+        } catch (err) {
+          showInvalid(resultBox, err.message || "QR tidak valid");
+        }
+
+        setTimeout(goBack,1500);
+      }
+    );
+  }
 }
 
 /* =========================================
