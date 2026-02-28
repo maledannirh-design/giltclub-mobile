@@ -52,24 +52,34 @@ export async function renderAdmin(){
       <h2>Pending Top Up</h2>
   `;
 
+  /* =========================
+     PENDING TOPUP
+  ========================= */
+
   if(snap.empty){
-    html += `<div style="opacity:.6;margin-bottom:20px;">Tidak ada top up pending</div>`;
+
+    html += `
+      <div style="opacity:.6;margin-bottom:20px;">
+        Tidak ada top up pending
+      </div>
+    `;
+
   }else{
 
     for(const docSnap of snap.docs){
 
       const d = docSnap.data();
 
-      const userSnap = await getDoc(doc(db,"users", d.userId));
-      const username = userSnap.exists()
-        ? userSnap.data().username || "User"
+      const uSnap = await getDoc(doc(db,"users", d.userId));
+      const username = uSnap.exists()
+        ? uSnap.data().username || "User"
         : "User";
 
       html += `
         <div class="admin-trx">
           <div>
             <div>${username}</div>
-            <div>Rp ${Number(d.amount).toLocaleString("id-ID")}</div>
+            <div>Rp ${Number(d.amount || 0).toLocaleString("id-ID")}</div>
           </div>
           <div>
             <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
@@ -84,14 +94,36 @@ export async function renderAdmin(){
     }
   }
 
+  /* =========================
+     QR VALIDATOR SECTION
+  ========================= */
+
   html += `
       <hr style="margin:30px 0;">
 
       <button id="openCheckinQR" class="admin-btn">
-        Check-In QR
+        Scan Member QR
       </button>
 
-      <div id="adminBalanceAdjustment" style="margin-top:40px;"></div>
+      <div id="checkinModal" class="checkin-modal hidden">
+        <div class="checkin-card">
+          <h3>Scan Member</h3>
+
+          <div id="reader" style="width:280px;margin:auto;"></div>
+
+          <div style="margin-top:10px;">
+            <button id="switchCameraBtn">🔄 Ganti Kamera</button>
+          </div>
+
+          <div id="checkinResult" style="margin-top:10px;"></div>
+
+          <button id="closeCheckin">Tutup</button>
+        </div>
+      </div>
+
+      <hr style="margin:30px 0;">
+
+      <div id="adminBalanceAdjustment"></div>
 
       <hr style="margin:30px 0;">
 
@@ -104,8 +136,319 @@ export async function renderAdmin(){
 
   content.innerHTML = html;
 
+  /* =========================
+     INIT SUB MODULES
+  ========================= */
+
   await renderBalanceAdjustmentPanel();
+  await setupQrValidator();   // 🔥 PENTING supaya QR aktif
 }
+
+
+/* =====================================================
+   ADJUSTMENT (LEDGER CLEAN)
+===================================================== */
+async function handleBalanceAdjustment(){
+
+  const userId = document.getElementById("adjustUser").value;
+  const walletAmount = Number(document.getElementById("adjustAmount").value || 0);
+  const gPointsAmount = Number(document.getElementById("adjustGPoints").value || 0);
+  const reason = document.getElementById("adjustReason").value;
+  const note = document.getElementById("adjustNote").value.trim();
+
+  if(!walletAmount && !gPointsAmount){
+    alert("Isi minimal salah satu nominal");
+    return;
+  }
+
+  const userRef = doc(db,"users",userId);
+  const walletLedgerRef = doc(collection(db,"walletLedger"));
+  const gPointLedgerRef = doc(collection(db,"gPointLedger"));
+
+  await runTransaction(db, async (transaction)=>{
+
+    const snap = await transaction.get(userRef);
+    if(!snap.exists()) throw new Error("User tidak ditemukan");
+
+    const data = snap.data();
+
+    const walletBefore = data.walletBalance || 0;
+    const gBefore = data.gPoints || 0;
+
+    const walletAfter = walletBefore + walletAmount;
+    const gAfter = gBefore + gPointsAmount;
+
+    if(walletAfter < 0) throw new Error("Saldo tidak boleh minus");
+    if(gAfter < 0) throw new Error("GPoints tidak boleh minus");
+
+    transaction.update(userRef,{
+      walletBalance: walletAfter,
+      gPoints: gAfter
+    });
+
+    if(walletAmount !== 0){
+      transaction.set(walletLedgerRef,{
+        userId,
+        txId: "ADMIN_ADJUST_" + Date.now(),
+        entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
+        amount: walletAmount,
+        balanceBefore: walletBefore,
+        balanceAfter: walletAfter,
+        description: reason,
+        note,
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.uid
+      });
+    }
+
+    if(gPointsAmount !== 0){
+      transaction.set(gPointLedgerRef,{
+        userId,
+        entryType: gPointsAmount > 0 ? "CREDIT" : "DEBIT",
+        amount: gPointsAmount,
+        balanceBefore: gBefore,
+        balanceAfter: gAfter,
+        description: reason,
+        note,
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.uid
+      });
+    }
+
+  });
+
+  alert("Adjustment berhasil");
+  renderAdmin();
+}
+
+/* =====================================================
+   EXPORT FUNCTIONS (RAPI & AMAN)
+===================================================== */
+
+function downloadCSV(filename, rows){
+
+  const csvContent = rows
+    .map(row => row.map(val => `"${val}"`).join(","))
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+/* =====================================================
+   RENDER BALANCE ADJUSTMENT PANEL
+===================================================== */
+async function renderBalanceAdjustmentPanel(){
+
+  const container = document.getElementById("adminBalanceAdjustment");
+  if(!container) return;
+
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  let options = "";
+
+  usersSnap.forEach(docSnap=>{
+    const u = docSnap.data();
+    options += `
+      <option value="${docSnap.id}">
+        ${u.username || u.fullName || docSnap.id}
+      </option>
+    `;
+  });
+
+  container.innerHTML = `
+    <div class="admin-card">
+
+      <h3>Manual Adjustment</h3>
+
+      <label>User</label>
+      <select id="adjustUser">
+        ${options}
+      </select>
+
+      <label>Wallet Adjustment (+ / -)</label>
+      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
+
+      <label>Reason</label>
+      <select id="adjustReason">
+        <option value="admin_adjustment">Admin Adjustment</option>
+        <option value="cashback_session">Cashback Session</option>
+        <option value="refund">Refund</option>
+        <option value="penalty">Penalty</option>
+      </select>
+
+      <label>Note (optional)</label>
+      <input type="text" id="adjustNote" placeholder="Detail keterangan">
+
+      <button id="saveAdjustment" class="admin-btn">
+        Simpan Adjustment
+      </button>
+
+    </div>
+  `;
+
+  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+}
+/* =====================================================
+   QR VALIDATOR (NO FINANCIAL IMPACT)
+===================================================== */
+
+let html5QrInstance = null;
+let cameraList = [];
+let currentCameraIndex = 0;
+
+async function loadQrLibrary(){
+  return new Promise((resolve, reject) => {
+
+    if(window.Html5Qrcode){
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/html5-qrcode";
+    script.onload = resolve;
+    script.onerror = reject;
+
+    document.body.appendChild(script);
+  });
+}
+
+async function setupQrValidator(){
+
+  const openBtn = document.getElementById("openCheckinQR");
+  const modal = document.getElementById("checkinModal");
+  const closeBtn = document.getElementById("closeCheckin");
+  const switchBtn = document.getElementById("switchCameraBtn");
+  const resultBox = document.getElementById("checkinResult");
+
+  if(!openBtn) return;
+
+  openBtn.onclick = async () => {
+
+    await loadQrLibrary();
+
+    modal.classList.remove("hidden");
+    resultBox.innerHTML = "";
+
+    html5QrInstance = new Html5Qrcode("reader");
+
+    cameraList = await Html5Qrcode.getCameras();
+
+    if(!cameraList.length){
+      alert("Camera tidak ditemukan");
+      return;
+    }
+
+    currentCameraIndex = cameraList.length - 1;
+    await startCamera();
+  };
+
+  async function startCamera(){
+
+    const cameraId = cameraList[currentCameraIndex].id;
+
+    await html5QrInstance.start(
+      cameraId,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      async (decodedText) => {
+
+        await html5QrInstance.stop();
+
+        try{
+
+          let cleaned = decodedText.trim().replace(/\n/g,"");
+
+          let c = null;
+          let i = null;
+          let s = null;
+
+          if(cleaned.startsWith("http")){
+            const parsed = new URL(cleaned);
+            c = parsed.searchParams.get("c");
+            i = parsed.searchParams.get("i");
+            s = parsed.searchParams.get("s");
+          } else {
+            const params = new URLSearchParams(cleaned);
+            c = params.get("c");
+            i = params.get("i");
+            s = params.get("s");
+          }
+
+          if(!c || !i || !s){
+            resultBox.innerHTML =
+              `<div class="invalid-box">QR format tidak valid</div>`;
+            return;
+          }
+
+          const res = await window.validateScanParams(c,i,s);
+
+          if(res.valid){
+
+            resultBox.innerHTML = `
+              <div class="valid-box">
+                ✅ VALID<br>
+                ${res.user.username}<br>
+                Member Code: ${res.user.memberCode}
+              </div>
+            `;
+
+          } else {
+
+            resultBox.innerHTML = `
+              <div class="invalid-box">
+                ❌ INVALID<br>
+                ${res.reason}
+              </div>
+            `;
+          }
+
+        }catch(err){
+          resultBox.innerHTML =
+            `<div class="invalid-box">QR tidak valid</div>`;
+        }
+      }
+    );
+  }
+
+  if(switchBtn){
+    switchBtn.onclick = async () => {
+
+      if(!html5QrInstance || !cameraList.length) return;
+
+      await html5QrInstance.stop();
+
+      currentCameraIndex =
+        (currentCameraIndex + 1) % cameraList.length;
+
+      await startCamera();
+    };
+  }
+
+  closeBtn.onclick = async () => {
+
+    if(html5QrInstance){
+      try{
+        await html5QrInstance.stop();
+        await html5QrInstance.clear();
+      }catch(e){}
+    }
+
+    modal.classList.add("hidden");
+    resultBox.innerHTML = "";
+  };
+}
+/* =====================================================
+   FUNGSI WINDOW
+===================================================== */
 
 /* =====================================================
    APPROVE TOP UP (ATOMIC + LEDGER)
@@ -191,139 +534,9 @@ window.rejectTopup = async function(trxId){
   renderAdmin();
 };
 
-/* =====================================================
-   ADJUSTMENT (LEDGER CLEAN)
-===================================================== */
-async function handleBalanceAdjustment(){
-
-  const userId = document.getElementById("adjustUser").value;
-  const walletAmount = Number(document.getElementById("adjustAmount").value || 0);
-  const reason = document.getElementById("adjustReason").value;
-  const note = document.getElementById("adjustNote").value.trim();
-
-  if(!walletAmount){
-    alert("Nominal wajib diisi");
-    return;
-  }
-
-  const userRef = doc(db,"users", userId);
-  const ledgerRef = doc(collection(db,"walletLedger"));
-
-  await runTransaction(db, async (transaction)=>{
-
-    const snap = await transaction.get(userRef);
-    if(!snap.exists()) throw new Error("User tidak ditemukan");
-
-    const balanceBefore = snap.data().walletBalance || 0;
-    const newBalance = balanceBefore + walletAmount;
-
-    if(newBalance < 0) throw new Error("Saldo minus");
-
-    transaction.update(userRef,{
-      walletBalance: newBalance
-    });
-
-    transaction.set(ledgerRef,{
-      userId,
-      txId: "ADMIN_ADJUST_" + Date.now(),
-      entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
-      amount: walletAmount,
-      balanceBefore,
-      balanceAfter: newBalance,
-      description: reason,
-      note,
-      createdAt: serverTimestamp(),
-      createdBy: auth.currentUser.uid
-    });
-
-  });
-
-  alert("Adjustment berhasil");
-  renderAdmin();
-}
-
-/* =====================================================
-   EXPORT FUNCTIONS (RAPI & AMAN)
-===================================================== */
-
-function downloadCSV(filename, rows){
-
-  const csvContent = rows
-    .map(row => row.map(val => `"${val}"`).join(","))
-    .join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-
-/* =====================================================
-   RENDER BALANCE ADJUSTMENT PANEL
-===================================================== */
-async function renderBalanceAdjustmentPanel(){
-
-  const container = document.getElementById("adminBalanceAdjustment");
-  if(!container) return;
-
-  const usersSnap = await getDocs(collection(db,"users"));
-
-  let options = "";
-
-  usersSnap.forEach(docSnap=>{
-    const u = docSnap.data();
-    options += `
-      <option value="${docSnap.id}">
-        ${u.username || u.fullName || docSnap.id}
-      </option>
-    `;
-  });
-
-  container.innerHTML = `
-    <div class="admin-card">
-
-      <h3>Manual Adjustment</h3>
-
-      <label>User</label>
-      <select id="adjustUser">
-        ${options}
-      </select>
-
-      <label>Wallet Adjustment (+ / -)</label>
-      <input type="number" id="adjustAmount" placeholder="50000 atau -20000">
-
-      <label>Reason</label>
-      <select id="adjustReason">
-        <option value="admin_adjustment">Admin Adjustment</option>
-        <option value="cashback_session">Cashback Session</option>
-        <option value="refund">Refund</option>
-        <option value="penalty">Penalty</option>
-      </select>
-
-      <label>Note (optional)</label>
-      <input type="text" id="adjustNote" placeholder="Detail keterangan">
-
-      <button id="saveAdjustment" class="admin-btn">
-        Simpan Adjustment
-      </button>
-
-    </div>
-  `;
-
-  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
-}
 
 
 
-/* =====================================================
-   FUNGSI WINDOW
-===================================================== */
 window.exportTopupHistory = async function(){
 
   const snap = await getDocs(
