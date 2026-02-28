@@ -227,6 +227,91 @@ body.dark .admin-btn:hover {
   margin-top: 12px;
 }
 
+
+/* =====================================================
+   ADMIN SELECT PREMIUM THEME FIX
+   (Fix dropdown option font color issue)
+===================================================== */
+
+/* =========================
+   BASE SELECT STYLE
+========================= */
+
+.admin-card select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  font-size: 14px;
+  margin-bottom: 16px;
+  transition: all .2s ease;
+  appearance: none;
+  color: inherit;
+}
+
+/* Focus */
+.admin-card select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.05);
+}
+
+/* =====================================================
+   LIGHT MODE
+===================================================== */
+
+body.light .admin-card select {
+  background: #f7f3e8;     /* cream */
+  color: #1b3d2f;          /* dark green */
+  border: 1px solid #e2dbc9;
+}
+
+/* Dropdown list text color (IMPORTANT) */
+body.light .admin-card select option {
+  background: #f7f3e8;
+  color: #1b3d2f !important;
+}
+
+/* =====================================================
+   DARK MODE
+===================================================== */
+
+body.dark .admin-card select {
+  background: #0f2a1f;     /* deep green */
+  color: #f5f5f5;          /* cream/white */
+  border: 1px solid #1d4736;
+}
+
+/* Dropdown list text color (IMPORTANT FIX) */
+body.dark .admin-card select option {
+  background: #0f2a1f;
+  color: #f5f5f5 !important;
+}
+
+/* =====================================================
+   SAFETY OVERRIDE (FOR SOME BROWSERS)
+===================================================== */
+
+.admin-card select option {
+  font-size: 14px;
+}
+/* ===============================
+   FORCE DROPDOWN COLOR OVERRIDE
+   (PASTIKAN PALING BAWAH FILE)
+================================= */
+
+body.light .admin-card select,
+body.light .admin-card select option {
+  background: #f7f3e8 !important;
+  color: #1b3d2f !important;
+}
+
+body.dark .admin-card select,
+body.dark .admin-card select option {
+  background: #0f2a1f !important;
+  color: #f5f5f5 !important;
+}
 /* =====================================================
    ANIMATION
 ===================================================== */
