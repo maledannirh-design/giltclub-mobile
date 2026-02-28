@@ -2074,7 +2074,7 @@ body.scan-mode{
 }
 
 #homeMemberCard .wallet-member-code{
-  bottom: 17px;   /* turun dari 34px */
+  bottom: 22px;   /* turun dari 34px */
   left: 10px;
   font-size: 4px;
 }
