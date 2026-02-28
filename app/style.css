@@ -2068,13 +2068,13 @@ body.scan-mode{
 ============================= */
 
 #homeMemberCard .wallet-member-name{
-  bottom: 29px;   /* turun dari 58px */
+  bottom: 31px;   /* turun dari 58px */
   left: 10px;     /* lebih ke kiri */
   font-size: 10px;
 }
 
 #homeMemberCard .wallet-member-code{
-  bottom: 15px;   /* turun dari 34px */
+  bottom: 17px;   /* turun dari 34px */
   left: 10px;
   font-size: 8px;
 }
