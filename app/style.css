@@ -2087,3 +2087,19 @@ body.scan-mode{
   font-size: 5px;
   letter-spacing: 0.4px;
 }
+
+
+.coin{
+  position:fixed;
+  top:-40px;
+  width:18px;
+  height:18px;
+  background:gold;
+  border-radius:50%;
+  animation:fall linear forwards;
+  z-index:9999;
+}
+
+@keyframes fall{
+  to{ transform:translateY(110vh); }
+}
