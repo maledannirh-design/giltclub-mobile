@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =====================================================
-   CHECK-IN ATTENDANCE (PRODUCTION VERSION)
+   CHECK-IN ATTENDANCE (LEDGER CLEAN VERSION)
 ===================================================== */
 export async function checkInAttendance({
   bookingId,
@@ -15,9 +15,9 @@ export async function checkInAttendance({
 }) {
 
   const bookingRef = doc(db, "bookings", bookingId);
-  const ledgerCol = collection(db, "walletTransactions");
+  const walletLedgerCol = collection(db, "walletTransactions");
+  const gPointLedgerCol = collection(db, "gPointLedger");
 
-  // 🔥 variables to return to UI
   let cashback = 0;
   let earnedGPoint = 0;
   let role = "MEMBER";
@@ -85,11 +85,8 @@ export async function checkInAttendance({
 
     let multiplier = 1;
 
-    if (role === "VVIP") {
-      multiplier = 2.5;
-    } else if (role === "VERIFIED") {
-      multiplier = 1.5;
-    }
+    if (role === "VVIP") multiplier = 2.5;
+    else if (role === "VERIFIED") multiplier = 1.5;
 
     earnedGPoint = Math.floor(baseUnit * multiplier);
 
@@ -106,33 +103,29 @@ export async function checkInAttendance({
     }
 
     const maxCashback = Math.floor(sessionPrice * 0.75);
-
-    if (cashback > maxCashback) {
-      cashback = maxCashback;
-    }
+    if (cashback > maxCashback) cashback = maxCashback;
 
     /* ===============================
        UPDATE BOOKING
     =============================== */
 
     transaction.update(bookingRef, {
-  attendance: true,
-  attendanceNotified: false,
-  completed: true,
-  attendedAt: serverTimestamp(),
-
-  // 🔥 Snapshot reward
-  rewardCashback: cashback,
-  rewardGPoint: earnedGPoint,
-  rewardRole: userData.role || "MEMBER",
-  rewardSessionDate: scheduleData.date
-});
+      attendance: true,
+      attendanceNotified: false,
+      completed: true,
+      attendedAt: serverTimestamp(),
+      rewardCashback: cashback,
+      rewardGPoint: earnedGPoint,
+      rewardRole: userData.role || "MEMBER",
+      rewardSessionDate: scheduleData.date
+    });
 
     /* ===============================
        UPDATE USER
     =============================== */
 
-    const newBalance = (userData.walletBalance || 0) + cashback;
+    const balanceBefore = userData.walletBalance || 0;
+    const newBalance = balanceBefore + cashback;
 
     const nowDate = new Date();
     const monthKey =
@@ -151,36 +144,44 @@ export async function checkInAttendance({
     });
 
     /* ===============================
-       LEDGER CASHBACK
+       LEDGER CASHBACK (RUPIAH)
     =============================== */
 
     if (cashback > 0) {
 
-      const ledgerRef = doc(ledgerCol);
+      const ledgerRef = doc(walletLedgerCol);
 
       transaction.set(ledgerRef, {
         userId: bookingData.userId,
-        type: "cashback_session",
-        amount: cashback,
-        balanceAfter: newBalance,
+        usernameSnapshot: userData.username || "",
+        fullNameSnapshot: userData.fullName || "",
+
+        entryType: "CREDIT",
+        referenceType: "SESSION_CASHBACK",
         referenceId: bookingId,
+
+        amount: cashback,
+        balanceBefore,
+        balanceAfter: newBalance,
+
         createdAt: serverTimestamp()
       });
     }
 
     /* ===============================
-       LEDGER GPOINT
+       LEDGER GPOINT (TERPISAH)
     =============================== */
 
     if (earnedGPoint > 0) {
 
-      const gLedgerRef = doc(ledgerCol);
+      const gLedgerRef = doc(gPointLedgerCol);
 
       transaction.set(gLedgerRef, {
         userId: bookingData.userId,
-        type: "gpoint_gameplay",
-        amount: earnedGPoint,
+        entryType: "CREDIT",
+        referenceType: "SESSION_GPOINT",
         referenceId: bookingId,
+        amount: earnedGPoint,
         createdAt: serverTimestamp()
       });
     }
