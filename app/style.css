@@ -2078,12 +2078,12 @@ body.scan-mode{
 
 #homeMemberCard .wallet-member-name{
   bottom: 26px;   /* turun dari 58px */
-  left: 14px;     /* lebih ke kiri */
+  left: 11px;     /* lebih ke kiri */
   font-size: 10px;
 }
 
 #homeMemberCard .wallet-member-code{
   bottom: 12px;   /* turun dari 34px */
-  left: 14px;
+  left: 11px;
   font-size: 8px;
 }
