@@ -158,7 +158,17 @@ const alreadyClaimed = userData.lastCheckinDate === today;
 
       </div>
     `;
+/* =============================
+   DAILY SUCCESS EFFECT
+============================= */
+const params = new URLSearchParams(window.location.search);
 
+if(params.get("dailySuccess")){
+  startCoinRain();
+
+  // bersihkan query supaya tidak trigger ulang saat refresh
+  window.history.replaceState({}, document.title, "index.html");
+}
     /* =============================
        INSERT MEMBER CARD
     ============================= */
@@ -284,6 +294,18 @@ userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
   }
 }
 
+function startCoinRain(){
+  for(let i=0;i<25;i++){
+    const coin = document.createElement("div");
+    coin.className = "coin";
+    document.body.appendChild(coin);
+
+    coin.style.left = Math.random()*100+"vw";
+    coin.style.animationDuration = (Math.random()*2+2)+"s";
+
+    setTimeout(()=>coin.remove(),3000);
+  }
+}
 /* =========================================
    SVG ICON
 ========================================= */
@@ -336,6 +358,7 @@ function startResetCountdown(){
   update();
   countdownInterval = setInterval(update,1000);
 }
+
 
 
 window.openDailyScan = function(day){
