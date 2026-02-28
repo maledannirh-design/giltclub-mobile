@@ -67,8 +67,8 @@ export async function navigate(page){
         break;
 
       case "store":
-        (await import("./store.js")).renderStore();
-        break;
+  (await import("./store/store.js")).renderStore(currentUserData);
+  break;
       case "admin":
   (await import("./admin.js")).renderAdmin();
   break;
