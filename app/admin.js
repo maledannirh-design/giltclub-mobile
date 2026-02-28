@@ -469,7 +469,7 @@ async function setupQrValidator(){
 /* =====================================================
    APPROVE TOP UP (ATOMIC + LEDGER)
 ===================================================== */
-window.approveTopup = async function(trxId, userId, amount){
+window.approveTopup = async function(trxId, userId){
 
   try{
 
@@ -485,19 +485,25 @@ window.approveTopup = async function(trxId, userId, amount){
       if(!userSnap.exists()) throw new Error("User tidak ditemukan");
       if(!trxSnap.exists()) throw new Error("Transaksi tidak ditemukan");
 
-      const trxData = trxSnap.data();
+      const userData = userSnap.data();
+      const trxData  = trxSnap.data();
+
       if(trxData.status !== "PENDING"){
         throw new Error("Sudah diproses");
       }
 
-      const balanceBefore = userSnap.data().walletBalance || 0;
+      const amount = trxData.amount;
+
+      const balanceBefore = userData.walletBalance || 0;
       const newBalance    = balanceBefore + amount;
 
+      // 1️⃣ UPDATE USER
       transaction.update(userRef,{
         walletBalance: newBalance,
-        totalTopup: (userSnap.data().totalTopup || 0) + amount
+        totalTopup: (userData.totalTopup || 0) + amount
       });
 
+      // 2️⃣ UPDATE TRANSACTION
       transaction.update(trxRef,{
         status: "SUCCESS",
         balanceBefore,
@@ -506,14 +512,19 @@ window.approveTopup = async function(trxId, userId, amount){
         processedBy: auth.currentUser.uid
       });
 
+      // 3️⃣ INSERT LEDGER (ATOMIC RECORD)
       transaction.set(ledgerRef,{
         userId,
-        txId: trxId,
+        usernameSnapshot: userData.username || "",
+        fullNameSnapshot: userData.fullName || "",
         entryType: "CREDIT",
+        referenceType: "TOPUP",
+        referenceId: trxId,
         amount,
         balanceBefore,
         balanceAfter: newBalance,
-        description: "Top Up Approved",
+        source: "QRIS",
+        note: "Top Up Approved",
         createdAt: serverTimestamp(),
         createdBy: auth.currentUser.uid
       });
