@@ -25,14 +25,8 @@ export async function renderHome(){
     ============================= */
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
-    const balance = userData.walletBalance || 0;
-    const membership = userData.membership || "MEMBER"; // FIXED
-    const genre = userData.genre || "female";
 
-    /* =============================
-       MEMBER CARD LOOKUP
-    ============================= */
- const memberCardUrl = resolveMemberCard(membership, genre);
+    const balance = userData.walletBalance || 0;
 
     /* =============================
        CHAT ROOMS (UNREAD)
@@ -100,7 +94,6 @@ export async function renderHome(){
                   : ``
               }
             </div>
-            <div id="homeUnreadPreview" class="home-unread-preview"></div>
           </div>
         </div>
 
@@ -131,9 +124,7 @@ export async function renderHome(){
               </button>
             </div>
 
-            <div class="wallet-right">
-              <img src="${memberCardUrl}" class="member-card-img" />
-            </div>
+            <div class="wallet-right" id="homeMemberCard"></div>
 
           </div>
 
@@ -141,6 +132,14 @@ export async function renderHome(){
 
       </div>
     `;
+
+    /* =============================
+       INSERT MEMBER CARD
+    ============================= */
+    const homeCardContainer = document.getElementById("homeMemberCard");
+    if(homeCardContainer){
+      homeCardContainer.innerHTML = renderMemberCard(userData);
+    }
 
     /* =============================
        RENDER UNREAD PREVIEW
@@ -154,7 +153,6 @@ export async function renderHome(){
       for (const room of unreadRooms.slice(0,5)) {
 
         const otherUid = room.participants.find(p => p !== user.uid);
-
         let username = "User";
 
         if (otherUid) {
@@ -196,28 +194,34 @@ export async function renderHome(){
           saldoVisible
             ? `Rp ${balance.toLocaleString("id-ID")}`
             : "Rp ******";
+
+        toggleBtn.innerHTML =
+          saldoVisible ? eyeCloseSVG() : eyeOpenSVG();
+      };
+    }
+
+    /* =============================
+       HOME TOP UP BUTTON
+    ============================= */
+    const homeTopupBtn = document.querySelector(".wallet-topup-btn");
+
+    if(homeTopupBtn){
+      homeTopupBtn.onclick = async ()=>{
+        const module = await import("./wallet.js");
+        module.renderTopUpSheet();
       };
     }
 
   }catch(error){
+
     console.error("Home error:", error);
+
     content.innerHTML = `
       <div style="padding:20px;color:red;">
         Failed to load home.
       </div>
     `;
   }
-  /* =============================
-   HOME TOP UP BUTTON
-============================= */
-const homeTopupBtn = document.querySelector(".wallet-topup-btn");
-
-if(homeTopupBtn){
-  homeTopupBtn.onclick = async ()=>{
-    const module = await import("./wallet.js");
-    module.renderTopUpSheet();
-  };
-}
 }
 
 /* =========================================
