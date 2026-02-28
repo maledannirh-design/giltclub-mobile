@@ -307,5 +307,5 @@ function startResetCountdown(){
 
 
 window.openDailyScan = function(day){
-  window.location.href = `scanCheckin.html?mode=daily&day=${day}`;
+  window.location.href = "scanDaily.html";
 }
