@@ -5,10 +5,11 @@
 import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
-import { doc, getDoc } from "./firestore.js";
 import { showToast, showConfirm } from "./ui.js";
 
 import {
+  doc,
+  getDoc,
   collection,
   query,
   where,
@@ -26,6 +27,75 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+/* =========================================
+   MAINTENANCE GUARD
+========================================= */
+
+async function checkMaintenanceAndFreeze(user){
+
+  const content = document.getElementById("content");
+  if(!content) return false;
+
+  try{
+
+    const snap = await getDoc(doc(db,"system","maintenance"));
+    if(!snap.exists()) return false;
+
+    const data = snap.data();
+    if(!data.enabled) return false;
+
+    // 🔥 ADMIN & SUPERCOACH TETAP BOLEH MASUK
+    if(user){
+      const userSnap = await getDoc(doc(db,"users", user.uid));
+      if(userSnap.exists()){
+        const role = userSnap.data().role;
+        if(role === "ADMIN" || role === "SUPERCOACH"){
+          return false;
+        }
+      }
+    }
+
+    content.innerHTML = `
+      <div style="
+        position:fixed;
+        inset:0;
+        background:#0f172a;
+        color:white;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:999999;
+        padding:30px;
+        text-align:center;
+        flex-direction:column;
+      ">
+        <h1 style="font-size:22px;margin-bottom:15px;">
+          🚧 Sistem Sedang Maintenance
+        </h1>
+
+        <div style="opacity:.8;max-width:400px;">
+          <p>Audit Financial Structure Database</p>
+          <p>Freeze Transaction</p>
+          <p>Migrasi Re-Opening Balance</p>
+          <p>Guard Protective System</p>
+
+          <div style="margin-top:20px;">
+            Perkiraan waktu:<br>
+            <strong>1 – 3 Jam</strong>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return true;
+
+  }catch(err){
+    console.error("Maintenance check error:", err);
+    return false;
+  }
+}
 
 
 /* =========================================
@@ -65,6 +135,9 @@ onAuthStateChanged(auth, async (user)=>{
   const adminButton = document.querySelector('[data-page="admin"]');
 
   if(user){
+
+    // 🔥 CEK MAINTENANCE SEBELUM MASUK HOME
+    if(await checkMaintenanceAndFreeze(user)) return;
 
     navigate("home");
 
@@ -141,6 +214,11 @@ onAuthStateChanged(auth, async (user)=>{
 
 });
 
+
+/* =========================================
+   ATTENDANCE LISTENER
+========================================= */
+
 function listenAttendanceNotification(uid){
 
   const q = query(
@@ -160,7 +238,7 @@ function listenAttendanceNotification(uid){
         if(!attendedAt) return;
 
         const diff = Date.now() - attendedAt.getTime();
-        if(diff > 60 * 60 * 1000) return; // 1 jam window
+        if(diff > 60 * 60 * 1000) return;
 
         const bookingId = change.doc.id;
 
