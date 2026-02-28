@@ -2014,6 +2014,11 @@ body.scan-mode{
   overflow:hidden;
 }
 
+.elite-day.disabled {
+  opacity:0.4;
+  pointer-events:none;
+}
+
 .progress-fill{
   height:100%;
   width:0%;
