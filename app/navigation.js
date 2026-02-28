@@ -3,6 +3,7 @@ import { renderMembers } from "./profile.js";
 import { renderChat } from "./chat.js";
 import { renderHome } from "./home.js";
 import { renderWallet } from "./wallet.js";
+import { renderStore } from "./store/store.js";
 
 let navLock = false;
 let currentPage = null;
@@ -68,9 +69,6 @@ export async function navigate(page){
 
       case "store":
   (await import("./store/store.js")).renderStore(currentUserData);
-  break;
-      case "admin":
-  (await import("./admin.js")).renderAdmin();
   break;
       case "dashboard":
         (await import("./dashboard.js")).loadDashboard();
