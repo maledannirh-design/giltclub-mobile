@@ -11,7 +11,7 @@ import {
   where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+import { resolveMemberCard } from "./utils.js";
 
 export async function renderWallet(){
 
@@ -30,28 +30,7 @@ export async function renderWallet(){
     const fullName = userData.fullName || userData.username || "MEMBER";
     const memberCode = userData.memberCode || "-";
 
-    /* =============================
-       TEMPLATE SELECTION
-    ============================= */
-
-    const GREEN_CARD =
-      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
-
-    const PINK_CARD =
-      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_pink.webp";
-
-    const BLACK_CARD =
-      "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
-
-    let memberCardUrl = GREEN_CARD;
-
-    if(membership === "VVIP"){
-      memberCardUrl = BLACK_CARD;
-    }else if(genre === "female"){
-      memberCardUrl = PINK_CARD;
-    }else{
-      memberCardUrl = GREEN_CARD;
-    }
+  const memberCardUrl = resolveMemberCard(membership, genre);
 
     content.innerHTML = `
       <div class="wallet-page">
