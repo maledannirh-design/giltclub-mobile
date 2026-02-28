@@ -8,6 +8,7 @@ import {
   where
 } from "./firestore.js";
 import { resolveMemberCard, renderMemberCard } from "./utils.js";
+import { eyeOpenSVG, eyeCloseSVG } from "./wallet.js";
 
 /* =========================================
    HOME DASHBOARD
