@@ -15,6 +15,7 @@ import {
 import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
 import "./scanQR.js";
+import { deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const BASE_SCAN_URL = "https://giltclub.app/scan";
 
@@ -459,6 +460,35 @@ async function setupQrValidator(){
     resultBox.innerHTML = "";
   };
 }
+
+
+async function massiveCleanupFields(){
+
+  try{
+
+    const usersSnap = await getDocs(collection(db,"users"));
+
+    for(const docSnap of usersSnap.docs){
+
+      await updateDoc(doc(db,"users",docSnap.id),{
+        points: deleteField(),
+        usernameID: deleteField(),
+        displayName: deleteField(),
+        matches: deleteField(),
+        verifiedApproved: deleteField(),
+        wins: deleteField(),
+        gPoints: deleteField()
+      });
+
+      console.log("Cleaned:", docSnap.id);
+    }
+
+    console.log("Massive field cleanup DONE.");
+
+  }catch(err){
+    console.error("Cleanup error:", err);
+  }
+}
 /* =====================================================
    FUNGSI WINDOW
 ===================================================== */
@@ -893,4 +923,6 @@ window.auditOldSystemReconciliation = async function(){
   }
 };
 window.handleBalanceAdjustment = handleBalanceAdjustment;
+
+
 window.runMigration = runMigration;
