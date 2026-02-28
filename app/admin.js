@@ -279,12 +279,16 @@ async function handleBalanceAdjustment(){
 
 /* =====================================================
    QR VALIDATOR (NO FINANCIAL IMPACT)
+   STABLE PRODUCTION VERSION
 ===================================================== */
 
 let html5QrInstance = null;
 let cameraList = [];
 let currentCameraIndex = 0;
 
+/* =====================================================
+   LOAD LIBRARY (SAFE)
+===================================================== */
 async function loadQrLibrary(){
   return new Promise((resolve, reject) => {
 
@@ -302,16 +306,22 @@ async function loadQrLibrary(){
   });
 }
 
+/* =====================================================
+   MAIN SETUP
+===================================================== */
 async function setupQrValidator(){
 
-  const openBtn = document.getElementById("openCheckinQR");
-  const modal = document.getElementById("checkinModal");
-  const closeBtn = document.getElementById("closeCheckin");
+  const openBtn   = document.getElementById("openCheckinQR");
+  const modal     = document.getElementById("checkinModal");
+  const closeBtn  = document.getElementById("closeCheckin");
   const switchBtn = document.getElementById("switchCameraBtn");
   const resultBox = document.getElementById("checkinResult");
 
   if(!openBtn) return;
 
+  /* ===============================
+     OPEN SCANNER
+  =============================== */
   openBtn.onclick = async () => {
 
     await loadQrLibrary();
@@ -319,29 +329,68 @@ async function setupQrValidator(){
     modal.classList.remove("hidden");
     resultBox.innerHTML = "";
 
+    // Destroy old instance if exists
+    if(html5QrInstance){
+      try{
+        await html5QrInstance.stop();
+        await html5QrInstance.clear();
+      }catch(e){}
+    }
+
     html5QrInstance = new Html5Qrcode("reader");
 
     cameraList = await Html5Qrcode.getCameras();
 
     if(!cameraList.length){
-      alert("Camera tidak ditemukan");
+      resultBox.innerHTML =
+        `<div class="invalid-box">Camera tidak ditemukan</div>`;
       return;
     }
 
-    currentCameraIndex = cameraList.length - 1;
+    // Auto pilih kamera belakang
+    const backCam =
+      cameraList.find(c =>
+        c.label.toLowerCase().includes("back") ||
+        c.label.toLowerCase().includes("environment")
+      );
+
+    currentCameraIndex = backCam
+      ? cameraList.indexOf(backCam)
+      : cameraList.length - 1;
+
     await startCamera();
   };
 
+  /* ===============================
+     CAMERA START
+  =============================== */
   async function startCamera(){
+
+    const config = {
+      fps: 25,
+      qrbox: (viewfinderWidth, viewfinderHeight) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        return {
+          width: Math.floor(minEdge * 0.9),
+          height: Math.floor(minEdge * 0.9)
+        };
+      },
+      aspectRatio: 1.0,
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      }
+    };
 
     const cameraId = cameraList[currentCameraIndex].id;
 
     await html5QrInstance.start(
       cameraId,
-      { fps: 10, qrbox: { width: 250, height: 250 } },
+      config,
       async (decodedText) => {
 
-        await html5QrInstance.stop();
+        try{
+          await html5QrInstance.pause(true);
+        }catch(e){}
 
         try{
 
@@ -356,7 +405,7 @@ async function setupQrValidator(){
             c = parsed.searchParams.get("c");
             i = parsed.searchParams.get("i");
             s = parsed.searchParams.get("s");
-          } else {
+          }else{
             const params = new URLSearchParams(cleaned);
             c = params.get("c");
             i = params.get("i");
@@ -364,47 +413,38 @@ async function setupQrValidator(){
           }
 
           if(!c || !i || !s){
-            resultBox.innerHTML =
-              `<div class="invalid-box">QR format tidak valid</div>`;
-            return;
+            showInvalid("QR format tidak valid");
+            return resume();
           }
 
           const res = await window.validateScanParams(c,i,s);
 
           if(res.valid){
-
-            resultBox.innerHTML = `
-              <div class="valid-box">
-                ✅ VALID<br>
-                ${res.user.username}<br>
-                Member Code: ${res.user.memberCode}
-              </div>
-            `;
-
-          } else {
-
-            resultBox.innerHTML = `
-              <div class="invalid-box">
-                ❌ INVALID<br>
-                ${res.reason}
-              </div>
-            `;
+            showValid(res.user.username);
+          }else{
+            showInvalid(res.reason);
           }
 
         }catch(err){
-          resultBox.innerHTML =
-            `<div class="invalid-box">QR tidak valid</div>`;
+          showInvalid("QR tidak valid");
         }
+
+        resume();
       }
     );
   }
 
+  /* ===============================
+     CAMERA SWITCH
+  =============================== */
   if(switchBtn){
     switchBtn.onclick = async () => {
 
       if(!html5QrInstance || !cameraList.length) return;
 
-      await html5QrInstance.stop();
+      try{
+        await html5QrInstance.stop();
+      }catch(e){}
 
       currentCameraIndex =
         (currentCameraIndex + 1) % cameraList.length;
@@ -413,20 +453,50 @@ async function setupQrValidator(){
     };
   }
 
-  closeBtn.onclick = async () => {
+  /* ===============================
+     CLOSE SCANNER
+  =============================== */
+  if(closeBtn){
+    closeBtn.onclick = async () => {
 
-    if(html5QrInstance){
+      if(html5QrInstance){
+        try{
+          await html5QrInstance.stop();
+          await html5QrInstance.clear();
+        }catch(e){}
+      }
+
+      modal.classList.add("hidden");
+      resultBox.innerHTML = "";
+    };
+  }
+
+  /* ===============================
+     RESULT UI
+  =============================== */
+  function showValid(name){
+    resultBox.innerHTML =
+      `<div class="valid-box">
+        ✅ VALID MEMBER<br>${name}
+      </div>`;
+  }
+
+  function showInvalid(message){
+    resultBox.innerHTML =
+      `<div class="invalid-box">
+        ❌ ${message}
+      </div>`;
+  }
+
+  async function resume(){
+    setTimeout(async ()=>{
+      resultBox.innerHTML = "";
       try{
-        await html5QrInstance.stop();
-        await html5QrInstance.clear();
+        await html5QrInstance.resume();
       }catch(e){}
-    }
-
-    modal.classList.add("hidden");
-    resultBox.innerHTML = "";
-  };
+    },1500);
+  }
 }
-
 /* =====================================================
    FUNGSI WINDOW
 ===================================================== */
