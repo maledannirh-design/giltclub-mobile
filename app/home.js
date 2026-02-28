@@ -10,7 +10,7 @@ import {
 import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
 /* =========================================
-   HOME DASHBOARD
+   HOME DASHBOARD 
 ========================================= */
 export async function renderHome(){
 
