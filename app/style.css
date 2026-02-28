@@ -2103,3 +2103,72 @@ body.scan-mode{
 @keyframes fall{
   to{ transform:translateY(110vh); }
 }
+
+
+.daily-card{
+  margin:20px;
+  padding:16px;
+  border-radius:14px;
+  background:#f4f4f4;
+}
+
+.daily-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.daily-title{
+  font-weight:600;
+  font-size:14px;
+}
+
+.daily-info{
+  font-size:12px;
+  color:#3498db;
+}
+
+.daily-days{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  margin-bottom:14px;
+}
+
+.daily-box{
+  min-width:85px;
+  padding:10px;
+  border-radius:12px;
+  background:#ffffff;
+  border:1px solid #ddd;
+  text-align:center;
+}
+
+.daily-box.claimed{
+  background:#e8f7ee;
+  border:1px solid #2ecc71;
+}
+
+.daily-day{
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+.daily-reward{
+  font-size:13px;
+  font-weight:600;
+}
+
+.daily-status{
+  padding:10px;
+  border-radius:10px;
+  background:#e0e0e0;
+  text-align:center;
+  font-size:12px;
+}
+
+.daily-status.done{
+  background:#dcdcdc;
+  color:#666;
+}
