@@ -159,18 +159,24 @@ function showInvalid(resultBox, message){
 }
 
 /* =========================================
-   GO BACK
+   GO BACK (DAILY SUCCESS SAFE REDIRECT)
 ========================================= */
 async function goBack(){
 
   try{
     if (html5QrInstance) {
       const state = html5QrInstance.getState();
-      if (state === 2) await html5QrInstance.stop();
+      if (state === 2) {
+        await html5QrInstance.stop();
+      }
       await html5QrInstance.clear();
     }
-  }catch(e){}
+  }catch(e){
+    console.warn("Scanner stop error:", e);
+  }
 
   html5QrInstance = null;
-  window.history.back();
+
+  // redirect ke home dengan flag success
+  window.location.href = "index.html?dailySuccess=1";
 }
