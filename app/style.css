@@ -2070,7 +2070,7 @@ body.scan-mode{
 #homeMemberCard .wallet-member-name{
   bottom: 25px;   /* turun dari 58px */
   left: 10px;     /* lebih ke kiri */
-  font-size: 6px;
+  font-size: 4px;
 }
 
 #homeMemberCard .wallet-member-code{
