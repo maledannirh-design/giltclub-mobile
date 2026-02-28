@@ -1,31 +1,42 @@
 // recalculate.js
 
-import { getDocs, collection, updateDoc, doc } from "./firestore.js";
+import { getDocs, collection, updateDoc, doc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 import { db } from "./firebase.js";
 import { recalculateUserStats } from "./userStats.js";
 
 export async function recalculateAllUsersOnce(){
 
-  const usersSnap = await getDocs(collection(db, "users"));
+  try{
 
-  for (const docSnap of usersSnap.docs){
+    const usersSnap = await getDocs(collection(db, "users"));
 
-    const data = docSnap.data();
+    for (const docSnap of usersSnap.docs){
 
-    const stats = recalculateUserStats({
-      totalTopup: data.totalTopup || 0,
-      totalPayment: data.totalPayment || 0,
-      membership: data.membership || "MEMBER"
-    });
+      const data = docSnap.data();
 
-    await updateDoc(doc(db, "users", docSnap.id), {
-      level: stats.level,
-      exp: stats.expTotal,
-      gPoint: stats.gPoint
-    });
+      const stats = recalculateUserStats({
+        totalTopup: data.totalTopup || 0,
+        totalPayment: data.totalPayment || 0,
+        membership: data.membership || "MEMBER"
+      });
 
-    console.log("Updated:", docSnap.id, stats);
+      await updateDoc(doc(db, "users", docSnap.id), {
+        level: stats.level,
+        exp: stats.expTotal,
+        gPoint: stats.gPoint
+      });
+
+      console.log("Updated:", docSnap.id, stats);
+    }
+
+    console.log("SELESAI SEMUA USER");
+
+  }catch(err){
+    console.error("Recalculate error:", err);
   }
-
-  console.log("SELESAI SEMUA USER");
 }
+
+// expose to console
+window.recalculateAllUsersOnce = recalculateAllUsersOnce;
