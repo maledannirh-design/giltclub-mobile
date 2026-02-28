@@ -157,11 +157,23 @@ export async function renderAdmin(){
 ===================================================== */
 async function handleBalanceAdjustment(){
 
-  const userId = document.getElementById("adjustUser").value;
-  const walletAmount = Number(document.getElementById("adjustAmount").value || 0);
-  const gPointsAmount = Number(document.getElementById("adjustGPoints").value || 0);
-  const reason = document.getElementById("adjustReason").value;
-  const note = document.getElementById("adjustNote").value.trim();
+  // 🔥 SAFE DOM ACCESS (ANTI NULL ERROR)
+  const userEl = document.getElementById("adjustUser");
+  const walletEl = document.getElementById("adjustAmount");
+  const gPointEl = document.getElementById("adjustGPoints");
+  const reasonEl = document.getElementById("adjustReason");
+  const noteEl = document.getElementById("adjustNote");
+
+  if(!userEl || !walletEl || !gPointEl || !reasonEl || !noteEl){
+    alert("Panel adjustment belum siap. Silakan refresh halaman.");
+    return;
+  }
+
+  const userId = userEl.value;
+  const walletAmount = Number(walletEl.value || 0);
+  const gPointsAmount = Number(gPointEl.value || 0);
+  const reason = reasonEl.value;
+  const note = noteEl.value.trim();
 
   if(!walletAmount && !gPointsAmount){
     alert("Isi minimal salah satu nominal");
@@ -172,60 +184,66 @@ async function handleBalanceAdjustment(){
   const walletLedgerRef = doc(collection(db,"walletLedger"));
   const gPointLedgerRef = doc(collection(db,"gPointLedger"));
 
-  await runTransaction(db, async (transaction)=>{
+  try{
 
-    const snap = await transaction.get(userRef);
-    if(!snap.exists()) throw new Error("User tidak ditemukan");
+    await runTransaction(db, async (transaction)=>{
 
-    const data = snap.data();
+      const snap = await transaction.get(userRef);
+      if(!snap.exists()) throw new Error("User tidak ditemukan");
 
-    const walletBefore = data.walletBalance || 0;
-    const gBefore = data.gPoints || 0;
+      const data = snap.data();
 
-    const walletAfter = walletBefore + walletAmount;
-    const gAfter = gBefore + gPointsAmount;
+      const walletBefore = data.walletBalance || 0;
+      const gBefore = data.gPoints || 0;
 
-    if(walletAfter < 0) throw new Error("Saldo tidak boleh minus");
-    if(gAfter < 0) throw new Error("GPoints tidak boleh minus");
+      const walletAfter = walletBefore + walletAmount;
+      const gAfter = gBefore + gPointsAmount;
 
-    transaction.update(userRef,{
-      walletBalance: walletAfter,
-      gPoints: gAfter
+      if(walletAfter < 0) throw new Error("Saldo tidak boleh minus");
+      if(gAfter < 0) throw new Error("GPoints tidak boleh minus");
+
+      transaction.update(userRef,{
+        walletBalance: walletAfter,
+        gPoints: gAfter
+      });
+
+      if(walletAmount !== 0){
+        transaction.set(walletLedgerRef,{
+          userId,
+          txId: "ADMIN_ADJUST_" + Date.now(),
+          entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
+          amount: walletAmount,
+          balanceBefore: walletBefore,
+          balanceAfter: walletAfter,
+          description: reason,
+          note,
+          createdAt: serverTimestamp(),
+          createdBy: auth.currentUser.uid
+        });
+      }
+
+      if(gPointsAmount !== 0){
+        transaction.set(gPointLedgerRef,{
+          userId,
+          entryType: gPointsAmount > 0 ? "CREDIT" : "DEBIT",
+          amount: gPointsAmount,
+          balanceBefore: gBefore,
+          balanceAfter: gAfter,
+          description: reason,
+          note,
+          createdAt: serverTimestamp(),
+          createdBy: auth.currentUser.uid
+        });
+      }
+
     });
 
-    if(walletAmount !== 0){
-      transaction.set(walletLedgerRef,{
-        userId,
-        txId: "ADMIN_ADJUST_" + Date.now(),
-        entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
-        amount: walletAmount,
-        balanceBefore: walletBefore,
-        balanceAfter: walletAfter,
-        description: reason,
-        note,
-        createdAt: serverTimestamp(),
-        createdBy: auth.currentUser.uid
-      });
-    }
+    alert("Adjustment berhasil");
+    renderAdmin();
 
-    if(gPointsAmount !== 0){
-      transaction.set(gPointLedgerRef,{
-        userId,
-        entryType: gPointsAmount > 0 ? "CREDIT" : "DEBIT",
-        amount: gPointsAmount,
-        balanceBefore: gBefore,
-        balanceAfter: gAfter,
-        description: reason,
-        note,
-        createdAt: serverTimestamp(),
-        createdBy: auth.currentUser.uid
-      });
-    }
-
-  });
-
-  alert("Adjustment berhasil");
-  renderAdmin();
+  }catch(err){
+    alert(err.message || "Gagal adjustment");
+  }
 }
 
 /* =====================================================
