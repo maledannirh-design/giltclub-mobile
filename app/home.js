@@ -145,13 +145,15 @@ const alreadyClaimed = userData.lastCheckinDate === today;
             Reset dalam <span id="resetTimer">--:--:--</span>
           </div>
 
-          <div class="elite-days">
-  ${[1,2,3,4,5,6,7].map(d=>`
-    <div class="elite-day ${alreadyClaimed ? 'disabled' : ''}"
-         ${alreadyClaimed ? '' : `onclick="openDailyScan(${d})"`}>
-      H${d}
-    </div>
-  `).join("")}
+         <div class="elite-days-wrapper">
+  <div class="elite-days-scroll">
+    ${[1,2,3,4,5,6,7].map(d=>`
+      <div class="elite-day-circle ${alreadyClaimed ? 'disabled' : ''}"
+           ${alreadyClaimed ? '' : `onclick="openDailyScan(${d})"`}>
+        <div class="day-label">H${d}</div>
+      </div>
+    `).join("")}
+  </div>
 </div>
 
         </div>
