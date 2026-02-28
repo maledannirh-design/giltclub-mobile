@@ -18,12 +18,12 @@ export async function renderStore() {
 
       <div class="store-hero">
         <h1>GILT Official Store</h1>
-        <p>Premium gear & exclusive rewards for club members.</p>
+        <p>Elite performance gear & exclusive club rewards</p>
       </div>
 
       <section>
         <h2 class="section-title">Merchandise</h2>
-        <div id="storeProducts" class="store-grid"></div>
+        <div id="storeProducts" class="store-grid skeleton-grid"></div>
       </section>
 
       <section>
@@ -36,6 +36,8 @@ export async function renderStore() {
         <div id="storeFlash" class="store-grid"></div>
       </section>
 
+      <div id="sizeModal" class="size-modal"></div>
+
     </div>
   `;
 
@@ -45,33 +47,38 @@ export async function renderStore() {
 }
 
 /* ===============================
-   PRODUCTS (MONEY ONLY)
+   PRODUCTS
 ================================= */
 function renderProducts(){
 
   const container = document.getElementById("storeProducts");
-  if (!container) return;
-
+  container.classList.remove("skeleton-grid");
   container.innerHTML = "";
 
   STORE_PRODUCTS
     .filter(p => p.active)
     .forEach(product => {
 
+      const lowStock = product.stock <= 5;
       const soldOut = product.stock <= 0;
 
       container.innerHTML += `
-        <div class="store-card">
+        <div class="store-card fade-in">
 
           <div class="card-image">
-            <img src="${product.image}" />
+            <img src="${product.image}" class="zoom-img"/>
+
             ${soldOut ? `<span class="badge sold">Sold Out</span>` : ""}
+            ${lowStock && !soldOut ? `<span class="badge limited">Limited</span>` : ""}
+
+            <span class="wishlist">♡</span>
           </div>
 
           <div class="card-body">
             <h3>${product.name}</h3>
+
             <p class="desc">
-              Official club merchandise. Premium quality material.
+              Premium breathable fabric engineered for performance.
             </p>
 
             <div class="card-info">
@@ -79,14 +86,14 @@ function renderProducts(){
                 Rp ${product.price.toLocaleString()}
               </span>
               <span class="stock">
-                Stock: ${product.stock}
+                ${soldOut ? "Out of stock" : `Stock: ${product.stock}`}
               </span>
             </div>
 
             ${
               soldOut
               ? `<button disabled>Unavailable</button>`
-              : `<button class="btn-primary">Buy Now</button>`
+              : `<button class="btn-primary" onclick="openSizeModal('${product.id}')">Select Size</button>`
             }
 
           </div>
@@ -96,23 +103,22 @@ function renderProducts(){
 }
 
 /* ===============================
-   NORMAL REWARDS (POINT ONLY)
+   REWARDS
 ================================= */
 function renderRewards(){
 
   const container = document.getElementById("storeRewards");
-  if (!container) return;
-
   container.innerHTML = "";
 
   STORE_REWARDS
     .filter(r => r.active)
     .forEach(reward => {
 
-      const soldOut = reward.redeemedCount >= reward.quota;
+      const remaining = reward.quota - reward.redeemedCount;
+      const soldOut = remaining <= 0;
 
       container.innerHTML += `
-        <div class="store-card">
+        <div class="store-card fade-in">
 
           <div class="card-image reward-bg">
             ${soldOut ? `<span class="badge sold">Sold Out</span>` : ""}
@@ -120,8 +126,9 @@ function renderRewards(){
 
           <div class="card-body">
             <h3>${reward.name}</h3>
+
             <p class="desc">
-              Limited session access. Weekly exclusive drop.
+              Exclusive session access for loyal members.
             </p>
 
             <div class="card-info">
@@ -129,7 +136,7 @@ function renderRewards(){
                 ${reward.pointCost.toLocaleString()} GP
               </span>
               <span class="stock">
-                Remaining: ${reward.quota - reward.redeemedCount}
+                Remaining: ${remaining}
               </span>
             </div>
 
@@ -152,9 +159,6 @@ function renderFlash(){
 
   const flashSection = document.getElementById("flashSection");
   const container = document.getElementById("storeFlash");
-  if (!container || !flashSection) return;
-
-  container.innerHTML = "";
 
   const activeFlash = STORE_FLASH.filter(f => f.active && isFlashActive(f));
 
@@ -164,23 +168,24 @@ function renderFlash(){
   }
 
   flashSection.style.display = "block";
+  container.innerHTML = "";
 
   activeFlash.forEach(flash => {
 
-    const soldOut = flash.redeemedCount >= flash.quota;
+    const remaining = flash.quota - flash.redeemedCount;
 
     container.innerHTML += `
-      <div class="store-card flash-card">
+      <div class="store-card flash-card fade-in">
 
         <div class="card-image">
           <span class="badge flash">FLASH</span>
-          ${soldOut ? `<span class="badge sold">Sold Out</span>` : ""}
         </div>
 
         <div class="card-body">
           <h3>${flash.name}</h3>
+
           <p class="desc">
-            Limited time exclusive drop. First come, first served.
+            Limited-time drop. First come, first served.
           </p>
 
           <div class="card-info">
@@ -188,18 +193,74 @@ function renderFlash(){
               ${flash.flashPointCost.toLocaleString()} GP
             </span>
             <span class="stock">
-              Remaining: ${flash.quota - flash.redeemedCount}
+              Remaining: ${remaining}
             </span>
           </div>
 
-          ${
-            soldOut
-            ? `<button disabled>Sold Out</button>`
-            : `<button class="btn-flash">Redeem Now</button>`
-          }
+          <div class="countdown" data-end="${flash.endTime}"></div>
+
+          <button class="btn-flash">Redeem Now</button>
 
         </div>
       </div>
     `;
   });
+
+  startCountdown();
+}
+
+/* ===============================
+   COUNTDOWN ENGINE
+================================= */
+function startCountdown(){
+  const timers = document.querySelectorAll(".countdown");
+
+  timers.forEach(timer => {
+    const endTime = new Date(timer.dataset.end);
+
+    const interval = setInterval(() => {
+
+      const now = new Date();
+      const diff = endTime - now;
+
+      if (diff <= 0){
+        timer.innerHTML = "Ended";
+        clearInterval(interval);
+        return;
+      }
+
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+
+      timer.innerHTML = `Ends in ${mins}m ${secs}s`;
+
+    }, 1000);
+  });
+}
+
+/* ===============================
+   SIZE MODAL
+================================= */
+window.openSizeModal = function(productId){
+
+  const product = STORE_PRODUCTS.find(p => p.id === productId);
+  const modal = document.getElementById("sizeModal");
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <h3>Select Size</h3>
+
+      <div class="size-options">
+        ${product.sizes.map(s => `<button>${s}</button>`).join("")}
+      </div>
+
+      <button class="close-modal" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+
+  modal.style.display = "flex";
+}
+
+window.closeModal = function(){
+  document.getElementById("sizeModal").style.display = "none";
 }
