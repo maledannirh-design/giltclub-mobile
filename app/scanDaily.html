@@ -11,50 +11,91 @@
       padding:0;
       height:100%;
       background:#000;
-      color:#fff;
-      font-family:Arial;
       overflow:hidden;
+      font-family:Arial;
     }
 
-    h2{
-      position:absolute;
-      top:20px;
-      width:100%;
-      text-align:center;
-      z-index:5;
-      font-size:18px;
-    }
-
+    /* READER */
     #reader{
       position:fixed;
       inset:0;
       width:100vw;
       height:100vh;
+      z-index:1;
     }
 
-    #result{
-      position:absolute;
-      bottom:40px;
+    /* FORCE VIDEO FULLSCREEN */
+    #reader video{
+      position:absolute !important;
+      top:0;
+      left:0;
+      width:100vw !important;
+      height:100vh !important;
+      object-fit:cover !important;
+      z-index:1 !important;
+    }
+
+    /* TOP BAR */
+    .top-bar{
+      position:fixed;
+      top:0;
+      left:0;
       width:100%;
-      text-align:center;
-      z-index:5;
+      height:60px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:20;
+      pointer-events:none;
     }
 
-    /* ===== BACK BUTTON ===== */
+    .title{
+      color:#fff;
+      font-size:18px;
+      font-weight:600;
+    }
+
+    /* BACK BUTTON */
     .back-btn{
-      position:absolute;
-      top:20px;
-      left:20px;
-      z-index:6;
+      position:fixed;
+      top:15px;
+      left:15px;
+      z-index:30;
       background:rgba(0,0,0,0.6);
       border:none;
       color:#fff;
       padding:8px 14px;
-      border-radius:10px;
+      border-radius:12px;
       cursor:pointer;
+      pointer-events:auto;
     }
 
-    /* ===== SCAN FRAME ===== */
+    /* SWITCH BUTTON */
+    .switch-btn{
+      position:fixed;
+      top:15px;
+      right:15px;
+      z-index:30;
+      background:rgba(0,0,0,0.6);
+      border:none;
+      color:#fff;
+      padding:8px 14px;
+      border-radius:12px;
+      cursor:pointer;
+      pointer-events:auto;
+    }
+
+    /* RESULT */
+    #result{
+      position:fixed;
+      bottom:40px;
+      width:100%;
+      text-align:center;
+      z-index:30;
+      color:#fff;
+    }
+
+    /* SCAN FRAME */
     .scan-frame{
       position:fixed;
       inset:0;
@@ -62,7 +103,7 @@
       align-items:center;
       justify-content:center;
       pointer-events:none;
-      z-index:4;
+      z-index:10;
     }
 
     .scan-box{
@@ -71,56 +112,37 @@
       max-width:420px;
       max-height:420px;
       border:3px solid #FFD700;
-      border-radius:20px;
+      border-radius:22px;
       box-shadow:
-        0 0 25px rgba(255,215,0,0.6),
-        inset 0 0 25px rgba(255,215,0,0.3);
-      position:relative;
+        0 0 30px rgba(255,215,0,0.9),
+        inset 0 0 30px rgba(255,215,0,0.5);
     }
-
-    /* corner accents */
-    .scan-box::before,
-    .scan-box::after{
-      content:"";
-      position:absolute;
-      width:50px;
-      height:50px;
-      border:4px solid #FFD700;
-    }
-
-    .scan-box::before{
-      top:-4px;
-      left:-4px;
-      border-right:none;
-      border-bottom:none;
-      border-radius:20px 0 0 0;
-    }
-
-    .scan-box::after{
-      bottom:-4px;
-      right:-4px;
-      border-left:none;
-      border-top:none;
-      border-radius:0 0 20px 0;
-    }
-
   </style>
 </head>
 
 <body>
 
+  <!-- CAMERA -->
+  <div id="reader"></div>
+
+  <!-- OVERLAY FRAME -->
+  <div class="scan-frame">
+    <div class="scan-box"></div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="title">Scan Kartu Anda</div>
+  </div>
+
+  <!-- BUTTONS -->
   <button class="back-btn" onclick="window.history.back()">
     ← Kembali
   </button>
 
-  <h2>Scan Kartu Anda</h2>
-
-  <div id="reader"></div>
-
-  <!-- Visual Scan Box -->
-  <div class="scan-frame">
-    <div class="scan-box"></div>
-  </div>
+  <button class="switch-btn" onclick="switchDailyCamera()">
+    🔄 Kamera
+  </button>
 
   <div id="result"></div>
 
