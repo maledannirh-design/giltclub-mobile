@@ -499,7 +499,6 @@ async function setupQrValidator(){
         ❌ ${message}
       </div>`;
   }
-}
 /* =====================================================
    FUNGSI-FUNGSI WINDOW DARI SINI
 ===================================================== */
