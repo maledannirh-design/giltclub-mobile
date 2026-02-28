@@ -365,42 +365,48 @@ async function setupQrValidator(){
  /* ===============================
    CAMERA START (STABLE VERSION)
 =============================== */
+/* ===============================
+   CAMERA START (HIGH PERFORMANCE)
+=============================== */
 async function startCamera(){
 
+  const cameraId = cameraList[currentCameraIndex].id;
+
   const config = {
-    fps: 25,
-    qrbox: (viewfinderWidth, viewfinderHeight) => {
-      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+    fps: 45, // 50 sering di-throttle browser, 45 lebih stabil
+    qrbox: (vw, vh) => {
+      const min = Math.min(vw, vh);
+
+      // Fokus kecil supaya QR kecil cepat kebaca
+      const size = Math.floor(min * 0.65);
+
       return {
-        width: Math.floor(minEdge * 0.9),
-        height: Math.floor(minEdge * 0.9)
+        width: size,
+        height: size
       };
     },
-    aspectRatio: 1.0,
+    aspectRatio: window.innerWidth / window.innerHeight,
+    disableFlip: false,
     experimentalFeatures: {
       useBarCodeDetectorIfSupported: true
     }
   };
 
-  const cameraId = cameraList[currentCameraIndex].id;
-
-  let processing = false; // 🔥 anti double scan
+  let processing = false;
 
   await html5QrInstance.start(
     cameraId,
     config,
     async (decodedText) => {
 
-      if(processing) return; // prevent spam
+      if(processing) return;
       processing = true;
 
       try{
 
-        let cleaned = decodedText.trim().replace(/\n/g,"");
+        const cleaned = decodedText.trim().replace(/\n/g,"");
 
-        let c = null;
-        let i = null;
-        let s = null;
+        let c,i,s;
 
         if(cleaned.startsWith("http")){
           const parsed = new URL(cleaned);
@@ -416,7 +422,7 @@ async function startCamera(){
 
         if(!c || !i || !s){
           showInvalid("QR format tidak valid");
-          return resetProcessing();
+          return reset();
         }
 
         const res = await window.validateScanParams(c,i,s);
@@ -428,75 +434,83 @@ async function startCamera(){
         }
 
       }catch(err){
+        console.error(err);
         showInvalid("QR tidak valid");
       }
 
-      resetProcessing();
+      reset();
     }
   );
 
-  function resetProcessing(){
+  function reset(){
     setTimeout(()=>{
       resultBox.innerHTML = "";
       processing = false;
-    },1500);
+    },1200); // lebih cepat supaya cepat scan ulang
   }
 }
 
   /* ===============================
      CAMERA SWITCH
   =============================== */
-  if(switchBtn){
-    switchBtn.onclick = async () => {
+if(switchBtn){
+  switchBtn.onclick = async () => {
 
-      if(!html5QrInstance || !cameraList.length) return;
+    if(!html5QrInstance || !cameraList.length) return;
 
-      try{
-        await html5QrInstance.stop();
-      }catch(e){}
+    try{
+      await html5QrInstance.stop();
+    }catch(e){}
 
-      currentCameraIndex =
-        (currentCameraIndex + 1) % cameraList.length;
+    currentCameraIndex =
+      (currentCameraIndex + 1) % cameraList.length;
 
-      await startCamera();
-    };
-  }
+    setTimeout(()=>{
+      startCamera();
+    },200);
+  };
+}
 
   /* ===============================
      CLOSE SCANNER
   =============================== */
-  if(closeBtn){
-    closeBtn.onclick = async () => {
+if(closeBtn){
+  closeBtn.onclick = async () => {
 
+    try{
       if(html5QrInstance){
-        try{
-          await html5QrInstance.stop();
-          await html5QrInstance.clear();
-        }catch(e){}
+        await html5QrInstance.stop();
+        await html5QrInstance.clear();
       }
+    }catch(e){
+      console.warn(e);
+    }
 
-      modal.classList.add("hidden");
-      resultBox.innerHTML = "";
-    };
-  }
+    html5QrInstance = null;
 
+    modal.classList.add("hidden");
+    resultBox.innerHTML = "";
+  };
+}
   /* ===============================
      RESULT UI
   =============================== */
-  function showValid(name){
-    resultBox.innerHTML =
-      `<div class="valid-box">
-        ✅ VALID MEMBER<br>${name}
-      </div>`;
-  }
+function showValid(name){
+  resultBox.innerHTML =
+    `<div class="result-popup valid-box">
+      ✅ VALID MEMBER<br>
+      <div style="margin-top:8px;font-size:14px;">
+        ${name}
+      </div>
+    </div>`;
+}
 
-  function showInvalid(message){
-    resultBox.innerHTML =
-      `<div class="invalid-box">
-        ❌ ${message}
-      </div>`;
-  }
-
+function showInvalid(message){
+  resultBox.innerHTML =
+    `<div class="result-popup invalid-box">
+      ❌ ${message}
+    </div>`;
+}
   async function resume(){
     setTimeout(async ()=>{
       resultBox.innerHTML = "";
