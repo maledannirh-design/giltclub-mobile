@@ -254,6 +254,7 @@ function startCountdown(){
     const endTime   = new Date(timer.dataset.end);
     const flashId   = timer.dataset.id;
     const button    = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
+    const card      = timer.closest(".store-card");
 
     const interval = setInterval(() => {
 
@@ -266,14 +267,17 @@ function startCountdown(){
       if(now < startTime){
         target = startTime;
         label = "Live dalam:";
+        card.classList.remove("live");
       }
       else if(now >= startTime && now <= endTime){
         target = endTime;
         label = "Berakhir dalam:";
         enable = true;
+        card.classList.add("live"); // 🔥 glow live
       }
       else{
         timer.innerHTML = "Flash telah berakhir";
+        card.classList.remove("live");
         if(button) button.disabled = true;
         clearInterval(interval);
         return;
@@ -297,9 +301,12 @@ function startCountdown(){
         timeString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
       }
 
+      // 🔥 Last 10 seconds blink
+      const dangerClass = totalSeconds <= 10 ? "blink" : "";
+
       timer.innerHTML = `
         <div class="cd-label">${label}</div>
-        <div class="cd-time">${timeString}</div>
+        <div class="cd-time ${dangerClass}">${timeString}</div>
       `;
 
       if(button) button.disabled = !enable;
@@ -307,8 +314,51 @@ function startCountdown(){
     }, 1000);
   });
 }
+function showConfetti(){
 
+  const canvas = document.createElement("canvas");
+  canvas.className = "confetti-canvas";
+  document.body.appendChild(canvas);
 
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = Array.from({length:150}).map(()=>({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height - canvas.height,
+    r: Math.random()*6+4,
+    d: Math.random()*canvas.height,
+    color: `hsl(${Math.random()*360},100%,50%)`
+  }));
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2,false);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    });
+    update();
+  }
+
+  function update(){
+    pieces.forEach(p=>{
+      p.y += 4;
+      if(p.y > canvas.height){
+        p.y = -10;
+      }
+    });
+  }
+
+  const interval = setInterval(draw,20);
+
+  setTimeout(()=>{
+    clearInterval(interval);
+    canvas.remove();
+  },3000);
+}
 /* ===============================
    LOSE ANIMATION
 ================================= */
