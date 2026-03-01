@@ -483,7 +483,7 @@ async function renderLeaderboardHTML(flash){
 
 
 /* ===============================
-   COUNTDOWN ENGINE (LIVE & END)
+   COUNTDOWN ENGINE (LIVE & END + WAR 30s TRIGGER)
 ================================= */
 function startCountdown(){
 
@@ -509,6 +509,12 @@ function startCountdown(){
         target = startTime;
         label = "Live dalam:";
         card.classList.remove("live");
+
+        // 🔥 WAR OVERLAY TRIGGER (30 → 0)
+        const secondsToStart = Math.floor((startTime - now) / 1000);
+        if(secondsToStart <= 30 && secondsToStart > 0){
+          checkAndStartWarOverlay(startTime);
+        }
       }
       else if(now >= startTime && now <= endTime){
         target = endTime;
@@ -554,7 +560,6 @@ function startCountdown(){
     }, 1000);
   });
 }
-
 
 /* ===============================
    CONFETTI
