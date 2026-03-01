@@ -286,3 +286,35 @@
     grid-template-columns:repeat(3,1fr);
   }
 }
+
+/* LIVE GLOW */
+.flash-card.live{
+  box-shadow:0 0 25px rgba(255,0,0,.6);
+  border:1px solid rgba(255,0,0,.7);
+  transition:.2s ease;
+}
+
+/* BLINK LAST 10 SEC */
+@keyframes blink{
+  0%{opacity:1;}
+  50%{opacity:.2;}
+  100%{opacity:1;}
+}
+
+.blink{
+  animation:blink .8s infinite;
+}
+
+/* WINNER #1 GOLD */
+.leader-item:first-child{
+  color:gold;
+  font-weight:700;
+}
+
+/* CONFETTI */
+.confetti-canvas{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9999;
+}
