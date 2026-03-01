@@ -62,7 +62,9 @@ export async function navigate(page){
       case "cinema":
         (await import("./cinema.js")).renderCinema();
         break;
-
+case "admin":
+  (await import("./admin.js")).renderAdmin();
+  break;
       case "ranking":
         (await import("./leaderboard.js")).renderAttendanceLeaderboard();
         break;
