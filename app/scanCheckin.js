@@ -1,4 +1,12 @@
-import { auth } from "./firebase.js";
+import { auth, db } from "./firebase.js";
+import {
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { checkInAttendance } from "./attendance.js";
 import "./scanQR.js";
 
 let html5QrInstance = null;
@@ -6,18 +14,22 @@ let cameraList = [];
 let currentCameraIndex = 0;
 
 /* =========================================
-   INIT CHECK-IN SCANNER
+   INIT CHECK-IN SCANNER (DROPDOWN VERSION)
 ========================================= */
 export async function initCheckinScanner({
   readerId,
   resultId,
-  scheduleId
+  scheduleId,
+  memberSelectId,
+  startBtnId
 }) {
 
   const readerEl = document.getElementById(readerId);
   const resultBox = document.getElementById(resultId);
+  const memberSelect = document.getElementById(memberSelectId);
+  const startBtn = document.getElementById(startBtnId);
 
-  if (!readerEl || !resultBox) return;
+  if (!readerEl || !resultBox || !memberSelect || !startBtn) return;
 
   if (!scheduleId) {
     resultBox.innerHTML =
@@ -25,29 +37,87 @@ export async function initCheckinScanner({
     return;
   }
 
+  /* =========================================
+     LOAD BOOKING ACTIVE
+  ========================================= */
+  let bookingMap = {}; // userId -> bookingId
+
   try {
-    // 🔥 Force permission first (iOS safe)
+
+    const bookingSnap = await getDocs(
+      query(
+        collection(db,"bookings"),
+        where("scheduleId","==",scheduleId),
+        where("status","==","active")
+      )
+    );
+
+    bookingSnap.forEach(docSnap=>{
+      const data = docSnap.data();
+
+      bookingMap[data.userId] = docSnap.id;
+
+      const opt = document.createElement("option");
+      opt.value = data.userId;
+      opt.textContent =
+        data.displayName ||
+        data.username ||
+        data.fullName ||
+        "Member";
+
+      memberSelect.appendChild(opt);
+    });
+
+  } catch(err){
+    resultBox.innerHTML =
+      `<div class="invalid-box">Gagal load peserta</div>`;
+    return;
+  }
+
+  /* =========================================
+     START BUTTON CLICK
+  ========================================= */
+  startBtn.onclick = async ()=>{
+
+    const selectedUid = memberSelect.value;
+
+    if(!selectedUid){
+      resultBox.innerHTML =
+        `<div class="invalid-box">Pilih member dulu</div>`;
+      return;
+    }
+
+    if(!bookingMap[selectedUid]){
+      resultBox.innerHTML =
+        `<div class="invalid-box">Booking tidak ditemukan</div>`;
+      return;
+    }
+
+    document.getElementById("checkinControlPanel").style.display = "none";
+    readerEl.style.display = "block";
+
+    await prepareCamera();
+    await startCamera(scheduleId, resultBox, selectedUid, bookingMap[selectedUid]);
+  };
+}
+
+/* =========================================
+   PREPARE CAMERA
+========================================= */
+async function prepareCamera(){
+
+  try {
     await navigator.mediaDevices.getUserMedia({ video: true });
   } catch (err) {
-    resultBox.innerHTML =
-      `<div class="invalid-box">Permission kamera ditolak</div>`;
-    return;
+    throw new Error("Permission kamera ditolak");
   }
 
-  html5QrInstance = new Html5Qrcode(readerId);
+  html5QrInstance = new Html5Qrcode("reader");
 
-  try {
-    cameraList = await Html5Qrcode.getCameras();
-  } catch (err) {
-    resultBox.innerHTML =
-      `<div class="invalid-box">Gagal membaca kamera</div>`;
-    return;
-  }
+  cameraList = await Html5Qrcode.getCameras();
 
   if (!cameraList.length) {
-    resultBox.innerHTML =
-      `<div class="invalid-box">Camera tidak ditemukan</div>`;
-    return;
+    throw new Error("Camera tidak ditemukan");
   }
 
   const backIndex = cameraList.findIndex(device =>
@@ -57,14 +127,12 @@ export async function initCheckinScanner({
 
   currentCameraIndex =
     backIndex >= 0 ? backIndex : cameraList.length - 1;
-
-  await startCamera(scheduleId, resultBox);
 }
 
 /* =========================================
-   START CAMERA (IPHONE OPTIMAL)
+   START CAMERA (QR SIMPLE VALIDATION)
 ========================================= */
-async function startCamera(scheduleId, resultBox) {
+async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -99,67 +167,34 @@ async function startCamera(scheduleId, resultBox) {
       config,
       async (decodedText) => {
 
-        try {
-          await html5QrInstance.stop();
-        } catch (e) {}
+        try { await html5QrInstance.stop(); } catch(e){}
 
         try {
 
-          const cleaned = decodedText.trim().replace(/\n/g,"");
+          const cleaned = decodedText.trim();
 
-          let c, i, s;
-
-          if (cleaned.startsWith("http")) {
-            const parsed = new URL(cleaned);
-            c = parsed.searchParams.get("c");
-            i = parsed.searchParams.get("i");
-            s = parsed.searchParams.get("s");
-          } else {
-            const params = new URLSearchParams(cleaned);
-            c = params.get("c");
-            i = params.get("i");
-            s = params.get("s");
+          // 🔥 QR VALIDASI SEDERHANA
+          if (!cleaned.includes("giltclub.my.id")) {
+            showInvalid(resultBox, "QR tidak valid");
+            return setTimeout(goBack,1500);
           }
 
-          if (!c || !i || !s) {
-            showInvalid(resultBox, "QR format tidak valid");
-            return setTimeout(goBack, 1500);
-          }
+          const res = await checkInAttendance({
+            bookingId,
+            scannedUid: selectedUid
+          });
 
-          const currentUser = auth.currentUser;
-
-          if (!currentUser) {
-            showInvalid(resultBox, "Host tidak login");
-            return setTimeout(goBack, 1500);
-          }
-
-          const res = await window.processCheckIn(
-            c,
-            i,
-            s,
-            scheduleId,
-            {
-              uid: currentUser.uid,
-              role: window.currentUserData?.role
-            }
-          );
-
-          if (res.valid) {
-            showSuccess(resultBox, res);
-          } else {
-            showInvalid(resultBox, res.reason);
-          }
+          showSuccess(resultBox, res);
 
         } catch (err) {
-          console.error("Checkin scan error:", err);
-          showInvalid(resultBox, "QR tidak valid");
+
+          showInvalid(resultBox, err.message || "Check-in gagal");
         }
 
-        setTimeout(goBack, 1500);
+        setTimeout(goBack,1500);
       }
     );
 
-    // 🔥 iOS exposure warmup
     if (isIOS) {
       setTimeout(() => {
         try {
@@ -169,7 +204,6 @@ async function startCamera(scheduleId, resultBox) {
     }
 
   } catch (err) {
-    console.error("Camera start error:", err);
     resultBox.innerHTML =
       `<div class="invalid-box">
         Kamera gagal dibuka<br>
@@ -179,7 +213,7 @@ async function startCamera(scheduleId, resultBox) {
 }
 
 /* =========================================
-   UI SUCCESS (CENTER FRIENDLY)
+   UI SUCCESS
 ========================================= */
 function showSuccess(resultBox, res){
 
@@ -249,9 +283,7 @@ async function goBack(){
       await html5QrInstance.stop();
       await html5QrInstance.clear();
     }
-  }catch(e){
-    console.warn("Scanner stop error:", e);
-  }
+  }catch(e){}
 
   html5QrInstance = null;
   window.history.back();
@@ -267,9 +299,7 @@ export async function stopCheckinScanner() {
   try {
     await html5QrInstance.stop();
     await html5QrInstance.clear();
-  } catch (e) {
-    console.warn("Scanner stop error:", e);
-  }
+  } catch (e) {}
 
   html5QrInstance = null;
 }
