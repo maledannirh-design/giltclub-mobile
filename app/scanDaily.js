@@ -88,6 +88,9 @@ export async function initDailyScanner(readerId, resultId){
 /* =========================================
    START CAMERA (SUPER SAFE + VALIDATION)
 ========================================= */
+/* =========================================
+   START CAMERA (CLOSE RANGE OPTIMAL)
+========================================= */
 async function startCamera(camId){
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -95,23 +98,22 @@ async function startCamera(camId){
   try{
 
     await html5QrInstance.start(
-      camId,   // ✅ WAJIB string saja (bukan object)
+      camId,
       {
-        fps: 15,
+        fps: 18,  // sedikit lebih cepat biar responsif jarak dekat
         qrbox: (vw, vh) => {
-          const size = Math.floor(Math.min(vw, vh) * 0.93);
+          // lebih kecil supaya QR bisa full masuk saat dekat
+          const size = Math.floor(Math.min(vw, vh) * 0.80);
           return { width: size, height: size };
         },
+        aspectRatio: 1.0,
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         }
       },
       async (decodedText) => {
 
-        // 🔥 STOP supaya tidak multi-detect
-        try { 
-          await html5QrInstance.stop(); 
-        } catch(e){}
+        try { await html5QrInstance.stop(); } catch(e){}
 
         try {
 
@@ -121,7 +123,6 @@ async function startCamera(camId){
           let i = null;
           let s = null;
 
-          // Handle URL atau raw params
           if(cleaned.startsWith("http")){
             const parsed = new URL(cleaned);
             c = parsed.searchParams.get("c");
@@ -139,7 +140,6 @@ async function startCamera(camId){
             return setTimeout(goBack,1500);
           }
 
-          // 🔥 VALIDASI SERVER SIDE
           const validation = await window.processDailySelfCheckin(c,i,s);
 
           if (!validation.valid) {
@@ -147,14 +147,12 @@ async function startCamera(camId){
             return setTimeout(goBack,1500);
           }
 
-          // 🔥 UPDATE STREAK & GPOINT
           const reward = await runDailyStreakReward(validation.uid);
 
           showSuccess(resultBox, reward);
 
         } catch (err) {
 
-          console.error("Scan error:", err);
           showInvalid(resultBox, err.message || "QR tidak valid");
         }
 
@@ -162,13 +160,13 @@ async function startCamera(camId){
       }
     );
 
-    // 🔥 iPhone exposure warmup
+    // autofocus warmup untuk iPhone
     if(isIOS){
       setTimeout(()=>{
         try{
           html5QrInstance.pause(false);
         }catch(e){}
-      }, 700);
+      }, 500);
     }
 
   }catch(err){
