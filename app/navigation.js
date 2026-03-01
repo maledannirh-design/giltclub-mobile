@@ -52,7 +52,9 @@ export async function navigate(page){
       case "wallet":
         (await import("./wallet.js")).renderWallet();
         break;
-        
+        case "flash-admin":
+  (await import("./store/flash-admin.js")).renderFlashAdmin();
+  break;
       case "booking":
         (await import("./booking.js")).renderBooking();
         break;
