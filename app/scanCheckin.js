@@ -25,9 +25,24 @@ export async function initCheckinScanner({
     return;
   }
 
+  try {
+    // 🔥 Force permission first (iOS safe)
+    await navigator.mediaDevices.getUserMedia({ video: true });
+  } catch (err) {
+    resultBox.innerHTML =
+      `<div class="invalid-box">Permission kamera ditolak</div>`;
+    return;
+  }
+
   html5QrInstance = new Html5Qrcode(readerId);
 
-  cameraList = await Html5Qrcode.getCameras();
+  try {
+    cameraList = await Html5Qrcode.getCameras();
+  } catch (err) {
+    resultBox.innerHTML =
+      `<div class="invalid-box">Gagal membaca kamera</div>`;
+    return;
+  }
 
   if (!cameraList.length) {
     resultBox.innerHTML =
@@ -47,92 +62,124 @@ export async function initCheckinScanner({
 }
 
 /* =========================================
-   START CAMERA
+   START CAMERA (IPHONE OPTIMAL)
 ========================================= */
 async function startCamera(scheduleId, resultBox) {
 
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   const cameraId = cameraList[currentCameraIndex].id;
 
-  await html5QrInstance.start(
-    cameraId,
-    {
-      fps: 10,
-      qrbox: (viewfinderWidth, viewfinderHeight) => {
-        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        const qrSize = Math.floor(minEdge * 0.7);
-        return { width: qrSize, height: qrSize };
+  const videoConstraints = isIOS
+    ? {
+        facingMode: { exact: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 1280 }
       }
+    : cameraId;
+
+  const config = {
+    fps: isIOS ? 20 : 30,
+    qrbox: (viewfinderWidth, viewfinderHeight) => {
+      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+      const qrSize = Math.floor(minEdge * (isIOS ? 0.75 : 0.8));
+      return { width: qrSize, height: qrSize };
     },
-    async (decodedText) => {
-
-      try {
-        await html5QrInstance.stop();
-      } catch (e) {}
-
-      try {
-
-        const cleaned = decodedText.trim().replace(/\n/g,"");
-
-        let c = null;
-        let i = null;
-        let s = null;
-
-        if (cleaned.startsWith("http")) {
-          const parsed = new URL(cleaned);
-          c = parsed.searchParams.get("c");
-          i = parsed.searchParams.get("i");
-          s = parsed.searchParams.get("s");
-        } else {
-          const params = new URLSearchParams(cleaned);
-          c = params.get("c");
-          i = params.get("i");
-          s = params.get("s");
-        }
-
-        if (!c || !i || !s) {
-          showInvalid(resultBox, "QR format tidak valid");
-          return goBack();
-        }
-
-        const currentUser = auth.currentUser;
-
-        if (!currentUser) {
-          showInvalid(resultBox, "Host tidak login");
-          return goBack();
-        }
-
-        const res = await window.processCheckIn(
-          c,
-          i,
-          s,
-          scheduleId,
-          {
-            uid: currentUser.uid,
-            role: window.currentUserData?.role
-          }
-        );
-
-        if (res.valid) {
-          showSuccess(resultBox, res);
-        } else {
-          showInvalid(resultBox, res.reason);
-        }
-
-      } catch (err) {
-        console.error("Checkin scan error:", err);
-        showInvalid(resultBox, "QR tidak valid");
-      }
-
-      setTimeout(() => {
-        goBack();
-      }, 1500);
-
+    aspectRatio: 1.0,
+    disableFlip: true,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
     }
-  );
+  };
+
+  try {
+
+    await html5QrInstance.start(
+      videoConstraints,
+      config,
+      async (decodedText) => {
+
+        try {
+          await html5QrInstance.stop();
+        } catch (e) {}
+
+        try {
+
+          const cleaned = decodedText.trim().replace(/\n/g,"");
+
+          let c, i, s;
+
+          if (cleaned.startsWith("http")) {
+            const parsed = new URL(cleaned);
+            c = parsed.searchParams.get("c");
+            i = parsed.searchParams.get("i");
+            s = parsed.searchParams.get("s");
+          } else {
+            const params = new URLSearchParams(cleaned);
+            c = params.get("c");
+            i = params.get("i");
+            s = params.get("s");
+          }
+
+          if (!c || !i || !s) {
+            showInvalid(resultBox, "QR format tidak valid");
+            return setTimeout(goBack, 1500);
+          }
+
+          const currentUser = auth.currentUser;
+
+          if (!currentUser) {
+            showInvalid(resultBox, "Host tidak login");
+            return setTimeout(goBack, 1500);
+          }
+
+          const res = await window.processCheckIn(
+            c,
+            i,
+            s,
+            scheduleId,
+            {
+              uid: currentUser.uid,
+              role: window.currentUserData?.role
+            }
+          );
+
+          if (res.valid) {
+            showSuccess(resultBox, res);
+          } else {
+            showInvalid(resultBox, res.reason);
+          }
+
+        } catch (err) {
+          console.error("Checkin scan error:", err);
+          showInvalid(resultBox, "QR tidak valid");
+        }
+
+        setTimeout(goBack, 1500);
+      }
+    );
+
+    // 🔥 iOS exposure warmup
+    if (isIOS) {
+      setTimeout(() => {
+        try {
+          html5QrInstance.pause(false);
+        } catch (e) {}
+      }, 400);
+    }
+
+  } catch (err) {
+    console.error("Camera start error:", err);
+    resultBox.innerHTML =
+      `<div class="invalid-box">
+        Kamera gagal dibuka<br>
+        ${err.message}
+      </div>`;
+  }
 }
 
 /* =========================================
-   UI SUCCESS
+   UI SUCCESS (CENTER FRIENDLY)
 ========================================= */
 function showSuccess(resultBox, res){
 
@@ -152,22 +199,16 @@ function showSuccess(resultBox, res){
     : "";
 
   resultBox.innerHTML = `
-    <div style="
-      background:#1f2d1f;
-      border:2px solid #2ecc71;
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-    ">
-      <div style="font-size:18px;margin-bottom:8px;">
+    <div class="result-box success">
+      <div style="font-size:20px;margin-bottom:10px;">
         ✅ CHECK-IN BERHASIL
       </div>
 
       <div style="
         display:inline-block;
-        padding:4px 10px;
+        padding:6px 14px;
         border-radius:20px;
-        font-size:12px;
+        font-size:13px;
         font-weight:bold;
         background:${roleColor};
         color:#000;
@@ -179,7 +220,7 @@ function showSuccess(resultBox, res){
       <div>${cashbackText}</div>
       <div>${gpointText}</div>
 
-      <div style="font-size:12px;opacity:0.6;margin-top:8px;">
+      <div style="font-size:12px;opacity:0.6;margin-top:10px;">
         📅 ${res.sessionDate}
       </div>
     </div>
@@ -192,13 +233,7 @@ function showSuccess(resultBox, res){
 function showInvalid(resultBox, message){
 
   resultBox.innerHTML = `
-    <div style="
-      background:#3a1c1c;
-      border:2px solid #e74c3c;
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-    ">
+    <div class="result-box error">
       ❌ ${message}
     </div>
   `;
@@ -211,10 +246,7 @@ async function goBack(){
 
   try{
     if (html5QrInstance) {
-      const state = html5QrInstance.getState();
-      if (state === 2) {
-        await html5QrInstance.stop();
-      }
+      await html5QrInstance.stop();
       await html5QrInstance.clear();
     }
   }catch(e){
@@ -222,7 +254,6 @@ async function goBack(){
   }
 
   html5QrInstance = null;
-
   window.history.back();
 }
 
@@ -234,15 +265,8 @@ export async function stopCheckinScanner() {
   if (!html5QrInstance) return;
 
   try {
-
-    const state = html5QrInstance.getState();
-
-    if (state === 2) {
-      await html5QrInstance.stop();
-    }
-
+    await html5QrInstance.stop();
     await html5QrInstance.clear();
-
   } catch (e) {
     console.warn("Scanner stop error:", e);
   }
