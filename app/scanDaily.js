@@ -91,7 +91,7 @@ export async function initDailyScanner(readerId, resultId){
 
     const videoConstraints = isIOS
       ? {
-          facingMode: { exact: "environment" },
+          facingMode: "environment",
           width: { ideal: 1280 },
           height: { ideal: 1280 }
         }
