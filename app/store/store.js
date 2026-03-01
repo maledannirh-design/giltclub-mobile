@@ -169,6 +169,17 @@ function renderFlash(){
         ? FLASH_BASE_IMAGE_URL + flash.image
         : "";
 
+      // 🔥 AUTHORITY CHECK LANGSUNG (FIX BUG EARLY CLICK)
+      const now = new Date();
+      const startTime = flash.startTime.toDate();
+      const endTime   = flash.endTime.toDate();
+
+      const canRedeem =
+        flash.active &&
+        now >= startTime &&
+        now <= endTime &&
+        remaining > 0;
+
       container.innerHTML += `
         <div class="store-card flash-card">
 
@@ -197,8 +208,8 @@ function renderFlash(){
 
             <div 
               class="countdown"
-              data-start="${flash.startTime.toDate()}"
-              data-end="${flash.endTime.toDate()}"
+              data-start="${startTime}"
+              data-end="${endTime}"
               data-id="${flash.id}">
             </div>
 
@@ -206,7 +217,7 @@ function renderFlash(){
               class="btn-flash redeem-btn"
               data-id="${flash.id}"
               onclick="redeemFlash('${flash.id}')"
-              ${remaining <= 0 ? "disabled" : ""}>
+              ${!canRedeem ? "disabled" : ""}>
               ${remaining <= 0 ? "Sold Out" : "Redeem"}
             </button>
 
@@ -411,6 +422,8 @@ async function redeemFlash(flashId){
   const flashRef = doc(db, "flashDrops", flashId);
   const userRef  = doc(db, "users", user.uid);
 
+  const userLedgerRef = doc(collection(db, "users", user.uid, "gpointLedger"));
+
   const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
   if(button) button.disabled = true;
 
@@ -435,26 +448,44 @@ async function redeemFlash(flashId){
       if(now < flash.startTime.toDate()) throw "Belum mulai";
       if(now > flash.endTime.toDate()) throw "Sudah berakhir";
       if(flash.redeemedCount >= flash.quota) throw "Quota habis";
-      if(userData.gpoints < flash.flashPointCost) throw "GPoints tidak cukup";
-      if(flash.winners?.some(w=>w.uid===user.uid)) throw "Sudah redeem";
+      if(!userData.gPoint || userData.gPoint < flash.flashPointCost) throw "GPoint tidak cukup";
+      if(flash.winners?.some(w => w.uid === user.uid)) throw "Sudah redeem";
 
+      const beforeBalance = userData.gPoint;
+      const afterBalance  = beforeBalance - flash.flashPointCost;
+
+      // 1️⃣ Update saldo GPoint
       transaction.update(userRef,{
-        gpoints: userData.gpoints - flash.flashPointCost
+        gPoint: afterBalance,
+        gPointLastUpdated: new Date()
       });
 
+      // 2️⃣ Update flash (quota + winner)
       transaction.update(flashRef,{
         redeemedCount: flash.redeemedCount + 1,
         winners: arrayUnion({
-          uid:user.uid,
+          uid: user.uid,
           time: Date.now()
         })
       });
+
+      // 3️⃣ Ledger entry (subcollection user)
+      transaction.set(userLedgerRef,{
+        type: "flash_redeem",
+        referenceId: flashId,
+        amount: -flash.flashPointCost,
+        balanceBefore: beforeBalance,
+        balanceAfter: afterBalance,
+        createdAt: new Date(),
+        description: "Flash Redeem",
+      });
+
     });
 
     showConfetti();
-setTimeout(()=>{
-  alert("🔥 Kamu berhasil redeem!");
-},500);
+    setTimeout(()=>{
+      alert("🔥 Kamu berhasil redeem!");
+    },500);
 
   }catch(err){
 
@@ -466,7 +497,6 @@ setTimeout(()=>{
     if(button) button.disabled = false;
   }
 }
-
 
 /* ===============================
    SIZE MODAL
