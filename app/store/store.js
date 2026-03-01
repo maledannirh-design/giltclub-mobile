@@ -593,54 +593,8 @@ function showConfetti(){
   },3000);
 }
 
-function checkAndStartWarOverlay(startTime){
 
-  if(warOverlayActive) return;
-
-  const now = new Date();
-  const diffSec = Math.floor((startTime - now)/1000);
-
-  if(diffSec > 30 || diffSec <= 0) return;
-
-  warOverlayActive = true;
-
-  const overlay = document.createElement("div");
-  overlay.id = "warOverlay";
-  overlay.innerHTML = `<div id="warNumber">${diffSec}</div>`;
-  document.body.appendChild(overlay);
-
-  let current = diffSec;
-
-  const interval = setInterval(()=>{
-
-    current--;
-
-    const el = document.getElementById("warNumber");
-    if(!el){
-      clearInterval(interval);
-      warOverlayActive = false;
-      return;
-    }
-
-    if(current > 0){
-      el.innerText = current;
-    }
-    else if(current === 0){
-      el.innerText = "GO!";
-      setTimeout(()=>{
-        overlay.remove();
-        warOverlayActive = false;
-      },500);
-    }
-    else{
-      clearInterval(interval);
-    }
-
-  },1000);
-}
-
-
-/* ===============================
+/* ==============================
    LOSE ANIMATION
 ================================= */
 function showLoseAnimation(seconds){
