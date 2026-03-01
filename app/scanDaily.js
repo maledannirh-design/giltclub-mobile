@@ -6,7 +6,7 @@ import "./scanQR.js";
 let html5QrInstance = null;
 
 /* =========================================
-   INIT DAILY SCANNER
+   INIT DAILY SCANNER (IOS SAFE)
 ========================================= */
 export async function initDailyScanner(readerId, resultId){
 
@@ -15,19 +15,23 @@ export async function initDailyScanner(readerId, resultId){
 
   if (!readerEl || !resultBox) return;
 
-  html5QrInstance = new Html5Qrcode(readerId);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  let currentCameraId = null;
-  let cameras = [];
-
+  // 🔥 HARD RESET STREAM FIRST (very important for iOS)
   try{
-    // 🔥 Force permission first (iOS safe)
-    await navigator.mediaDevices.getUserMedia({ video: true });
+    const warmup = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
+    warmup.getTracks().forEach(track => track.stop());
   }catch(err){
     resultBox.innerHTML =
       `<div class="invalid-box">Permission kamera ditolak</div>`;
     return;
   }
+
+  html5QrInstance = new Html5Qrcode(readerId);
+
+  let cameras = [];
 
   try{
     cameras = await Html5Qrcode.getCameras();
@@ -44,27 +48,27 @@ export async function initDailyScanner(readerId, resultId){
   }
 
   // ===============================
-  // PRIORITAS BACK CAMERA (IOS SAFE)
+  // FIND BACK CAMERA (SAFE WAY)
   // ===============================
-  let backCamera = cameras.find(c =>
+  let backCam = cameras.find(c =>
     c.label.toLowerCase().includes("back")
   );
 
-  if (!backCamera) {
-    backCamera = cameras.find(c =>
+  if (!backCam) {
+    backCam = cameras.find(c =>
       c.label.toLowerCase().includes("environment")
     );
   }
 
-  // fallback → ambil kamera terakhir (biasanya back)
-  currentCameraId = backCamera
-    ? backCamera.id
+  // fallback → kamera terakhir
+  const cameraId = backCam
+    ? backCam.id
     : cameras[cameras.length - 1].id;
 
-  await startCamera(currentCameraId);
+  await startCamera(cameraId);
 
   // ===============================
-  // SWITCH CAMERA BUTTON
+  // SWITCH CAMERA
   // ===============================
   window.switchDailyCamera = async function(){
 
@@ -75,46 +79,28 @@ export async function initDailyScanner(readerId, resultId){
       await html5QrInstance.clear();
     }catch(e){}
 
-    const index = cameras.findIndex(c => c.id === currentCameraId);
+    const index = cameras.findIndex(c => c.id === cameraId);
     const nextIndex = (index + 1) % cameras.length;
-    currentCameraId = cameras[nextIndex].id;
 
-    await startCamera(currentCameraId);
+    await startCamera(cameras[nextIndex].id);
   };
 
   /* =========================================
-     START CAMERA (IOS OPTIMIZED)
+     START CAMERA (SUPER SAFE)
   ========================================= */
-  async function startCamera(cameraId){
-
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    const videoConstraints = isIOS
-      ? {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 1280 }
-        }
-      : cameraId;
-
-    const config = {
-      fps: isIOS ? 20 : 30,
-      qrbox: (vw, vh) => {
-        const minEdge = Math.min(vw, vh);
-        const size = Math.floor(minEdge * (isIOS ? 0.75 : 0.8));
-        return { width: size, height: size };
-      },
-      aspectRatio: 1.0,
-      disableFlip: true,
-      experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true
-      }
-    };
+  async function startCamera(camId){
 
     try{
+
       await html5QrInstance.start(
-        videoConstraints,
-        config,
+        camId,
+        {
+          fps: isIOS ? 18 : 28,
+          qrbox: (vw, vh) => {
+            const size = Math.floor(Math.min(vw, vh) * 0.7);
+            return { width: size, height: size };
+          }
+        },
         async (decodedText) => {
 
           try { await html5QrInstance.stop(); } catch(e){}
@@ -156,7 +142,6 @@ export async function initDailyScanner(readerId, resultId){
             showSuccess(resultBox, reward);
 
           } catch (err) {
-
             showInvalid(resultBox, err.message || "QR tidak valid");
           }
 
@@ -164,17 +149,10 @@ export async function initDailyScanner(readerId, resultId){
         }
       );
 
-      // 🔥 iOS exposure warmup
-      if(isIOS){
-        setTimeout(()=>{
-          try{
-            html5QrInstance.pause(false);
-          }catch(e){}
-        },400);
-      }
-
     }catch(err){
+
       console.error("Camera start error:", err);
+
       resultBox.innerHTML =
         `<div class="invalid-box">
           Kamera gagal dibuka<br>
@@ -236,7 +214,7 @@ async function runDailyStreakReward(uid){
 }
 
 /* =========================================
-   UI HELPERS
+   UI
 ========================================= */
 function showSuccess(resultBox, reward){
   resultBox.innerHTML =
