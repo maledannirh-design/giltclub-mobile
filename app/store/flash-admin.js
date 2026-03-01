@@ -6,10 +6,15 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  getDoc,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+let editModeId = null;
 
+/* =====================================================
+   RENDER ADMIN
+===================================================== */
 export async function renderFlashAdmin(){
 
   const content = document.getElementById("content");
@@ -24,15 +29,10 @@ export async function renderFlashAdmin(){
         <div class="card-body">
 
           <input id="flashName" placeholder="Nama Flash">
-
           <input id="flashSessionId" placeholder="Session ID">
-
-          <input id="flashImage" placeholder="Image URL (raw github link)">
-
+          <input id="flashImage" placeholder="Image filename (contoh: voucher001.webp)">
           <input id="flashNormalCost" type="number" placeholder="Normal Point Cost">
-
           <input id="flashFlashCost" type="number" placeholder="Flash Point Cost">
-
           <input id="flashQuota" type="number" placeholder="Quota">
 
           <label>Display From (WITA)</label>
@@ -44,7 +44,7 @@ export async function renderFlashAdmin(){
           <label>End Time (WITA)</label>
           <input id="flashEnd" type="datetime-local">
 
-          <button class="btn-primary" id="createFlashBtn">
+          <button class="btn-primary" id="saveFlashBtn">
             Save Flash
           </button>
 
@@ -58,30 +58,29 @@ export async function renderFlashAdmin(){
   `;
 
   loadFlashList();
-
-  document.getElementById("createFlashBtn").onclick = createFlash;
+  document.getElementById("saveFlashBtn").onclick = saveFlash;
 }
 
 
-/* ===============================
+/* =====================================================
    AUTO ID GENERATOR
-================================= */
+===================================================== */
 function generateFlashId(name){
   return (
     "flash_" +
     name.toLowerCase()
         .replace(/[^a-z0-9]/g,"_")
-        .slice(0,30) +
+        .slice(0,25) +
     "_" +
     Date.now()
   );
 }
 
 
-/* ===============================
-   CREATE OR UPDATE FLASH
-================================= */
-async function createFlash(){
+/* =====================================================
+   CREATE OR UPDATE
+===================================================== */
+async function saveFlash(){
 
   const name = document.getElementById("flashName").value.trim();
   const sessionId = document.getElementById("flashSessionId").value.trim();
@@ -98,22 +97,17 @@ async function createFlash(){
     return;
   }
 
-  const id = generateFlashId(name);
-
   const displayDate = new Date(displayInput + ":00+08:00");
   const startDate   = new Date(startInput + ":00+08:00");
   const endDate     = new Date(endInput + ":00+08:00");
 
-  await addDoc(collection(db,"flashDrops"),{
-    id,
+  const payload = {
     name,
     sessionId,
     image,
     normalPointCost: normalCost,
     flashPointCost: flashCost,
     quota,
-    redeemedCount: 0,
-    winners: [],
     eligibleRoles: ["member","coach"],
     perUserLimit: 1,
     active: true,
@@ -121,23 +115,41 @@ async function createFlash(){
     displayFrom: Timestamp.fromDate(displayDate),
     startTime: Timestamp.fromDate(startDate),
     endTime: Timestamp.fromDate(endDate),
-    createdAt: Timestamp.now()
-  });
+    updatedAt: Timestamp.now()
+  };
 
-  alert("Flash berhasil disimpan.");
+  if(editModeId){
+    await updateDoc(doc(db,"flashDrops",editModeId), payload);
+    alert("Flash berhasil diupdate.");
+  }else{
+    payload.redeemedCount = 0;
+    payload.winners = [];
+    payload.createdAt = Timestamp.now();
+    payload.id = generateFlashId(name);
+
+    await addDoc(collection(db,"flashDrops"), payload);
+    alert("Flash berhasil dibuat.");
+  }
+
+  editModeId = null;
   renderFlashAdmin();
 }
 
 
-/* ===============================
+/* =====================================================
    LOAD LIST
-================================= */
+===================================================== */
 async function loadFlashList(){
 
   const container = document.getElementById("flashList");
   container.innerHTML = "";
 
   const snap = await getDocs(collection(db,"flashDrops"));
+
+  if(snap.empty){
+    container.innerHTML = "<div style='opacity:.6'>Belum ada flash.</div>";
+    return;
+  }
 
   snap.forEach(docSnap=>{
 
@@ -173,31 +185,31 @@ async function loadFlashList(){
 }
 
 
-/* ===============================
-   EDIT FLASH
-================================= */
+/* =====================================================
+   EDIT
+===================================================== */
 window.editFlash = async function(id){
 
-  const snap = await getDocs(collection(db,"flashDrops"));
-  const docSnap = snap.docs.find(d=>d.id===id);
-  if(!docSnap) return;
+  const snap = await getDoc(doc(db,"flashDrops",id));
+  if(!snap.exists()) return;
 
-  const d = docSnap.data();
+  const d = snap.data();
+  editModeId = id;
 
-  document.getElementById("flashName").value = d.name;
-  document.getElementById("flashSessionId").value = d.sessionId;
+  document.getElementById("flashName").value = d.name || "";
+  document.getElementById("flashSessionId").value = d.sessionId || "";
   document.getElementById("flashImage").value = d.image || "";
-  document.getElementById("flashNormalCost").value = d.normalPointCost;
-  document.getElementById("flashFlashCost").value = d.flashPointCost;
-  document.getElementById("flashQuota").value = d.quota;
+  document.getElementById("flashNormalCost").value = d.normalPointCost || 0;
+  document.getElementById("flashFlashCost").value = d.flashPointCost || 0;
+  document.getElementById("flashQuota").value = d.quota || 1;
 
-  alert("Data dimuat. Edit lalu klik Save Flash.");
-}
+  alert("Mode edit aktif. Klik Save Flash untuk update.");
+};
 
 
-/* ===============================
+/* =====================================================
    TOGGLE ACTIVE
-================================= */
+===================================================== */
 window.toggleFlash = async function(id,currentStatus){
 
   await updateDoc(doc(db,"flashDrops",id),{
@@ -205,16 +217,16 @@ window.toggleFlash = async function(id,currentStatus){
   });
 
   renderFlashAdmin();
-}
+};
 
 
-/* ===============================
-   DELETE FLASH
-================================= */
+/* =====================================================
+   DELETE
+===================================================== */
 window.deleteFlash = async function(id){
 
   if(!confirm("Hapus flash ini?")) return;
 
   await deleteDoc(doc(db,"flashDrops",id));
   renderFlashAdmin();
-}
+};
