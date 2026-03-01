@@ -17,15 +17,15 @@ export const STORE_FLASH = [
   {
     id: "flash_semi_15feb",
     type: "point",
-    name: "FLASH - Semi Private 15 Feb 18:00",
-    sessionId: "session_15feb_1800",
+    name: "FLASH - Semi Private 4org/ sesi 08 Mar 18:00",
+    sessionId: "session_08Mar_1800",
     normalPointCost: 5000,
     flashPointCost: 375,
     quota: 1,
     redeemedCount: 0,
     eligibleRoles: ["member", "coach"],
     startTime: "2026-02-28T00:00:00+07:00",
-endTime:   "2026-03-06T20:00:00+07:00",
+endTime: "2026-03-01T21:00:00+07:00"
     perUserLimit: 1,
     active: true,
     isFlash: true,
