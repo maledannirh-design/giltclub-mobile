@@ -15,7 +15,7 @@ const BASE_IMAGE_URL =
 // ===============================
 export const STORE_FLASH = [
   {
-    id: "flash_semi_15feb",
+    id: "flash_semi_08Mar",
     type: "point",
     name: "FLASH - Semi Private 4org/ sesi 08 Mar 18:00",
     sessionId: "session_08Mar_1800",
@@ -31,9 +31,27 @@ endTime: "2026-03-01T21:00:00+07:00",
     isFlash: true,
   },
 ];
+export const STORE_FLASH = [
+  {
+    id: "flash_mabar_02Mar",
+    type: "point",
+    name: "FLASH - Mabar Fun All Class/ Sesi 08 Mar 21:00",
+    sessionId: "session_08Mar_2100",
+    normalPointCost: 4500,
+    flashPointCost: 150,
+    quota: 1,
+    redeemedCount: 0,
+    eligibleRoles: ["member", "coach"],
+    startTime: "2026-02-28T00:00:00+07:00",
+endTime: "2026-03-01T21:00:00+07:00",
+    perUserLimit: 2,
+    active: true,
+    isFlash: true,
+  },
+];
 export const STORE_PRODUCTS = [
   {
-    id: "jersey_black",
+    id: "jersey_club_1stEdition",
     type: "money",
     name: "GILT Jersey 1st Edition",
     price: 645000,
@@ -44,14 +62,14 @@ export const STORE_PRODUCTS = [
     active: true,
   },
   {
-    id: "cap_classic",
+    id: "visor_hat_black_rose",
     type: "money",
     name: "GILT Cap Classic-Gold Black",
     price: 85000,
     stock: 4,
     sizes: null,
     category: "accessories",
-    image: BASE_IMAGE_URL + "cap-classic.webp",
+    image: BASE_IMAGE_URL + "visor-hat-black-rose.webp",
     active: true,
   },
   {
