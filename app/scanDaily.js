@@ -88,7 +88,7 @@ export async function initDailyScanner(readerId, resultId){
   /* =========================================
      START CAMERA (SUPER SAFE)
   ========================================= */
- async function startCamera(camId){
+async function startCamera(camId){
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
@@ -97,31 +97,35 @@ export async function initDailyScanner(readerId, resultId){
     await html5QrInstance.start(
       {
         deviceId: { exact: camId },
-        width: { ideal: 1280 },
-        height: { ideal: 1280 }
+        width: { min: 1280 },
+        height: { min: 1280 }
       },
       {
-        fps: isIOS ? 16 : 28,
+        fps: 15, // 🔥 jangan lebih
         qrbox: (vw, vh) => {
-          const size = Math.floor(Math.min(vw, vh) * 0.85);
+          const size = Math.floor(Math.min(vw, vh) * 0.93);
           return { width: size, height: size };
+        },
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
         }
       },
       async (decodedText) => {
 
         try { await html5QrInstance.stop(); } catch(e){}
 
-        // PROCESS QR (biarkan logic kamu tetap)
+        // biarkan logic validasi kamu tetap di sini
+
       }
     );
 
-    // 🔥 iPhone autofocus warmup
+    // 🔥 iPhone autofocus & exposure warmup
     if(isIOS){
       setTimeout(()=>{
         try{
           html5QrInstance.pause(false);
         }catch(e){}
-      },600);
+      }, 900);
     }
 
   }catch(err){
