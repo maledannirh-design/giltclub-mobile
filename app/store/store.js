@@ -69,14 +69,11 @@ function renderProducts(){
 
       container.innerHTML += `
         <div class="store-card">
-
           <div class="card-image">
             <img src="${product.image}">
           </div>
-
           <div class="card-body">
             <h3>${product.name}</h3>
-
             <div class="card-info">
               <span class="price">
                 Rp ${product.price.toLocaleString()}
@@ -85,13 +82,11 @@ function renderProducts(){
                 ${soldOut ? "Sold Out" : `Stock: ${product.stock}`}
               </span>
             </div>
-
             ${
               soldOut
               ? `<button disabled>Unavailable</button>`
               : `<button class="btn-primary" onclick="openSizeModal('${product.id}')">Select Size</button>`
             }
-
           </div>
         </div>
       `;
@@ -116,10 +111,8 @@ function renderRewards(){
 
       container.innerHTML += `
         <div class="store-card">
-
           <div class="card-body">
             <h3>${reward.name}</h3>
-
             <div class="card-info">
               <span class="price gp">
                 ${reward.pointCost.toLocaleString()} GP
@@ -128,13 +121,11 @@ function renderRewards(){
                 Remaining: ${remaining}
               </span>
             </div>
-
             ${
               soldOut
               ? `<button disabled>Sold Out</button>`
               : `<button class="btn-gp">Redeem</button>`
             }
-
           </div>
         </div>
       `;
@@ -143,7 +134,7 @@ function renderRewards(){
 
 
 /* ===============================
-   FLASH DROP (REALTIME + LEADERBOARD)
+   FLASH DROP (ALWAYS SHOW + REALTIME)
 ================================= */
 function renderFlash(){
 
@@ -178,6 +169,10 @@ function renderFlash(){
               </span>
             </div>
 
+            <div class="flash-start">
+              Mulai: ${formatWitaDate(flash.startTime.toDate())}
+            </div>
+
             <div 
               class="countdown"
               data-start="${flash.startTime.toDate()}"
@@ -189,7 +184,7 @@ function renderFlash(){
               class="btn-flash redeem-btn"
               data-id="${flash.id}"
               onclick="redeemFlash('${flash.id}')">
-              Redeem Now
+              Redeem
             </button>
 
             <div class="leaderboard">
@@ -207,7 +202,23 @@ function renderFlash(){
 
 
 /* ===============================
-   LEADERBOARD HTML
+   FORMAT WITA DATE
+================================= */
+function formatWitaDate(date){
+
+  return date.toLocaleString("id-ID",{
+    timeZone: "Asia/Makassar",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }) + " WITA";
+}
+
+
+/* ===============================
+   LEADERBOARD
 ================================= */
 function renderLeaderboardHTML(flash){
 
@@ -231,7 +242,7 @@ function renderLeaderboardHTML(flash){
 
 
 /* ===============================
-   COUNTDOWN ENGINE
+   COUNTDOWN ENGINE (2 MODE)
 ================================= */
 function startCountdown(){
 
@@ -250,16 +261,19 @@ function startCountdown(){
 
       let target;
       let enable = false;
+      let label = "";
 
       if(now < startTime){
         target = startTime;
+        label = "Live dalam:";
       }
       else if(now >= startTime && now <= endTime){
         target = endTime;
+        label = "Berakhir dalam:";
         enable = true;
       }
       else{
-        timer.innerHTML = `Flash telah berakhir`;
+        timer.innerHTML = "Flash telah berakhir";
         if(button) button.disabled = true;
         clearInterval(interval);
         return;
@@ -275,7 +289,18 @@ function startCountdown(){
 
       const pad = n => n.toString().padStart(2, "0");
 
-      timer.innerHTML = `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      let timeString;
+
+      if(days > 0){
+        timeString = `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      }else{
+        timeString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      }
+
+      timer.innerHTML = `
+        <div class="cd-label">${label}</div>
+        <div class="cd-time">${timeString}</div>
+      `;
 
       if(button) button.disabled = !enable;
 
