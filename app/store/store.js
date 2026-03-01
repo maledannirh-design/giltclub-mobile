@@ -17,6 +17,8 @@ import {
 
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
+
+let isRedeeming = false;
 /* ===============================
    MAIN ENTRY
 ================================= */
@@ -414,14 +416,23 @@ function showLoseAnimation(seconds){
 /* ===============================
    REDEEM ENGINE (WAR SAFE)
 ================================= */
+/* ===============================
+   REDEEM ENGINE (WAR SAFE FINAL)
+================================= */
 async function redeemFlash(flashId){
 
+  // 🔥 ANTI SPAM GUARD
+  if(isRedeeming) return;
+  isRedeeming = true;
+
   const user = auth.currentUser;
-  if(!user) return alert("Login required.");
+  if(!user){
+    isRedeeming = false;
+    return alert("Login required.");
+  }
 
   const flashRef = doc(db, "flashDrops", flashId);
   const userRef  = doc(db, "users", user.uid);
-
   const userLedgerRef = doc(collection(db, "users", user.uid, "gpointLedger"));
 
   const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
@@ -454,13 +465,13 @@ async function redeemFlash(flashId){
       const beforeBalance = userData.gPoint;
       const afterBalance  = beforeBalance - flash.flashPointCost;
 
-      // 1️⃣ Update saldo GPoint
+      // 1️⃣ Update GPoint
       transaction.update(userRef,{
         gPoint: afterBalance,
         gPointLastUpdated: new Date()
       });
 
-      // 2️⃣ Update flash (quota + winner)
+      // 2️⃣ Update Flash (tanpa auto deactivate)
       transaction.update(flashRef,{
         redeemedCount: flash.redeemedCount + 1,
         winners: arrayUnion({
@@ -469,7 +480,7 @@ async function redeemFlash(flashId){
         })
       });
 
-      // 3️⃣ Ledger entry (subcollection user)
+      // 3️⃣ Ledger Entry
       transaction.set(userLedgerRef,{
         type: "flash_redeem",
         referenceId: flashId,
@@ -477,7 +488,7 @@ async function redeemFlash(flashId){
         balanceBefore: beforeBalance,
         balanceAfter: afterBalance,
         createdAt: new Date(),
-        description: "Flash Redeem",
+        description: "Flash Redeem"
       });
 
     });
@@ -494,6 +505,7 @@ async function redeemFlash(flashId){
     showLoseAnimation(diff);
 
   }finally{
+    isRedeeming = false;
     if(button) button.disabled = false;
   }
 }
