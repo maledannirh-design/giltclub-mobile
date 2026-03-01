@@ -597,11 +597,6 @@ function showConfetti(){
 /* ===============================
    FLOATING WAR COUNTDOWN (STABLE)
 ================================= */
-
-let warOverlayActive = false;
-let warWatcherStarted = false;
-let currentFlashList = [];
-
 function startWarWatcher(){
 
   if(warWatcherStarted) return;
