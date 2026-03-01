@@ -4,10 +4,10 @@
 
 
 // ===============================
-// BASE IMAGE PATH
+// BASE IMAGE PATH (RAW GITHUB)
 // ===============================
 const BASE_IMAGE_URL =
-  "https://raw.githubusercontent.com/USERNAME/REPO/main/store/products/";
+  "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
 
 
 // ===============================
@@ -22,7 +22,7 @@ export const STORE_PRODUCTS = [
     stock: 15,
     sizes: ["S", "M", "L", "XL"],
     category: "apparel",
-    image: BASE_IMAGE_URL + "jersey-black.webp",
+    image: BASE_IMAGE_URL + "jersey_rok_1.webp",
     active: true,
   },
   {
@@ -33,7 +33,7 @@ export const STORE_PRODUCTS = [
     stock: 4,
     sizes: null,
     category: "accessories",
-    image: BASE_IMAGE_URL + "visor-hat-black-rose.webp",
+    image: BASE_IMAGE_URL + "visorhat_giltlogo_black_rose.webp",
     active: true,
   },
   {
@@ -44,7 +44,7 @@ export const STORE_PRODUCTS = [
     stock: 15,
     sizes: null,
     category: "accessories",
-    image: BASE_IMAGE_URL + "sticker-pack.webp",
+    image: BASE_IMAGE_URL + "sticker-pack-solo.webp",
     active: true,
   },
 ];
@@ -60,40 +60,29 @@ export const STORE_REWARDS = [
     name: "Voucher Semi Private - 08 Mar 18:00",
     sessionId: "session_08mar_1800",
     pointCost: 9100,
-    quota: 2,
+    quota: 1,
     redeemedCount: 0,
     eligibleRoles: ["member", "coach"],
     active: true,
     isFlash: false,
-  },
+    image: BASE_IMAGE_URL + "vouchersemiprivate001.webp",
+  }
 ];
 
 
 // ===============================
-// FLASH REDEEM (TIME BASED - WITA +08:00)
-// ===============================
-//
+// FLASH REDEEM (WITA +08:00)
 // FORMAT WAJIB:
 // "YYYY-MM-DDTHH:MM:SS+08:00"
-//
-// Contoh:
-// 28 Feb 2026 jam 19:00 WITA
-// "2026-02-28T19:00:00+08:00"
-//
-// 06 Mar 2026 jam 20:00 WITA
-// "2026-03-06T20:00:00+08:00"
-//
-// JANGAN pakai +07:00 lagi.
-// Semua ke depan pakai +08:00 supaya konsisten WITA.
-//
-
+// ===============================
 export const STORE_FLASH = [
+
   {
     id: "flash_semi_08mar_1800",
     type: "point",
     name: "FLASH - Semi Private 4org / 08 Mar 18:00 WITA",
     sessionId: "session_08mar_1800",
-    normalPointCost: 5000,
+    normalPointCost: 9100,
     flashPointCost: 375,
     quota: 1,
     redeemedCount: 0,
@@ -102,33 +91,61 @@ export const STORE_FLASH = [
     active: true,
     isFlash: true,
 
-    // 28 Feb 2026 - 00:00 WITA
-    startTime: "2026-02-28T00:00:00+08:00",
+    // 04 Mar 2026 - 21:00 WITA
+    startTime: "2026-03-04T21:00:00+08:00",
 
-    // 01 Mar 2026 - 21:00 WITA
-    endTime: "2026-03-01T21:00:00+08:00",
+    // 01 Jul 2026 - 21:00 WITA
+    endTime: "2026-07-01T21:00:00+08:00",
+
+    image: BASE_IMAGE_URL + "vouchersemiprivate001.webp",
   },
 
   {
-    id: "flash_mabar_08mar_2100",
+    id: "flash_mabar_08mar_2100_a",
     type: "point",
-    name: "FLASH - Mabar Fun All Class / 08 Mar 21:00 WITA",
+    name: "FLASH - Mabar Fun All Class 2 Slot / 08 Mar 21:00 WITA",
     sessionId: "session_08mar_2100",
-    normalPointCost: 4500,
-    flashPointCost: 150,
+    normalPointCost: 6700,
+    flashPointCost: 265,
     quota: 1,
     redeemedCount: 0,
     eligibleRoles: ["member", "coach"],
-    perUserLimit: 2,
+    perUserLimit: 1,
     active: true,
     isFlash: true,
 
-    // 28 Feb 2026 - 00:00 WITA
-    startTime: "2026-02-28T00:00:00+08:00",
+    // 02 Mar 2026 - 03:45 WITA
+    startTime: "2026-03-02T03:45:00+08:00",
 
-    // 01 Mar 2026 - 21:00 WITA
-    endTime: "2026-03-01T21:00:00+08:00",
+    // 02 Mar 2026 - 16:00 WITA
+    endTime: "2026-03-02T16:00:00+08:00",
+
+    image: BASE_IMAGE_URL + "vouchermabar001.webp",
   },
+
+  {
+    id: "flash_mabar_08mar_2100_b",
+    type: "point",
+    name: "FLASH - Mabar Fun All Class 2 Slot / 08 Mar 21:00 WITA",
+    sessionId: "session_08mar_2100",
+    normalPointCost: 4500,
+    flashPointCost: 195,
+    quota: 1,
+    redeemedCount: 0,
+    eligibleRoles: ["member", "coach"],
+    perUserLimit: 1,
+    active: true,
+    isFlash: true,
+
+    // 02 Mar 2026 - 03:45 WITA
+    startTime: "2026-03-02T03:45:00+08:00",
+
+    // 02 Mar 2026 - 16:00 WITA
+    endTime: "2026-03-02T16:00:00+08:00",
+
+    image: BASE_IMAGE_URL + "vouchermabar002.webp",
+  }
+
 ];
 
 
