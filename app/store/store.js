@@ -139,6 +139,9 @@ function renderRewards(){
 /* ===============================
    FLASH DROP (ALWAYS SHOW + REALTIME)
 ================================= */
+/* ===============================
+   FLASH DROP (REALTIME + WINNER BANNER)
+================================= */
 function renderFlash(){
 
   const container = document.getElementById("storeFlash");
@@ -149,7 +152,7 @@ function renderFlash(){
     where("active","==",true)
   );
 
-  onSnapshot(q, (snapshot)=>{
+  onSnapshot(q, async (snapshot)=>{
 
     container.innerHTML = "";
 
@@ -162,7 +165,7 @@ function renderFlash(){
       return;
     }
 
-    snapshot.forEach(docSnap=>{
+    for(const docSnap of snapshot.docs){
 
       const flash = { id: docSnap.id, ...docSnap.data() };
       const remaining = Math.max(0, flash.quota - flash.redeemedCount);
@@ -171,7 +174,6 @@ function renderFlash(){
         ? FLASH_BASE_IMAGE_URL + flash.image
         : "";
 
-      // 🔥 AUTHORITY CHECK LANGSUNG (FIX BUG EARLY CLICK)
       const now = new Date();
       const startTime = flash.startTime.toDate();
       const endTime   = flash.endTime.toDate();
@@ -182,8 +184,36 @@ function renderFlash(){
         now <= endTime &&
         remaining > 0;
 
+      /* ===============================
+         🔥 WINNER POP OUT LOGIC
+      =============================== */
+
+      let winnerBannerHTML = "";
+
+      if(flash.winners && flash.winners.length > 0){
+
+        const lastWinner = flash.winners
+          .sort((a,b)=>b.time - a.time)[0];
+
+        try{
+          const userSnap = await getDoc(doc(db,"users",lastWinner.uid));
+          if(userSnap.exists()){
+            const username = userSnap.data().username || "Unknown";
+            winnerBannerHTML = `
+              <div class="winner-banner">
+                🏆 WINNER: @${username}
+              </div>
+            `;
+          }
+        }catch(e){
+          console.log("Winner fetch error:",e);
+        }
+      }
+
       container.innerHTML += `
-        <div class="store-card flash-card">
+        <div class="store-card flash-card ${remaining<=0?'sold-out':''}">
+
+          ${winnerBannerHTML}
 
           <div class="card-image">
             ${imageUrl 
@@ -204,7 +234,7 @@ function renderFlash(){
                 ${flash.flashPointCost.toLocaleString()} GP
               </span>
               <span class="stock">
-                Remaining: ${remaining}
+                ${remaining > 0 ? `Remaining: ${remaining}` : "Sold Out"}
               </span>
             </div>
 
@@ -230,7 +260,7 @@ function renderFlash(){
           </div>
         </div>
       `;
-    });
+    }
 
     startCountdown();
   });
