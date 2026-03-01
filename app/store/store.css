@@ -318,3 +318,28 @@
   pointer-events:none;
   z-index:9999;
 }
+
+.winner-banner{
+  background: linear-gradient(90deg,#ffd700,#ffb700);
+  color:#000;
+  font-weight:700;
+  text-align:center;
+  padding:8px;
+  border-radius:12px 12px 0 0;
+  animation: winnerSlide 0.4s ease-out;
+}
+
+@keyframes winnerSlide{
+  from{
+    transform:translateY(-20px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+
+.flash-card.sold-out{
+  opacity:0.85;
+}
