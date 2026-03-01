@@ -15,7 +15,8 @@ import {
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
+const FLASH_BASE_IMAGE_URL =
+  "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
 /* ===============================
    MAIN ENTRY
 ================================= */
@@ -139,67 +140,88 @@ function renderRewards(){
 function renderFlash(){
 
   const container = document.getElementById("storeFlash");
-  container.innerHTML = "";
+  if(!container) return;
 
-  const q = query(collection(db,"flashDrops"), where("active","==",true));
+  const q = query(
+    collection(db,"flashDrops"),
+    where("active","==",true)
+  );
 
   onSnapshot(q, (snapshot)=>{
 
     container.innerHTML = "";
 
+    if(snapshot.empty){
+      container.innerHTML = `
+        <div style="opacity:.6;padding:10px;">
+          Tidak ada flash aktif.
+        </div>
+      `;
+      return;
+    }
+
     snapshot.forEach(docSnap=>{
 
       const flash = { id: docSnap.id, ...docSnap.data() };
-      const remaining = flash.quota - flash.redeemedCount;
+      const remaining = Math.max(0, flash.quota - flash.redeemedCount);
+
+      const imageUrl = flash.image
+        ? FLASH_BASE_IMAGE_URL + flash.image
+        : "";
 
       container.innerHTML += `
-  <div class="store-card flash-card">
+        <div class="store-card flash-card">
 
-    <div class="card-image">
-      <img src="${flash.image || ''}" alt="flash-image">
-      <span class="badge flash">FLASH</span>
-    </div>
+          <div class="card-image">
+            ${imageUrl 
+              ? `<img src="${imageUrl}" alt="flash-image">`
+              : `<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.5;">
+                   No Image
+                 </div>`
+            }
+            <span class="badge flash">FLASH</span>
+          </div>
 
-    <div class="card-body">
+          <div class="card-body">
 
-      <h3>${flash.name}</h3>
+            <h3>${flash.name}</h3>
 
-      <div class="card-info">
-        <span class="price gp">
-          ${flash.flashPointCost.toLocaleString()} GP
-        </span>
-        <span class="stock">
-          Remaining: ${remaining}
-        </span>
-      </div>
+            <div class="card-info">
+              <span class="price gp">
+                ${flash.flashPointCost.toLocaleString()} GP
+              </span>
+              <span class="stock">
+                Remaining: ${remaining}
+              </span>
+            </div>
 
-      <div 
-        class="countdown"
-        data-start="${flash.startTime.toDate()}"
-        data-end="${flash.endTime.toDate()}"
-        data-id="${flash.id}">
-      </div>
+            <div 
+              class="countdown"
+              data-start="${flash.startTime.toDate()}"
+              data-end="${flash.endTime.toDate()}"
+              data-id="${flash.id}">
+            </div>
 
-      <button 
-        class="btn-flash redeem-btn"
-        data-id="${flash.id}"
-        onclick="redeemFlash('${flash.id}')">
-        Redeem
-      </button>
+            <button 
+              class="btn-flash redeem-btn"
+              data-id="${flash.id}"
+              onclick="redeemFlash('${flash.id}')"
+              ${remaining <= 0 ? "disabled" : ""}>
+              ${remaining <= 0 ? "Sold Out" : "Redeem"}
+            </button>
 
-      <div class="leaderboard">
-        ${renderLeaderboardHTML(flash)}
-      </div>
+            <div class="leaderboard">
+              ${renderLeaderboardHTML(flash)}
+            </div>
 
-    </div>
-  </div>
-`;
+          </div>
+        </div>
+      `;
     });
 
     startCountdown();
   });
 }
-
 
 /* ===============================
    FORMAT WITA DATE
