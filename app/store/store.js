@@ -593,23 +593,6 @@ function showConfetti(){
   },3000);
 }
 
-
-/* ===============================
-   FLOATING WAR COUNTDOWN (STABLE)
-================================= */
-function startWarWatcher(){
-
-  if(warWatcherStarted) return;
-  warWatcherStarted = true;
-
-  setInterval(()=>{
-    currentFlashList.forEach(flash=>{
-      const startTime = flash.startTime.toDate();
-      checkAndStartWarOverlay(startTime);
-    });
-  },1000);
-}
-
 function checkAndStartWarOverlay(startTime){
 
   if(warOverlayActive) return;
