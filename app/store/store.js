@@ -153,47 +153,47 @@ function renderFlash(){
       const remaining = flash.quota - flash.redeemedCount;
 
       container.innerHTML += `
-        <div class="store-card flash-card">
+  <div class="store-card flash-card">
 
-          <div class="card-body">
-            <span class="badge flash">FLASH</span>
+    <div class="card-image">
+      <img src="${flash.image || ''}" alt="flash-image">
+      <span class="badge flash">FLASH</span>
+    </div>
 
-            <h3>${flash.name}</h3>
+    <div class="card-body">
 
-            <div class="card-info">
-              <span class="price gp">
-                ${flash.flashPointCost.toLocaleString()} GP
-              </span>
-              <span class="stock">
-                Remaining: ${remaining}
-              </span>
-            </div>
+      <h3>${flash.name}</h3>
 
-            <div class="flash-start">
-              Mulai: ${formatWitaDate(flash.startTime.toDate())}
-            </div>
+      <div class="card-info">
+        <span class="price gp">
+          ${flash.flashPointCost.toLocaleString()} GP
+        </span>
+        <span class="stock">
+          Remaining: ${remaining}
+        </span>
+      </div>
 
-            <div 
-              class="countdown"
-              data-start="${flash.startTime.toDate()}"
-              data-end="${flash.endTime.toDate()}"
-              data-id="${flash.id}">
-            </div>
+      <div 
+        class="countdown"
+        data-start="${flash.startTime.toDate()}"
+        data-end="${flash.endTime.toDate()}"
+        data-id="${flash.id}">
+      </div>
 
-            <button 
-              class="btn-flash redeem-btn"
-              data-id="${flash.id}"
-              onclick="redeemFlash('${flash.id}')">
-              Redeem
-            </button>
+      <button 
+        class="btn-flash redeem-btn"
+        data-id="${flash.id}"
+        onclick="redeemFlash('${flash.id}')">
+        Redeem
+      </button>
 
-            <div class="leaderboard">
-              ${renderLeaderboardHTML(flash)}
-            </div>
+      <div class="leaderboard">
+        ${renderLeaderboardHTML(flash)}
+      </div>
 
-          </div>
-        </div>
-      `;
+    </div>
+  </div>
+`;
     });
 
     startCountdown();
