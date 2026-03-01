@@ -18,8 +18,25 @@ export async function initDailyScanner(readerId, resultId){
   html5QrInstance = new Html5Qrcode(readerId);
 
   let currentCameraId = null;
+  let cameras = [];
 
-  const cameras = await Html5Qrcode.getCameras();
+  try{
+    // 🔥 Force permission first (iOS safe)
+    await navigator.mediaDevices.getUserMedia({ video: true });
+  }catch(err){
+    resultBox.innerHTML =
+      `<div class="invalid-box">Permission kamera ditolak</div>`;
+    return;
+  }
+
+  try{
+    cameras = await Html5Qrcode.getCameras();
+  }catch(err){
+    resultBox.innerHTML =
+      `<div class="invalid-box">Gagal membaca kamera</div>`;
+    return;
+  }
+
   if (!cameras.length) {
     resultBox.innerHTML =
       `<div class="invalid-box">Camera tidak ditemukan</div>`;
@@ -39,7 +56,10 @@ export async function initDailyScanner(readerId, resultId){
     );
   }
 
-  currentCameraId = backCamera ? backCamera.id : cameras[0].id;
+  // fallback → ambil kamera terakhir (biasanya back)
+  currentCameraId = backCamera
+    ? backCamera.id
+    : cameras[cameras.length - 1].id;
 
   await startCamera(currentCameraId);
 
@@ -52,6 +72,7 @@ export async function initDailyScanner(readerId, resultId){
 
     try{
       await html5QrInstance.stop();
+      await html5QrInstance.clear();
     }catch(e){}
 
     const index = cameras.findIndex(c => c.id === currentCameraId);
@@ -60,85 +81,106 @@ export async function initDailyScanner(readerId, resultId){
 
     await startCamera(currentCameraId);
   };
-async function startCamera(cameraId){
 
-  // detect iPhone / iOS
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  /* =========================================
+     START CAMERA (IOS OPTIMIZED)
+  ========================================= */
+  async function startCamera(cameraId){
 
-  const config = {
-    fps: isIOS ? 20 : 30,   // iPhone lebih stabil di 18-22
-    qrbox: (viewfinderWidth, viewfinderHeight) => {
-      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-      const size = Math.floor(minEdge * (isIOS ? 0.75 : 0.8));
-      return { width: size, height: size };
-    },
-    aspectRatio: 1.0,
-    disableFlip: true,
-    experimentalFeatures: {
-      useBarCodeDetectorIfSupported: true
-    }
-  };
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  await html5QrInstance.start(
-    cameraId,
-    config,
-    async (decodedText) => {
-
-      // hentikan scanner segera supaya tidak multi-detect
-      try { await html5QrInstance.stop(); } catch(e){}
-
-      try {
-
-        const cleaned = decodedText.trim().replace(/\n/g,"");
-
-        let c = null;
-        let i = null;
-        let s = null;
-
-        if(cleaned.startsWith("http")){
-          const parsed = new URL(cleaned);
-          c = parsed.searchParams.get("c");
-          i = parsed.searchParams.get("i");
-          s = parsed.searchParams.get("s");
-        }else{
-          const params = new URLSearchParams(cleaned);
-          c = params.get("c");
-          i = params.get("i");
-          s = params.get("s");
+    const videoConstraints = isIOS
+      ? {
+          facingMode: { exact: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 1280 }
         }
+      : cameraId;
 
-        if(!c || !i || !s){
-          showInvalid(resultBox, "QR format tidak valid");
-          return setTimeout(goBack,1500);
+    const config = {
+      fps: isIOS ? 20 : 30,
+      qrbox: (vw, vh) => {
+        const minEdge = Math.min(vw, vh);
+        const size = Math.floor(minEdge * (isIOS ? 0.75 : 0.8));
+        return { width: size, height: size };
+      },
+      aspectRatio: 1.0,
+      disableFlip: true,
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      }
+    };
+
+    try{
+      await html5QrInstance.start(
+        videoConstraints,
+        config,
+        async (decodedText) => {
+
+          try { await html5QrInstance.stop(); } catch(e){}
+
+          try {
+
+            const cleaned = decodedText.trim().replace(/\n/g,"");
+
+            let c = null;
+            let i = null;
+            let s = null;
+
+            if(cleaned.startsWith("http")){
+              const parsed = new URL(cleaned);
+              c = parsed.searchParams.get("c");
+              i = parsed.searchParams.get("i");
+              s = parsed.searchParams.get("s");
+            }else{
+              const params = new URLSearchParams(cleaned);
+              c = params.get("c");
+              i = params.get("i");
+              s = params.get("s");
+            }
+
+            if(!c || !i || !s){
+              showInvalid(resultBox, "QR format tidak valid");
+              return setTimeout(goBack,1500);
+            }
+
+            const validation = await window.processDailySelfCheckin(c,i,s);
+
+            if (!validation.valid) {
+              showInvalid(resultBox, validation.reason);
+              return setTimeout(goBack,1500);
+            }
+
+            const reward = await runDailyStreakReward(validation.uid);
+
+            showSuccess(resultBox, reward);
+
+          } catch (err) {
+
+            showInvalid(resultBox, err.message || "QR tidak valid");
+          }
+
+          setTimeout(goBack,1500);
         }
+      );
 
-        const validation = await window.processDailySelfCheckin(c,i,s);
-
-        if (!validation.valid) {
-          showInvalid(resultBox, validation.reason);
-          return setTimeout(goBack,1500);
-        }
-
-        const reward = await runDailyStreakReward(validation.uid);
-
-        showSuccess(resultBox, reward);
-
-      } catch (err) {
-
-        showInvalid(resultBox, err.message || "QR tidak valid");
+      // 🔥 iOS exposure warmup
+      if(isIOS){
+        setTimeout(()=>{
+          try{
+            html5QrInstance.pause(false);
+          }catch(e){}
+        },400);
       }
 
-      setTimeout(goBack,1500);
+    }catch(err){
+      console.error("Camera start error:", err);
+      resultBox.innerHTML =
+        `<div class="invalid-box">
+          Kamera gagal dibuka<br>
+          ${err.message}
+        </div>`;
     }
-  );
-
-  // 🔥 iPhone autofocus warmup
-  if(isIOS){
-    setTimeout(()=>{
-      try{
-        html5QrInstance.resume();
-      }catch(e){}
-    }, 400);
   }
 }
 
@@ -147,11 +189,11 @@ async function startCamera(cameraId){
 ========================================= */
 async function runDailyStreakReward(uid){
 
-  const userRef = doc(db,"users",uid);
+  const ref = doc(db,"users",uid);
 
   return await runTransaction(db, async (transaction)=>{
 
-    const snap = await transaction.get(userRef);
+    const snap = await transaction.get(ref);
     if(!snap.exists()) throw new Error("User tidak ditemukan");
 
     const data = snap.data();
@@ -183,24 +225,10 @@ async function runDailyStreakReward(uid){
       ? (streak === 7 ? 200 : 15)
       : (streak === 7 ? 150 : 10);
 
-    // 🔹 1️⃣ Update total
-    transaction.update(userRef,{
+    transaction.update(ref,{
       currentStreak: streak,
       lastCheckinDate: today,
-      gPoint: (data.gPoint || 0) + reward,
-      gPointLastUpdated: new Date()
-    });
-
-    // 🔹 2️⃣ Create ledger entry
-    const ledgerRef = doc(
-      collection(userRef,"gpointLedger")
-    );
-
-    transaction.set(ledgerRef,{
-      type: "daily_checkin",
-      amount: reward,
-      streakDay: streak,
-      createdAt: new Date()
+      gPoint: (data.gPoint || 0) + reward
     });
 
     return reward;
@@ -208,62 +236,31 @@ async function runDailyStreakReward(uid){
 }
 
 /* =========================================
-   UI SUCCESS
+   UI HELPERS
 ========================================= */
 function showSuccess(resultBox, reward){
-
-  resultBox.innerHTML = `
-    <div style="
-      background:#1f2d1f;
-      border:2px solid gold;
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-      color:white;
-    ">
-      <div style="font-size:18px;margin-bottom:8px;">
-        ⭐ DAILY STREAK SUCCESS
-      </div>
-      <div>+${reward} GPoint</div>
-    </div>
-  `;
+  resultBox.innerHTML =
+    `<div class="valid-box">
+      ⭐ DAILY STREAK SUCCESS<br>
+      +${reward} GPoint
+    </div>`;
 }
 
-/* =========================================
-   UI INVALID
-========================================= */
 function showInvalid(resultBox, message){
-
-  resultBox.innerHTML = `
-    <div style="
-      background:#3a1c1c;
-      border:2px solid #e74c3c;
-      padding:18px;
-      border-radius:14px;
-      text-align:center;
-      color:white;
-    ">
+  resultBox.innerHTML =
+    `<div class="invalid-box">
       ❌ ${message}
-    </div>
-  `;
+    </div>`;
 }
 
-/* =========================================
-   GO BACK (SAFE REDIRECT)
-========================================= */
 async function goBack(){
 
   try{
-    if (html5QrInstance) {
-      const state = html5QrInstance.getState();
-      if (state === 2) {
-        await html5QrInstance.stop();
-      }
+    if(html5QrInstance){
+      await html5QrInstance.stop();
       await html5QrInstance.clear();
     }
-  }catch(e){
-    console.warn("Scanner stop error:", e);
-  }
+  }catch(e){}
 
   html5QrInstance = null;
 
