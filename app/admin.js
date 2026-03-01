@@ -141,6 +141,9 @@ html += `
   <button onclick="exportMembersToCSV()">Export Data Members</button>
   <button onclick="exportFullMutation()">Export Mutasi Semua Orang (Current System)</button>
   <button onclick="auditOldSystemReconciliation()">Audit Rekonsil Sistem Lama</button>
+  <button onclick="navigate('flash-admin')">
+  Flash Drop Admin
+</button>
 `;
 
 content.innerHTML = html;
