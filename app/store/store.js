@@ -20,6 +20,10 @@ export async function renderStore() {
         <h1>GILT Official Store</h1>
         <p>Elite performance gear & exclusive club rewards</p>
       </div>
+       <section id="flashSection" style="display:none;">
+        <h2 class="section-title flash-title">Flash Drop</h2>
+        <div id="storeFlash" class="store-grid"></div>
+      </section>
 
       <section>
         <h2 class="section-title">Merchandise</h2>
@@ -31,10 +35,7 @@ export async function renderStore() {
         <div id="storeRewards" class="store-grid"></div>
       </section>
 
-      <section id="flashSection" style="display:none;">
-        <h2 class="section-title flash-title">Flash Drop</h2>
-        <div id="storeFlash" class="store-grid"></div>
-      </section>
+     
 
       <div id="sizeModal" class="size-modal"></div>
 
