@@ -1,59 +1,47 @@
 /* ===============================
-   GILT STORE – COMPACT COMMERCE
+   GILT STORE – LIGHT / THEME FRIENDLY
 ================================= */
-
-:root{
-  --bg:#0e0e10;
-  --card:#18181b;
-  --text:#fff;
-  --sub:#9a9aa0;
-  --gp:#f5c518;
-  --danger:#ff3b3b;
-  --radius:18px;
-}
 
 .store-page{
   padding:16px;
-  background:var(--bg);
+  background:transparent; /* ikut theme global */
 }
 
-/* SECTION HEAD */
+/* ===============================
+   SECTION TITLE
+================================= */
 
-.section-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
-}
-
-.section-head h2{
-  font-size:14px;
+.section-title{
+  font-size:15px;
   font-weight:600;
+  margin-bottom:12px;
   letter-spacing:.2px;
 }
 
-.see-all{
-  font-size:11px;
-  color:var(--sub);
-}
 
-/* GRID */
+/* ===============================
+   GRID
+================================= */
 
 .store-grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
-  gap:12px;
-  margin-bottom:22px;
+  gap:14px;
+  margin-bottom:28px;
 }
 
-/* CARD */
+
+/* ===============================
+   CARD
+================================= */
 
 .store-card{
-  background:var(--card);
-  border-radius:var(--radius);
-  overflow:hidden;
-  padding:10px;
+  background:var(--card-bg, #ffffff);
+  border-radius:16px;
+  padding:12px;
   position:relative;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
   transition:.2s ease;
 }
 
@@ -61,14 +49,28 @@
   transform:scale(.98);
 }
 
-/* IMAGE */
+/* FLASH LIVE EFFECT */
+
+.flash-card{
+  border:1px solid rgba(255,0,0,.25);
+}
+
+.flash-card.live{
+  box-shadow:0 0 18px rgba(255,0,0,.35);
+  border:1px solid rgba(255,0,0,.6);
+}
+
+
+/* ===============================
+   IMAGE
+================================= */
 
 .card-image{
   width:100%;
   aspect-ratio:1/1;
-  border-radius:14px;
+  border-radius:12px;
   overflow:hidden;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 
 .card-image img{
@@ -77,44 +79,42 @@
   object-fit:cover;
 }
 
-/* BADGE */
+
+/* ===============================
+   BADGE
+================================= */
 
 .badge{
   position:absolute;
-  top:8px;
-  left:8px;
-  padding:3px 8px;
-  font-size:9px;
+  top:10px;
+  left:10px;
+  padding:4px 10px;
+  font-size:10px;
   font-weight:600;
   border-radius:20px;
 }
 
 .badge.flash{
-  background:var(--danger);
+  background:#ff3b3b;
   color:#fff;
 }
 
 .badge.sold{
-  background:#333;
+  background:#999;
   color:#fff;
 }
 
-/* BODY */
+
+/* ===============================
+   CARD BODY
+================================= */
 
 .card-body h3{
-  font-size:12px;
+  font-size:13px;
   font-weight:600;
-  line-height:1.3;
-  margin-bottom:4px;
-}
-
-.desc{
-  font-size:10px;
-  color:var(--sub);
   margin-bottom:6px;
+  line-height:1.3;
 }
-
-/* PRICE */
 
 .card-info{
   display:flex;
@@ -124,55 +124,165 @@
 }
 
 .price{
-  font-size:13px;
+  font-size:14px;
   font-weight:700;
 }
 
 .price.gp{
-  color:var(--gp);
+  color:#e6a800;
 }
 
 .stock{
-  font-size:9px;
-  color:var(--sub);
+  font-size:11px;
+  opacity:.7;
 }
 
-/* COUNTDOWN */
+
+/* ===============================
+   FLASH START INFO
+================================= */
+
+.flash-start{
+  font-size:11px;
+  margin-bottom:6px;
+  opacity:.75;
+}
+
+
+/* ===============================
+   COUNTDOWN
+================================= */
 
 .countdown{
-  font-size:10px;
-  font-weight:600;
-  color:var(--danger);
-  margin-bottom:6px;
+  margin-bottom:10px;
 }
 
-/* BUTTON */
+.cd-label{
+  font-size:11px;
+  opacity:.6;
+  margin-bottom:2px;
+}
+
+.cd-time{
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.5px;
+  color:#ff3b3b;
+}
+
+
+/* ===============================
+   BUTTONS
+================================= */
 
 .store-card button{
   width:100%;
-  padding:7px;
+  padding:9px;
   border:none;
   border-radius:12px;
-  font-size:11px;
+  font-size:12px;
   font-weight:600;
   cursor:pointer;
+  transition:.15s ease;
+}
+
+.store-card button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
 }
 
 .btn-primary{
-  background:#fff;
-  color:#000;
+  background:#111;
+  color:#fff;
 }
 
 .btn-gp{
-  background:var(--gp);
+  background:#e6a800;
   color:#000;
 }
 
 .btn-flash{
-  background:var(--danger);
+  background:#ff3b3b;
   color:#fff;
 }
 
-#flashSection .store-card{
-  border:1px solid rgba(255,0,0,.4);
+
+/* ===============================
+   LEADERBOARD
+================================= */
+
+.leaderboard{
+  margin-top:10px;
+  padding-top:8px;
+  border-top:1px solid rgba(0,0,0,.06);
+}
+
+.leader-title{
+  font-size:11px;
+  font-weight:600;
+  margin-bottom:4px;
+  opacity:.7;
+}
+
+.leader-item{
+  font-size:11px;
+  opacity:.75;
+  margin-bottom:2px;
+}
+
+
+/* ===============================
+   LOSE ANIMATION
+================================= */
+
+.lose-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  backdrop-filter:blur(4px);
+}
+
+.lose-box{
+  background:#fff;
+  padding:28px;
+  border-radius:16px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
+  animation:pop .25s ease-out;
+}
+
+.lose-box h2{
+  font-size:18px;
+  margin-bottom:8px;
+}
+
+.lose-box p{
+  font-size:14px;
+  opacity:.7;
+}
+
+@keyframes pop{
+  from{
+    transform:scale(.8);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (min-width:768px){
+  .store-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
 }
