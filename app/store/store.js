@@ -18,6 +18,7 @@ import {
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
 
+// 🔒 GLOBAL GUARD (taruh sekali saja di atas file)
 let isRedeeming = false;
 /* ===============================
    MAIN ENTRY
@@ -497,11 +498,10 @@ function showLoseAnimation(seconds){
 
 
 /* ===============================
-   REDEEM ENGINE (WAR SAFE FINAL)
+   REDEEM ENGINE (WAR SAFE FINAL + FAIR TIMESTAMP)
 ================================= */
 async function redeemFlash(flashId){
 
-  // 🔥 ANTI SPAM GUARD
   if(isRedeeming) return;
   isRedeeming = true;
 
@@ -548,15 +548,15 @@ async function redeemFlash(flashId){
       // 1️⃣ Update GPoint
       transaction.update(userRef,{
         gPoint: afterBalance,
-        gPointLastUpdated: new Date()
+        gPointLastUpdated: serverTimestamp()
       });
 
-      // 2️⃣ Update Flash (tanpa auto deactivate)
+      // 2️⃣ Update Flash (server timestamp for fairness)
       transaction.update(flashRef,{
         redeemedCount: flash.redeemedCount + 1,
         winners: arrayUnion({
           uid: user.uid,
-          time: Date.now()
+          time: serverTimestamp()
         })
       });
 
@@ -567,7 +567,7 @@ async function redeemFlash(flashId){
         amount: -flash.flashPointCost,
         balanceBefore: beforeBalance,
         balanceAfter: afterBalance,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
         description: "Flash Redeem"
       });
 
