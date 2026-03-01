@@ -23,7 +23,7 @@ export async function initCheckinScanner({
   memberSelectId,
   startBtnId
 }) {
-
+  console.log("Schedule ID received:", scheduleId);
   const readerEl = document.getElementById(readerId);
   const resultBox = document.getElementById(resultId);
   const memberSelect = document.getElementById(memberSelectId);
