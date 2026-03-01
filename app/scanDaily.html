@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Daily Check-In</title>
+
+  <!-- CAMERA LIBRARY (WAJIB DI ATAS) -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
@@ -67,7 +69,6 @@
       padding:8px 14px;
       border-radius:12px;
       cursor:pointer;
-      pointer-events:auto;
     }
 
     /* SWITCH BUTTON */
@@ -82,7 +83,6 @@
       padding:8px 14px;
       border-radius:12px;
       cursor:pointer;
-      pointer-events:auto;
     }
 
     /* RESULT */
@@ -146,9 +146,20 @@
 
   <div id="result"></div>
 
+  <!-- MODULE INIT (SAFARI SAFE) -->
   <script type="module">
-    import { initDailyScanner } from "./scanDaily.js";
-    initDailyScanner("reader","result");
+    import { initDailyScanner } from "./scanDaily.js?v=7";
+
+    window.addEventListener("load", () => {
+
+      if (typeof Html5Qrcode === "undefined") {
+        document.getElementById("result").innerHTML =
+          "Camera library gagal dimuat.";
+        return;
+      }
+
+      initDailyScanner("reader","result");
+    });
   </script>
 
 </body>
