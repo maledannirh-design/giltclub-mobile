@@ -4,6 +4,7 @@ import {
 } from "./store-data.js";
 
 import { auth, db } from "../firebase.js";
+import { increment } from "firebase/firestore";
 
 import {
   doc,
@@ -389,7 +390,7 @@ async function redeemFlash(flashId){
       });
 
       transaction.update(flashRef,{
-        redeemedCount: flash.redeemedCount + 1,
+        redeemedCount: increment(1),
         winners: arrayUnion({
           uid: user.uid,
           time: serverTimestamp()
