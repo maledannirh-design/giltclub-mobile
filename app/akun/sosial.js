@@ -39,15 +39,15 @@ export async function renderSosial(){
       <div class="akun-card">
 
         <input id="instagramUrl"
-          placeholder="URL Instagram"
+          placeholder="Instagram (username / @username / link)"
           value="${social.instagramUrl || ""}">
 
         <input id="tiktokUrl"
-          placeholder="URL TikTok"
+          placeholder="TikTok (username / @username / link)"
           value="${social.tiktokUrl || ""}">
 
         <input id="facebookUrl"
-          placeholder="URL Facebook"
+          placeholder="Facebook (username / link)"
           value="${social.facebookUrl || ""}">
 
         <button class="akun-btn" id="saveSocialBtn">
@@ -59,34 +59,74 @@ export async function renderSosial(){
     </div>
   `;
 
-  // 🔙 BACK TO ACCOUNT MAIN
+  // 🔙 BACK
   document.getElementById("backToAccount").onclick = async ()=>{
     const module = await import("../profile.js");
     module.renderAccountUI();
   };
 
-  // 💾 SAVE SOCIAL
+  // ===== HELPER NORMALIZE =====
+  function normalizeInstagram(input){
+    if(!input) return "";
+    input = input.replace("@","").trim();
+
+    if(input.includes("instagram.com")){
+      return input.startsWith("http") ? input : "https://" + input;
+    }
+
+    return `https://instagram.com/${input}`;
+  }
+
+  function normalizeTiktok(input){
+    if(!input) return "";
+    input = input.replace("@","").trim();
+
+    if(input.includes("tiktok.com")){
+      return input.startsWith("http") ? input : "https://" + input;
+    }
+
+    return `https://tiktok.com/@${input}`;
+  }
+
+  function normalizeFacebook(input){
+    if(!input) return "";
+    input = input.trim();
+
+    if(input.includes("facebook.com")){
+      return input.startsWith("http") ? input : "https://" + input;
+    }
+
+    return `https://facebook.com/${input}`;
+  }
+
+  // ===== PLATFORM VALIDATION =====
+  const instagramRegex = /^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._]+\/?$/;
+  const tiktokRegex    = /^https?:\/\/(www\.)?tiktok\.com\/@?[A-Za-z0-9._]+\/?$/;
+  const facebookRegex  = /^https?:\/\/(www\.)?facebook\.com\/[A-Za-z0-9._]+\/?$/;
+
+  // 💾 SAVE
   document.getElementById("saveSocialBtn").onclick = async () => {
 
-    const instagramUrl = document.getElementById("instagramUrl").value.trim();
-    const tiktokUrl    = document.getElementById("tiktokUrl").value.trim();
-    const facebookUrl  = document.getElementById("facebookUrl").value.trim();
+    let igInput = document.getElementById("instagramUrl").value.trim();
+    let ttInput = document.getElementById("tiktokUrl").value.trim();
+    let fbInput = document.getElementById("facebookUrl").value.trim();
 
-    // ===== SIMPLE URL VALIDATION =====
-    const urlRegex = /^(https?:\/\/)?([\w\-])+\.{1}[a-zA-Z]{2,}(\/.*)?$/;
+    const instagramUrl = normalizeInstagram(igInput);
+    const tiktokUrl    = normalizeTiktok(ttInput);
+    const facebookUrl  = normalizeFacebook(fbInput);
 
-    if(instagramUrl && !urlRegex.test(instagramUrl)){
-      alert("URL Instagram tidak valid.");
+    if(instagramUrl && !instagramRegex.test(instagramUrl)){
+      alert("Format Instagram tidak valid.");
       return;
     }
 
-    if(tiktokUrl && !urlRegex.test(tiktokUrl)){
-      alert("URL TikTok tidak valid.");
+    if(tiktokUrl && !tiktokRegex.test(tiktokUrl)){
+      alert("Format TikTok tidak valid.");
       return;
     }
 
-    if(facebookUrl && !urlRegex.test(facebookUrl)){
-      alert("URL Facebook tidak valid.");
+    if(facebookUrl && !facebookRegex.test(facebookUrl)){
+      alert("Format Facebook tidak valid.");
       return;
     }
 
