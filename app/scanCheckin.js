@@ -2,6 +2,8 @@ import { auth, db } from "./firebase.js";
 import {
   collection,
   query,
+  doc,
+  getDoc,
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -23,7 +25,7 @@ export async function initCheckinScanner({
   memberSelectId,
   startBtnId
 }) {
-  console.log("Schedule ID received:", scheduleId);
+
   const readerEl = document.getElementById(readerId);
   const resultBox = document.getElementById(resultId);
   const memberSelect = document.getElementById(memberSelectId);
@@ -52,29 +54,63 @@ export async function initCheckinScanner({
       )
     );
 
-    bookingSnap.forEach(docSnap=>{
+    if (bookingSnap.empty) {
+      resultBox.innerHTML =
+        `<div class="invalid-box">Belum ada peserta</div>`;
+      return;
+    }
+
+    // Kosongkan dropdown dulu
+    memberSelect.innerHTML = `<option value="">-- Pilih Member --</option>`;
+
+    // Kita kumpulkan promise supaya async rapi
+    const loadPromises = bookingSnap.docs.map(async (docSnap) => {
+
       const data = docSnap.data();
+      const userId = data.userId;
 
-      bookingMap[data.userId] = docSnap.id;
+      bookingMap[userId] = docSnap.id;
 
-const opt = document.createElement("option");
-opt.value = data.userId;
+      let displayText = "Member";
 
-const username = data.username || "";
-const fullName = data.fullName || data.displayName || "";
+      try {
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
 
-if (username && fullName) {
-  opt.textContent = `${username} - ${fullName}`;
-} else if (username) {
-  opt.textContent = username;
-} else if (fullName) {
-  opt.textContent = fullName;
-} else {
-  opt.textContent = "Member";
-}
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
 
-memberSelect.appendChild(opt);
+          const username =
+            userData.usernameID ||
+            userData.username ||
+            "";
+
+          const fullName =
+            userData.fullName ||
+            "";
+
+          if (username && fullName) {
+            displayText = `${username} - ${fullName}`;
+          } else if (username) {
+            displayText = username;
+          } else if (fullName) {
+            displayText = fullName;
+          }
+        }
+
+      } catch (e) {
+        console.error("Gagal load identity user:", e);
+      }
+
+      const opt = document.createElement("option");
+      opt.value = userId;
+      opt.textContent = displayText;
+
+      memberSelect.appendChild(opt);
     });
+
+    // Tunggu semua user selesai di-load
+    await Promise.all(loadPromises);
 
   } catch(err){
     resultBox.innerHTML =
@@ -105,7 +141,12 @@ memberSelect.appendChild(opt);
     readerEl.style.display = "block";
 
     await prepareCamera();
-    await startCamera(scheduleId, resultBox, selectedUid, bookingMap[selectedUid]);
+    await startCamera(
+      scheduleId,
+      resultBox,
+      selectedUid,
+      bookingMap[selectedUid]
+    );
   };
 }
 
