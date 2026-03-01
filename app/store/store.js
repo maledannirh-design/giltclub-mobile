@@ -412,8 +412,10 @@ async function redeemFlash(flashId){
     showConfetti();
 
   }catch(err){
-    showLoseAnimation("0.00");
-  }finally{
+  console.log("FLASH ERROR:", err);
+  alert(err);
+}
+  finally{
     isRedeeming = false;
     if(button) button.disabled = false;
   }
