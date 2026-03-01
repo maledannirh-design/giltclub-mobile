@@ -109,54 +109,41 @@ async function startCamera(camId){
         },
         aspectRatio: 1.0
       },
-      async (decodedText) => {
+     async (decodedText) => {
 
-        try {
-          await html5QrInstance.stop();
-        } catch(e){}
+  try {
+    await html5QrInstance.stop();
+  } catch(e){}
 
-        try {
+  try {
 
-          const cleaned = decodedText.trim().replace(/\n/g,"");
+    const cleaned = decodedText.trim();
 
-          let c = null;
-          let i = null;
-          let s = null;
+    // 🔥 VALIDASI SEDERHANA
+    if (!cleaned.includes("giltclub.my.id")) {
+      showInvalid(resultBox, "QR tidak valid");
+      return setTimeout(goBack,1500);
+    }
 
-          if(cleaned.startsWith("http")){
-            const parsed = new URL(cleaned);
-            c = parsed.searchParams.get("c");
-            i = parsed.searchParams.get("i");
-            s = parsed.searchParams.get("s");
-          }else{
-            const params = new URLSearchParams(cleaned);
-            c = params.get("c");
-            i = params.get("i");
-            s = params.get("s");
-          }
+    const currentUser = auth.currentUser;
 
-          if(!c || !i || !s){
-            showInvalid(resultBox, "QR format tidak valid");
-            return setTimeout(goBack,1500);
-          }
+    if (!currentUser) {
+      showInvalid(resultBox, "User belum login");
+      return setTimeout(goBack,1500);
+    }
 
-          const validation = await window.processDailySelfCheckin(c,i,s);
+    // 🔥 langsung pakai UID login sekarang
+    const reward = await runDailyStreakReward(currentUser.uid);
 
-          if (!validation.valid) {
-            showInvalid(resultBox, validation.reason);
-            return setTimeout(goBack,1500);
-          }
+    showSuccess(resultBox, reward);
 
-          const reward = await runDailyStreakReward(validation.uid);
+  } catch (err) {
 
-          showSuccess(resultBox, reward);
+    showInvalid(resultBox, err.message || "Gagal check-in");
+  }
 
-        } catch (err) {
-          showInvalid(resultBox, err.message || "QR tidak valid");
-        }
-
-        setTimeout(goBack,1500);
-      }
+  setTimeout(goBack,1500);
+}
     );
 
   }catch(err){
