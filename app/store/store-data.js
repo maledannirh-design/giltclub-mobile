@@ -2,53 +2,17 @@
 // GILT STORE DATA ENGINE
 // ===============================
 
-// ===== IMAGE BASE PATH =====
+
+// ===============================
+// BASE IMAGE PATH
+// ===============================
 const BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/USERNAME/REPO/main/store/products/";
+
 
 // ===============================
 // OFFICIAL PRODUCTS (BUY WITH MONEY)
 // ===============================
-
-// ===============================
-// FLASH REDEEM (AUTO BY TIME)
-// ===============================
-export const STORE_FLASH = [
-  {
-    id: "flash_semi_08Mar",
-    type: "point",
-    name: "FLASH - Semi Private 4org/ sesi 08 Mar 18:00",
-    sessionId: "session_08Mar_1800",
-    normalPointCost: 5000,
-    flashPointCost: 375,
-    quota: 1,
-    redeemedCount: 0,
-    eligibleRoles: ["member", "coach"],
-    startTime: "2026-02-28T00:00:00+07:00",
-endTime: "2026-03-01T21:00:00+07:00",
-    perUserLimit: 1,
-    active: true,
-    isFlash: true,
-  },
-];
-export const STORE_FLASH = [
-  {
-    id: "flash_mabar_02Mar",
-    type: "point",
-    name: "FLASH - Mabar Fun All Class/ Sesi 08 Mar 21:00",
-    sessionId: "session_08Mar_2100",
-    normalPointCost: 4500,
-    flashPointCost: 150,
-    quota: 1,
-    redeemedCount: 0,
-    eligibleRoles: ["member", "coach"],
-    startTime: "2026-02-28T00:00:00+07:00",
-endTime: "2026-03-01T21:00:00+07:00",
-    perUserLimit: 2,
-    active: true,
-    isFlash: true,
-  },
-];
 export const STORE_PRODUCTS = [
   {
     id: "jersey_club_1stEdition",
@@ -85,6 +49,7 @@ export const STORE_PRODUCTS = [
   },
 ];
 
+
 // ===============================
 // NORMAL REWARDS (REDEEM WITH GPOINTS)
 // ===============================
@@ -93,7 +58,7 @@ export const STORE_REWARDS = [
     id: "semi_08mar_1800",
     type: "point",
     name: "Voucher Semi Private - 08 Mar 18:00",
-    sessionId: "session_108mar_1700",
+    sessionId: "session_08mar_1800",
     pointCost: 9100,
     quota: 2,
     redeemedCount: 0,
@@ -104,12 +69,74 @@ export const STORE_REWARDS = [
 ];
 
 
+// ===============================
+// FLASH REDEEM (TIME BASED - WITA +08:00)
+// ===============================
+//
+// FORMAT WAJIB:
+// "YYYY-MM-DDTHH:MM:SS+08:00"
+//
+// Contoh:
+// 28 Feb 2026 jam 19:00 WITA
+// "2026-02-28T19:00:00+08:00"
+//
+// 06 Mar 2026 jam 20:00 WITA
+// "2026-03-06T20:00:00+08:00"
+//
+// JANGAN pakai +07:00 lagi.
+// Semua ke depan pakai +08:00 supaya konsisten WITA.
+//
+
+export const STORE_FLASH = [
+  {
+    id: "flash_semi_08mar_1800",
+    type: "point",
+    name: "FLASH - Semi Private 4org / 08 Mar 18:00 WITA",
+    sessionId: "session_08mar_1800",
+    normalPointCost: 5000,
+    flashPointCost: 375,
+    quota: 1,
+    redeemedCount: 0,
+    eligibleRoles: ["member", "coach"],
+    perUserLimit: 1,
+    active: true,
+    isFlash: true,
+
+    // 28 Feb 2026 - 00:00 WITA
+    startTime: "2026-02-28T00:00:00+08:00",
+
+    // 01 Mar 2026 - 21:00 WITA
+    endTime: "2026-03-01T21:00:00+08:00",
+  },
+
+  {
+    id: "flash_mabar_08mar_2100",
+    type: "point",
+    name: "FLASH - Mabar Fun All Class / 08 Mar 21:00 WITA",
+    sessionId: "session_08mar_2100",
+    normalPointCost: 4500,
+    flashPointCost: 150,
+    quota: 1,
+    redeemedCount: 0,
+    eligibleRoles: ["member", "coach"],
+    perUserLimit: 2,
+    active: true,
+    isFlash: true,
+
+    // 28 Feb 2026 - 00:00 WITA
+    startTime: "2026-02-28T00:00:00+08:00",
+
+    // 01 Mar 2026 - 21:00 WITA
+    endTime: "2026-03-01T21:00:00+08:00",
+  },
+];
+
 
 // ===============================
 // REWARD POINT CALCULATION
 // ===============================
-
 export function calculateRewardPoints(role, totalAmount) {
+
   const base = Math.floor(totalAmount / 50000);
 
   if (role === "member") return base * 1000;
@@ -117,18 +144,4 @@ export function calculateRewardPoints(role, totalAmount) {
   if (role === "vvip") return base * 2500;
 
   return 0;
-}
-
-// ===============================
-// FLASH ACTIVE CHECK
-// ===============================
-
-export function isFlashActive(item) {
-  if (!item.isFlash || !item.active) return false;
-
-  const now = new Date();
-  const start = new Date(item.startTime);
-  const end = new Date(item.endTime);
-
-  return now >= start && now <= end && item.redeemedCount < item.quota;
 }
