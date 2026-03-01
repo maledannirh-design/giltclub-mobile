@@ -57,18 +57,20 @@ export async function initCheckinScanner({
 
       bookingMap[data.userId] = docSnap.id;
 
-      const opt = document.createElement("option");
+const opt = document.createElement("option");
 opt.value = data.userId;
 
-// 🔒 Respect privacy setting
-if (data.isAnonymous === true) {
-  opt.textContent = "Anonymous";
+const username = data.username || "";
+const fullName = data.fullName || data.displayName || "";
+
+if (username && fullName) {
+  opt.textContent = `${username} - ${fullName}`;
+} else if (username) {
+  opt.textContent = username;
+} else if (fullName) {
+  opt.textContent = fullName;
 } else {
-  opt.textContent =
-    data.displayName ||
-    data.username ||
-    data.fullName ||
-    "Member";
+  opt.textContent = "Member";
 }
 
 memberSelect.appendChild(opt);
