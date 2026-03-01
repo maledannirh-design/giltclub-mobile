@@ -60,62 +60,85 @@ export async function initDailyScanner(readerId, resultId){
 
     await startCamera(currentCameraId);
   };
+async function startCamera(cameraId){
 
-  async function startCamera(cameraId){
+  // detect iPhone / iOS
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    await html5QrInstance.start(
-      cameraId,
-      {
-        fps: 45,
-        qrbox: (viewfinderWidth, viewfinderHeight) => {
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const size = Math.floor(minEdge * 0.8);
-          return { width: size, height: size };
-        },
-        aspectRatio: 1.0
-      },
-      async (decodedText) => {
+  const config = {
+    fps: isIOS ? 20 : 30,   // iPhone lebih stabil di 18-22
+    qrbox: (viewfinderWidth, viewfinderHeight) => {
+      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+      const size = Math.floor(minEdge * (isIOS ? 0.75 : 0.8));
+      return { width: size, height: size };
+    },
+    aspectRatio: 1.0,
+    disableFlip: true,
+    experimentalFeatures: {
+      useBarCodeDetectorIfSupported: true
+    }
+  };
 
-        try { await html5QrInstance.stop(); } catch(e){}
+  await html5QrInstance.start(
+    cameraId,
+    config,
+    async (decodedText) => {
 
-        try {
+      // hentikan scanner segera supaya tidak multi-detect
+      try { await html5QrInstance.stop(); } catch(e){}
 
-          const cleaned = decodedText.trim().replace(/\n/g,"");
+      try {
 
-          let c = null;
-          let i = null;
-          let s = null;
+        const cleaned = decodedText.trim().replace(/\n/g,"");
 
-          if(cleaned.startsWith("http")){
-            const parsed = new URL(cleaned);
-            c = parsed.searchParams.get("c");
-            i = parsed.searchParams.get("i");
-            s = parsed.searchParams.get("s");
-          }else{
-            const params = new URLSearchParams(cleaned);
-            c = params.get("c");
-            i = params.get("i");
-            s = params.get("s");
-          }
+        let c = null;
+        let i = null;
+        let s = null;
 
-          const validation = await window.processDailySelfCheckin(c,i,s);
-
-          if (!validation.valid) {
-            showInvalid(resultBox, validation.reason);
-            return setTimeout(goBack,1500);
-          }
-
-          const reward = await runDailyStreakReward(validation.uid);
-
-          showSuccess(resultBox, reward);
-
-        } catch (err) {
-          showInvalid(resultBox, err.message || "QR tidak valid");
+        if(cleaned.startsWith("http")){
+          const parsed = new URL(cleaned);
+          c = parsed.searchParams.get("c");
+          i = parsed.searchParams.get("i");
+          s = parsed.searchParams.get("s");
+        }else{
+          const params = new URLSearchParams(cleaned);
+          c = params.get("c");
+          i = params.get("i");
+          s = params.get("s");
         }
 
-        setTimeout(goBack,1500);
+        if(!c || !i || !s){
+          showInvalid(resultBox, "QR format tidak valid");
+          return setTimeout(goBack,1500);
+        }
+
+        const validation = await window.processDailySelfCheckin(c,i,s);
+
+        if (!validation.valid) {
+          showInvalid(resultBox, validation.reason);
+          return setTimeout(goBack,1500);
+        }
+
+        const reward = await runDailyStreakReward(validation.uid);
+
+        showSuccess(resultBox, reward);
+
+      } catch (err) {
+
+        showInvalid(resultBox, err.message || "QR tidak valid");
       }
-    );
+
+      setTimeout(goBack,1500);
+    }
+  );
+
+  // 🔥 iPhone autofocus warmup
+  if(isIOS){
+    setTimeout(()=>{
+      try{
+        html5QrInstance.resume();
+      }catch(e){}
+    }, 400);
   }
 }
 
