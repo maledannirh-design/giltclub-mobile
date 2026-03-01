@@ -94,12 +94,47 @@
 </head>
 <body>
 
-  <div class="scan-title">Scan Check-In</div>
-  <button class="close-btn" onclick="window.history.back()">Close</button>
+  <div class="scan-title">Check-In Session</div>
+<button class="close-btn" onclick="window.history.back()">Close</button>
 
-  <div id="reader"></div>
-  <div class="scan-overlay"></div>
-  <div id="result"></div>
+<!-- MEMBER SELECT -->
+<div id="checkinControlPanel" style="
+  position:fixed;
+  top:70px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+  width:90%;
+  max-width:400px;
+  text-align:center;
+">
+
+  <select id="memberSelect" style="
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    margin-bottom:10px;
+  ">
+    <option value="">Pilih Member</option>
+  </select>
+
+  <button id="startScanBtn" style="
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    background:#2ecc71;
+    color:#000;
+    font-weight:bold;
+  ">
+    Mulai Scan
+  </button>
+
+</div>
+
+<div id="reader" style="display:none;"></div>
+<div id="result"></div>
 
   <script type="module">
 
@@ -113,10 +148,12 @@
     }else{
 
       initCheckinScanner({
-        readerId: "reader",
-        resultId: "result",
-        scheduleId
-      });
+  readerId: "reader",
+  resultId: "result",
+  scheduleId,
+  memberSelectId: "memberSelect",
+  startBtnId: "startScanBtn"
+});
 
     }
 
