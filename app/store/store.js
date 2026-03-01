@@ -176,6 +176,7 @@ function renderFlash(){
 
       const now = new Date();
       const startTime = flash.startTime.toDate();
+      checkAndStartWarOverlay(startTime);
       const endTime   = flash.endTime.toDate();
 
       const canRedeem =
@@ -424,6 +425,58 @@ function showConfetti(){
     canvas.remove();
   },3000);
 }
+
+/* ===============================
+   FLOATING WAR COUNTDOWN (30s)
+================================= */
+let warOverlayActive = false;
+
+function checkAndStartWarOverlay(startTime){
+
+  if(warOverlayActive) return;
+
+  const now = new Date();
+  const diffMs = startTime - now;
+  const diffSec = Math.floor(diffMs / 1000);
+
+  if(diffSec > 30 || diffSec <= 0) return;
+
+  warOverlayActive = true;
+
+  const overlay = document.createElement("div");
+  overlay.id = "warOverlay";
+  overlay.innerHTML = `<div id="warNumber">${diffSec}</div>`;
+  document.body.appendChild(overlay);
+
+  let current = diffSec;
+
+  const interval = setInterval(()=>{
+
+    current--;
+
+    const numberEl = document.getElementById("warNumber");
+    if(!numberEl){
+      clearInterval(interval);
+      warOverlayActive = false;
+      return;
+    }
+
+    if(current > 0){
+      numberEl.innerText = current;
+    }
+    else if(current === 0){
+      numberEl.innerText = "GO!";
+      setTimeout(()=>{
+        overlay.remove();
+        warOverlayActive = false;
+      },500);
+    }
+    else{
+      clearInterval(interval);
+    }
+
+  },1000);
+}
 /* ===============================
    LOSE ANIMATION
 ================================= */
@@ -443,9 +496,6 @@ function showLoseAnimation(seconds){
 }
 
 
-/* ===============================
-   REDEEM ENGINE (WAR SAFE)
-================================= */
 /* ===============================
    REDEEM ENGINE (WAR SAFE FINAL)
 ================================= */
