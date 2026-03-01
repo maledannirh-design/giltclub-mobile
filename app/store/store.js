@@ -12,14 +12,22 @@ import {
   query,
   where,
   runTransaction,
-  arrayUnion
+  arrayUnion,
+  getDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
 
-// 🔒 GLOBAL GUARD (taruh sekali saja di atas file)
+// 🔒 GLOBAL GUARD
 let isRedeeming = false;
+
+// 🔥 WAR STATE
+let warOverlayActive = false;
+let warWatcherStarted = false;
+let currentFlashList = [];
+
 /* ===============================
    MAIN ENTRY
 ================================= */
@@ -30,7 +38,6 @@ export async function renderStore() {
 
   content.innerHTML = `
     <div class="store-page">
-
       <section id="flashSection">
         <h2 class="section-title">Flash Drop</h2>
         <div id="storeFlash" class="store-grid"></div>
@@ -47,7 +54,6 @@ export async function renderStore() {
       </section>
 
       <div id="sizeModal" class="size-modal"></div>
-
     </div>
   `;
 
@@ -55,7 +61,6 @@ export async function renderStore() {
   renderRewards();
   renderFlash();
 }
-
 
 /* ===============================
    PRODUCTS
@@ -97,7 +102,6 @@ function renderProducts(){
     });
 }
 
-
 /* ===============================
    REWARDS
 ================================= */
@@ -136,12 +140,8 @@ function renderRewards(){
     });
 }
 
-
 /* ===============================
-   FLASH DROP (ALWAYS SHOW + REALTIME)
-================================= */
-/* ===============================
-   FLASH DROP (REALTIME + WINNER BANNER)
+   FLASH DROP
 ================================= */
 function renderFlash(){
 
@@ -166,18 +166,18 @@ function renderFlash(){
       return;
     }
 
-    for(const docSnap of snapshot.docs){
+    currentFlashList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    startWarWatcher(); // 🔥 start watcher sekali saja
 
-      const flash = { id: docSnap.id, ...docSnap.data() };
+    for(const flash of currentFlashList){
+
       const remaining = Math.max(0, flash.quota - flash.redeemedCount);
-
       const imageUrl = flash.image
         ? FLASH_BASE_IMAGE_URL + flash.image
         : "";
 
       const now = new Date();
       const startTime = flash.startTime.toDate();
-      checkAndStartWarOverlay(startTime);
       const endTime   = flash.endTime.toDate();
 
       const canRedeem =
@@ -186,16 +186,17 @@ function renderFlash(){
         now <= endTime &&
         remaining > 0;
 
-      /* ===============================
-         🔥 WINNER POP OUT LOGIC
-      =============================== */
-
+      // 🔥 Winner Banner
       let winnerBannerHTML = "";
-
       if(flash.winners && flash.winners.length > 0){
+        const sorted = [...flash.winners]
+          .sort((a,b)=>{
+            const at = a.time?.toMillis ? a.time.toMillis() : 0;
+            const bt = b.time?.toMillis ? b.time.toMillis() : 0;
+            return bt - at;
+          });
 
-        const lastWinner = flash.winners
-          .sort((a,b)=>b.time - a.time)[0];
+        const lastWinner = sorted[0];
 
         try{
           const userSnap = await getDoc(doc(db,"users",lastWinner.uid));
@@ -207,9 +208,7 @@ function renderFlash(){
               </div>
             `;
           }
-        }catch(e){
-          console.log("Winner fetch error:",e);
-        }
+        }catch(e){}
       }
 
       container.innerHTML += `
@@ -255,13 +254,17 @@ function renderFlash(){
               ${remaining <= 0 ? "Sold Out" : "Redeem"}
             </button>
 
-            <div class="leaderboard">
-              ${renderLeaderboardHTML(flash)}
+            <div class="leaderboard" id="leader-${flash.id}">
             </div>
 
           </div>
         </div>
       `;
+
+      const leaderboardContainer = document.getElementById(`leader-${flash.id}`);
+      if(leaderboardContainer){
+        leaderboardContainer.innerHTML = await renderLeaderboardHTML(flash);
+      }
     }
 
     startCountdown();
@@ -269,10 +272,155 @@ function renderFlash(){
 }
 
 /* ===============================
+   WAR WATCHER (STABLE 30 DETIK)
+================================= */
+function startWarWatcher(){
+
+  if(warWatcherStarted) return;
+  warWatcherStarted = true;
+
+  setInterval(()=>{
+
+    currentFlashList.forEach(flash=>{
+      const startTime = flash.startTime.toDate();
+      checkAndStartWarOverlay(startTime);
+    });
+
+  },1000);
+}
+
+/* ===============================
+   FLOATING WAR COUNTDOWN
+================================= */
+function checkAndStartWarOverlay(startTime){
+
+  if(warOverlayActive) return;
+
+  const now = new Date();
+  const diffSec = Math.floor((startTime - now)/1000);
+
+  if(diffSec > 30 || diffSec <= 0) return;
+
+  warOverlayActive = true;
+
+  const overlay = document.createElement("div");
+  overlay.id = "warOverlay";
+  overlay.innerHTML = `<div id="warNumber">${diffSec}</div>`;
+  document.body.appendChild(overlay);
+
+  let current = diffSec;
+
+  const interval = setInterval(()=>{
+
+    current--;
+
+    const el = document.getElementById("warNumber");
+    if(!el){
+      clearInterval(interval);
+      warOverlayActive = false;
+      return;
+    }
+
+    if(current > 0){
+      el.innerText = current;
+    }
+    else if(current === 0){
+      el.innerText = "GO!";
+      setTimeout(()=>{
+        overlay.remove();
+        warOverlayActive = false;
+      },500);
+    }
+    else{
+      clearInterval(interval);
+    }
+
+  },1000);
+}
+
+/* ===============================
+   REDEEM ENGINE
+================================= */
+async function redeemFlash(flashId){
+
+  if(isRedeeming) return;
+  isRedeeming = true;
+
+  const user = auth.currentUser;
+  if(!user){
+    isRedeeming = false;
+    return alert("Login required.");
+  }
+
+  const flashRef = doc(db, "flashDrops", flashId);
+  const userRef  = doc(db, "users", user.uid);
+  const userLedgerRef = doc(collection(db, "users", user.uid, "gpointLedger"));
+
+  const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
+  if(button) button.disabled = true;
+
+  try{
+
+    await runTransaction(db, async (transaction) => {
+
+      const flashSnap = await transaction.get(flashRef);
+      const userSnap  = await transaction.get(userRef);
+
+      if(!flashSnap.exists()) throw "Flash tidak ditemukan";
+      if(!userSnap.exists()) throw "User tidak ditemukan";
+
+      const flash = flashSnap.data();
+      const userData = userSnap.data();
+      const now = new Date();
+
+      if(!flash.active) throw "Flash tidak aktif";
+      if(now < flash.startTime.toDate()) throw "Belum mulai";
+      if(now > flash.endTime.toDate()) throw "Sudah berakhir";
+      if(flash.redeemedCount >= flash.quota) throw "Quota habis";
+      if(!userData.gPoint || userData.gPoint < flash.flashPointCost) throw "GPoint tidak cukup";
+      if(flash.winners?.some(w => w.uid === user.uid)) throw "Sudah redeem";
+
+      const beforeBalance = userData.gPoint;
+      const afterBalance  = beforeBalance - flash.flashPointCost;
+
+      transaction.update(userRef,{
+        gPoint: afterBalance,
+        gPointLastUpdated: serverTimestamp()
+      });
+
+      transaction.update(flashRef,{
+        redeemedCount: flash.redeemedCount + 1,
+        winners: arrayUnion({
+          uid: user.uid,
+          time: serverTimestamp()
+        })
+      });
+
+      transaction.set(userLedgerRef,{
+        type: "flash_redeem",
+        referenceId: flashId,
+        amount: -flash.flashPointCost,
+        balanceBefore: beforeBalance,
+        balanceAfter: afterBalance,
+        createdAt: serverTimestamp(),
+        description: "Flash Redeem"
+      });
+
+    });
+
+    showConfetti();
+
+  }catch(err){
+    showLoseAnimation("0.00");
+  }finally{
+    isRedeeming = false;
+    if(button) button.disabled = false;
+  }
+}
+/* ===============================
    FORMAT WITA DATE
 ================================= */
 function formatWitaDate(date){
-
   return date.toLocaleString("id-ID",{
     timeZone: "Asia/Makassar",
     day: "2-digit",
@@ -285,31 +433,54 @@ function formatWitaDate(date){
 
 
 /* ===============================
-   LEADERBOARD
+   LEADERBOARD (USERNAME BASED)
 ================================= */
-function renderLeaderboardHTML(flash){
+async function renderLeaderboardHTML(flash){
 
   if(!flash.winners || flash.winners.length === 0){
     return "";
   }
 
   const sorted = [...flash.winners]
-    .sort((a,b)=>a.time - b.time)
+    .sort((a,b)=>{
+      const at = a.time?.toMillis ? a.time.toMillis() : 0;
+      const bt = b.time?.toMillis ? b.time.toMillis() : 0;
+      return at - bt;
+    })
     .slice(0,5);
 
-  return `
-    <div class="leader-title">Top Winners</div>
-    ${sorted.map((w,i)=>`
-      <div class="leader-item">
-        ${i+1}. ${w.uid.substring(0,6)}...
-      </div>
-    `).join("")}
-  `;
+  let html = `<div class="leader-title">Top Winners</div>`;
+
+  for(let i=0;i<sorted.length;i++){
+
+    const winner = sorted[i];
+
+    try{
+      const userSnap = await getDoc(doc(db,"users",winner.uid));
+      const username = userSnap.exists()
+        ? userSnap.data().username
+        : "Unknown";
+
+      html += `
+        <div class="leader-item">
+          ${i+1}. @${username}
+        </div>
+      `;
+    }catch(e){
+      html += `
+        <div class="leader-item">
+          ${i+1}. Unknown
+        </div>
+      `;
+    }
+  }
+
+  return html;
 }
 
 
 /* ===============================
-   COUNTDOWN ENGINE (2 MODE)
+   COUNTDOWN ENGINE (LIVE & END)
 ================================= */
 function startCountdown(){
 
@@ -340,7 +511,7 @@ function startCountdown(){
         target = endTime;
         label = "Berakhir dalam:";
         enable = true;
-        card.classList.add("live"); // 🔥 glow live
+        card.classList.add("live");
       }
       else{
         timer.innerHTML = "Flash telah berakhir";
@@ -368,7 +539,6 @@ function startCountdown(){
         timeString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
       }
 
-      // 🔥 Last 10 seconds blink
       const dangerClass = totalSeconds <= 10 ? "blink" : "";
 
       timer.innerHTML = `
@@ -381,6 +551,11 @@ function startCountdown(){
     }, 1000);
   });
 }
+
+
+/* ===============================
+   CONFETTI
+================================= */
 function showConfetti(){
 
   const canvas = document.createElement("canvas");
@@ -395,7 +570,6 @@ function showConfetti(){
     x: Math.random()*canvas.width,
     y: Math.random()*canvas.height - canvas.height,
     r: Math.random()*6+4,
-    d: Math.random()*canvas.height,
     color: `hsl(${Math.random()*360},100%,50%)`
   }));
 
@@ -406,16 +580,8 @@ function showConfetti(){
       ctx.arc(p.x,p.y,p.r,0,Math.PI*2,false);
       ctx.fillStyle = p.color;
       ctx.fill();
-    });
-    update();
-  }
-
-  function update(){
-    pieces.forEach(p=>{
       p.y += 4;
-      if(p.y > canvas.height){
-        p.y = -10;
-      }
+      if(p.y > canvas.height) p.y = -10;
     });
   }
 
@@ -427,18 +593,34 @@ function showConfetti(){
   },3000);
 }
 
+
 /* ===============================
-   FLOATING WAR COUNTDOWN (30s)
+   FLOATING WAR COUNTDOWN (STABLE)
 ================================= */
+
 let warOverlayActive = false;
+let warWatcherStarted = false;
+let currentFlashList = [];
+
+function startWarWatcher(){
+
+  if(warWatcherStarted) return;
+  warWatcherStarted = true;
+
+  setInterval(()=>{
+    currentFlashList.forEach(flash=>{
+      const startTime = flash.startTime.toDate();
+      checkAndStartWarOverlay(startTime);
+    });
+  },1000);
+}
 
 function checkAndStartWarOverlay(startTime){
 
   if(warOverlayActive) return;
 
   const now = new Date();
-  const diffMs = startTime - now;
-  const diffSec = Math.floor(diffMs / 1000);
+  const diffSec = Math.floor((startTime - now)/1000);
 
   if(diffSec > 30 || diffSec <= 0) return;
 
@@ -455,18 +637,18 @@ function checkAndStartWarOverlay(startTime){
 
     current--;
 
-    const numberEl = document.getElementById("warNumber");
-    if(!numberEl){
+    const el = document.getElementById("warNumber");
+    if(!el){
       clearInterval(interval);
       warOverlayActive = false;
       return;
     }
 
     if(current > 0){
-      numberEl.innerText = current;
+      el.innerText = current;
     }
     else if(current === 0){
-      numberEl.innerText = "GO!";
+      el.innerText = "GO!";
       setTimeout(()=>{
         overlay.remove();
         warOverlayActive = false;
@@ -478,6 +660,8 @@ function checkAndStartWarOverlay(startTime){
 
   },1000);
 }
+
+
 /* ===============================
    LOSE ANIMATION
 ================================= */
@@ -496,99 +680,6 @@ function showLoseAnimation(seconds){
   setTimeout(()=> div.remove(), 2500);
 }
 
-
-/* ===============================
-   REDEEM ENGINE (WAR SAFE FINAL + FAIR TIMESTAMP)
-================================= */
-async function redeemFlash(flashId){
-
-  if(isRedeeming) return;
-  isRedeeming = true;
-
-  const user = auth.currentUser;
-  if(!user){
-    isRedeeming = false;
-    return alert("Login required.");
-  }
-
-  const flashRef = doc(db, "flashDrops", flashId);
-  const userRef  = doc(db, "users", user.uid);
-  const userLedgerRef = doc(collection(db, "users", user.uid, "gpointLedger"));
-
-  const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
-  if(button) button.disabled = true;
-
-  const clickStart = performance.now();
-
-  try{
-
-    await runTransaction(db, async (transaction) => {
-
-      const flashSnap = await transaction.get(flashRef);
-      const userSnap  = await transaction.get(userRef);
-
-      if(!flashSnap.exists()) throw "Flash tidak ditemukan";
-      if(!userSnap.exists()) throw "User tidak ditemukan";
-
-      const flash = flashSnap.data();
-      const userData = userSnap.data();
-
-      const now = new Date();
-
-      if(!flash.active) throw "Flash tidak aktif";
-      if(now < flash.startTime.toDate()) throw "Belum mulai";
-      if(now > flash.endTime.toDate()) throw "Sudah berakhir";
-      if(flash.redeemedCount >= flash.quota) throw "Quota habis";
-      if(!userData.gPoint || userData.gPoint < flash.flashPointCost) throw "GPoint tidak cukup";
-      if(flash.winners?.some(w => w.uid === user.uid)) throw "Sudah redeem";
-
-      const beforeBalance = userData.gPoint;
-      const afterBalance  = beforeBalance - flash.flashPointCost;
-
-      // 1️⃣ Update GPoint
-      transaction.update(userRef,{
-        gPoint: afterBalance,
-        gPointLastUpdated: serverTimestamp()
-      });
-
-      // 2️⃣ Update Flash (server timestamp for fairness)
-      transaction.update(flashRef,{
-        redeemedCount: flash.redeemedCount + 1,
-        winners: arrayUnion({
-          uid: user.uid,
-          time: serverTimestamp()
-        })
-      });
-
-      // 3️⃣ Ledger Entry
-      transaction.set(userLedgerRef,{
-        type: "flash_redeem",
-        referenceId: flashId,
-        amount: -flash.flashPointCost,
-        balanceBefore: beforeBalance,
-        balanceAfter: afterBalance,
-        createdAt: serverTimestamp(),
-        description: "Flash Redeem"
-      });
-
-    });
-
-    showConfetti();
-    setTimeout(()=>{
-      alert("🔥 Kamu berhasil redeem!");
-    },500);
-
-  }catch(err){
-
-    const clickEnd = performance.now();
-    const diff = ((clickEnd - clickStart)/1000).toFixed(2);
-    showLoseAnimation(diff);
-
-  }finally{
-    isRedeeming = false;
-    if(button) button.disabled = false;
-  }
-}
 
 /* ===============================
    SIZE MODAL
