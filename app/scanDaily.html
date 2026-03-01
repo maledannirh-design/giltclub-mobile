@@ -7,117 +7,139 @@
   <!-- CAMERA LIBRARY (WAJIB DI ATAS) -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
-  <style>
-    html, body{
-      margin:0;
-      padding:0;
-      height:100%;
-      background:#000;
-      overflow:hidden;
-      font-family:Arial;
-    }
+ <style>
+  html, body{
+    margin:0;
+    padding:0;
+    height:100%;
+    background:#000;
+    overflow:hidden;
+    font-family:Arial;
+  }
 
-    /* READER */
-    #reader{
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
-      z-index:1;
-    }
+  #reader{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    z-index:1;
+  }
 
-    /* FORCE VIDEO FULLSCREEN */
-    #reader video{
-      position:absolute !important;
-      top:0;
-      left:0;
-      width:100vw !important;
-      height:100vh !important;
-      object-fit:cover !important;
-      z-index:1 !important;
-    }
+  #reader video{
+    position:absolute !important;
+    top:0;
+    left:0;
+    width:100vw !important;
+    height:100vh !important;
+    object-fit:cover !important;
+    z-index:1 !important;
+  }
 
-    /* TOP BAR */
-    .top-bar{
-      position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:60px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index:20;
-      pointer-events:none;
-    }
+  /* ===== TOP TITLE ===== */
+  .top-bar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:70px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+    pointer-events:none;
+  }
 
-    .title{
-      color:#fff;
-      font-size:18px;
-      font-weight:600;
-    }
+  .title{
+    color:#fff;
+    font-size:20px;
+    font-weight:700;
+  }
 
-    /* BACK BUTTON */
-    .back-btn{
-      position:fixed;
-      top:15px;
-      left:15px;
-      z-index:30;
-      background:rgba(0,0,0,0.6);
-      border:none;
-      color:#fff;
-      padding:8px 14px;
-      border-radius:12px;
-      cursor:pointer;
-    }
+  /* ===== BIGGER BUTTONS ===== */
+  .back-btn,
+  .switch-btn{
+    position:fixed;
+    top:15px;
+    z-index:30;
+    background:rgba(0,0,0,0.65);
+    border:none;
+    color:#fff;
+    padding:12px 18px;
+    border-radius:14px;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    backdrop-filter: blur(6px);
+  }
 
-    /* SWITCH BUTTON */
-    .switch-btn{
-      position:fixed;
-      top:15px;
-      right:15px;
-      z-index:30;
-      background:rgba(0,0,0,0.6);
-      border:none;
-      color:#fff;
-      padding:8px 14px;
-      border-radius:12px;
-      cursor:pointer;
-    }
+  .back-btn{
+    left:15px;
+  }
 
-    /* RESULT */
-    #result{
-      position:fixed;
-      bottom:40px;
-      width:100%;
-      text-align:center;
-      z-index:30;
-      color:#fff;
-    }
+  .switch-btn{
+    right:15px;
+  }
 
-    /* SCAN FRAME */
-    .scan-frame{
-      position:fixed;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:none;
-      z-index:10;
-    }
+  /* ===== RESULT CENTER ===== */
+  #result{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:40;
+    pointer-events:none;
+  }
 
-    .scan-box{
-      width:80vw;
-      height:80vw;
-      max-width:420px;
-      max-height:420px;
-      border:3px solid #FFD700;
-      border-radius:22px;
-      box-shadow:
-        0 0 30px rgba(255,215,0,0.9),
-        inset 0 0 30px rgba(255,215,0,0.5);
-    }
-  </style>
+  .result-box{
+    background:rgba(0,0,0,0.75);
+    padding:24px 30px;
+    border-radius:20px;
+    text-align:center;
+    font-size:20px;
+    font-weight:600;
+    backdrop-filter: blur(10px);
+    animation: pop 0.25s ease;
+  }
+
+  .success{
+    border:3px solid gold;
+    box-shadow:0 0 30px rgba(255,215,0,0.7);
+  }
+
+  .error{
+    border:3px solid #e74c3c;
+    box-shadow:0 0 25px rgba(231,76,60,0.6);
+  }
+
+  @keyframes pop{
+    from{ transform:scale(0.8); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+
+  /* ===== SCAN FRAME ===== */
+  .scan-frame{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+    z-index:10;
+  }
+
+  .scan-box{
+    width:80vw;
+    height:80vw;
+    max-width:420px;
+    max-height:420px;
+    border:3px solid #FFD700;
+    border-radius:22px;
+    box-shadow:
+      0 0 30px rgba(255,215,0,0.9),
+      inset 0 0 30px rgba(255,215,0,0.5);
+  }
+</style>
 </head>
 
 <body>
