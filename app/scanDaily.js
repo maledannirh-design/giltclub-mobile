@@ -132,7 +132,7 @@ async function startCamera(camId){
     console.error("Camera start error:", err);
   }
 }
-
+}
 /* =========================================
    DAILY STREAK TRANSACTION ENGINE
 ========================================= */
