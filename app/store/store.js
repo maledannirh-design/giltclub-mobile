@@ -7,6 +7,10 @@ import { auth, db } from "../firebase.js";
 
 import {
   doc,
+  collection,
+  onSnapshot,
+  query,
+  where,
   runTransaction,
   arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -139,85 +143,95 @@ function renderRewards(){
 
 
 /* ===============================
-   FLASH DROP (FIRESTORE DRIVEN)
+   FLASH DROP (REALTIME + LEADERBOARD)
 ================================= */
-async function renderFlash(){
+function renderFlash(){
 
-  const flashSection = document.getElementById("flashSection");
   const container = document.getElementById("storeFlash");
-
-  flashSection.style.display = "block";
   container.innerHTML = "";
 
-  // 🔥 ambil semua flash dari Firestore
-  const snap = await fetchFlashDrops();
-  if (!snap.length){
-    container.innerHTML = "<p>Tidak ada flash aktif.</p>";
-    return;
+  const q = query(collection(db,"flashDrops"), where("active","==",true));
+
+  onSnapshot(q, (snapshot)=>{
+
+    container.innerHTML = "";
+
+    snapshot.forEach(docSnap=>{
+
+      const flash = { id: docSnap.id, ...docSnap.data() };
+      const remaining = flash.quota - flash.redeemedCount;
+
+      container.innerHTML += `
+        <div class="store-card flash-card">
+
+          <div class="card-body">
+            <span class="badge flash">FLASH</span>
+
+            <h3>${flash.name}</h3>
+
+            <div class="card-info">
+              <span class="price gp">
+                ${flash.flashPointCost.toLocaleString()} GP
+              </span>
+              <span class="stock">
+                Remaining: ${remaining}
+              </span>
+            </div>
+
+            <div 
+              class="countdown"
+              data-start="${flash.startTime.toDate()}"
+              data-end="${flash.endTime.toDate()}"
+              data-id="${flash.id}">
+            </div>
+
+            <button 
+              class="btn-flash redeem-btn"
+              data-id="${flash.id}"
+              onclick="redeemFlash('${flash.id}')">
+              Redeem Now
+            </button>
+
+            <div class="leaderboard">
+              ${renderLeaderboardHTML(flash)}
+            </div>
+
+          </div>
+        </div>
+      `;
+    });
+
+    startCountdown();
+  });
+}
+
+
+/* ===============================
+   LEADERBOARD HTML
+================================= */
+function renderLeaderboardHTML(flash){
+
+  if(!flash.winners || flash.winners.length === 0){
+    return "";
   }
 
-  snap.forEach(flash => {
+  const sorted = [...flash.winners]
+    .sort((a,b)=>a.time - b.time)
+    .slice(0,5);
 
-    const remaining = flash.quota - flash.redeemedCount;
-
-    container.innerHTML += `
-      <div class="store-card flash-card">
-
-        <div class="card-body">
-          <span class="badge flash">FLASH</span>
-
-          <h3>${flash.name}</h3>
-
-          <div class="card-info">
-            <span class="price gp">
-              ${flash.flashPointCost.toLocaleString()} GP
-            </span>
-            <span class="stock">
-              Remaining: ${remaining}
-            </span>
-          </div>
-
-          <div 
-            class="countdown"
-            data-start="${flash.startTime.toDate()}"
-            data-end="${flash.endTime.toDate()}"
-            data-id="${flash.id}">
-          </div>
-
-          <button 
-            class="btn-flash redeem-btn"
-            data-id="${flash.id}"
-            onclick="redeemFlash('${flash.id}')">
-            Redeem Now
-          </button>
-
-        </div>
+  return `
+    <div class="leader-title">Top Winners</div>
+    ${sorted.map((w,i)=>`
+      <div class="leader-item">
+        ${i+1}. ${w.uid.substring(0,6)}...
       </div>
-    `;
-  });
-
-  startCountdown();
+    `).join("")}
+  `;
 }
 
 
 /* ===============================
-   FETCH FLASH FROM FIRESTORE
-================================= */
-async function fetchFlashDrops(){
-
-  const { collection, getDocs } =
-    await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-
-  const snap = await getDocs(collection(db, "flashDrops"));
-
-  return snap.docs
-    .map(d => ({ id: d.id, ...d.data() }))
-    .filter(f => f.active);
-}
-
-
-/* ===============================
-   COUNTDOWN ENGINE (2 MODE)
+   COUNTDOWN ENGINE
 ================================= */
 function startCountdown(){
 
@@ -235,20 +249,17 @@ function startCountdown(){
       const now = new Date();
 
       let target;
-      let label;
       let enable = false;
 
       if(now < startTime){
         target = startTime;
-        label = "Voucher bisa diredeem dalam";
       }
       else if(now >= startTime && now <= endTime){
         target = endTime;
-        label = "Voucher bisa diredeem";
         enable = true;
       }
       else{
-        timer.innerHTML = `<div class="cd-label">Flash telah berakhir</div>`;
+        timer.innerHTML = `Flash telah berakhir`;
         if(button) button.disabled = true;
         clearInterval(interval);
         return;
@@ -264,18 +275,31 @@ function startCountdown(){
 
       const pad = n => n.toString().padStart(2, "0");
 
-      timer.innerHTML = `
-        <div class="cd-label">${label}</div>
-        <div class="cd-time">
-          ${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}
-        </div>
-      `;
+      timer.innerHTML = `${pad(days)}:${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 
       if(button) button.disabled = !enable;
 
     }, 1000);
-
   });
+}
+
+
+/* ===============================
+   LOSE ANIMATION
+================================= */
+function showLoseAnimation(seconds){
+
+  const div = document.createElement("div");
+  div.className = "lose-overlay";
+  div.innerHTML = `
+    <div class="lose-box">
+      <h2>Kalah War 😢</h2>
+      <p>Kamu kalah ${seconds} detik.</p>
+    </div>
+  `;
+
+  document.body.appendChild(div);
+  setTimeout(()=> div.remove(), 2500);
 }
 
 
@@ -292,6 +316,8 @@ async function redeemFlash(flashId){
 
   const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
   if(button) button.disabled = true;
+
+  const clickStart = performance.now();
 
   try{
 
@@ -311,32 +337,33 @@ async function redeemFlash(flashId){
       if(!flash.active) throw "Flash tidak aktif";
       if(now < flash.startTime.toDate()) throw "Belum mulai";
       if(now > flash.endTime.toDate()) throw "Sudah berakhir";
+      if(flash.redeemedCount >= flash.quota) throw "Quota habis";
+      if(userData.gpoints < flash.flashPointCost) throw "GPoints tidak cukup";
+      if(flash.winners?.some(w=>w.uid===user.uid)) throw "Sudah redeem";
 
-      if(flash.redeemedCount >= flash.quota)
-        throw "Quota habis";
-
-      if(userData.gpoints < flash.flashPointCost)
-        throw "GPoints tidak cukup";
-
-      if(flash.winners?.includes(user.uid))
-        throw "Sudah redeem";
-
-      transaction.update(userRef, {
+      transaction.update(userRef,{
         gpoints: userData.gpoints - flash.flashPointCost
       });
 
-      transaction.update(flashRef, {
+      transaction.update(flashRef,{
         redeemedCount: flash.redeemedCount + 1,
-        winners: arrayUnion(user.uid)
+        winners: arrayUnion({
+          uid:user.uid,
+          time: Date.now()
+        })
       });
-
     });
 
     alert("🔥 Kamu berhasil redeem!");
 
   }catch(err){
-    console.log(err);
-    alert("Kalah war atau quota habis.");
+
+    const clickEnd = performance.now();
+    const diff = ((clickEnd - clickStart)/1000).toFixed(2);
+    showLoseAnimation(diff);
+
+  }finally{
+    if(button) button.disabled = false;
   }
 }
 
