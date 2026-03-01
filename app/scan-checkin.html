@@ -34,6 +34,15 @@
       height:100%;
       object-fit:cover;
     }
+    #reader{
+  z-index:1;
+}
+
+#reader video{
+  object-fit:cover;
+  visibility:visible !important;
+  display:block !important;
+}
 
     /* Top Title */
     .scan-title{
@@ -49,13 +58,10 @@
     }
 
     /* Overlay dark layer */
-    .scan-overlay{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.35);
-      z-index:2;
-      pointer-events:none;
-    }
+    .scan-frame{
+  pointer-events:none;
+  z-index:5;
+}
 
     /* Close button */
     .close-btn{
