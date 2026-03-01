@@ -85,35 +85,35 @@ export async function initDailyScanner(readerId, resultId){
     await startCamera(cameras[nextIndex].id);
   };
 
+
 /* =========================================
-   START CAMERA (SUPER SAFE + VALIDATION)
-========================================= */
-/* =========================================
-   START CAMERA (CLOSE RANGE OPTIMAL)
+   START CAMERA (ANTI-PAUSE STABLE)
 ========================================= */
 async function startCamera(camId){
 
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
   try{
 
+    // 🔥 pastikan tidak sedang running
+    if (html5QrInstance && html5QrInstance.getState() === 2) {
+      await html5QrInstance.stop();
+      await html5QrInstance.clear();
+    }
+
     await html5QrInstance.start(
-      camId,
+      camId,   // WAJIB string
       {
-        fps: 18,  // sedikit lebih cepat biar responsif jarak dekat
+        fps: 20,  // iPhone 15 sweet spot
         qrbox: (vw, vh) => {
-          // lebih kecil supaya QR bisa full masuk saat dekat
-          const size = Math.floor(Math.min(vw, vh) * 0.80);
+          const size = Math.floor(Math.min(vw, vh) * 0.75);
           return { width: size, height: size };
         },
-        aspectRatio: 1.0,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true
-        }
+        aspectRatio: 1.0
       },
       async (decodedText) => {
 
-        try { await html5QrInstance.stop(); } catch(e){}
+        try {
+          await html5QrInstance.stop();
+        } catch(e){}
 
         try {
 
@@ -152,22 +152,12 @@ async function startCamera(camId){
           showSuccess(resultBox, reward);
 
         } catch (err) {
-
           showInvalid(resultBox, err.message || "QR tidak valid");
         }
 
         setTimeout(goBack,1500);
       }
     );
-
-    // autofocus warmup untuk iPhone
-    if(isIOS){
-      setTimeout(()=>{
-        try{
-          html5QrInstance.pause(false);
-        }catch(e){}
-      }, 500);
-    }
 
   }catch(err){
     console.error("Camera start error:", err);
