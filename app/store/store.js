@@ -4,7 +4,6 @@ import {
 } from "./store-data.js";
 
 import { auth, db } from "../firebase.js";
-import { increment } from "firebase/firestore";
 
 import {
   doc,
@@ -15,6 +14,7 @@ import {
   runTransaction,
   arrayUnion,
   getDoc,
+  increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
