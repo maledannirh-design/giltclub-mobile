@@ -85,9 +85,9 @@ export async function initDailyScanner(readerId, resultId){
     await startCamera(cameras[nextIndex].id);
   };
 
-  /* =========================================
-     START CAMERA (SUPER SAFE)
-  ========================================= */
+/* =========================================
+   START CAMERA (SUPER SAFE + VALIDATION)
+========================================= */
 async function startCamera(camId){
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -95,13 +95,9 @@ async function startCamera(camId){
   try{
 
     await html5QrInstance.start(
+      camId,   // ✅ WAJIB string saja (bukan object)
       {
-        deviceId: { exact: camId },
-        width: { min: 1280 },
-        height: { min: 1280 }
-      },
-      {
-        fps: 15, // 🔥 jangan lebih
+        fps: 15,
         qrbox: (vw, vh) => {
           const size = Math.floor(Math.min(vw, vh) * 0.93);
           return { width: size, height: size };
@@ -112,26 +108,72 @@ async function startCamera(camId){
       },
       async (decodedText) => {
 
-        try { await html5QrInstance.stop(); } catch(e){}
+        // 🔥 STOP supaya tidak multi-detect
+        try { 
+          await html5QrInstance.stop(); 
+        } catch(e){}
 
-        // biarkan logic validasi kamu tetap di sini
+        try {
 
+          const cleaned = decodedText.trim().replace(/\n/g,"");
+
+          let c = null;
+          let i = null;
+          let s = null;
+
+          // Handle URL atau raw params
+          if(cleaned.startsWith("http")){
+            const parsed = new URL(cleaned);
+            c = parsed.searchParams.get("c");
+            i = parsed.searchParams.get("i");
+            s = parsed.searchParams.get("s");
+          }else{
+            const params = new URLSearchParams(cleaned);
+            c = params.get("c");
+            i = params.get("i");
+            s = params.get("s");
+          }
+
+          if(!c || !i || !s){
+            showInvalid(resultBox, "QR format tidak valid");
+            return setTimeout(goBack,1500);
+          }
+
+          // 🔥 VALIDASI SERVER SIDE
+          const validation = await window.processDailySelfCheckin(c,i,s);
+
+          if (!validation.valid) {
+            showInvalid(resultBox, validation.reason);
+            return setTimeout(goBack,1500);
+          }
+
+          // 🔥 UPDATE STREAK & GPOINT
+          const reward = await runDailyStreakReward(validation.uid);
+
+          showSuccess(resultBox, reward);
+
+        } catch (err) {
+
+          console.error("Scan error:", err);
+          showInvalid(resultBox, err.message || "QR tidak valid");
+        }
+
+        setTimeout(goBack,1500);
       }
     );
 
-    // 🔥 iPhone autofocus & exposure warmup
+    // 🔥 iPhone exposure warmup
     if(isIOS){
       setTimeout(()=>{
         try{
           html5QrInstance.pause(false);
         }catch(e){}
-      }, 900);
+      }, 700);
     }
 
   }catch(err){
     console.error("Camera start error:", err);
   }
-}
 }
 /* =========================================
    DAILY STREAK TRANSACTION ENGINE
