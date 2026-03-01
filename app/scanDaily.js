@@ -1,5 +1,5 @@
 import { auth } from "./firebase.js";
-import { doc, runTransaction } from "./firestore.js";
+import { doc, runTransaction, collection } from "./firestore.js";
 import { db } from "./firebase.js";
 import "./scanQR.js";
 
