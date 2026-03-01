@@ -393,7 +393,7 @@ async function redeemFlash(flashId){
         redeemedCount: increment(1),
         winners: arrayUnion({
           uid: user.uid,
-          time: serverTimestamp()
+          time: Date.now()
         })
       });
 
