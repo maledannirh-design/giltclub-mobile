@@ -379,7 +379,10 @@ async function redeemFlash(flashId){
       });
     });
 
-    alert("🔥 Kamu berhasil redeem!");
+    showConfetti();
+setTimeout(()=>{
+  alert("🔥 Kamu berhasil redeem!");
+},500);
 
   }catch(err){
 
