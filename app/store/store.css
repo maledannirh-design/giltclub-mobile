@@ -378,3 +378,43 @@
   50%  { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
+
+
+/* ===============================
+   GILT STORE BANNER
+================================= */
+
+.gilt-store-banner{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 16px;
+  margin-bottom:18px;
+  border-radius:14px;
+  background: linear-gradient(90deg,#111,#1c1c1c,#111);
+  border:1px solid rgba(255,215,0,0.25);
+  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+}
+
+.gilt-store-left{
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:2px;
+  color:#ffd700;
+}
+
+.gilt-store-right{
+  font-size:13px;
+  color:#fff;
+  cursor:pointer;
+  opacity:.8;
+  transition:.3s;
+}
+
+.gilt-store-right:hover{
+  opacity:1;
+  color:#ffd700;
+}
