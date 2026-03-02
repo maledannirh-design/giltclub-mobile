@@ -7,6 +7,7 @@ import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
 import { showToast, showConfirm } from "./ui.js";
 import { renderStore } from "./store/store.js";
+import { listenUserNotifications } from "./notifications.js";
 
 import {
   doc,
@@ -204,6 +205,11 @@ onAuthStateChanged(auth, async (user)=>{
     ============================= */
     listenAttendanceNotification(user.uid);
 
+    /* =============================
+       NOTIFICATION LISTENER
+    ============================= */
+    listenUserNotifications(user.uid);
+
   }else{
 
     navigate("account");
@@ -214,8 +220,6 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
 });
-
-
 /* =========================================
    ATTENDANCE LISTENER
 ========================================= */
