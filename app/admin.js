@@ -305,5 +305,425 @@ async function(trxId){
   alert("Top up ditolak");
   renderAdmin();
 };
+/* =====================================================
+   EXPORT FUNCTIONS (RAPI & AMAN)
+===================================================== */
 
+function downloadCSV(filename, rows) {
+
+  const csvContent = rows
+    .map(row =>
+      row
+        .map(val => `"${String(val ?? "").replace(/"/g,'""')}"`)
+        .join(",")
+    )
+    .join("\n");
+
+  const blob = new Blob(
+    [csvContent],
+    { type: "text/csv;charset=utf-8;" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+/* =====================================================
+   EXPORT TOPUP HISTORY
+===================================================== */
+
+window.exportTopupHistory = async function(){
+
+  const snap =
+    await getDocs(collection(db,"walletLedger"));
+
+  let rows = [[
+    "Tanggal",
+    "UID",
+    "Amount",
+    "BalanceBefore",
+    "BalanceAfter",
+    "Source"
+  ]];
+
+  snap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    if (d.referenceType !== "TOPUP") return;
+
+    rows.push([
+      d.createdAt?.toDate?.()
+        ?.toLocaleString("id-ID") || "",
+      d.userId || "",
+      d.amount || 0,
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.source || ""
+    ]);
+  });
+
+  downloadCSV("topup_history.csv", rows);
+};
+
+
+/* =====================================================
+   EXPORT BOOKING HISTORY
+===================================================== */
+
+window.exportBookingHistory = async function(){
+
+  const snap =
+    await getDocs(collection(db,"bookings"));
+
+  let rows = [[
+    "BookingID",
+    "UID",
+    "SessionPrice",
+    "RacketTotal",
+    "TotalPrice",
+    "Status",
+    "Attendance"
+  ]];
+
+  snap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    rows.push([
+      docSnap.id,
+      d.userId || "",
+      d.sessionPrice || 0,
+      d.racketTotal || 0,
+      d.price || 0,
+      d.status || "",
+      d.attendance === true ? "YES" : "NO"
+    ]);
+  });
+
+  downloadCSV("booking_history.csv", rows);
+};
+
+
+/* =====================================================
+   EXPORT ADJUSTMENT HISTORY
+===================================================== */
+
+window.exportAdjustmentHistory = async function(){
+
+  const snap =
+    await getDocs(collection(db,"walletLedger"));
+
+  let rows = [[
+    "Tanggal",
+    "UID",
+    "EntryType",
+    "Amount",
+    "BalanceBefore",
+    "BalanceAfter",
+    "Note"
+  ]];
+
+  snap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    if (d.referenceType !== "ADMIN_ADJUSTMENT")
+      return;
+
+    rows.push([
+      d.createdAt?.toDate?.()
+        ?.toLocaleString("id-ID") || "",
+      d.userId || "",
+      d.entryType || "",
+      d.amount || 0,
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.note || ""
+    ]);
+  });
+
+  downloadCSV("adjustment_history.csv", rows);
+};
+
+
+/* =====================================================
+   EXPORT MEMBERS – FULL AUDIT VERSION
+===================================================== */
+
+window.exportMembersToCSV = async function(){
+
+  try {
+
+    const snap =
+      await getDocs(collection(db,"users"));
+
+    if (snap.empty) {
+      alert("Tidak ada data user");
+      return;
+    }
+
+    let rows = [[
+      "UID",
+      "Username",
+      "Full Name",
+      "Phone",
+      "Birth Place",
+      "Birth Date",
+      "Role",
+      "Membership",
+      "Member Code",
+      "Level",
+      "EXP",
+      "Wallet Balance",
+      "Total Top Up",
+      "Total Payment",
+      "GPoint",
+      "Attendance Count",
+      "Total Attendance",
+      "Followers",
+      "Following",
+      "Verified",
+      "Playing Level",
+      "Is Public",
+      "Created At"
+    ]];
+
+    snap.forEach(docSnap => {
+
+      const d = docSnap.data();
+
+      rows.push([
+        docSnap.id,
+        d.username || "",
+        d.fullName || "",
+        d.phone || "",
+        d.birthPlace || "",
+        d.birthDate || "",
+        d.role || "",
+        d.membership || "",
+        d.memberCode || "",
+        d.level || 0,
+        d.exp || 0,
+        d.walletBalance || 0,
+        d.totalTopup || 0,
+        d.totalPayment || 0,
+        d.gPoint || 0,
+        d.attendanceCount || 0,
+        d.totalAttendance || 0,
+        d.followersCount || 0,
+        d.followingCount || 0,
+        d.verified === true ? "YES" : "NO",
+        d.playingLevel || "",
+        d.isPublic === true ? "YES" : "NO",
+        d.createdAt?.toDate?.()
+          ?.toLocaleString("id-ID") || ""
+      ]);
+    });
+
+    downloadCSV("giltclub_members_clean.csv", rows);
+
+    alert("Export Members selesai");
+
+  } catch(err) {
+
+    console.error(err);
+    alert("Gagal export members");
+  }
+};
+
+
+/* =====================================================
+   EXPORT FULL MUTATION
+===================================================== */
+
+window.exportFullMutation = async function(){
+
+  const walletSnap =
+    await getDocs(collection(db,"walletLedger"));
+
+  const gPointSnap =
+    await getDocs(collection(db,"gPointLedger"));
+
+  let rows = [[
+    "Tanggal",
+    "UID",
+    "Type",
+    "Amount",
+    "BalanceBefore",
+    "BalanceAfter",
+    "ReferenceType",
+    "Note"
+  ]];
+
+  walletSnap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    rows.push([
+      d.createdAt?.toDate?.()
+        ?.toLocaleString("id-ID") || "",
+      d.userId || "",
+      "WALLET_" + (d.entryType || ""),
+      d.amount || 0,
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.referenceType || "",
+      d.note || ""
+    ]);
+  });
+
+  gPointSnap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    rows.push([
+      d.createdAt?.toDate?.()
+        ?.toLocaleString("id-ID") || "",
+      d.userId || "",
+      "GPOINT_" + (d.entryType || ""),
+      d.amount || 0,
+      d.balanceBefore ?? "",
+      d.balanceAfter ?? "",
+      d.referenceType || "",
+      d.note || ""
+    ]);
+  });
+
+  downloadCSV("full_mutation.csv", rows);
+};
+
+
+/* =====================================================
+   AUDIT OLD SYSTEM RECONCILIATION
+===================================================== */
+
+window.auditOldSystemReconciliation = async function(){
+
+  try {
+
+    const usersSnap =
+      await getDocs(collection(db,"users"));
+
+    const trxSnap =
+      await getDocs(collection(db,"walletTransactions"));
+
+    if (usersSnap.empty) {
+      alert("Tidak ada user");
+      return;
+    }
+
+    const calculatedBalance = {};
+
+    trxSnap.forEach(docSnap => {
+
+      const d = docSnap.data();
+      const uid = d.userId;
+
+      if (!uid) return;
+
+      if (d.status &&
+          d.status !== "APPROVED" &&
+          d.status !== "SUCCESS")
+        return;
+
+      if (!calculatedBalance[uid])
+        calculatedBalance[uid] = 0;
+
+      calculatedBalance[uid] +=
+        Number(d.amount || 0);
+    });
+
+    let rows = [[
+      "UID",
+      "Username",
+      "Stored WalletBalance",
+      "Calculated From Transactions",
+      "Difference"
+    ]];
+
+    usersSnap.forEach(userDoc => {
+
+      const uid = userDoc.id;
+      const userData = userDoc.data();
+
+      const stored =
+        Number(userData.walletBalance || 0);
+
+      const calculated =
+        Number(calculatedBalance[uid] || 0);
+
+      const diff = stored - calculated;
+
+      rows.push([
+        uid,
+        userData.username || "",
+        stored,
+        calculated,
+        diff
+      ]);
+    });
+
+    downloadCSV(
+      "audit_reconciliation_old_system.csv",
+      rows
+    );
+
+    alert("Audit Rekonsiliasi selesai");
+
+  } catch(err) {
+
+    console.error(err);
+    alert("Gagal audit");
+  }
+};
+
+
+/* =====================================================
+   MASSIVE CLEANUP
+===================================================== */
+
+window.massiveCleanupFields = async function(){
+
+  try {
+
+    const usersSnap =
+      await getDocs(collection(db,"users"));
+
+    for (const docSnap of usersSnap.docs) {
+
+      await updateDoc(
+        doc(db,"users",docSnap.id),
+        {
+          points: deleteField(),
+          usernameID: deleteField(),
+          displayName: deleteField(),
+          matches: deleteField(),
+          verifiedApproved: deleteField(),
+          wins: deleteField(),
+          gPoints: deleteField()
+        }
+      );
+
+      console.log("Cleaned:", docSnap.id);
+    }
+
+    console.log("Massive field cleanup DONE.");
+
+  } catch(err) {
+
+    console.error("Cleanup error:", err);
+  }
+};
+
+
+window.handleBalanceAdjustment = handleBalanceAdjustment;
 window.runMigration = runMigration;
