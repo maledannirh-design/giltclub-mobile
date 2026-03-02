@@ -1,82 +1,62 @@
 import { auth, db } from "./firebase.js";
-import { 
+import {
   collection,
   query,
   where,
   getDocs,
   getDoc,
   doc,
-  setDoc,
   runTransaction,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { recalculateUserStats } from "./userStats.js";
 import { runMigration } from "./migration.js";
-import "./scanQR.js";
 import { deleteField } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import "./recalculate.js";
-
+import { loadMembersForBroadcast, sendBroadcast } from "./admin-broadcast.js";
 import "./scanQR.js";
+
 const BASE_SCAN_URL = "https://giltclub.app/scan";
 
 /* =====================================================
    RENDER ADMIN PANEL
 ===================================================== */
-export async function renderAdmin(){
+export async function renderAdmin() {
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
-  if(!user) return;
+  if (!user) return;
 
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-  if(!userSnap.exists()){
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  if (!userSnap.exists()) {
     content.innerHTML = "User tidak ditemukan";
     return;
   }
 
   const userData = userSnap.data();
 
-  if(userData.role !== "ADMIN" && userData.role !== "SUPERCOACH"){
+  if (userData.role !== "ADMIN" && userData.role !== "SUPERCOACH") {
     content.innerHTML = `<div style="padding:20px;">Akses ditolak.</div>`;
     return;
   }
 
   const snap = await getDocs(
-    query(
-      collection(db,"walletTransactions"),
-      where("status","==","PENDING")
-    )
+    query(collection(db, "walletTransactions"), where("status", "==", "PENDING"))
   );
 
   let html = `
-    <div class="admin-container">
-      <h2>Pending Top Up</h2>
+  <div class="admin-container">
+    <h2>Pending Top Up</h2>
   `;
 
-  /* =========================
-     PENDING TOPUP
-  ========================= */
-
-  if(snap.empty){
-
-    html += `
-      <div style="opacity:.6;margin-bottom:20px;">
-        Tidak ada top up pending
-      </div>
-    `;
-
-  }else{
-
-    for(const docSnap of snap.docs){
-
+  if (snap.empty) {
+    html += `<div style="opacity:.6;margin-bottom:20px;">Tidak ada top up pending</div>`;
+  } else {
+    for (const docSnap of snap.docs) {
       const d = docSnap.data();
-
-      const uSnap = await getDoc(doc(db,"users", d.userId));
-      const username = uSnap.exists()
-        ? uSnap.data().username || "User"
-        : "User";
+      const uSnap = await getDoc(doc(db, "users", d.userId));
+      const username = uSnap.exists() ? uSnap.data().username || "User" : "User";
 
       html += `
         <div class="admin-trx">
@@ -85,426 +65,170 @@ export async function renderAdmin(){
             <div>Rp ${Number(d.amount || 0).toLocaleString("id-ID")}</div>
           </div>
           <div>
-            <button onclick="approveTopup('${docSnap.id}','${d.userId}',${d.amount}, this)">
-              Approve
-            </button>
-            <button onclick="rejectTopup('${docSnap.id}')">
-              Reject
-            </button>
+            <button onclick="approveTopup('${docSnap.id}','${d.userId}')">Approve</button>
+            <button onclick="rejectTopup('${docSnap.id}')">Reject</button>
           </div>
         </div>
       `;
     }
   }
 
- /* =========================
-   QR VALIDATOR SECTION
-========================= */
-
-html += `
+  html += `
   <hr style="margin:30px 0;">
 
-  <button id="openCheckinQR" class="admin-btn">
-    Scan Member QR
-  </button>
+  <button id="openCheckinQR" class="admin-btn">Scan Member QR</button>
+  <button id="openBroadcast" class="admin-btn" style="margin-left:10px;">Broadcast Pesan</button>
 
-  <!-- FULLSCREEN SCANNER MODAL -->
-  <div id="checkinModal" class="checkin-modal hidden">
-    <div class="checkin-card">
+  <div id="broadcastModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Broadcast Pesan</h3>
 
-      <!-- HEADER -->
-      <div class="scanner-header">
-        <button id="closeCheckin">← Kembali</button>
-        <button id="switchCameraBtn" style="margin-left:auto;">
-          🔄 Kamera
-        </button>
+      <input type="text" id="broadcastTitle" placeholder="Judul Pesan" />
+      <textarea id="broadcastMessage" placeholder="Isi Pesan"></textarea>
+
+      <div>
+        <label><input type="radio" name="broadcastTarget" value="ALL" checked /> Semua Member</label>
+        <label><input type="radio" name="broadcastTarget" value="SELECTED" /> Pilih Member</label>
       </div>
 
-      <!-- CAMERA FULLSCREEN -->
-      <div id="reader"></div>
+      <div id="broadcastUserList" style="max-height:200px; overflow:auto;"></div>
 
-      <!-- RESULT CENTER POPUP -->
-      <div id="checkinResult"></div>
-
+      <button id="sendBroadcastBtn">Kirim</button>
+      <button id="closeBroadcast">Tutup</button>
     </div>
   </div>
 
   <hr style="margin:30px 0;">
-
   <div id="adminBalanceAdjustment"></div>
+  </div>
+  `;
 
-  <hr style="margin:30px 0;">
+  content.innerHTML = html;
 
-  <button onclick="exportTopupHistory()">Export History Top Up</button>
-  <button onclick="exportBookingHistory()">Export History Booking</button>
-  <button onclick="exportAdjustmentHistory()">Export History Adjustment</button>
-  <button onclick="exportMembersToCSV()">Export Data Members</button>
-  <button onclick="exportFullMutation()">Export Mutasi Semua Orang (Current System)</button>
-  <button onclick="auditOldSystemReconciliation()">Audit Rekonsil Sistem Lama</button>
-  <button onclick="navigate('flash-admin')">
-  Flash Drop Admin
-</button>
-`;
+  await renderBalanceAdjustmentPanel();
+  await setupQrValidator();
 
-content.innerHTML = html;
+  /* =======================
+     BROADCAST EVENTS
+  ======================= */
 
-/* =========================
-   INIT SUB MODULES
-========================= */
+  document.getElementById("openBroadcast").onclick = async () => {
+    const modal = document.getElementById("broadcastModal");
+    modal.classList.remove("hidden");
+    await loadMembersForBroadcast("broadcastUserList");
+  };
 
-await renderBalanceAdjustmentPanel();
-await setupQrValidator();   // 🔥 WAJIB supaya scanner aktif
+  document.getElementById("closeBroadcast").onclick = () => {
+    document.getElementById("broadcastModal").classList.add("hidden");
+  };
 
-  }  // 🔥 INI YANG KURANG
-  
-/* =====================================================
-   RENDER BALANCE ADJUSTMENT PANEL
-===================================================== */
-async function renderBalanceAdjustmentPanel(){
+  document.getElementById("sendBroadcastBtn").onclick = async () => {
+    const title = document.getElementById("broadcastTitle").value;
+    const message = document.getElementById("broadcastMessage").value;
 
-  const container = document.getElementById("adminBalanceAdjustment");
-  if(!container) return;
+    const targetType = document.querySelector(
+      'input[name="broadcastTarget"]:checked'
+    ).value;
 
-  try{
+    let selectedUserIds = [];
 
-    const usersSnap = await getDocs(collection(db,"users"));
+    if (targetType === "SELECTED") {
+      const checkboxes = document.querySelectorAll(
+        "#broadcastUserList input[type=checkbox]:checked"
+      );
+      checkboxes.forEach(cb => selectedUserIds.push(cb.value));
+    }
 
-    let options = "";
-
-    usersSnap.forEach(docSnap=>{
-      const u = docSnap.data();
-      options += `
-        <option value="${docSnap.id}">
-          ${u.username || u.fullName || docSnap.id}
-        </option>
-      `;
+    await sendBroadcast({
+      title,
+      message,
+      targetType,
+      selectedUserIds,
+      adminId: auth.currentUser.uid
     });
 
-    container.innerHTML = `
-      <div class="admin-card">
-
-        <h3>Manual Adjustment</h3>
-
-        <label>User</label>
-        <select id="adjustUser">
-          ${options}
-        </select>
-
-        <label>Wallet Adjustment (+ / -)</label>
-        <input type="number" id="adjustAmount" placeholder="50000 atau -2000">
-
-        <label>Reason</label>
-        <select id="adjustReason">
-          <option value="admin_adjustment">Admin Adjustment</option>
-          <option value="cashback_session">Cashback Session</option>
-          <option value="refund">Refund</option>
-          <option value="penalty">Penalty</option>
-        </select>
-
-        <label>Note (optional)</label>
-        <input type="text" id="adjustNote" placeholder="Detail keterangan">
-
-        <button id="saveAdjustment" class="admin-btn">
-          Simpan Adjustment
-        </button>
-
-      </div>
-    `;
-
-    document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
-
-  }catch(err){
-    console.error("Render adjustment panel error:", err);
-  }
+    document.getElementById("broadcastModal").classList.add("hidden");
+  };
 }
 
 /* =====================================================
-   ADJUSTMENT (WALLET + GPOINT SEPARATED LEDGER)
+   BALANCE ADJUSTMENT
 ===================================================== */
-async function handleBalanceAdjustment(){
+async function renderBalanceAdjustmentPanel() {
 
-  const userEl = document.getElementById("adjustUser");
-  const walletEl = document.getElementById("adjustAmount");
-  const reasonEl = document.getElementById("adjustReason");
-  const noteEl = document.getElementById("adjustNote");
+  const container = document.getElementById("adminBalanceAdjustment");
+  if (!container) return;
 
-  if(!userEl || !walletEl || !reasonEl || !noteEl){
-    alert("Panel adjustment belum siap.");
-    return;
-  }
+  const usersSnap = await getDocs(collection(db, "users"));
+  let options = "";
 
-  const userId = userEl.value;
-  const walletAmount = Number(walletEl.value || 0);
-  const reason = reasonEl.value;
-  const note = noteEl.value.trim();
+  usersSnap.forEach(docSnap => {
+    const u = docSnap.data();
+    options += `<option value="${docSnap.id}">
+      ${u.username || u.fullName || docSnap.id}
+    </option>`;
+  });
 
-  if(walletAmount === 0){
-    alert("Masukkan nominal adjustment.");
-    return;
-  }
+  container.innerHTML = `
+    <div class="admin-card">
+      <h3>Manual Adjustment</h3>
+      <label>User</label>
+      <select id="adjustUser">${options}</select>
 
-  const userRef = doc(db,"users",userId);
-  const walletLedgerRef = doc(collection(db,"walletLedger"));
+      <label>Wallet Adjustment (+ / -)</label>
+      <input type="number" id="adjustAmount" placeholder="50000 atau -2000">
 
-  await runTransaction(db, async (transaction)=>{
+      <label>Reason</label>
+      <input type="text" id="adjustReason" placeholder="Detail alasan">
+
+      <button id="saveAdjustment" class="admin-btn">Simpan Adjustment</button>
+    </div>
+  `;
+
+  document.getElementById("saveAdjustment").onclick = handleBalanceAdjustment;
+}
+
+async function handleBalanceAdjustment() {
+
+  const userId = document.getElementById("adjustUser").value;
+  const walletAmount = Number(document.getElementById("adjustAmount").value || 0);
+  const reason = document.getElementById("adjustReason").value;
+
+  if (!walletAmount) return alert("Masukkan nominal adjustment.");
+
+  const userRef = doc(db, "users", userId);
+  const ledgerRef = doc(collection(db, "walletLedger"));
+
+  await runTransaction(db, async (transaction) => {
 
     const snap = await transaction.get(userRef);
-    if(!snap.exists()) throw new Error("User tidak ditemukan");
+    if (!snap.exists()) throw new Error("User tidak ditemukan");
 
     const data = snap.data();
-    const walletBefore = data.walletBalance || 0;
-    const walletAfter = walletBefore + walletAmount;
+    const before = data.walletBalance || 0;
+    const after = before + walletAmount;
 
-    if(walletAfter < 0) throw new Error("Saldo tidak boleh minus");
+    if (after < 0) throw new Error("Saldo tidak boleh minus");
 
-    transaction.update(userRef,{
-      walletBalance: walletAfter
-    });
+    transaction.update(userRef, { walletBalance: after });
 
-    transaction.set(walletLedgerRef,{
+    transaction.set(ledgerRef, {
       userId,
       entryType: walletAmount > 0 ? "CREDIT" : "DEBIT",
       referenceType: "ADMIN_ADJUSTMENT",
       amount: walletAmount,
-      balanceBefore: walletBefore,
-      balanceAfter: walletAfter,
+      balanceBefore: before,
+      balanceAfter: after,
       description: reason,
-      note,
       createdAt: serverTimestamp(),
       createdBy: auth.currentUser.uid
     });
-
   });
 
   alert("Adjustment berhasil");
   renderAdmin();
 }
 
-/* =====================================================
-   GLOBAL SCANNER STATE
-===================================================== */
-let html5QrInstance = null;
-let cameraList = [];
-let currentCameraIndex = 0;
-/* =====================================================
-   MAIN SETUP (CHECKIN STYLE – STABLE)
-===================================================== */
-async function setupQrValidator(){
-
-  const openBtn   = document.getElementById("openCheckinQR");
-  const modal     = document.getElementById("checkinModal");
-  const closeBtn  = document.getElementById("closeCheckin");
-  const switchBtn = document.getElementById("switchCameraBtn");
-  const resultBox = document.getElementById("checkinResult");
-
-  if(!openBtn) return;
-
-  /* ===============================
-     OPEN SCANNER
-  =============================== */
-  openBtn.onclick = async () => {
-
-    modal.classList.remove("hidden");
-    resultBox.innerHTML = "";
-
-    if(html5QrInstance){
-      try{
-        await html5QrInstance.stop();
-        await html5QrInstance.clear();
-      }catch(e){}
-    }
-
-    html5QrInstance = new Html5Qrcode("reader");
-
-    cameraList = await Html5Qrcode.getCameras();
-
-    if(!cameraList.length){
-      resultBox.innerHTML =
-        `<div class="invalid-box">Camera tidak ditemukan</div>`;
-      return;
-    }
-
-    const backCam =
-      cameraList.find(c =>
-        c.label.toLowerCase().includes("back") ||
-        c.label.toLowerCase().includes("environment")
-      );
-
-    currentCameraIndex = backCam
-      ? cameraList.indexOf(backCam)
-      : cameraList.length - 1;
-
-    await startCamera();
-  };
-
-  /* ===============================
-     START CAMERA
-  =============================== */
-  async function startCamera(){
-
-    const cameraId = cameraList[currentCameraIndex].id;
-
-    await html5QrInstance.start(
-      cameraId,
-      {
-        fps: 35,
-        qrbox: (vw, vh) => {
-          const size = Math.floor(Math.min(vw, vh) * 0.9);
-          return { width: size, height: size };
-        },
-        aspectRatio: 1.0,
-        disableFlip: false,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true
-        }
-      },
-      async (decodedText) => {
-
-        try{
-          await html5QrInstance.stop();
-        }catch(e){}
-
-        try{
-
-          const cleaned = decodedText.trim().replace(/\n/g,"");
-
-          let c,i,s;
-
-          try{
-            const parsed = new URL(cleaned);
-            c = parsed.searchParams.get("c");
-            i = parsed.searchParams.get("i");
-            s = parsed.searchParams.get("s");
-          }catch{
-            const params = new URLSearchParams(cleaned);
-            c = params.get("c");
-            i = params.get("i");
-            s = params.get("s");
-          }
-
-          if(!c || !i || !s){
-            showInvalid("QR format tidak valid");
-            return restart();
-          }
-
-          const res = await window.validateScanParams(c,i,s);
-
-          if(res.valid){
-            showValid(res.user.username);
-          }else{
-            showInvalid(res.reason);
-          }
-
-        }catch(err){
-          console.error(err);
-          showInvalid("QR tidak valid");
-        }
-
-        restart();
-      }
-    );
-  }
-
-  /* ===============================
-     RESTART SCANNER
-  =============================== */
-  async function restart(){
-    setTimeout(async ()=>{
-      resultBox.innerHTML = "";
-
-      try{
-        await html5QrInstance.clear();
-      }catch(e){}
-
-      html5QrInstance = new Html5Qrcode("reader");
-      await startCamera();
-    },1500);
-  }
-
-  /* ===============================
-     CAMERA SWITCH
-  =============================== */
-  if(switchBtn){
-    switchBtn.onclick = async () => {
-
-      if(!html5QrInstance || !cameraList.length) return;
-
-      try{
-        await html5QrInstance.stop();
-        await html5QrInstance.clear();
-      }catch(e){}
-
-      currentCameraIndex =
-        (currentCameraIndex + 1) % cameraList.length;
-
-      html5QrInstance = new Html5Qrcode("reader");
-      await startCamera();
-    };
-  }
-
-  /* ===============================
-     CLOSE SCANNER
-  =============================== */
-  if(closeBtn){
-    closeBtn.onclick = async () => {
-
-      try{
-        if(html5QrInstance){
-          await html5QrInstance.stop();
-          await html5QrInstance.clear();
-        }
-      }catch(e){
-        console.warn(e);
-      }
-
-      html5QrInstance = null;
-      modal.classList.add("hidden");
-      resultBox.innerHTML = "";
-    };
-  }
-
-  /* ===============================
-     RESULT UI
-  =============================== */
-  function showValid(name){
-    resultBox.innerHTML =
-      `<div class="result-popup valid-box">
-        ✅ VALID MEMBER<br>
-        <div style="margin-top:8px;font-size:14px;">
-          ${name}
-        </div>
-      </div>`;
-  }
-
-  function showInvalid(message){
-    resultBox.innerHTML =
-      `<div class="result-popup invalid-box">
-        ❌ ${message}
-      </div>`;
-  }
-}
-  /* ===============================
-     RESULT UI
-  =============================== */
-  function showValid(name){
-    resultBox.innerHTML =
-      `<div class="result-popup valid-box">
-        ✅ VALID MEMBER<br>
-        <div style="margin-top:8px;font-size:14px;">
-          ${name}
-        </div>
-      </div>`;
-  }
-
-  function showInvalid(message){
-    resultBox.innerHTML =
-      `<div class="result-popup invalid-box">
-        ❌ ${message}
-      </div>`;
-  }
-/* =====================================================
-   FUNGSI-FUNGSI WINDOW DARI SINI
-===================================================== */
 
 /* =====================================================
    APPROVE TOP UP (ATOMIC + LEDGER)
@@ -600,7 +324,6 @@ window.rejectTopup = async function(trxId){
   alert("Top up ditolak");
   renderAdmin();
 };
-
 
 
 /* =====================================================
@@ -933,7 +656,7 @@ window.massiveCleanupFields = async function(){
     console.error("Cleanup error:", err);
   }
 };
+
 window.handleBalanceAdjustment = handleBalanceAdjustment;
+window.runMigration = runMigration
 
-
-window.runMigration = runMigration;
