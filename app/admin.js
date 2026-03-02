@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { runMigration } from "./migration.js";
-import { renderFlashAdmin } from "./flash-admin.js";
+
 
 /* =====================================================
    RENDER ADMIN PANEL
@@ -734,7 +734,7 @@ window.massiveCleanupFields = async function(){
 
 window.openFlashAdmin = async function () {
 
-  const { renderFlashAdmin } = await import("./flash-admin.js");
+  const { renderFlashAdmin } = await import("./store/flash-admin.js");
   renderFlashAdmin();
 
 };
