@@ -9,7 +9,7 @@ import "./scanQR.js";
 let html5QrInstance = null;
 
 /* =========================================
-   INIT DAILY SCANNER (CHROME ANDROID SAFE)
+   INIT DAILY SCANNER (UNIVERSAL SAFE)
 ========================================= */
 export async function initDailyScanner(readerId, resultId){
 
@@ -20,21 +20,32 @@ export async function initDailyScanner(readerId, resultId){
 
   readerEl.style.display = "block";
 
+  // Hindari multiple instance
+  if (html5QrInstance) {
+    try {
+      await html5QrInstance.stop();
+      await html5QrInstance.clear();
+    } catch(e){}
+    html5QrInstance = null;
+  }
+
   await startCamera(resultBox);
 }
 
+
 /* =========================================
-   START CAMERA (NO getCameras)
+   START CAMERA (NO getCameras, SAFE)
 ========================================= */
 async function startCamera(resultBox){
 
   try {
 
-    // 🔥 WAJIB: request permission dulu
+    // 🔥 Permission warmup
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
+      video: { facingMode: { ideal: "environment" } }
     });
-    stream.getTracks().forEach(t => t.stop());
+
+    stream.getTracks().forEach(track => track.stop());
 
   } catch (err) {
 
@@ -64,14 +75,17 @@ async function startCamera(resultBox){
   try {
 
     await html5QrInstance.start(
-      { facingMode: { ideal: "environment" } }, // 🔥 Chrome Safe
+      { facingMode: { ideal: "environment" } },
       config,
       async (decodedText) => {
 
+        // Stop immediately after detect
         try {
           await html5QrInstance.stop();
           await html5QrInstance.clear();
         } catch(e){}
+
+        html5QrInstance = null;
 
         const cleaned = decodedText.trim();
 
@@ -81,6 +95,7 @@ async function startCamera(resultBox){
         }
 
         const currentUser = auth.currentUser;
+
         if (!currentUser) {
           showInvalid(resultBox, "User belum login");
           return setTimeout(goBack,1500);
@@ -116,7 +131,6 @@ async function startCamera(resultBox){
       `<div class="invalid-box">${msg}</div>`;
   }
 }
-
 /* =========================================
    DAILY STREAK ENGINE
 ========================================= */
