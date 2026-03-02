@@ -106,7 +106,6 @@ export async function renderAdmin() {
   content.innerHTML = html;
 
   await renderBalanceAdjustmentPanel();
-  await setupQrValidator();
 
   /* =======================
      BROADCAST EVENTS
