@@ -104,7 +104,11 @@ export async function initDailyScanner(readerId, resultId){
       cameraId,
       {
         fps: 20,
-        qrbox: 250
+        qrbox: (vw, vh) => {
+  const size = Math.min(vw, vh) * 0.7;
+  return { width: size, height: size };
+},
+aspectRatio: 1.0
       },
       async (decodedText) => {
 
