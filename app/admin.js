@@ -107,49 +107,6 @@ export async function renderAdmin() {
 
   await renderBalanceAdjustmentPanel();
 
-  /* =======================
-     BROADCAST EVENTS
-  ======================= */
-
-  document.getElementById("openBroadcast").onclick = async () => {
-    const modal = document.getElementById("broadcastModal");
-    modal.classList.remove("hidden");
-    await loadMembersForBroadcast("broadcastUserList");
-  };
-
-  document.getElementById("closeBroadcast").onclick = () => {
-    document.getElementById("broadcastModal").classList.add("hidden");
-  };
-
-  document.getElementById("sendBroadcastBtn").onclick = async () => {
-    const title = document.getElementById("broadcastTitle").value;
-    const message = document.getElementById("broadcastMessage").value;
-
-    const targetType = document.querySelector(
-      'input[name="broadcastTarget"]:checked'
-    ).value;
-
-    let selectedUserIds = [];
-
-    if (targetType === "SELECTED") {
-      const checkboxes = document.querySelectorAll(
-        "#broadcastUserList input[type=checkbox]:checked"
-      );
-      checkboxes.forEach(cb => selectedUserIds.push(cb.value));
-    }
-
-    await sendBroadcast({
-      title,
-      message,
-      targetType,
-      selectedUserIds,
-      adminId: auth.currentUser.uid
-    });
-
-    document.getElementById("broadcastModal").classList.add("hidden");
-  };
-}
-
 /* =====================================================
    BALANCE ADJUSTMENT
 ===================================================== */
