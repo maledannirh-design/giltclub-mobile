@@ -12,66 +12,150 @@ import { checkInAttendance } from "./services/attendanceService.js";
 import "./scanQR.js";
 
 let html5QrInstance = null;
-let cameraList = [];
-let currentCameraIndex = 0;
 
 /* =========================================
-   START BUTTON CLICK
+   INIT CHECK-IN SCANNER (DROPDOWN VERSION)
 ========================================= */
-startBtn.onclick = async ()=>{
+export async function initCheckinScanner({
+  readerId,
+  resultId,
+  scheduleId,
+  memberSelectId,
+  startBtnId
+}) {
 
-  const selectedUid = memberSelect.value;
+  const readerEl = document.getElementById(readerId);
+  const resultBox = document.getElementById(resultId);
+  const memberSelect = document.getElementById(memberSelectId);
+  const startBtn = document.getElementById(startBtnId);
 
-  if(!selectedUid){
+  if (!readerEl || !resultBox || !memberSelect || !startBtn) return;
+
+  if (!scheduleId) {
     resultBox.innerHTML =
-      `<div class="invalid-box">Pilih member dulu</div>`;
+      `<div class="invalid-box">Schedule tidak ditemukan</div>`;
     return;
   }
 
-  if(!bookingMap[selectedUid]){
-    resultBox.innerHTML =
-      `<div class="invalid-box">Booking tidak ditemukan</div>`;
-    return;
-  }
+  let bookingMap = {};
 
-  document.getElementById("checkinControlPanel").style.display = "none";
-  readerEl.style.display = "block";
-
-  // Hindari instance ganda
-  if (html5QrInstance) {
-    try {
-      await html5QrInstance.stop();
-      await html5QrInstance.clear();
-    } catch(e){}
-    html5QrInstance = null;
-  }
-
-  await startCamera(
-    scheduleId,
-    resultBox,
-    selectedUid,
-    bookingMap[selectedUid]
-  );
-};
-
-
-/* =========================================
-   START CAMERA (UNIVERSAL SAFE ENGINE)
-========================================= */
-async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
-
+  /* =========================================
+     LOAD BOOKING ACTIVE
+  ========================================= */
   try {
 
-    // Permission warmup
-    const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    testStream.getTracks().forEach(t => t.stop());
+    const bookingSnap = await getDocs(
+      query(
+        collection(db,"bookings"),
+        where("scheduleId","==",scheduleId),
+        where("status","==","active")
+      )
+    );
 
-  } catch (err) {
+    if (bookingSnap.empty) {
+      resultBox.innerHTML =
+        `<div class="invalid-box">Belum ada peserta</div>`;
+      return;
+    }
+
+    memberSelect.innerHTML =
+      `<option value="">-- Pilih Member --</option>`;
+
+    const loadPromises = bookingSnap.docs.map(async (docSnap) => {
+
+      const data = docSnap.data();
+      const userId = data.userId;
+
+      bookingMap[userId] = docSnap.id;
+
+      let displayText = "Member";
+
+      try {
+        const userSnap = await getDoc(doc(db,"users",userId));
+
+        if (userSnap.exists()) {
+
+          const userData = userSnap.data();
+
+          const username =
+            userData.usernameID ||
+            userData.username ||
+            "";
+
+          const fullName =
+            userData.fullName ||
+            "";
+
+          if (username && fullName) {
+            displayText = `${username} - ${fullName}`;
+          } else if (username) {
+            displayText = username;
+          } else if (fullName) {
+            displayText = fullName;
+          }
+        }
+
+      } catch(e){}
+
+      const opt = document.createElement("option");
+      opt.value = userId;
+      opt.textContent = displayText;
+
+      memberSelect.appendChild(opt);
+    });
+
+    await Promise.all(loadPromises);
+
+  } catch(err){
 
     resultBox.innerHTML =
-      `<div class="invalid-box">
-        Permission kamera ditolak
-      </div>`;
+      `<div class="invalid-box">Gagal load peserta</div>`;
+    return;
+  }
+
+  /* =========================================
+     START BUTTON CLICK
+  ========================================= */
+  startBtn.onclick = async ()=>{
+
+    const selectedUid = memberSelect.value;
+
+    if(!selectedUid){
+      resultBox.innerHTML =
+        `<div class="invalid-box">Pilih member dulu</div>`;
+      return;
+    }
+
+    if(!bookingMap[selectedUid]){
+      resultBox.innerHTML =
+        `<div class="invalid-box">Booking tidak ditemukan</div>`;
+      return;
+    }
+
+    document.getElementById("checkinControlPanel").style.display = "none";
+    readerEl.style.display = "block";
+
+    await startCamera(
+      resultBox,
+      selectedUid,
+      bookingMap[selectedUid]
+    );
+  };
+}
+
+
+/* =========================================
+   START CAMERA (UNIVERSAL SAFE)
+========================================= */
+async function startCamera(resultBox, selectedUid, bookingId) {
+
+  try {
+    const stream =
+      await navigator.mediaDevices.getUserMedia({ video: true });
+    stream.getTracks().forEach(t => t.stop());
+  } catch (err) {
+    resultBox.innerHTML =
+      `<div class="invalid-box">Permission kamera ditolak</div>`;
     return;
   }
 
@@ -121,35 +205,30 @@ async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
   try {
 
-    // TRY 1 – environment
     await html5QrInstance.start(
       { facingMode: "environment" },
       config,
       onScanSuccess
     );
 
-  } catch (err1) {
-
-    console.warn("Environment failed, fallback to default camera");
+  } catch {
 
     try {
 
-      // TRY 2 – fallback default camera
       await html5QrInstance.start(
         { video: true },
         config,
         onScanSuccess
       );
 
-    } catch (err2) {
+    } catch {
 
       resultBox.innerHTML =
-        `<div class="invalid-box">
-          Kamera gagal dibuka
-        </div>`;
+        `<div class="invalid-box">Kamera gagal dibuka</div>`;
     }
   }
 }
+
 
 /* =========================================
    UI SUCCESS
@@ -200,6 +279,7 @@ function showSuccess(resultBox, res){
   `;
 }
 
+
 /* =========================================
    UI INVALID
 ========================================= */
@@ -211,6 +291,7 @@ function showInvalid(resultBox, message){
     </div>
   `;
 }
+
 
 /* =========================================
    GO BACK
@@ -226,19 +307,4 @@ async function goBack(){
 
   html5QrInstance = null;
   window.history.back();
-}
-
-/* =========================================
-   STOP SCANNER MANUAL
-========================================= */
-export async function stopCheckinScanner() {
-
-  if (!html5QrInstance) return;
-
-  try {
-    await html5QrInstance.stop();
-    await html5QrInstance.clear();
-  } catch (e) {}
-
-  html5QrInstance = null;
 }
