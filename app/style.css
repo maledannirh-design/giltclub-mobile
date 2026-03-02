@@ -2267,3 +2267,18 @@ body.scan-mode{
   border:1px solid #2ecc71;
   color:#1e7f47;
 }
+
+#qrReader {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+#qrReader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 16px;
+}
