@@ -99,6 +99,10 @@ content.innerHTML = `
       </div>
 
       <div class="home-right-section">
+      <div class="notif-wrapper">
+  <h3>Notifikasi</h3>
+  <div id="notifList"></div>
+</div>
         <div class="home-unread-icon">
           <div class="mail-icon">✉️</div>
           ${
