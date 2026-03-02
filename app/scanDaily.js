@@ -6,7 +6,7 @@ import "./scanQR.js";
 let html5QrInstance = null;
 
 /* =========================================
-   INIT DAILY SCANNER (IOS SAFE)
+   INIT DAILY SCANNER (MOBILE SAFE VERSION)
 ========================================= */
 export async function initDailyScanner(readerId, resultId){
 
@@ -17,15 +17,21 @@ export async function initDailyScanner(readerId, resultId){
 
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 🔥 HARD RESET STREAM FIRST (very important for iOS)
+  // HARD PERMISSION REQUEST
   try{
-    const warmup = await navigator.mediaDevices.getUserMedia({
+    const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" }
     });
-    warmup.getTracks().forEach(track => track.stop());
+    stream.getTracks().forEach(track => track.stop());
   }catch(err){
+
+    const msg =
+      err?.message ||
+      err?.name ||
+      "Permission kamera ditolak";
+
     resultBox.innerHTML =
-      `<div class="invalid-box">Permission kamera ditolak</div>`;
+      `<div class="invalid-box">${msg}</div>`;
     return;
   }
 
@@ -36,20 +42,23 @@ export async function initDailyScanner(readerId, resultId){
   try{
     cameras = await Html5Qrcode.getCameras();
   }catch(err){
+
     resultBox.innerHTML =
-      `<div class="invalid-box">Gagal membaca kamera</div>`;
+      `<div class="invalid-box">
+        Tidak bisa membaca kamera
+      </div>`;
     return;
   }
 
   if (!cameras.length) {
     resultBox.innerHTML =
-      `<div class="invalid-box">Camera tidak ditemukan</div>`;
+      `<div class="invalid-box">
+        Camera tidak ditemukan
+      </div>`;
     return;
   }
 
-  // ===============================
-  // FIND BACK CAMERA (SAFE WAY)
-  // ===============================
+  // Cari kamera belakang
   let backCam = cameras.find(c =>
     c.label.toLowerCase().includes("back")
   );
@@ -60,94 +69,85 @@ export async function initDailyScanner(readerId, resultId){
     );
   }
 
-  // fallback → kamera terakhir
   const cameraId = backCam
     ? backCam.id
     : cameras[cameras.length - 1].id;
 
   await startCamera(cameraId);
 
-  // ===============================
-  // SWITCH CAMERA
-  // ===============================
-  window.switchDailyCamera = async function(){
-
-    if(!html5QrInstance) return;
+  /* ========================================= */
+  async function startCamera(camId){
 
     try{
-      await html5QrInstance.stop();
-      await html5QrInstance.clear();
-    }catch(e){}
 
-    const index = cameras.findIndex(c => c.id === cameraId);
-    const nextIndex = (index + 1) % cameras.length;
+      if (html5QrInstance &&
+          html5QrInstance.getState &&
+          html5QrInstance.getState() === 2) {
 
-    await startCamera(cameras[nextIndex].id);
-  };
+        await html5QrInstance.stop();
+        await html5QrInstance.clear();
+      }
 
-
-/* =========================================
-   START CAMERA (ANTI-PAUSE STABLE)
-========================================= */
-async function startCamera(camId){
-
-  try{
-
-    // 🔥 pastikan tidak sedang running
-    if (html5QrInstance && html5QrInstance.getState() === 2) {
-      await html5QrInstance.stop();
-      await html5QrInstance.clear();
-    }
-
-    await html5QrInstance.start(
-      camId,   // WAJIB string
-      {
-        fps: 20,  // iPhone 15 sweet spot
-        qrbox: (vw, vh) => {
-          const size = Math.floor(Math.min(vw, vh) * 0.75);
-          return { width: size, height: size };
+      await html5QrInstance.start(
+        camId,
+        {
+          fps: 20,
+          qrbox: (vw, vh) => {
+            const size = Math.floor(Math.min(vw, vh) * 0.75);
+            return { width: size, height: size };
+          },
+          aspectRatio: 1.0
         },
-        aspectRatio: 1.0
-      },
-     async (decodedText) => {
+        async (decodedText) => {
 
-  try {
-    await html5QrInstance.stop();
-  } catch(e){}
+          try{
+            await html5QrInstance.stop();
+          }catch(e){}
 
-  try {
+          try{
 
-    const cleaned = decodedText.trim();
+            const cleaned = decodedText.trim();
 
-    // 🔥 VALIDASI SEDERHANA
-    if (!cleaned.includes("giltclub.my.id")) {
-      showInvalid(resultBox, "QR tidak valid");
-      return setTimeout(goBack,1500);
+            if (!cleaned.includes("giltclub.my.id")) {
+              showInvalid(resultBox, "QR tidak valid");
+              return setTimeout(goBack,1500);
+            }
+
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+              showInvalid(resultBox, "User belum login");
+              return setTimeout(goBack,1500);
+            }
+
+            const reward =
+              await runDailyStreakReward(currentUser.uid);
+
+            showSuccess(resultBox, reward);
+
+          }catch(err){
+
+            showInvalid(
+              resultBox,
+              err?.message || "Gagal check-in"
+            );
+          }
+
+          setTimeout(goBack,1500);
+        }
+      );
+
+    }catch(err){
+
+      console.error("Camera start error:", err);
+
+      const msg =
+        err?.message ||
+        err?.name ||
+        "Kamera gagal dibuka";
+
+      resultBox.innerHTML =
+        `<div class="invalid-box">${msg}</div>`;
     }
-
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      showInvalid(resultBox, "User belum login");
-      return setTimeout(goBack,1500);
-    }
-
-    // 🔥 langsung pakai UID login sekarang
-    const reward = await runDailyStreakReward(currentUser.uid);
-
-    showSuccess(resultBox, reward);
-
-  } catch (err) {
-
-    showInvalid(resultBox, err.message || "Gagal check-in");
-  }
-
-  setTimeout(goBack,1500);
-}
-    );
-
-  }catch(err){
-    console.error("Camera start error:", err);
   }
 }
 }
