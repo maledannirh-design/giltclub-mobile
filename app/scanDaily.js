@@ -158,21 +158,24 @@ export async function initCheckinScanner({
 
 
 /* =========================================
-   START CAMERA (UNIVERSAL SAFE ENGINE)
+   PREPARE CAMERA (SAFE VERSION)
 ========================================= */
-async function startCamera(resultBox, selectedUid, bookingId) {
+async function prepareCamera(){
 
   try {
     const stream =
       await navigator.mediaDevices.getUserMedia({ video: true });
     stream.getTracks().forEach(t => t.stop());
   } catch (err) {
-    resultBox.innerHTML =
-      `<div class="invalid-box">Permission kamera ditolak</div>`;
-    return;
+    throw new Error("Permission kamera ditolak");
   }
 
   html5QrInstance = new Html5Qrcode("reader");
+}
+/* =========================================
+   START CAMERA (UNIVERSAL STABLE)
+========================================= */
+async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
   const config = {
     fps: 20,
@@ -186,12 +189,8 @@ async function startCamera(resultBox, selectedUid, bookingId) {
 
   async function onScanSuccess(decodedText){
 
-    try {
-      await html5QrInstance.stop();
-      await html5QrInstance.clear();
-    } catch(e){}
-
-    html5QrInstance = null;
+    try { await html5QrInstance.stop(); } catch(e){}
+    try { await html5QrInstance.clear(); } catch(e){}
 
     const cleaned = decodedText.trim();
 
@@ -219,6 +218,7 @@ async function startCamera(resultBox, selectedUid, bookingId) {
 
   try {
 
+    // TRY 1 – environment (Android & most phones)
     await html5QrInstance.start(
       { facingMode: "environment" },
       config,
@@ -228,18 +228,23 @@ async function startCamera(resultBox, selectedUid, bookingId) {
   } catch (err1) {
 
     try {
+
+      // TRY 2 – fallback laptop / default cam
       await html5QrInstance.start(
         { video: true },
         config,
         onScanSuccess
       );
+
     } catch (err2) {
+
       resultBox.innerHTML =
-        `<div class="invalid-box">Kamera gagal dibuka</div>`;
+        `<div class="invalid-box">
+          Kamera gagal dibuka
+        </div>`;
     }
   }
 }
-
 
 /* =========================================
    UI
