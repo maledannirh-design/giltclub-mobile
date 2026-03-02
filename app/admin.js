@@ -731,6 +731,11 @@ window.massiveCleanupFields = async function(){
   }
 };
 
+window.openFlashAdmin = async function () {
 
+  const { renderFlashAdmin } = await import("./flash-admin.js");
+  renderFlashAdmin();
+
+};
 window.handleBalanceAdjustment = handleBalanceAdjustment;
 window.runMigration = runMigration;
