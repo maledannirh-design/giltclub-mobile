@@ -1,4 +1,4 @@
-import { auth, db } from "./firebase.js";
+import { db } from "./firebase.js";
 import {
   collection,
   query,
@@ -15,7 +15,7 @@ let html5QrInstance = null;
 
 
 /* =========================================
-   INIT CHECK-IN SCANNER
+   INIT CHECK-IN SCANNER (DROPDOWN VERSION)
 ========================================= */
 export async function initCheckinScanner({
   readerId,
@@ -40,6 +40,9 @@ export async function initCheckinScanner({
 
   let bookingMap = {};
 
+  /* =========================================
+     LOAD BOOKING ACTIVE
+  ========================================= */
   try {
 
     const bookingSnap = await getDocs(
@@ -69,23 +72,25 @@ export async function initCheckinScanner({
       let displayText = "Member";
 
       try {
-        const userRef = doc(db, "users", userId);
-        const userSnap = await getDoc(userRef);
+        const userSnap =
+          await getDoc(doc(db,"users",userId));
 
         if (userSnap.exists()) {
-          const userData = userSnap.data();
+
+          const u = userSnap.data();
 
           const username =
-            userData.usernameID ||
-            userData.username ||
+            u.usernameID ||
+            u.username ||
             "";
 
           const fullName =
-            userData.fullName ||
+            u.fullName ||
             "";
 
           if (username && fullName) {
-            displayText = `${username} - ${fullName}`;
+            displayText =
+              `${username} - ${fullName}`;
           } else if (username) {
             displayText = username;
           } else if (fullName) {
@@ -94,7 +99,7 @@ export async function initCheckinScanner({
         }
 
       } catch (e) {
-        console.error("Gagal load identity user:", e);
+        console.error("Load user gagal:", e);
       }
 
       const opt = document.createElement("option");
@@ -153,23 +158,17 @@ export async function initCheckinScanner({
 
 
 /* =========================================
-   START CAMERA (UNIVERSAL ENGINE)
+   START CAMERA (UNIVERSAL SAFE ENGINE)
 ========================================= */
 async function startCamera(resultBox, selectedUid, bookingId) {
 
   try {
-
-    const testStream =
+    const stream =
       await navigator.mediaDevices.getUserMedia({ video: true });
-
-    testStream.getTracks().forEach(t => t.stop());
-
+    stream.getTracks().forEach(t => t.stop());
   } catch (err) {
-
     resultBox.innerHTML =
-      `<div class="invalid-box">
-        Permission kamera ditolak
-      </div>`;
+      `<div class="invalid-box">Permission kamera ditolak</div>`;
     return;
   }
 
@@ -229,19 +228,14 @@ async function startCamera(resultBox, selectedUid, bookingId) {
   } catch (err1) {
 
     try {
-
       await html5QrInstance.start(
         { video: true },
         config,
         onScanSuccess
       );
-
     } catch (err2) {
-
       resultBox.innerHTML =
-        `<div class="invalid-box">
-          Kamera gagal dibuka
-        </div>`;
+        `<div class="invalid-box">Kamera gagal dibuka</div>`;
     }
   }
 }
@@ -252,14 +246,9 @@ async function startCamera(resultBox, selectedUid, bookingId) {
 ========================================= */
 function showSuccess(resultBox, res){
 
-  const role = (res.role || "MEMBER").toUpperCase();
-
   resultBox.innerHTML = `
     <div class="result-box success">
-      <div style="font-size:20px;margin-bottom:10px;">
-        ✅ CHECK-IN BERHASIL
-      </div>
-      <div>${role}</div>
+      ✅ CHECK-IN BERHASIL
     </div>
   `;
 }
