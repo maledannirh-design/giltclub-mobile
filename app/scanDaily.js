@@ -78,15 +78,15 @@ export async function initDailyScanner(readerId, resultId){
   /* ========================================= */
   async function startCamera(camId){
 
-    try{
+    if (html5QrInstance) {
+  try {
+    await html5QrInstance.stop();
+  } catch(e){}
 
-      if (html5QrInstance &&
-          html5QrInstance.getState &&
-          html5QrInstance.getState() === 2) {
-
-        await html5QrInstance.stop();
-        await html5QrInstance.clear();
-      }
+  try {
+    await html5QrInstance.clear();
+  } catch(e){}
+}
 
       await html5QrInstance.start(
         camId,
