@@ -38,25 +38,36 @@ export async function renderStore() {
   if (!content) return;
 
   content.innerHTML = `
-    <div class="store-page">
-      <section id="flashSection">
-        <h2 class="section-title">Flash Drop</h2>
-        <div id="storeFlash" class="store-grid"></div>
-      </section>
+  <div class="store-page">
 
-      <section>
-        <h2 class="section-title">Merchandise</h2>
-        <div id="storeProducts" class="store-grid"></div>
-      </section>
-
-      <section>
-        <h2 class="section-title">Redeem Rewards</h2>
-        <div id="storeRewards" class="store-grid"></div>
-      </section>
-
-      <div id="sizeModal" class="size-modal"></div>
+    <!-- ================= GILT STORE BANNER ================= -->
+    <div class="gilt-store-banner">
+      <div class="gilt-store-left">
+        GILT-STORE
+      </div>
+      <div class="gilt-store-right" onclick="openCreateStore()">
+        >>> buat toko sendiri
+      </div>
     </div>
-  `;
+
+    <section id="flashSection">
+      <h2 class="section-title">Flash Drop</h2>
+      <div id="storeFlash" class="store-grid"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Merchandise</h2>
+      <div id="storeProducts" class="store-grid"></div>
+    </section>
+
+    <section>
+      <h2 class="section-title">Redeem Rewards</h2>
+      <div id="storeRewards" class="store-grid"></div>
+    </section>
+
+    <div id="sizeModal" class="size-modal"></div>
+  </div>
+`;
 
   renderProducts();
   renderRewards();
@@ -645,5 +656,18 @@ window.openSizeModal = function(productId){
 window.closeModal = function(){
   document.getElementById("sizeModal").style.display = "none";
 }
+
+window.openCreateStore = function(){
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login required.");
+    return;
+  }
+
+  // sementara redirect sederhana
+  window.location.hash = "#create-store";
+
+};
 
 window.redeemFlash = redeemFlash;
