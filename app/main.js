@@ -5,8 +5,7 @@
 import { navigate } from "./navigation.js";
 import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
-import { showToast, showConfirm } from "./ui.js";
-import { renderStore } from "./store/store.js";
+import { showToast } from "./ui.js";
 
 import {
   doc,
@@ -14,8 +13,7 @@ import {
   collection,
   query,
   where,
-  onSnapshot,
-  updateDoc
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
@@ -47,7 +45,6 @@ async function checkMaintenanceAndFreeze(user){
     const data = snap.data();
     if(!data.enabled) return false;
 
-    // 🔥 ADMIN & SUPERCOACH TETAP BOLEH MASUK
     if(user){
       const userSnap = await getDoc(doc(db,"users", user.uid));
       if(userSnap.exists()){
@@ -127,6 +124,75 @@ window.addEventListener("load", () => {
 
 
 /* =========================================
+   ATTENDANCE LISTENER (SAFE SINGLE INSTANCE)
+========================================= */
+
+let unsubscribeAttendance = null;
+
+function listenAttendanceNotification(uid){
+
+  if(unsubscribeAttendance){
+    unsubscribeAttendance();
+    unsubscribeAttendance = null;
+  }
+
+  const q = query(
+    collection(db,"bookings"),
+    where("userId","==",uid),
+    where("attendance","==",true)
+  );
+
+  unsubscribeAttendance = onSnapshot(q, snap=>{
+
+    snap.docChanges().forEach(change=>{
+
+      if(change.type !== "added" && change.type !== "modified") return;
+
+      const data = change.doc.data();
+      const attendedAt = data.attendedAt?.toDate?.();
+      if(!attendedAt) return;
+
+      const diff = Date.now() - attendedAt.getTime();
+      if(diff > 60 * 60 * 1000) return;
+
+      const bookingId = change.doc.id;
+
+      const notified =
+        JSON.parse(localStorage.getItem("notifiedBookings") || "[]");
+
+      if(notified.includes(bookingId)) return;
+
+      const cashback = data.rewardCashback || 0;
+      const gpoint = data.rewardGPoint || 0;
+      const date = data.rewardSessionDate || "-";
+
+      let message = "✅ Check-in berhasil!\n";
+
+      if(cashback > 0){
+        message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
+      }
+
+      if(gpoint > 0){
+        message += `⭐ GPoint +${gpoint}\n`;
+      }
+
+      message += `📅 ${date}`;
+
+      showToast(message);
+
+      notified.push(bookingId);
+      localStorage.setItem(
+        "notifiedBookings",
+        JSON.stringify(notified)
+      );
+
+    });
+
+  });
+}
+
+
+/* =========================================
    AUTH STATE (SINGLE SOURCE OF TRUTH)
 ========================================= */
 
@@ -137,14 +203,10 @@ onAuthStateChanged(auth, async (user)=>{
 
   if(user){
 
-    // 🔥 CEK MAINTENANCE SEBELUM MASUK HOME
     if(await checkMaintenanceAndFreeze(user)) return;
 
     navigate("home");
 
-    /* =============================
-       PRESENCE SYSTEM
-    ============================= */
     const statusRef = ref(rtdb, "status/" + user.uid);
 
     set(statusRef,{
@@ -157,9 +219,6 @@ onAuthStateChanged(auth, async (user)=>{
       lastSeen: Date.now()
     });
 
-    /* =============================
-       LOAD USER DATA
-    ============================= */
     try{
 
       const snap = await getDoc(doc(db, "users", user.uid));
@@ -167,7 +226,6 @@ onAuthStateChanged(auth, async (user)=>{
       if(snap.exists()){
 
         const data = snap.data();
-
         window.currentUserRole = data.role || "MEMBER";
 
         if(label){
@@ -176,11 +234,10 @@ onAuthStateChanged(auth, async (user)=>{
         }
 
         if(adminButton){
-          if(data.role === "ADMIN" || data.role === "SUPERCOACH"){
-            adminButton.style.display = "flex";
-          }else{
-            adminButton.style.display = "none";
-          }
+          adminButton.style.display =
+            (data.role === "ADMIN" || data.role === "SUPERCOACH")
+            ? "flex"
+            : "none";
         }
 
       }else{
@@ -193,91 +250,24 @@ onAuthStateChanged(auth, async (user)=>{
     }catch(error){
 
       console.error("User load error:", error);
-
       if(label) label.innerText = "Error loading user";
       if(adminButton) adminButton.style.display = "none";
 
     }
 
-    /* =============================
-       ATTENDANCE REALTIME LISTENER
-    ============================= */
     listenAttendanceNotification(user.uid);
 
-    /* =============================
-       NOTIFICATION LISTENER
-    ============================= */
-    listenUserNotifications(user.uid);
-
   }else{
+
+    if(unsubscribeAttendance){
+      unsubscribeAttendance();
+      unsubscribeAttendance = null;
+    }
 
     navigate("account");
 
     if(label) label.innerText = "Not logged in";
     if(adminButton) adminButton.style.display = "none";
-
   }
 
 });
-/* =========================================
-   ATTENDANCE LISTENER
-========================================= */
-
-function listenAttendanceNotification(uid){
-
-  const q = query(
-    collection(db,"bookings"),
-    where("userId","==",uid),
-    where("attendance","==",true)
-  );
-
-  onSnapshot(q, snap=>{
-
-    snap.docChanges().forEach(change=>{
-
-      if(change.type === "added" || change.type === "modified"){
-
-        const data = change.doc.data();
-        const attendedAt = data.attendedAt?.toDate?.();
-        if(!attendedAt) return;
-
-        const diff = Date.now() - attendedAt.getTime();
-        if(diff > 60 * 60 * 1000) return;
-
-        const bookingId = change.doc.id;
-
-        const notified =
-          JSON.parse(localStorage.getItem("notifiedBookings") || "[]");
-
-        if(notified.includes(bookingId)) return;
-
-        const cashback = data.rewardCashback || 0;
-        const gpoint = data.rewardGPoint || 0;
-        const date = data.rewardSessionDate || "-";
-
-        let message = "✅ Check-in berhasil!\n";
-
-        if(cashback > 0){
-          message += `💰 Cashback Rp ${cashback.toLocaleString("id-ID")}\n`;
-        }
-
-        if(gpoint > 0){
-          message += `⭐ GPoint +${gpoint}\n`;
-        }
-
-        message += `📅 ${date}`;
-
-        showToast(message);
-
-        notified.push(bookingId);
-        localStorage.setItem(
-          "notifiedBookings",
-          JSON.stringify(notified)
-        );
-      }
-
-    });
-
-  });
-
-}
