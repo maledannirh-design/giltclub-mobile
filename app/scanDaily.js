@@ -40,22 +40,15 @@ async function startCamera(resultBox){
 
   try {
 
-    // 🔥 Permission warmup
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } }
-    });
-
-    stream.getTracks().forEach(track => track.stop());
+    // Permission warmup
+    const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    testStream.getTracks().forEach(t => t.stop());
 
   } catch (err) {
-
-    const msg =
-      err?.message ||
-      err?.name ||
-      "Permission kamera ditolak";
-
     resultBox.innerHTML =
-      `<div class="invalid-box">${msg}</div>`;
+      `<div class="invalid-box">
+        Permission kamera ditolak
+      </div>`;
     return;
   }
 
@@ -64,73 +57,74 @@ async function startCamera(resultBox){
   const config = {
     fps: 20,
     qrbox: (vw, vh) => {
-      const minEdge = Math.min(vw, vh);
-      const size = Math.floor(minEdge * 0.8);
+      const size = Math.floor(Math.min(vw, vh) * 0.8);
       return { width: size, height: size };
     },
-    aspectRatio: 1.0,
-    disableFlip: true
+    aspectRatio: 1.0
   };
 
   try {
 
+    // 🔥 TRY 1: environment string
     await html5QrInstance.start(
-      { facingMode: { ideal: "environment" } },
+      { facingMode: "environment" },
       config,
-      async (decodedText) => {
-
-        // Stop immediately after detect
-        try {
-          await html5QrInstance.stop();
-          await html5QrInstance.clear();
-        } catch(e){}
-
-        html5QrInstance = null;
-
-        const cleaned = decodedText.trim();
-
-        if (!cleaned.includes("giltclub.my.id")) {
-          showInvalid(resultBox, "QR tidak valid");
-          return setTimeout(goBack,1500);
-        }
-
-        const currentUser = auth.currentUser;
-
-        if (!currentUser) {
-          showInvalid(resultBox, "User belum login");
-          return setTimeout(goBack,1500);
-        }
-
-        try {
-
-          const reward =
-            await runDailyStreakReward(currentUser.uid);
-
-          showSuccess(resultBox, reward);
-
-        } catch (err) {
-
-          showInvalid(
-            resultBox,
-            err?.message || "Gagal check-in"
-          );
-        }
-
-        setTimeout(goBack,1500);
-      }
+      onScanSuccess
     );
 
-  } catch (err) {
+  } catch (err1) {
 
-    const msg =
-      err?.message ||
-      err?.name ||
-      "Kamera gagal dibuka";
+    console.warn("Environment failed, fallback to default camera");
 
-    resultBox.innerHTML =
-      `<div class="invalid-box">${msg}</div>`;
+    try {
+
+      // 🔥 TRY 2: fallback laptop default camera
+      await html5QrInstance.start(
+        { video: true },
+        config,
+        onScanSuccess
+      );
+
+    } catch (err2) {
+
+      resultBox.innerHTML =
+        `<div class="invalid-box">
+          Kamera gagal dibuka
+        </div>`;
+    }
+  }
+
+  async function onScanSuccess(decodedText){
+
+    try {
+      await html5QrInstance.stop();
+      await html5QrInstance.clear();
+    } catch(e){}
+
+    html5QrInstance = null;
+
+    const cleaned = decodedText.trim();
+
+    if (!cleaned.includes("giltclub.my.id")) {
+      showInvalid(resultBox, "QR tidak valid");
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      showInvalid(resultBox, "User belum login");
+      return;
+    }
+
+    try {
+      const reward = await runDailyStreakReward(currentUser.uid);
+      showSuccess(resultBox, reward);
+    } catch (err) {
+      showInvalid(resultBox, err.message || "Gagal check-in");
+    }
   }
 }
+
 /* =========================================
    DAILY STREAK ENGINE
 ========================================= */
