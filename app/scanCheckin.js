@@ -16,248 +16,138 @@ let cameraList = [];
 let currentCameraIndex = 0;
 
 /* =========================================
-   INIT CHECK-IN SCANNER (DROPDOWN VERSION)
+   START BUTTON CLICK
 ========================================= */
-export async function initCheckinScanner({
-  readerId,
-  resultId,
-  scheduleId,
-  memberSelectId,
-  startBtnId
-}) {
+startBtn.onclick = async ()=>{
 
-  const readerEl = document.getElementById(readerId);
-  const resultBox = document.getElementById(resultId);
-  const memberSelect = document.getElementById(memberSelectId);
-  const startBtn = document.getElementById(startBtnId);
+  const selectedUid = memberSelect.value;
 
-  if (!readerEl || !resultBox || !memberSelect || !startBtn) return;
-
-  if (!scheduleId) {
+  if(!selectedUid){
     resultBox.innerHTML =
-      `<div class="invalid-box">Schedule tidak ditemukan</div>`;
+      `<div class="invalid-box">Pilih member dulu</div>`;
     return;
   }
 
-  /* =========================================
-     LOAD BOOKING ACTIVE
-  ========================================= */
-  let bookingMap = {}; // userId -> bookingId
-
-  try {
-
-    const bookingSnap = await getDocs(
-      query(
-        collection(db,"bookings"),
-        where("scheduleId","==",scheduleId),
-        where("status","==","active")
-      )
-    );
-
-    if (bookingSnap.empty) {
-      resultBox.innerHTML =
-        `<div class="invalid-box">Belum ada peserta</div>`;
-      return;
-    }
-
-    // Kosongkan dropdown dulu
-    memberSelect.innerHTML = `<option value="">-- Pilih Member --</option>`;
-
-    // Kita kumpulkan promise supaya async rapi
-    const loadPromises = bookingSnap.docs.map(async (docSnap) => {
-
-      const data = docSnap.data();
-      const userId = data.userId;
-
-      bookingMap[userId] = docSnap.id;
-
-      let displayText = "Member";
-
-      try {
-        const userRef = doc(db, "users", userId);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-
-          const username =
-            userData.usernameID ||
-            userData.username ||
-            "";
-
-          const fullName =
-            userData.fullName ||
-            "";
-
-          if (username && fullName) {
-            displayText = `${username} - ${fullName}`;
-          } else if (username) {
-            displayText = username;
-          } else if (fullName) {
-            displayText = fullName;
-          }
-        }
-
-      } catch (e) {
-        console.error("Gagal load identity user:", e);
-      }
-
-      const opt = document.createElement("option");
-      opt.value = userId;
-      opt.textContent = displayText;
-
-      memberSelect.appendChild(opt);
-    });
-
-    // Tunggu semua user selesai di-load
-    await Promise.all(loadPromises);
-
-  } catch(err){
+  if(!bookingMap[selectedUid]){
     resultBox.innerHTML =
-      `<div class="invalid-box">Gagal load peserta</div>`;
+      `<div class="invalid-box">Booking tidak ditemukan</div>`;
     return;
   }
 
-  /* =========================================
-     START BUTTON CLICK
-  ========================================= */
-  startBtn.onclick = async ()=>{
+  document.getElementById("checkinControlPanel").style.display = "none";
+  readerEl.style.display = "block";
 
-    const selectedUid = memberSelect.value;
+  // Hindari instance ganda
+  if (html5QrInstance) {
+    try {
+      await html5QrInstance.stop();
+      await html5QrInstance.clear();
+    } catch(e){}
+    html5QrInstance = null;
+  }
 
-    if(!selectedUid){
-      resultBox.innerHTML =
-        `<div class="invalid-box">Pilih member dulu</div>`;
-      return;
-    }
+  await startCamera(
+    scheduleId,
+    resultBox,
+    selectedUid,
+    bookingMap[selectedUid]
+  );
+};
 
-    if(!bookingMap[selectedUid]){
-      resultBox.innerHTML =
-        `<div class="invalid-box">Booking tidak ditemukan</div>`;
-      return;
-    }
-
-    document.getElementById("checkinControlPanel").style.display = "none";
-    readerEl.style.display = "block";
-
-    await prepareCamera();
-    await startCamera(
-      scheduleId,
-      resultBox,
-      selectedUid,
-      bookingMap[selectedUid]
-    );
-  };
-}
 
 /* =========================================
-   PREPARE CAMERA
+   START CAMERA (UNIVERSAL SAFE ENGINE)
 ========================================= */
-async function prepareCamera(){
+async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
   try {
-    await navigator.mediaDevices.getUserMedia({ video: true });
+
+    // Permission warmup
+    const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    testStream.getTracks().forEach(t => t.stop());
+
   } catch (err) {
-    throw new Error("Permission kamera ditolak");
+
+    resultBox.innerHTML =
+      `<div class="invalid-box">
+        Permission kamera ditolak
+      </div>`;
+    return;
   }
 
   html5QrInstance = new Html5Qrcode("reader");
 
-  cameraList = await Html5Qrcode.getCameras();
-
-  if (!cameraList.length) {
-    throw new Error("Camera tidak ditemukan");
-  }
-
-  const backIndex = cameraList.findIndex(device =>
-    device.label.toLowerCase().includes("back") ||
-    device.label.toLowerCase().includes("environment")
-  );
-
-  currentCameraIndex =
-    backIndex >= 0 ? backIndex : cameraList.length - 1;
-}
-
-/* =========================================
-   START CAMERA (QR SIMPLE VALIDATION)
-========================================= */
-async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
-
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-  const cameraId = cameraList[currentCameraIndex].id;
-
-  const videoConstraints = isIOS
-    ? {
-        facingMode: { exact: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 1280 }
-      }
-    : cameraId;
-
   const config = {
-    fps: isIOS ? 20 : 30,
-    qrbox: (viewfinderWidth, viewfinderHeight) => {
-      const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-      const qrSize = Math.floor(minEdge * (isIOS ? 0.75 : 0.8));
-      return { width: qrSize, height: qrSize };
+    fps: 20,
+    qrbox: (vw, vh) => {
+      const size = Math.floor(Math.min(vw, vh) * 0.8);
+      return { width: size, height: size };
     },
-    aspectRatio: 1.0,
-    disableFlip: true,
-    experimentalFeatures: {
-      useBarCodeDetectorIfSupported: true
-    }
+    aspectRatio: 1.0
   };
+
+  async function onScanSuccess(decodedText){
+
+    try {
+      await html5QrInstance.stop();
+      await html5QrInstance.clear();
+    } catch(e){}
+
+    html5QrInstance = null;
+
+    const cleaned = decodedText.trim();
+
+    if (!cleaned.includes("giltclub.my.id")) {
+      showInvalid(resultBox, "QR tidak valid");
+      return setTimeout(goBack,1500);
+    }
+
+    try {
+
+      const res = await checkInAttendance({
+        bookingId,
+        scannedUid: selectedUid
+      });
+
+      showSuccess(resultBox, res);
+
+    } catch (err) {
+
+      showInvalid(resultBox, err.message || "Check-in gagal");
+    }
+
+    setTimeout(goBack,1500);
+  }
 
   try {
 
+    // TRY 1 – environment
     await html5QrInstance.start(
-      videoConstraints,
+      { facingMode: "environment" },
       config,
-      async (decodedText) => {
-
-        try { await html5QrInstance.stop(); } catch(e){}
-
-        try {
-
-          const cleaned = decodedText.trim();
-
-          // 🔥 QR VALIDASI SEDERHANA
-          if (!cleaned.includes("giltclub.my.id")) {
-            showInvalid(resultBox, "QR tidak valid");
-            return setTimeout(goBack,1500);
-          }
-
-          const res = await checkInAttendance({
-            bookingId,
-            scannedUid: selectedUid
-          });
-
-          showSuccess(resultBox, res);
-
-        } catch (err) {
-
-          showInvalid(resultBox, err.message || "Check-in gagal");
-        }
-
-        setTimeout(goBack,1500);
-      }
+      onScanSuccess
     );
 
-    if (isIOS) {
-      setTimeout(() => {
-        try {
-          html5QrInstance.pause(false);
-        } catch (e) {}
-      }, 400);
-    }
+  } catch (err1) {
 
-  } catch (err) {
-    resultBox.innerHTML =
-      `<div class="invalid-box">
-        Kamera gagal dibuka<br>
-        ${err.message}
-      </div>`;
+    console.warn("Environment failed, fallback to default camera");
+
+    try {
+
+      // TRY 2 – fallback default camera
+      await html5QrInstance.start(
+        { video: true },
+        config,
+        onScanSuccess
+      );
+
+    } catch (err2) {
+
+      resultBox.innerHTML =
+        `<div class="invalid-box">
+          Kamera gagal dibuka
+        </div>`;
+    }
   }
 }
 
