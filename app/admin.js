@@ -86,15 +86,22 @@ export async function renderAdmin() {
       `;
     }
   }
+html += `
+  <hr style="margin:30px 0;">
 
-  html += `
-    <hr style="margin:30px 0;">
-    <div id="adminBalanceAdjustment"></div>
-    </div>
-  `;
+  <button id="openFlashAdmin" class="admin-btn">
+    Flash Drop
+  </button>
+
+  <hr style="margin:30px 0;">
+  <div id="adminBalanceAdjustment"></div>
+`;
 
   content.innerHTML = html;
-
+const flashBtn = document.getElementById("openFlashAdmin");
+if (flashBtn) {
+  flashBtn.onclick = openFlashAdmin;
+}
   await renderBalanceAdjustmentPanel();
 }
 
