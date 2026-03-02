@@ -17,6 +17,9 @@ let html5QrInstance = null;
 /* =========================================
    INIT CHECK-IN SCANNER (DROPDOWN VERSION)
 ========================================= */
+/* =========================================
+   INIT CHECK-IN SCANNER (DROPDOWN VERSION)
+========================================= */
 export async function initCheckinScanner({
   readerId,
   resultId,
@@ -38,11 +41,11 @@ export async function initCheckinScanner({
     return;
   }
 
-  let bookingMap = {};
-
   /* =========================================
      LOAD BOOKING ACTIVE
   ========================================= */
+  let bookingMap = {};
+
   try {
 
     const bookingSnap = await getDocs(
@@ -72,25 +75,23 @@ export async function initCheckinScanner({
       let displayText = "Member";
 
       try {
-        const userSnap =
-          await getDoc(doc(db,"users",userId));
+        const userRef = doc(db, "users", userId);
+        const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-
-          const u = userSnap.data();
+          const userData = userSnap.data();
 
           const username =
-            u.usernameID ||
-            u.username ||
+            userData.usernameID ||
+            userData.username ||
             "";
 
           const fullName =
-            u.fullName ||
+            userData.fullName ||
             "";
 
           if (username && fullName) {
-            displayText =
-              `${username} - ${fullName}`;
+            displayText = `${username} - ${fullName}`;
           } else if (username) {
             displayText = username;
           } else if (fullName) {
@@ -99,7 +100,7 @@ export async function initCheckinScanner({
         }
 
       } catch (e) {
-        console.error("Load user gagal:", e);
+        console.error("Gagal load identity user:", e);
       }
 
       const opt = document.createElement("option");
@@ -116,7 +117,6 @@ export async function initCheckinScanner({
       `<div class="invalid-box">Gagal load peserta</div>`;
     return;
   }
-
 
   /* =========================================
      START BUTTON CLICK
@@ -140,15 +140,9 @@ export async function initCheckinScanner({
     document.getElementById("checkinControlPanel").style.display = "none";
     readerEl.style.display = "block";
 
-    if (html5QrInstance) {
-      try {
-        await html5QrInstance.stop();
-        await html5QrInstance.clear();
-      } catch(e){}
-      html5QrInstance = null;
-    }
-
+    await prepareCamera();
     await startCamera(
+      scheduleId,
       resultBox,
       selectedUid,
       bookingMap[selectedUid]
@@ -158,7 +152,7 @@ export async function initCheckinScanner({
 
 
 /* =========================================
-   PREPARE CAMERA (SAFE VERSION)
+   PREPARE CAMERA (UNIVERSAL SAFE)
 ========================================= */
 async function prepareCamera(){
 
@@ -172,8 +166,10 @@ async function prepareCamera(){
 
   html5QrInstance = new Html5Qrcode("reader");
 }
+
+
 /* =========================================
-   START CAMERA (UNIVERSAL STABLE)
+   START CAMERA (CHROME ANDROID SAFE)
 ========================================= */
 async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
@@ -192,14 +188,14 @@ async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
     try { await html5QrInstance.stop(); } catch(e){}
     try { await html5QrInstance.clear(); } catch(e){}
 
-    const cleaned = decodedText.trim();
-
-    if (!cleaned.includes("giltclub.my.id")) {
-      showInvalid(resultBox, "QR tidak valid");
-      return setTimeout(goBack,1500);
-    }
-
     try {
+
+      const cleaned = decodedText.trim();
+
+      if (!cleaned.includes("giltclub.my.id")) {
+        showInvalid(resultBox, "QR tidak valid");
+        return setTimeout(goBack,1500);
+      }
 
       const res = await checkInAttendance({
         bookingId,
@@ -218,7 +214,7 @@ async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
   try {
 
-    // TRY 1 – environment (Android & most phones)
+    // Try Android / Mobile
     await html5QrInstance.start(
       { facingMode: "environment" },
       config,
@@ -229,7 +225,7 @@ async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
 
     try {
 
-      // TRY 2 – fallback laptop / default cam
+      // Fallback Laptop
       await html5QrInstance.start(
         { video: true },
         config,
@@ -245,7 +241,6 @@ async function startCamera(scheduleId, resultBox, selectedUid, bookingId) {
     }
   }
 }
-
 /* =========================================
    UI
 ========================================= */
