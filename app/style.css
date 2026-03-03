@@ -2324,3 +2324,41 @@ body.scan-mode{
 .leaderboard-fixed i{
   font-size: 20px;
 }
+
+.home-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.home-profile-right{
+  display: flex;
+  align-items: center;
+}
+
+.leaderboard-btn{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 20px;
+
+  background: rgba(0,0,0,.25);
+  backdrop-filter: blur(6px);
+
+  color: #E3C565;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: .2s ease;
+}
+
+.leaderboard-btn i{
+  font-size: 18px;
+}
+
+.leaderboard-btn:hover{
+  transform: translateY(-1px);
+}
