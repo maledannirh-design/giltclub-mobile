@@ -11,30 +11,7 @@ import {
 import { validateTransactionPin } from "../pinTrx.js";
 
 /* =====================================================
-   HELPER: HITUNG HARGA (CEIL PER JAM)
-===================================================== */
-function calculateSessionPrice(scheduleData){
-
-  const [startH, startM] = scheduleData.startTime.split(":").map(Number);
-  const [endH, endM] = scheduleData.endTime.split(":").map(Number);
-
-  const startMinutes = startH * 60 + startM;
-  const endMinutes = endH * 60 + endM;
-
-  const totalMinutes = endMinutes - startMinutes;
-
-  if (totalMinutes <= 0) {
-    throw new Error("Durasi sesi tidak valid");
-  }
-
-  // 🔥 1 menit pun dihitung 1 jam
-  const billedHours = Math.ceil(totalMinutes / 60);
-
-  return billedHours * (scheduleData.pricePerHour || 0);
-}
-
-/* =====================================================
-   CREATE BOOKING (FINAL COMPLETE VERSION - PRIVACY ENABLED + AUTO PIN)
+   CREATE BOOKING (FINAL CLEAN LEDGER VERSION)
 ===================================================== */
 export async function createBooking({
   userId,
@@ -63,7 +40,7 @@ export async function createBooking({
   const scheduleRef = doc(db, "schedules", scheduleId);
   const userRef = doc(db, "users", userId);
   const bookingsCol = collection(db, "bookings");
-  const ledgerCol = collection(db, "walletTransactions");
+  const mutationsCol = collection(db, "walletMutations");
 
   await runTransaction(db, async (transaction) => {
 
@@ -80,20 +57,7 @@ export async function createBooking({
     }
 
     // 3. HITUNG DURASI
-    const [startH, startM] = scheduleData.startTime.split(":").map(Number);
-    const [endH, endM] = scheduleData.endTime.split(":").map(Number);
-
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    const totalMinutes = endMinutes - startMinutes;
-
-    if (totalMinutes <= 0) {
-      throw new Error("Durasi sesi tidak valid");
-    }
-
-    const billedHours = Math.ceil(totalMinutes / 60);
-    const sessionPrice =
-      billedHours * (scheduleData.pricePerHour || 0);
+    const sessionPrice = calculateSessionPrice(scheduleData);
 
     // 4. RACKET
     const safeRacketQty = Number(racketQty) || 0;
@@ -119,7 +83,7 @@ export async function createBooking({
     }
 
     // =========================
-    // PRIVACY LOGIC (ON / OFF)
+    // PRIVACY LOGIC
     // =========================
     const realName =
       userData.usernameID ||
@@ -131,7 +95,6 @@ export async function createBooking({
       userData.privacy?.showNameInBooking === true;
 
     const displayName = showName ? realName : "Member";
-
     const avatarInitial = showName
       ? realName.charAt(0).toUpperCase()
       : "M";
@@ -187,7 +150,7 @@ export async function createBooking({
       racketStock: racketStock - safeRacketQty
     });
 
-    // 9. DEDUCT WALLET
+    // 9. UPDATE USER BALANCE SNAPSHOT
     const newBalance = currentBalance - totalPayment;
 
     transaction.update(userRef, {
@@ -195,16 +158,19 @@ export async function createBooking({
       totalPayment: (userData.totalPayment || 0) + totalPayment
     });
 
-    // 10. LEDGER
-    const ledgerRef = doc(ledgerCol);
+    // 10. FINAL LEDGER (walletMutations ONLY)
+    const mutationRef = doc(mutationsCol);
 
-    transaction.set(ledgerRef, {
+    transaction.set(mutationRef, {
       userId,
-      type: "booking_debit",
+      asset: "RUPIAH",
+      mutationType: "BOOKING_PAYMENT",
       amount: -totalPayment,
       balanceAfter: newBalance,
       referenceId: bookingRef.id,
-      createdAt: serverTimestamp()
+      description: "Pembayaran Booking",
+      createdAt: serverTimestamp(),
+      createdBy: userId
     });
 
   });
@@ -213,7 +179,8 @@ export async function createBooking({
 }
 
 /* =====================================================
-   CANCEL BOOKING (LEDGER CLEAN VERSION)
+   CANCEL BOOKING (FINAL TRANSPARENT VERSION)
+   FULL REFUND + PENALTY DEBIT
 ===================================================== */
 export async function cancelBooking({
   bookingId,
@@ -225,7 +192,7 @@ export async function cancelBooking({
   }
 
   const bookingRef = doc(db, "bookings", bookingId);
-  const ledgerCol = collection(db, "walletTransactions");
+  const mutationsCol = collection(db, "walletMutations");
 
   await runTransaction(db, async (transaction) => {
 
@@ -292,8 +259,6 @@ export async function cancelBooking({
     else penaltyAmount = originalPrice;
 
     penaltyAmount = Math.floor(penaltyAmount);
-    const refundAmount =
-      Math.floor(originalPrice - penaltyAmount);
 
     /* ===============================
        UPDATE BOOKING
@@ -302,7 +267,6 @@ export async function cancelBooking({
     transaction.update(bookingRef, {
       status: "cancelled",
       cancelledAt: serverTimestamp(),
-      refundAmount,
       penaltyAmount
     });
 
@@ -322,56 +286,58 @@ export async function cancelBooking({
     const balanceBefore =
       userData.walletBalance || 0;
 
-    const newBalance =
-      balanceBefore + refundAmount;
+    // FULL REFUND
+    const afterFullRefund =
+      balanceBefore + originalPrice;
+
+    // AFTER PENALTY
+    const finalBalance =
+      afterFullRefund - penaltyAmount;
 
     transaction.update(userRef, {
-      walletBalance: newBalance,
+      walletBalance: finalBalance,
       totalPayment:
-        (userData.totalPayment || 0) - refundAmount
+        (userData.totalPayment || 0) - originalPrice
     });
 
     /* ===============================
-       LEDGER REFUND (RUPIAH)
+       LEDGER REFUND (FULL)
     =============================== */
 
-    if (refundAmount > 0) {
+    const refundRef = doc(mutationsCol);
 
-      transaction.set(doc(ledgerCol), {
-        userId: bookingData.userId,
-        entryType: "CREDIT",
-        referenceType: "BOOKING_REFUND",
-        referenceId: bookingId,
-
-        amount: refundAmount,
-        refundRate:
-          originalPrice > 0
-            ? refundAmount / originalPrice
-            : 0,
-
-        balanceBefore,
-        balanceAfter: newBalance,
-
-        createdAt: serverTimestamp()
-      });
-    }
+    transaction.set(refundRef, {
+      userId: bookingData.userId,
+      asset: "RUPIAH",
+      mutationType: "BOOKING_REFUND",
+      amount: originalPrice,
+      balanceAfter: afterFullRefund,
+      referenceId: bookingId,
+      description: "Refund Pembatalan Booking",
+      createdAt: serverTimestamp(),
+      createdBy: bookingData.userId,
+      status: "success"
+    });
 
     /* ===============================
-       LEDGER PENALTY (INFORMATIONAL)
+       LEDGER PENALTY
     =============================== */
 
     if (penaltyAmount > 0) {
 
-      transaction.set(doc(ledgerCol), {
+      const penaltyRef = doc(mutationsCol);
+
+      transaction.set(penaltyRef, {
         userId: bookingData.userId,
-        entryType: "INFO",
-        referenceType: "BOOKING_PENALTY",
+        asset: "RUPIAH",
+        mutationType: "BOOKING_PENALTY",
+        amount: -penaltyAmount,
+        balanceAfter: finalBalance,
         referenceId: bookingId,
-
-        amount: penaltyAmount,
-        note: "Cancel penalty",
-
-        createdAt: serverTimestamp()
+        description: "Denda Pembatalan Booking",
+        createdAt: serverTimestamp(),
+        createdBy: bookingData.userId,
+        status: "success"
       });
     }
 
