@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
-import { validateTransactionPin } from "./pinTrx.js";
+import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
 export async function renderWallet(){
 
