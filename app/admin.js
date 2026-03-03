@@ -99,7 +99,15 @@ html += `
   <div class="admin-card">
     <h3>Export & Audit Tools</h3>
 
-    <button onclick="exportTopupHistory()" class="admin-btn">
+    <button onclick="exportWalletTransactionsRaw()" class="admin-btn">
+      Export WalletTransactions (RAW)
+    </button>
+
+    <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
+      Export Full Mutation (Ledger)
+    </button>
+
+    <button onclick="exportTopupHistory()" class="admin-btn" style="margin-top:10px;">
       Export Topup History
     </button>
 
@@ -109,10 +117,6 @@ html += `
 
     <button onclick="exportAdjustmentHistory()" class="admin-btn" style="margin-top:10px;">
       Export Adjustment History
-    </button>
-
-    <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
-      Export Full Mutation
     </button>
 
     <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
@@ -127,7 +131,8 @@ html += `
       Run Migration
     </button>
 
-    <button onclick="massiveCleanupFields()" class="admin-btn" style="margin-top:10px; background:#b30000; color:#fff;">
+    <button onclick="massiveCleanupFields()" class="admin-btn"
+            style="margin-top:10px;background:#b30000;color:#fff;">
       Massive Cleanup Fields
     </button>
   </div>
@@ -420,6 +425,57 @@ window.exportTopupHistory = async function(){
   downloadCSV("topup_history.csv", rows);
 };
 
+
+/* =====================================================
+   EXPORT WALLET TRANSACTIONS (RAW – ALL FIELDS)
+===================================================== */
+
+window.exportWalletTransactionsRaw = async function(){
+
+  const snap =
+    await getDocs(collection(db,"walletTransactions"));
+
+  if (snap.empty) {
+    alert("Tidak ada data walletTransactions");
+    return;
+  }
+
+  // Ambil semua possible field secara dinamis
+  const allFields = new Set();
+
+  snap.forEach(docSnap=>{
+    const d = docSnap.data();
+    Object.keys(d).forEach(key=>{
+      allFields.add(key);
+    });
+  });
+
+  const headers = ["docId", ...Array.from(allFields)];
+
+  let rows = [headers];
+
+  snap.forEach(docSnap=>{
+
+    const d = docSnap.data();
+
+    const row = [docSnap.id];
+
+    headers.slice(1).forEach(field=>{
+
+      let value = d[field];
+
+      if (value?.toDate) {
+        value = value.toDate().toLocaleString("id-ID");
+      }
+
+      row.push(value ?? "");
+    });
+
+    rows.push(row);
+  });
+
+  downloadCSV("walletTransactions_FULL_RAW.csv", rows);
+};
 
 /* =====================================================
    EXPORT BOOKING HISTORY
