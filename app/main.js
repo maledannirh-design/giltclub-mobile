@@ -409,7 +409,7 @@ onAuthStateChanged(auth, async (user)=>{
 
   const frozen = await checkMaintenanceAndFreeze(user);
   if(frozen) return;
-
+   
   if(user){
 
     navigate("home");
@@ -478,3 +478,8 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
 });
+/* =========================================
+   GLOBAL SERVICES INIT (ONCE)
+========================================= */
+
+initChatUnreadGlobal();
