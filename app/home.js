@@ -148,23 +148,27 @@ export async function renderHome(){
 }
 
 /* =========================================
-   FLOATING TROPHY (DRAGGABLE)
+   FLOATING TROPHY (DRAGGABLE - LARGE)
 ========================================= */
 function createFloatingTrophy(){
 
-  if(document.getElementById("floatingTrophy")) return;
+  // hapus dulu kalau sudah ada (biar tidak dobel)
+  const old = document.getElementById("floatingTrophy");
+  if(old) old.remove();
 
   const trophy = document.createElement("div");
   trophy.id = "floatingTrophy";
   trophy.innerHTML = "🏆";
 
   trophy.style.position = "fixed";
-  trophy.style.top = "80px";
-  trophy.style.left = "10px";
-  trophy.style.fontSize = "26px";
+  trophy.style.top = "120px";
+  trophy.style.left = "20px";
+  trophy.style.fontSize = "120px";   // 🔥 5x lebih besar
   trophy.style.cursor = "grab";
   trophy.style.zIndex = "9999";
   trophy.style.userSelect = "none";
+  trophy.style.transition = "transform .2s ease";
+  trophy.style.opacity = "0.9";
 
   document.body.appendChild(trophy);
 
@@ -194,7 +198,6 @@ function createFloatingTrophy(){
     isDragging = false;
     trophy.style.cursor = "grab";
   });
-
 }
 
 /* =========================================
