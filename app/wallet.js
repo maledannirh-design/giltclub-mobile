@@ -13,36 +13,28 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
-import { validateTransactionPin } from "./pinTrx.js";
-
+import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
 export async function renderWallet(){
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
   if(!content || !user) return;
-
 /* =========================================
    🔐 PIN GATE BEFORE OPEN WALLET
 ========================================= */
 
-if(typeof window.requestTransactionPin !== "function"){
-  console.error("requestTransactionPin tidak tersedia");
-  navigate("home");
-  return;
-}
+const pin = await requestTransactionPin();
 
-const pin = await window.requestTransactionPin();
-
-if(!pin){
+if (!pin) {
   navigate("home");
   return;
 }
 
 const pinCheck = await validateTransactionPin(user.uid, pin);
 
-if(!pinCheck.valid){
-  alert(pinCheck.reason || "PIN salah");
+if (!pinCheck.valid) {
+  alert(pinCheck.reason || "PIN transaksi salah");
   navigate("home");
   return;
 }
