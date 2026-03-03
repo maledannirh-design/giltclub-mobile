@@ -24,9 +24,9 @@ export async function renderChat(){
 
   const activeRoomId = localStorage.getItem("activeChatRoom");
 
-  // ===============================
-  // MODE 1: CHAT LIST
-  // ===============================
+  // =====================================================
+  // MODE 1 : CHAT LIST
+  // =====================================================
   if(!activeRoomId){
 
     content.innerHTML = `
@@ -58,23 +58,33 @@ export async function renderChat(){
       let html = "";
 
       snap.forEach(docSnap=>{
+
         const data = docSnap.data();
         const roomId = docSnap.id;
         const unread = data.unreadCount?.[user.uid] || 0;
+        const isBroadcast = data.type === "broadcast";
 
-        const otherUid = (data.participants || [])
-          .find(uid => uid !== user.uid);
+        let username = "User";
+        let avatar = `<div class="chatlist-avatar-placeholder">👤</div>`;
 
-        const otherInfo = data.participantsInfo?.[otherUid] || {};
+        if(isBroadcast){
+          username = "Admin";
+          avatar = `<div class="chatlist-avatar-placeholder">🛡</div>`;
+        }else{
+          const otherUid = (data.participants || [])
+            .find(uid => uid !== user.uid);
 
-        const username =
-          otherInfo.fullName?.trim() ||
-          otherInfo.username?.trim() ||
-          "User";
+          const otherInfo = data.participantsInfo?.[otherUid] || {};
 
-        const avatar = otherInfo.photoURL
-          ? `<img src="${otherInfo.photoURL}" class="chatlist-avatar-img"/>`
-          : `<div class="chatlist-avatar-placeholder">👤</div>`;
+          username =
+            otherInfo.fullName?.trim() ||
+            otherInfo.username?.trim() ||
+            "User";
+
+          if(otherInfo.photoURL){
+            avatar = `<img src="${otherInfo.photoURL}" class="chatlist-avatar-img"/>`;
+          }
+        }
 
         const time = data.lastMessageAt?.toDate
           ? formatTime(data.lastMessageAt.toDate())
@@ -113,9 +123,9 @@ export async function renderChat(){
     return;
   }
 
-  // ===============================
-  // MODE 2: CHAT ROOM
-  // ===============================
+  // =====================================================
+  // MODE 2 : CHAT ROOM
+  // =====================================================
 
   const roomSnap = await getDoc(doc(db,"chatRooms",activeRoomId));
   if(!roomSnap.exists()){
@@ -125,19 +135,30 @@ export async function renderChat(){
   }
 
   const roomData = roomSnap.data();
-  const otherUid = (roomData.participants || [])
-    .find(uid => uid !== user.uid);
+  const isBroadcast = roomData.type === "broadcast";
 
-  const otherInfo = roomData.participantsInfo?.[otherUid] || {};
+  let username = "User";
+  let avatar = `<div class="chat-avatar-placeholder">👤</div>`;
+  let otherUid = null;
 
-  const username =
-    otherInfo.fullName?.trim() ||
-    otherInfo.username?.trim() ||
-    "User";
+  if(isBroadcast){
+    username = "Admin";
+    avatar = `<div class="chat-avatar-placeholder">🛡</div>`;
+  }else{
+    otherUid = (roomData.participants || [])
+      .find(uid => uid !== user.uid);
 
-  const avatar = otherInfo.photoURL
-    ? `<img src="${otherInfo.photoURL}" class="chat-avatar-img"/>`
-    : `<div class="chat-avatar-placeholder">👤</div>`;
+    const otherInfo = roomData.participantsInfo?.[otherUid] || {};
+
+    username =
+      otherInfo.fullName?.trim() ||
+      otherInfo.username?.trim() ||
+      "User";
+
+    if(otherInfo.photoURL){
+      avatar = `<img src="${otherInfo.photoURL}" class="chat-avatar-img"/>`;
+    }
+  }
 
   content.innerHTML = `
     <div class="chat-container">
@@ -146,10 +167,13 @@ export async function renderChat(){
         <div class="chat-left">
           <div id="backToList" class="chat-back">←</div>
           <div class="chat-user-info">
-            <div class="chat-avatar">${avatar}<div id="onlineDot" class="online-dot"></div></div>
+            <div class="chat-avatar">
+              ${avatar}
+              ${!isBroadcast?`<div id="onlineDot" class="online-dot"></div>`:""}
+            </div>
             <div class="chat-user-text">
               <div class="chat-username">${username}</div>
-              <div class="chat-status">Checking...</div>
+              <div class="chat-status">${isBroadcast?"Admin Broadcast":"Checking..."}</div>
             </div>
           </div>
         </div>
@@ -177,30 +201,20 @@ export async function renderChat(){
   const chatContainer = document.getElementById("chatContainer");
 
   // ===============================
-  // LOAD MESSAGES + READ RECEIPT
+  // LOAD MESSAGES
   // ===============================
-
   const messagesRef = collection(db,"chatRooms",activeRoomId,"messages");
   const msgQuery = query(messagesRef, orderBy("createdAt","asc"));
 
   if(unsubscribeMessages) unsubscribeMessages();
 
   unsubscribeMessages = onSnapshot(msgQuery,(snap)=>{
-    chatContainer.innerHTML = "";
 
-    const lastRead = roomData.lastRead?.[otherUid]?.toDate?.() || null;
+    chatContainer.innerHTML = "";
 
     snap.forEach(docSnap=>{
       const msg = docSnap.data();
       const isMine = msg.senderId === user.uid;
-
-      let checkMark = "";
-
-      if(isMine && lastRead && msg.createdAt?.toDate() <= lastRead){
-        checkMark = `<span style="color:#4fc3f7">✔✔</span>`;
-      }else if(isMine){
-        checkMark = `✔✔`;
-      }
 
       chatContainer.innerHTML += `
         <div class="chat-group ${isMine?'mine':'theirs'}">
@@ -210,7 +224,6 @@ export async function renderChat(){
               <span class="bubble-time">
                 ${msg.createdAt?.toDate ? formatTime(msg.createdAt.toDate()) : ""}
               </span>
-              ${isMine ? `<span class="seen-indicator">${checkMark}</span>`:""}
             </div>
           </div>
         </div>
@@ -220,69 +233,69 @@ export async function renderChat(){
     chatContainer.scrollTop = chatContainer.scrollHeight;
   });
 
+  // reset unread + read receipt
   await updateDoc(doc(db,"chatRooms",activeRoomId),{
     [`unreadCount.${user.uid}`]: 0,
     [`lastRead.${user.uid}`]: serverTimestamp()
   });
 
   // ===============================
-  // ONLINE + LAST SEEN
+  // ONLINE + TYPING (NON BROADCAST ONLY)
   // ===============================
+  if(!isBroadcast && otherUid){
 
-  const statusRef = ref(rtdb,"status/"+otherUid);
-  const onlineDot = document.getElementById("onlineDot");
-  const statusEl = document.querySelector(".chat-status");
+    const statusRef = ref(rtdb,"status/"+otherUid);
+    const statusEl = document.querySelector(".chat-status");
+    const onlineDot = document.getElementById("onlineDot");
 
-  onValue(statusRef,(snap)=>{
-    const status = snap.val();
+    onValue(statusRef,(snap)=>{
+      const status = snap.val();
 
-    if(status?.online){
-      statusEl.textContent = "Online";
-      statusEl.style.color = "#4CAF50";
-      onlineDot.style.background = "#4CAF50";
-    }else{
-      statusEl.textContent = status?.lastSeen
-        ? "Last seen " + formatTime(new Date(status.lastSeen))
-        : "Offline";
-      statusEl.style.color = "#999";
-      onlineDot.style.background = "#999";
-    }
-  });
+      if(status?.online){
+        statusEl.textContent = "Online";
+        statusEl.style.color = "#4CAF50";
+        if(onlineDot) onlineDot.style.background="#4CAF50";
+      }else{
+        statusEl.textContent = status?.lastSeen
+          ? "Last seen " + formatTime(new Date(status.lastSeen))
+          : "Offline";
+        statusEl.style.color = "#999";
+        if(onlineDot) onlineDot.style.background="#999";
+      }
+    });
 
-  // ===============================
-  // TYPING
-  // ===============================
+    const typingRef = ref(rtdb,`typing/${activeRoomId}/${user.uid}`);
+    const otherTypingRef = ref(rtdb,`typing/${activeRoomId}/${otherUid}`);
+    const typingEl = document.getElementById("typingIndicator");
 
-  const typingRef = ref(rtdb,`typing/${activeRoomId}/${user.uid}`);
-  const otherTypingRef = ref(rtdb,`typing/${activeRoomId}/${otherUid}`);
-  const typingEl = document.getElementById("typingIndicator");
+    const chatInput = document.getElementById("chatInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-  const chatInput = document.getElementById("chatInput");
-  const sendBtn = document.getElementById("sendBtn");
+    chatInput.addEventListener("input",()=>{
+      chatInput.style.height="auto";
+      chatInput.style.height=chatInput.scrollHeight+"px";
 
-  chatInput.addEventListener("input",()=>{
-    chatInput.style.height="auto";
-    chatInput.style.height=chatInput.scrollHeight+"px";
+      set(typingRef,true);
+      clearTimeout(window.typingTimeout);
+      window.typingTimeout=setTimeout(()=>remove(typingRef),1500);
+    });
 
-    set(typingRef,true);
-    clearTimeout(window.typingTimeout);
-    window.typingTimeout=setTimeout(()=>remove(typingRef),1500);
-  });
+    onValue(otherTypingRef,(snap)=>{
+      typingEl.style.display = snap.exists() ? "flex" : "none";
+    });
 
-  onValue(otherTypingRef,(snap)=>{
-    typingEl.style.display = snap.exists() ? "flex" : "none";
-  });
+    sendBtn.onclick = async ()=>{
+      const text = chatInput.value.trim();
+      if(!text) return;
 
-  sendBtn.onclick = async ()=>{
-    const text = chatInput.value.trim();
-    if(!text) return;
+      await sendMessage(activeRoomId,text);
 
-    await sendMessage(activeRoomId,text);
+      chatInput.value="";
+      chatInput.style.height="auto";
+      remove(typingRef);
+    };
 
-    chatInput.value="";
-    chatInput.style.height="auto";
-    remove(typingRef);
-  };
+  }
 
 }
 
