@@ -155,10 +155,26 @@ export async function renderChat(){
 
     const otherInfo = roomData.participantsInfo?.[otherUid] || {};
 
-    username =
-      otherInfo.fullName?.trim() ||
-      otherInfo.username?.trim() ||
-      "User";
+    let username =
+  otherInfo.fullName?.trim() ||
+  otherInfo.username?.trim();
+
+if(!username || username === "User"){
+  getDoc(doc(db,"users",otherUid)).then(snap=>{
+    if(snap.exists()){
+      const fresh = snap.data().fullName ||
+                    snap.data().username ||
+                    "User";
+
+      const el = document.querySelector(
+        `.chatlist-card[data-room="${roomId}"] .chatlist-username`
+      );
+      if(el) el.textContent = fresh;
+    }
+  });
+
+  username = "User";
+}
 
     if(otherInfo.photoURL){
       avatar = `<img src="${otherInfo.photoURL}" class="chat-avatar-img"/>`;
