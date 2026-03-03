@@ -174,14 +174,24 @@ function injectMaintenanceStyle(){
       flex-direction:column;
       justify-content:center;
       align-items:center;
-      text-align:center;
       z-index:999999;
       font-family:system-ui, sans-serif;
+      padding:30px 20px;
     }
 
     .maintenance-card{
-      max-width:420px;
-      padding:30px;
+      width:100%;
+      max-width:500px;
+    }
+
+    .maintenance-card h1{
+      text-align:center;
+      margin-bottom:20px;
+    }
+
+    .maintenance-message{
+      text-align:left;
+      line-height:1.6;
     }
 
     .maintenance-message p{
@@ -193,7 +203,8 @@ function injectMaintenanceStyle(){
     .maintenance-estimate{
       margin-top:20px;
       font-size:14px;
-      opacity:.9;
+      opacity:.95;
+      text-align:left;
     }
 
     .maintenance-countdown{
@@ -201,6 +212,7 @@ function injectMaintenanceStyle(){
       font-size:16px;
       font-weight:bold;
       color:#facc15;
+      text-align:center;
     }
 
     .police-line{
@@ -223,12 +235,13 @@ function injectMaintenanceStyle(){
 
     .reaction-game{
       margin-top:30px;
+      text-align:center;
     }
 
     .reaction-btn{
-      padding:12px 20px;
+      padding:12px 22px;
       border:none;
-      border-radius:14px;
+      border-radius:18px;
       font-weight:bold;
       background:#2563eb;
       color:white;
