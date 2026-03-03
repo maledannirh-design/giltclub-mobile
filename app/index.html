@@ -46,17 +46,19 @@
     Girl in Loves with Tennis..<br>
     ... - Mahaelites</div>
 
-      <div class="header-actions">
+     <div class="header-actions">
 
-  <button class="theme-toggle" onclick="toggleTheme()">
-    🌙
-  </button>
+  <div class="header-top-row">
+    <button class="theme-toggle" onclick="toggleTheme()">
+      🌙
+    </button>
 
-  <div class="header-user-area">
-    <div id="currentUserLabel" class="user-label">
+    <span id="currentUserLabel" class="user-label">
       Not logged in
-    </div>
+    </span>
+  </div>
 
+  <div class="header-bottom-row">
     <button id="chatButton" class="chat-btn" onclick="navigate('chat')">
       <i class="fa-solid fa-envelope"></i>
       <span id="chatUnreadBadge" class="chat-badge hidden">0</span>
