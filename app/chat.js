@@ -14,6 +14,7 @@ import { auth, db, rtdb } from "./firebase.js";
 import { ref, onValue, set, remove } from "firebase/database";
 
 let unsubscribeRooms = null;
+let unsubscribeMessages = null;
 
 export async function renderChat(){
 
@@ -134,6 +135,10 @@ export async function renderChat(){
     otherInfo.username?.trim() ||
     "User";
 
+  const avatar = otherInfo.photoURL
+    ? `<img src="${otherInfo.photoURL}" class="chat-avatar-img"/>`
+    : `<div class="chat-avatar-placeholder">👤</div>`;
+
   content.innerHTML = `
     <div class="chat-container">
 
@@ -141,15 +146,18 @@ export async function renderChat(){
         <div class="chat-left">
           <div id="backToList" class="chat-back">←</div>
           <div class="chat-user-info">
-            <div class="chat-username">${username}</div>
-            <div class="chat-status">Checking...</div>
+            <div class="chat-avatar">${avatar}<div id="onlineDot" class="online-dot"></div></div>
+            <div class="chat-user-text">
+              <div class="chat-username">${username}</div>
+              <div class="chat-status">Checking...</div>
+            </div>
           </div>
         </div>
       </div>
 
       <div id="chatContainer" class="chat-messages"></div>
 
-      <div class="typing-indicator" style="display:none;">
+      <div id="typingIndicator" class="typing-indicator" style="display:none;">
         <span></span><span></span><span></span>
       </div>
 
@@ -161,47 +169,96 @@ export async function renderChat(){
     </div>
   `;
 
-  // Back
   document.getElementById("backToList").onclick = ()=>{
     localStorage.removeItem("activeChatRoom");
     renderChat();
   };
 
-  await loadConversation(activeRoomId);
+  const chatContainer = document.getElementById("chatContainer");
 
-  // Reset unread + update read receipt
+  // ===============================
+  // LOAD MESSAGES + READ RECEIPT
+  // ===============================
+
+  const messagesRef = collection(db,"chatRooms",activeRoomId,"messages");
+  const msgQuery = query(messagesRef, orderBy("createdAt","asc"));
+
+  if(unsubscribeMessages) unsubscribeMessages();
+
+  unsubscribeMessages = onSnapshot(msgQuery,(snap)=>{
+    chatContainer.innerHTML = "";
+
+    const lastRead = roomData.lastRead?.[otherUid]?.toDate?.() || null;
+
+    snap.forEach(docSnap=>{
+      const msg = docSnap.data();
+      const isMine = msg.senderId === user.uid;
+
+      let checkMark = "";
+
+      if(isMine && lastRead && msg.createdAt?.toDate() <= lastRead){
+        checkMark = `<span style="color:#4fc3f7">✔✔</span>`;
+      }else if(isMine){
+        checkMark = `✔✔`;
+      }
+
+      chatContainer.innerHTML += `
+        <div class="chat-group ${isMine?'mine':'theirs'}">
+          <div class="chat-bubble ${isMine?'mine':'theirs'}">
+            <div class="bubble-content">${msg.text}</div>
+            <div class="bubble-footer">
+              <span class="bubble-time">
+                ${msg.createdAt?.toDate ? formatTime(msg.createdAt.toDate()) : ""}
+              </span>
+              ${isMine ? `<span class="seen-indicator">${checkMark}</span>`:""}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  });
+
   await updateDoc(doc(db,"chatRooms",activeRoomId),{
     [`unreadCount.${user.uid}`]: 0,
     [`lastRead.${user.uid}`]: serverTimestamp()
   });
 
   // ===============================
-  // ONLINE INDICATOR
+  // ONLINE + LAST SEEN
   // ===============================
+
   const statusRef = ref(rtdb,"status/"+otherUid);
+  const onlineDot = document.getElementById("onlineDot");
+  const statusEl = document.querySelector(".chat-status");
+
   onValue(statusRef,(snap)=>{
     const status = snap.val();
-    const el = document.querySelector(".chat-status");
-    if(!el) return;
 
     if(status?.online){
-      el.textContent = "Online";
-      el.style.color = "#4CAF50";
+      statusEl.textContent = "Online";
+      statusEl.style.color = "#4CAF50";
+      onlineDot.style.background = "#4CAF50";
     }else{
-      el.textContent = "Offline";
-      el.style.color = "#999";
+      statusEl.textContent = status?.lastSeen
+        ? "Last seen " + formatTime(new Date(status.lastSeen))
+        : "Offline";
+      statusEl.style.color = "#999";
+      onlineDot.style.background = "#999";
     }
   });
 
   // ===============================
-  // TYPING INDICATOR
+  // TYPING
   // ===============================
+
   const typingRef = ref(rtdb,`typing/${activeRoomId}/${user.uid}`);
   const otherTypingRef = ref(rtdb,`typing/${activeRoomId}/${otherUid}`);
+  const typingEl = document.getElementById("typingIndicator");
 
   const chatInput = document.getElementById("chatInput");
   const sendBtn = document.getElementById("sendBtn");
-  const typingEl = document.querySelector(".typing-indicator");
 
   chatInput.addEventListener("input",()=>{
     chatInput.style.height="auto";
@@ -209,18 +266,13 @@ export async function renderChat(){
 
     set(typingRef,true);
     clearTimeout(window.typingTimeout);
-    window.typingTimeout=setTimeout(()=>{
-      remove(typingRef);
-    },1500);
+    window.typingTimeout=setTimeout(()=>remove(typingRef),1500);
   });
 
   onValue(otherTypingRef,(snap)=>{
     typingEl.style.display = snap.exists() ? "flex" : "none";
   });
 
-  // ===============================
-  // SEND BUTTON
-  // ===============================
   sendBtn.onclick = async ()=>{
     const text = chatInput.value.trim();
     if(!text) return;
