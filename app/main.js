@@ -62,6 +62,13 @@ async function checkMaintenanceAndFreeze(user){
 
     content.innerHTML = `
       <div class="maintenance-wrapper">
+      <div class="reaction-game">
+  <h3>🎮 Mini Game: Reaction Test</h3>
+  <button id="reactionBtn" class="reaction-btn">
+    Tunggu Warna Hijau...
+  </button>
+  <div id="reactionResult" class="reaction-result"></div>
+</div>
 
         <div class="police-line"></div>
 
@@ -98,6 +105,7 @@ async function checkMaintenanceAndFreeze(user){
     `;
 
     injectMaintenanceStyle();
+     setTimeout(initReactionGame, 100);
 
     if(endAt){
       startMaintenanceCountdown(endAt);
@@ -169,7 +177,26 @@ function injectMaintenanceStyle(){
       );
       animation: moveStripe 2s linear infinite;
     }
+.reaction-game{
+  margin-top:30px;
+}
 
+.reaction-btn{
+  padding:12px 20px;
+  border:none;
+  border-radius:14px;
+  font-weight:bold;
+  background:#2563eb;
+  color:white;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.reaction-result{
+  margin-top:10px;
+  font-size:14px;
+  opacity:.9;
+}
     @keyframes moveStripe{
       from{ background-position:0 0; }
       to{ background-position:100px 0; }
@@ -286,7 +313,9 @@ onAuthStateChanged(auth, async (user)=>{
 
   if(user){
 
-    if(await checkMaintenanceAndFreeze(user)) return;
+    // 🔒 MAINTENANCE CHECK (GLOBAL GUARD)
+    const frozen = await checkMaintenanceAndFreeze(user);
+    if(frozen) return;
 
     navigate("home");
 
@@ -354,3 +383,41 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
 });
+
+
+function initReactionGame(){
+
+  const btn = document.getElementById("reactionBtn");
+  const result = document.getElementById("reactionResult");
+
+  if(!btn) return;
+
+  let startTime = 0;
+  let timeout;
+
+  btn.onclick = () => {
+
+    if(btn.dataset.state === "ready"){
+      const reaction = Date.now() - startTime;
+      result.innerText = `⚡ Reaksi kamu: ${reaction} ms`;
+      btn.innerText = "Main Lagi";
+      btn.style.background = "#2563eb";
+      btn.dataset.state = "idle";
+      return;
+    }
+
+    btn.innerText = "Tunggu Hijau...";
+    btn.style.background = "#ef4444";
+    result.innerText = "";
+    btn.dataset.state = "waiting";
+
+    const delay = Math.random() * 3000 + 2000;
+
+    timeout = setTimeout(()=>{
+      btn.innerText = "KLIK SEKARANG!";
+      btn.style.background = "#22c55e";
+      startTime = Date.now();
+      btn.dataset.state = "ready";
+    }, delay);
+  };
+}
