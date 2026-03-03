@@ -36,77 +36,82 @@ export async function renderHome(){
 
     const streak = userData.currentStreak || 0;
 
-    /* =============================
-       RENDER UI (CLEAN)
-    ============================= */
-    content.innerHTML = `
-      <div class="home-container">
+  /* =============================
+   RENDER UI (CLEAN)
+============================= */
+content.innerHTML = `
+  <div class="home-container">
 
-        <div class="home-header">
-          <div class="home-profile-left">
-            <div class="home-avatar">
-              ${
-                userData.photoURL
-                  ? `<img src="${userData.photoURL}" />`
-                  : `<div class="avatar-placeholder">👤</div>`
-              }
-            </div>
+    <div class="home-header">
 
-            <div class="home-user-text">
-              <div class="home-username">
-                ${userData.username || "User"}
-              </div>
-              <div class="home-gpoint">
-                ${userData.gPoint || 0} G-Point
-              </div>
-            </div>
-          </div>
-          <div class="leaderboard-fixed">
-  <i class="fa-solid fa-crown"></i>
-  <span>Leaderboard</span>
-</div>
+      <div class="home-profile-left">
+        <div class="home-avatar">
+          ${
+            userData.photoURL
+              ? `<img src="${userData.photoURL}" />`
+              : `<div class="avatar-placeholder">👤</div>`
+          }
         </div>
 
-        <!-- DAILY CHECK-IN -->
-        <div class="daily-card">
-
-          <div class="daily-header">
-            <div class="daily-title">Check-In Harian</div>
-            <div class="daily-info">Informasi Check-In</div>
+        <div class="home-user-text">
+          <div class="home-username">
+            ${userData.username || "User"}
           </div>
-
-          <div class="daily-days">
-            ${rewardMatrix.map((reward, index)=>{
-              const dayNumber = index + 1;
-              const claimed = dayNumber <= streak;
-
-              return `
-                <div class="daily-box ${claimed ? 'claimed' : ''}"
-                     ${alreadyClaimed ? '' : `onclick="openDailyScan(${dayNumber})"`}>
-                  <div class="daily-day">Hari ${dayNumber}</div>
-                  <div class="daily-reward">🪙 +${reward}</div>
-                </div>
-              `;
-            }).join("")}
+          <div class="home-gpoint">
+            ${userData.gPoint || 0} G-Point
           </div>
-
-          <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
-            ${
-              alreadyClaimed
-                ? "Poin diterima, Check-In lagi besok ya!"
-                : "Scan kartu Anda untuk check-in hari ini"
-            }
-          </div>
-
         </div>
-
       </div>
-    `;
 
-    /* =============================
-       FLOATING TROPHY
-    ============================= */
-    createFloatingTrophy();
+      <div class="home-profile-right">
+        <div class="leaderboard-btn">
+          <i class="fa-solid fa-crown"></i>
+          <span>Leaderboard</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DAILY CHECK-IN -->
+    <div class="daily-card">
+
+      <div class="daily-header">
+        <div class="daily-title">Check-In Harian</div>
+        <div class="daily-info">Informasi Check-In</div>
+      </div>
+
+      <div class="daily-days">
+        ${rewardMatrix.map((reward, index)=>{
+          const dayNumber = index + 1;
+          const claimed = dayNumber <= streak;
+
+          return `
+            <div class="daily-box ${claimed ? 'claimed' : ''}"
+                 ${alreadyClaimed ? '' : `onclick="openDailyScan(${dayNumber})"`}>
+              <div class="daily-day">Hari ${dayNumber}</div>
+              <div class="daily-reward">🪙 +${reward}</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
+        ${
+          alreadyClaimed
+            ? "Poin diterima, Check-In lagi besok ya!"
+            : "Scan kartu Anda untuk check-in hari ini"
+        }
+      </div>
+
+    </div>
+
+  </div>
+`;
+// 🔥 LETAKKAN DI SINI
+document.querySelector(".leaderboard-fixed")
+  ?.addEventListener("click", ()=>{
+    window.navigate("leaderboard");
+  });
 
     /* =============================
        REALTIME GPOINT LISTENER
