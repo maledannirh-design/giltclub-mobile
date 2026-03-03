@@ -11,7 +11,12 @@ import {
 } from "./firestore.js";
 
 import { auth, db, rtdb } from "./firebase.js";
-import { ref, onValue, set, remove } from "firebase/database";
+import { 
+  ref, 
+  onValue, 
+  set, 
+  remove 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 let unsubscribeRooms = null;
 let unsubscribeMessages = null;
