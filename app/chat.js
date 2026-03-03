@@ -61,7 +61,8 @@ if(!activeRoomId){
       const unread = data.unreadCount?.[user.uid] || 0;
 
       // ambil lawan chat
-      const otherUid = data.participants.find(uid => uid !== user.uid);
+      const otherUid = (data.participants || [])
+  .find(uid => uid !== user.uid);
 
       let otherUser = null;
 
@@ -74,7 +75,11 @@ if(!activeRoomId){
         ? `<img src="${otherUser.photoURL}" class="chatlist-avatar-img"/>`
         : `<div class="chatlist-avatar-placeholder">👤</div>`;
 
-      const username = otherUser?.username || "User";
+      const username =
+  otherUser?.fullName?.trim() ||
+  otherUser?.username?.trim() ||
+  otherUser?.displayName?.trim() ||
+  "User";
 
       const time = data.lastMessageAt?.toDate
         ? formatTime(data.lastMessageAt.toDate())
