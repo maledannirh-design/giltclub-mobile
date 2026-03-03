@@ -254,73 +254,67 @@ async function handleBalanceAdjustment() {
 }
 
 /* =====================================================
-   APPROVE TOPUP
+   APPROVE TOPUP (NEW LEDGER ENGINE)
 ===================================================== */
 window.approveTopup =
 async function(trxId, userId){
 
   try {
 
-    const userRef =
-      doc(db,"users", userId);
-
     const trxRef =
       doc(db,"walletTransactions", trxId);
 
-    const ledgerRef =
-      doc(collection(db,"walletLedger"));
+    const trxSnap =
+      await getDoc(trxRef);
 
-    await runTransaction(db,
-      async (transaction)=>{
+    if(!trxSnap.exists())
+      throw new Error("Transaksi tidak ditemukan");
 
-        const userSnap =
-          await transaction.get(userRef);
+    const trxData = trxSnap.data();
 
-        const trxSnap =
-          await transaction.get(trxRef);
+    if(trxData.status !== "PENDING")
+      throw new Error("Sudah diproses");
 
-        if(!userSnap.exists())
-          throw new Error("User tidak ditemukan");
+    const amount = trxData.amount;
 
-        if(!trxSnap.exists())
-          throw new Error("Transaksi tidak ditemukan");
+    /* =========================================
+       APPLY MUTATION (FINAL LEDGER WRITE)
+    ========================================= */
 
-        const userData = userSnap.data();
-        const trxData = trxSnap.data();
-
-        if(trxData.status !== "PENDING")
-          throw new Error("Sudah diproses");
-
-        const amount = trxData.amount;
-        const before = userData.walletBalance || 0;
-        const after = before + amount;
-
-        transaction.update(userRef,{
-          walletBalance: after,
-          totalTopup:
-            (userData.totalTopup || 0) + amount
-        });
-
-        transaction.update(trxRef,{
-          status: "SUCCESS",
-          balanceBefore: before,
-          balanceAfter: after,
-          processedAt: serverTimestamp(),
-          processedBy: auth.currentUser.uid
-        });
-
-        transaction.set(ledgerRef,{
-          userId,
-          entryType: "CREDIT",
-          referenceType: "TOPUP",
-          referenceId: trxId,
-          amount,
-          balanceBefore: before,
-          balanceAfter: after,
-          createdAt: serverTimestamp(),
-          createdBy: auth.currentUser.uid
-        });
+    await applyMutation({
+      userId,
+      asset: "RUPIAH",
+      mutationType: "TOPUP",
+      amount: amount,
+      referenceId: trxId,
+      description: "Top Up Approved",
+      createdBy: auth.currentUser.uid
     });
+
+    /* =========================================
+       UPDATE REQUEST STATUS
+    ========================================= */
+
+    await updateDoc(trxRef,{
+      status: "SUCCESS",
+      processedAt: serverTimestamp(),
+      processedBy: auth.currentUser.uid
+    });
+
+    /* =========================================
+       OPTIONAL: UPDATE totalTopup SNAPSHOT
+    ========================================= */
+
+    const userRef = doc(db,"users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if(userSnap.exists()){
+      const userData = userSnap.data();
+      await updateDoc(userRef,{
+        totalTopup:
+          (userData.totalTopup || 0) + amount
+      });
+    }
 
     alert("Top up berhasil di-approve");
     renderAdmin();
