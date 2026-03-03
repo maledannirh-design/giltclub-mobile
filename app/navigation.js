@@ -91,6 +91,12 @@ export async function navigate(page){
         (await import("./cinema.js")).renderCinema();
         break;
 
+        /* ======================
+         CINEMA (JIKA MASIH DIPAKAI)
+      ====================== */
+        case "chat":
+  (await import("./chat/chatList.js")).renderChatList();
+  break;
       /* ======================
          DASHBOARD (JIKA MASIH DIPAKAI)
       ====================== */
