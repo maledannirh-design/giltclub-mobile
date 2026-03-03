@@ -109,9 +109,10 @@ content.innerHTML = `
 `;
 // 🔥 LETAKKAN DI SINI
 document.querySelector(".leaderboard-btn")
-  ?.addEventListener("click", async ()=>{
-    const module = await import("./nav.js");
-    module.navigate("leaderboard");
+  ?.addEventListener("click", ()=>{
+    if (window.navigate) {
+      window.navigate("leaderboard");
+    }
   });
 
     /* =============================
