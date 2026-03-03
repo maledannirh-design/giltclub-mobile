@@ -7,11 +7,12 @@ import {
   query,
   where
 } from "./firestore.js";
-import { resolveMemberCard, renderMemberCard } from "./utils.js";
+import { renderMemberCard } from "./utils.js";
 import { onSnapshot } from "./firestore.js";
 
 let userUnsubscribe = null;
 let dailyLock = false;
+
 /* =========================================
    HOME DASHBOARD 
 ========================================= */
@@ -23,289 +24,115 @@ export async function renderHome(){
 
   try{
 
-    /* =============================
-       USER DATA
-    ============================= */
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
 
-    const balance = userData.walletBalance || 0;
-const today = new Date().toISOString().split("T")[0];
-const alreadyClaimed = userData.lastCheckinDate === today;
-/* =============================
-   DAILY CHECK-IN DATA
-============================= */
-const rewardMatrix = userData.membership === "VVIP"
-  ? [15,15,15,15,15,15,200]
-  : [10,10,10,10,10,10,150];
+    const today = new Date().toISOString().split("T")[0];
+    const alreadyClaimed = userData.lastCheckinDate === today;
 
-const streak = userData.currentStreak || 0;
-    
+    const rewardMatrix = userData.membership === "VVIP"
+      ? [15,15,15,15,15,15,200]
+      : [10,10,10,10,10,10,150];
+
+    const streak = userData.currentStreak || 0;
+
     /* =============================
-       CHAT ROOMS (UNREAD)
+       RENDER UI (CLEAN)
     ============================= */
-    const roomsSnap = await getDocs(
-      query(
-        collection(db,"chatRooms"),
-        where("participants","array-contains", user.uid)
-      )
-    );
+    content.innerHTML = `
+      <div class="home-container">
 
-    let unreadRooms = [];
-    let totalUnread = 0;
-
-    roomsSnap.forEach(docSnap=>{
-      const data = docSnap.data();
-      const unread = data.unreadCount?.[user.uid] || 0;
-
-      if(unread > 0){
-        totalUnread += unread;
-        unreadRooms.push({
-          id: docSnap.id,
-          ...data
-        });
-      }
-    });
-
-    unreadRooms.sort((a,b)=>{
-      return (b.lastMessageAt?.seconds || 0) -
-             (a.lastMessageAt?.seconds || 0);
-    });
-
-   /* =============================
-   RENDER UI
-============================= */
-content.innerHTML = `
-  <div class="home-container">
-
-    <div class="home-header">
-      <div class="home-profile-left">
-        <div class="home-avatar">
-          ${
-            userData.photoURL
-              ? `<img src="${userData.photoURL}" />`
-              : `<div class="avatar-placeholder">👤</div>`
-          }
-        </div>
-
-        <div class="home-user-text">
-          <div class="home-username">
-            ${userData.username || "User"}
-          </div>
-          <div class="home-gpoint">
-            ${userData.gPoint || 0} G-Point
-          </div>
-        </div>
-      </div>
-
-      <div class="home-right-section">
-      <div class="notif-wrapper">
-  <h3>Notifikasi</h3>
-  <div id="notifList"></div>
-</div>
-        <div class="home-unread-icon">
-          <div class="mail-icon">✉️</div>
-          ${
-            totalUnread > 0
-              ? `<div class="home-unread-badge">${totalUnread}</div>`
-              : ``
-          }
-        </div>
-      </div>
-    </div>
-
-    <div id="homeUnreadScroll" class="home-unread-scroll"></div>
-
-    <!-- WALLET CARD -->
-    <div class="wallet-card-pink">
-
-      <div class="wallet-card-header">
-        <div class="wallet-title">G-WALLET</div>
-        <div class="wallet-saldo-toggle">
-          <span>G-Saldo</span>
-          <span id="toggleSaldoBtn" class="eye-btn">
-            ${eyeOpenSVG()}
-          </span>
-        </div>
-      </div>
-
-      <div class="wallet-main-content">
-
-        <div class="wallet-left">
-          <div id="walletAmount" class="wallet-amount">
-            Rp ******
-          </div>
-
-          <button class="wallet-topup-btn">
-            ➕ Top Up
-          </button>
-        </div>
-
-        <div class="wallet-right" id="homeMemberCard"></div>
-
-      </div>
-
-    </div>
-
-    <!-- DAILY CHECK-IN -->
-    <div class="daily-card">
-
-      <div class="daily-header">
-        <div class="daily-title">Check-In Harian</div>
-        <div class="daily-info">Informasi Check-In</div>
-      </div>
-
-      <div class="daily-days">
-        ${rewardMatrix.map((reward, index)=>{
-          const dayNumber = index + 1;
-          const claimed = dayNumber <= streak;
-
-          return `
-            <div class="daily-box ${claimed ? 'claimed' : ''}"
-                 ${alreadyClaimed ? '' : `onclick="openDailyScan(${dayNumber})"`}>
-              <div class="daily-day">Hari ${dayNumber}</div>
-              <div class="daily-reward">🪙 +${reward}</div>
+        <div class="home-header">
+          <div class="home-profile-left">
+            <div class="home-avatar">
+              ${
+                userData.photoURL
+                  ? `<img src="${userData.photoURL}" />`
+                  : `<div class="avatar-placeholder">👤</div>`
+              }
             </div>
-          `;
-        }).join("")}
+
+            <div class="home-user-text">
+              <div class="home-username">
+                ${userData.username || "User"}
+              </div>
+              <div class="home-gpoint">
+                ${userData.gPoint || 0} G-Point
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DAILY CHECK-IN -->
+        <div class="daily-card">
+
+          <div class="daily-header">
+            <div class="daily-title">Check-In Harian</div>
+            <div class="daily-info">Informasi Check-In</div>
+          </div>
+
+          <div class="daily-days">
+            ${rewardMatrix.map((reward, index)=>{
+              const dayNumber = index + 1;
+              const claimed = dayNumber <= streak;
+
+              return `
+                <div class="daily-box ${claimed ? 'claimed' : ''}"
+                     ${alreadyClaimed ? '' : `onclick="openDailyScan(${dayNumber})"`}>
+                  <div class="daily-day">Hari ${dayNumber}</div>
+                  <div class="daily-reward">🪙 +${reward}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
+            ${
+              alreadyClaimed
+                ? "Poin diterima, Check-In lagi besok ya!"
+                : "Scan kartu Anda untuk check-in hari ini"
+            }
+          </div>
+
+        </div>
+
       </div>
+    `;
 
-      <div class="daily-status ${alreadyClaimed ? 'done' : ''}">
-        ${
-          alreadyClaimed
-            ? "Poin diterima, Check-In lagi besok ya!"
-            : "Scan kartu Anda untuk check-in hari ini"
-        }
-      </div>
-
-    </div>
-
-  </div>
-`;
-/* =============================
-   DAILY SUCCESS EFFECT
-============================= */
-const params = new URLSearchParams(window.location.search);
-
-if(params.get("dailySuccess")){
-  startCoinRain();
-
-  // bersihkan query supaya tidak trigger ulang saat refresh
-  window.history.replaceState({}, document.title, "index.html");
-}
     /* =============================
-       INSERT MEMBER CARD
+       FLOATING TROPHY
     ============================= */
-    const homeCardContainer = document.getElementById("homeMemberCard");
-    if(homeCardContainer){
-      homeCardContainer.innerHTML = renderMemberCard(userData);
+    createFloatingTrophy();
+
+    /* =============================
+       REALTIME GPOINT LISTENER
+    ============================= */
+    if(userUnsubscribe){
+      userUnsubscribe();
     }
 
-    /* =============================
-       RENDER UNREAD PREVIEW
-    ============================= */
-    const scroll = document.getElementById("homeUnreadScroll");
+    userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
+      if(!snap.exists()) return;
 
-    if (scroll) {
+      const data = snap.data();
 
-      scroll.innerHTML = "";
-
-      for (const room of unreadRooms.slice(0,5)) {
-
-        const otherUid = room.participants.find(p => p !== user.uid);
-        let username = "User";
-
-        if (otherUid) {
-          const otherSnap = await getDoc(doc(db,"users",otherUid));
-          if (otherSnap.exists()) {
-            username = otherSnap.data().username || "User";
-          }
-        }
-
-        const item = document.createElement("div");
-        item.className = "home-unread-item";
-
-        item.innerHTML = `
-          <div class="unread-name">${username}</div>
-          <div class="unread-text">${room.lastMessage || ""}</div>
-        `;
-
-        item.onclick = ()=>{
-          window.renderChatUI(room.id, otherUid);
-        };
-
-        scroll.appendChild(item);
+      const gPointEl = document.querySelector(".home-gpoint");
+      if(gPointEl){
+        gPointEl.textContent = `${data.gPoint || 0} G-Point`;
       }
-    }
 
-    /* =============================
-       TOGGLE SALDO
-    ============================= */
-    let saldoVisible = false;
+      document.querySelectorAll(".daily-box").forEach((el, index) => {
+        const dayNumber = index + 1;
 
-    const toggleBtn = document.getElementById("toggleSaldoBtn");
-    const walletAmountEl = document.getElementById("walletAmount");
+        if (dayNumber <= (data.currentStreak || 0)) {
+          el.classList.add("claimed");
+        } else {
+          el.classList.remove("claimed");
+        }
+      });
 
-    if(toggleBtn){
-      toggleBtn.onclick = ()=>{
-        saldoVisible = !saldoVisible;
+    });
 
-        walletAmountEl.innerText =
-          saldoVisible
-            ? `Rp ${balance.toLocaleString("id-ID")}`
-            : "Rp ******";
-
-        toggleBtn.innerHTML =
-          saldoVisible ? eyeCloseSVG() : eyeOpenSVG();
-      };
-    }
-
-    /* =============================
-       HOME TOP UP BUTTON
-    ============================= */
-    const homeTopupBtn = document.querySelector(".wallet-topup-btn");
-
-    if(homeTopupBtn){
-      homeTopupBtn.onclick = async ()=>{
-        const module = await import("./wallet.js");
-        module.renderTopUpSheet();
-      };
-    }
-/* =============================
-   REALTIME GPOINT LISTENER
-============================= */
-if(userUnsubscribe){
-  userUnsubscribe();
-}
-
-userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
-
-  if(!snap.exists()) return;
-
-  const data = snap.data();
-
-  const gPointEl = document.querySelector(".home-gpoint");
-  if(gPointEl){
-    gPointEl.textContent = `${data.gPoint || 0} G-Point`;
-  }
-
-  const todayNow = new Date().toISOString().split("T")[0];
-  const claimed = data.lastCheckinDate === todayNow;
-
-document.querySelectorAll(".daily-box").forEach((el, index) => {
-  const dayNumber = index + 1;
-
-  if (dayNumber <= (data.currentStreak || 0)) {
-    el.classList.add("claimed");
-  } else {
-    el.classList.remove("claimed");
-  }
-});
-
-});
-    /* =============================
-       START COUNTDOWN
-    ============================= */
     startResetCountdown();
 
   }catch(error){
@@ -320,40 +147,58 @@ document.querySelectorAll(".daily-box").forEach((el, index) => {
   }
 }
 
-function startCoinRain(){
-  for(let i=0;i<25;i++){
-    const coin = document.createElement("div");
-    coin.className = "coin";
-    document.body.appendChild(coin);
-
-    coin.style.left = Math.random()*100+"vw";
-    coin.style.animationDuration = (Math.random()*2+2)+"s";
-
-    setTimeout(()=>coin.remove(),3000);
-  }
-}
 /* =========================================
-   SVG ICON
+   FLOATING TROPHY (DRAGGABLE)
 ========================================= */
-function eyeOpenSVG(){
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-  viewBox="0 0 24 24" fill="none" stroke="currentColor"
-  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-  <circle cx="12" cy="12" r="3"/></svg>`;
-}
+function createFloatingTrophy(){
 
-function eyeCloseSVG(){
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-  viewBox="0 0 24 24" fill="none" stroke="currentColor"
-  stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5 20 1 12 1 12a21.77 21.77 0 0 1 5.06-7.94"/>
-  <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.77 21.77 0 0 1-2.06 3.19"/>
-  <path d="M1 1l22 22"/></svg>`;
+  if(document.getElementById("floatingTrophy")) return;
+
+  const trophy = document.createElement("div");
+  trophy.id = "floatingTrophy";
+  trophy.innerHTML = "🏆";
+
+  trophy.style.position = "fixed";
+  trophy.style.top = "80px";
+  trophy.style.left = "10px";
+  trophy.style.fontSize = "26px";
+  trophy.style.cursor = "grab";
+  trophy.style.zIndex = "9999";
+  trophy.style.userSelect = "none";
+
+  document.body.appendChild(trophy);
+
+  trophy.onclick = ()=>{
+    window.navigate("leaderboard");
+  };
+
+  /* DRAG LOGIC */
+  let isDragging = false;
+  let offsetX, offsetY;
+
+  trophy.addEventListener("mousedown",(e)=>{
+    isDragging = true;
+    offsetX = e.clientX - trophy.offsetLeft;
+    offsetY = e.clientY - trophy.offsetTop;
+    trophy.style.cursor = "grabbing";
+  });
+
+  document.addEventListener("mousemove",(e)=>{
+    if(!isDragging) return;
+
+    trophy.style.left = (e.clientX - offsetX) + "px";
+    trophy.style.top = (e.clientY - offsetY) + "px";
+  });
+
+  document.addEventListener("mouseup",()=>{
+    isDragging = false;
+    trophy.style.cursor = "grab";
+  });
+
 }
 
 /* =========================================
-   COUNTDOWN ENGINE (SAFE)
+   COUNTDOWN ENGINE
 ========================================= */
 let countdownInterval = null;
 
@@ -388,7 +233,6 @@ function startResetCountdown(){
 window.openDailyScan = function(day){
 
   if(dailyLock) return;
-
   dailyLock = true;
 
   window.location.href = `scanDaily.html?day=${day}`;
