@@ -2298,18 +2298,21 @@ body.scan-mode{
   border-radius: 16px;
 }
 
+/* ===== LEADERBOARD ===== */
 
 .leaderboard-fixed{
   position: fixed;
   top: 82px;
   right: 16px;
   z-index: 999;
+
   display: flex;
   align-items: center;
   gap: 8px;
 
   padding: 6px 12px;
   border-radius: 30px;
+
   background: rgba(0,0,0,.35);
   backdrop-filter: blur(6px);
 
@@ -2363,27 +2366,52 @@ body.scan-mode{
   transform: translateY(-1px);
 }
 
+
+/* ===== HEADER CHAT AREA ===== */
+
+.header-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+}
+
+.header-top-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.header-bottom-row{
+  margin-top:4px;
+}
+
+
+/* ===== CHAT BUTTON ===== */
+
 .chat-btn{
   position:relative;
   background:none;
   border:none;
-  font-size:18px;
   color:inherit;
+  font-size:16px;
   cursor:pointer;
 }
 
 .chat-badge{
   position:absolute;
-  top:-4px;
+  top:-5px;
   right:-6px;
   min-width:16px;
   height:16px;
   padding:0 4px;
+
   border-radius:999px;
   background:#ff3b30;
   color:#fff;
+
   font-size:10px;
   font-weight:600;
+
   display:flex;
   align-items:center;
   justify-content:center;
@@ -2391,17 +2419,4 @@ body.scan-mode{
 
 .chat-badge.hidden{
   display:none;
-}
-
-.home-user-text{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.chat-btn{
-  background:rgba(255,255,255,0.08);
-  border:none;
-  border-radius:8px;
-  padding:4px 8px;
 }
