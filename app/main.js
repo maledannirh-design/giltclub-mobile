@@ -74,14 +74,17 @@ async function checkMaintenanceAndFreeze(user){
         </h1>
 
         <div style="opacity:.8;max-width:400px;">
-          <p>Audit Financial Structure Database</p>
-          <p>Freeze Transaction</p>
-          <p>Migrasi Re-Opening Balance</p>
-          <p>Guard Protective System</p>
+          <p>Mutasi rekening saldo ke bank server yang lebih besar</p>
+          <p>security dan keamanan sistem telah di tingkatkan</p>
+          <p>penyesuaian software engine untuk kamera</p>
+          <p>pembukaan toko, penjualan jersey dan product club telah diaktifkan<p> 
+          <p>checkin sistem harian, checkin cashback dan sistem follow serta follow  diaktifkan</p>
+          <p>perhitungan kehadiran, reward hadiah kehadiran diaktifkan</p>
+          <p>dashboard skill tiap pemain kini dapat terlihat sesuai privasi member</p>
 
           <div style="margin-top:20px;">
             Perkiraan waktu:<br>
-            <strong>1 – 3 Jam</strong>
+            <strong>1 – 3 Jam, sebagai kompensasi, gameplay tadi malam dpat double gpoint atau 2x lipat dari normal, semua penalty yg pernah dibuat di hapuskan dan saldo dikembalikan</strong>
           </div>
         </div>
       </div>
