@@ -352,13 +352,13 @@ export async function renderAccountUI(){
   <div class="progress-percent" id="memberProgressText">0%</div>
 </div>
 
-<div id="membershipCardContainer"></div>
-    <div class="account-group">
-      <div class="group-row" id="menuKeamanan">Akun & Keamanan <span>›</span></div>
-      <div class="group-row" id="menuProfil">Informasi Pribadi <span>›</span></div>
-      <div class="group-row" id="menuSosial">Sosial Media <span>›</span></div>
-      <div class="group-row" id="menuPrivasi">Pengaturan Privasi <span>›</span></div>
-    </div>
+<div class="account-group">
+  <div class="group-row" id="menuKeamanan">Akun & Keamanan <span>›</span></div>
+  <div class="group-row" id="menuProfil">Informasi Pribadi <span>›</span></div>
+  <div class="group-row" id="menuSosial">Sosial Media <span>›</span></div>
+  <div class="group-row" id="menuPrivasi">Pengaturan Privasi <span>›</span></div>
+  <div class="group-row" id="menuMembers">Daftar Anggota <span>›</span></div>
+</div>
 
   </div>
 
@@ -421,9 +421,10 @@ if(currentUserData){
   // =============================
 
   const menuKeamanan = document.getElementById("menuKeamanan");
-  const menuProfil   = document.getElementById("menuProfil");
-  const menuSosial   = document.getElementById("menuSosial");
-  const menuPrivasi  = document.getElementById("menuPrivasi");
+const menuProfil   = document.getElementById("menuProfil");
+const menuSosial   = document.getElementById("menuSosial");
+const menuPrivasi  = document.getElementById("menuPrivasi");
+const menuMembers  = document.getElementById("menuMembers");
 
   if(menuKeamanan){
     menuKeamanan.onclick = async ()=>{
@@ -445,6 +446,7 @@ if(currentUserData){
       module.renderSosial();
     };
   }
+  
 
   if(menuPrivasi){
     menuPrivasi.onclick = async ()=>{
@@ -452,7 +454,11 @@ if(currentUserData){
       module.renderPrivasi();
     };
   }
-  
+  if(menuMembers){
+  menuMembers.onclick = ()=>{
+    renderMembers();
+    };
+  }
 }
 
 
