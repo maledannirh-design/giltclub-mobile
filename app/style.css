@@ -2428,3 +2428,77 @@ body.scan-mode{
 .chat-badge.hidden{
   display:none;
 }
+.chatlist-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+.chatlist-card:hover{
+  background:rgba(255,255,255,0.05);
+}
+
+.chatlist-avatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  overflow:hidden;
+}
+
+.chatlist-avatar-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.chatlist-avatar-placeholder{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#1f3529;
+}
+
+.chatlist-text{
+  display:flex;
+  flex-direction:column;
+}
+
+.chatlist-username{
+  font-weight:600;
+  font-size:14px;
+}
+
+.chatlist-preview{
+  font-size:12px;
+  opacity:0.7;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:180px;
+}
+
+.chatlist-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+
+.chatlist-time{
+  font-size:11px;
+  opacity:0.6;
+}
+
+.chatlist-badge{
+  background:#25D366;
+  color:white;
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:20px;
+}
