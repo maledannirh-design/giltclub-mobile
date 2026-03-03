@@ -84,7 +84,7 @@ async function checkMaintenanceAndFreeze(user){
 
           <div style="margin-top:20px;">
             Perkiraan waktu:<br>
-            <strong>1 – 3 Jam, sebagai kompensasi, gameplay tadi malam dpat double gpoint atau 2x lipat dari normal, semua penalty yg pernah dibuat di hapuskan dan saldo dikembalikan</strong>
+            <strong>2 – 9 Jam, sebagai kompensasi, gameplay tadi malam dpat double gpoint atau 2x lipat dari normal, semua penalty yg pernah dibuat di hapuskan dan saldo dikembalikan</strong>
           </div>
         </div>
       </div>
