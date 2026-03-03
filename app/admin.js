@@ -11,7 +11,7 @@ import {
   serverTimestamp,
   deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+import { sendAdminBroadcast } from "./broadcast.js";
 import { runMigration } from "./migration.js";
 import { applyMutation } from "./services/mutationService.js";
 
@@ -88,7 +88,61 @@ export async function renderAdmin() {
       `;
     }
   }
+
 html += `
+<div class="admin-card">
+  <h3>Admin Broadcast</h3>
+
+  <select id="broadcastMode" style="
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+  ">
+    <option value="all">All Members</option>
+    <option value="manual">Select Members</option>
+  </select>
+
+  <div id="memberSelectList" style="
+    margin-top:10px;
+    max-height:180px;
+    overflow-y:auto;
+    display:none;
+    border:1px solid var(--color-border);
+    border-radius:10px;
+    padding:8px;
+  "></div>
+
+  <textarea 
+    id="broadcastMessage" 
+    placeholder="Type broadcast message..."
+    style="
+      width:100%;
+      min-height:80px;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--color-border);
+      margin-top:12px;
+      resize:none;
+    "
+  ></textarea>
+
+  <button 
+    id="sendBroadcastBtn"
+    style="
+      margin-top:12px;
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      font-weight:600;
+      background:var(--color-primary);
+      cursor:pointer;
+    "
+  >
+    Send Broadcast
+  </button>
+</div>
   <hr style="margin:30px 0;">
 
   <button id="openFlashAdmin" class="admin-btn">
@@ -142,12 +196,14 @@ html += `
   <div id="adminBalanceAdjustment"></div>
 `;
 
+
   content.innerHTML = html;
 const flashBtn = document.getElementById("openFlashAdmin");
 if (flashBtn) {
   flashBtn.onclick = openFlashAdmin;
 }
   await renderBalanceAdjustmentPanel();
+  await initBroadcastUI(); // 🔥 pindahkan ke sini
 }
 
 /* =====================================================
@@ -342,6 +398,86 @@ async function(trxId){
   renderAdmin();
 };
 
+
+async function initBroadcastUI(){
+
+  const modeSelect = document.getElementById("broadcastMode");
+  const memberListDiv = document.getElementById("memberSelectList");
+  const btn = document.getElementById("sendBroadcastBtn");
+  const textarea = document.getElementById("broadcastMessage");
+
+  // Load members for manual select
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  let memberHTML = "";
+
+  usersSnap.forEach(docSnap=>{
+    const data = docSnap.data();
+    const uid = docSnap.id;
+
+    memberHTML += `
+      <div style="margin-bottom:6px;">
+        <label style="cursor:pointer;">
+          <input type="checkbox" value="${uid}" class="broadcast-user-checkbox" />
+          ${data.fullName || data.username || "User"}
+        </label>
+      </div>
+    `;
+  });
+
+  memberListDiv.innerHTML = memberHTML;
+
+  modeSelect.onchange = ()=>{
+    memberListDiv.style.display =
+      modeSelect.value === "manual" ? "block" : "none";
+  };
+
+  btn.onclick = async ()=>{
+
+    const message = textarea.value.trim();
+    if(!message) return;
+
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+
+    let targetUids = [];
+
+    if(modeSelect.value === "all"){
+
+      usersSnap.forEach(docSnap=>{
+        targetUids.push(docSnap.id);
+      });
+
+    }else{
+
+      document
+        .querySelectorAll(".broadcast-user-checkbox:checked")
+        .forEach(cb=>{
+          targetUids.push(cb.value);
+        });
+
+      if(targetUids.length === 0){
+        alert("Select at least one member.");
+        btn.disabled = false;
+        btn.textContent = "Send Broadcast";
+        return;
+      }
+    }
+
+    try{
+      await sendAdminBroadcast(message, targetUids);
+      textarea.value = "";
+      btn.textContent = "Sent ✔";
+      setTimeout(()=> btn.textContent = "Send Broadcast",1500);
+    }catch(err){
+      console.error(err);
+      btn.textContent = "Error";
+    }
+
+    btn.disabled = false;
+  };
+
+}
 
 /* =====================================================
    EXPORT FUNCTIONS (RAPI & AMAN)
