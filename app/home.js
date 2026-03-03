@@ -58,11 +58,6 @@ content.innerHTML = `
             ${userData.username || "User"}
           </div>
 
-          <button id="chatButton" class="chat-btn" onclick="navigate('chat')">
-            <i class="fa-solid fa-envelope"></i>
-            <span id="chatUnreadBadge" class="chat-badge hidden">0</span>
-          </button>
-
           <div class="home-gpoint">
             ${userData.gPoint || 0} G-Point
           </div>
