@@ -6,38 +6,38 @@
   <title>GILT Club App - Modern Tennis</title>
 
   <!-- Styles -->
- <link rel="stylesheet" href="splash.css" />
-<link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="splash.css" />
+  <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="akun/akun.css">
-<link rel="stylesheet" href="wallet.css" />
+  <link rel="stylesheet" href="wallet.css" />
   <link rel="stylesheet" href="admin.css" />
-   <link rel="stylesheet" href="booking.css">
+  <link rel="stylesheet" href="booking.css">
+  <link rel="stylesheet" href="./store/store.css">
+
   <link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput.css">
 
   <!-- Favicon -->
   <link rel="icon" type="image/webp" href="./image/logo_giltclub.webp" />
-  <link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput.css">
-  <link rel="stylesheet" href="./store/store.css">
-  
-  
 </head>
 
 <body>
-<div id="splashScreen">
-  <div class="splash-wrapper">
 
-    <div class="splash-logo-container">
-      <img src="./image/splash_giltclub.png" class="splash-logo">
+  <!-- ================= SPLASH ================= -->
+  <div id="splashScreen">
+    <div class="splash-wrapper">
+      <div class="splash-logo-container">
+        <img src="./image/splash_giltclub.png" class="splash-logo">
+      </div>
+      <div class="splash-text-container">
+        <div id="splashText" class="splash-text"></div>
+      </div>
     </div>
-
-    <div class="splash-text-container">
-      <div id="splashText" class="splash-text"></div>
-    </div>
-
   </div>
-</div>
+
   <div id="app">
 
     <!-- ================= HEADER ================= -->
@@ -51,71 +51,69 @@ href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput
         <span id="currentUserLabel" class="user-label">
           Not logged in
         </span>
-
       </div>
     </header>
-
 
     <!-- ================= MAIN CONTENT ================= -->
     <main id="content" class="content"></main>
 
-
     <!-- ================= BOTTOM NAV ================= -->
     <nav class="bottom-nav">
+
       <button data-page="home" onclick="navigate('home')">
         🏠
-        <span>Home</span>
+        <span>TERAS</span>
       </button>
 
       <button data-page="booking" onclick="navigate('booking')">
         🎾
-        <span>Book</span>
+        <span>JADWAL</span>
       </button>
-      <button data-page="members" onclick="navigate('members')">
-  👥
-  <span>Member</span>
+
+      <button data-page="wallet" onclick="navigate('wallet')">
+        <i class="fa-solid fa-wallet"></i>
+        <span>SALDO</span>
       </button>
-<button data-page="wallet" onclick="navigate('wallet')">
-  <i class="fa-solid fa-wallet"></i>
-  <span>Wallet</span>
-</button>
-      </button>
-      <button data-page="reward" onclick="navigate('reward')">
-  🎁
-  <span>Reward</span>
-</button>
-     
-      <button data-page="ranking" onclick="navigate('ranking')">
+
+      <button data-page="leaderboard" onclick="navigate('leaderboard')">
         🏆
-        <span>Rank</span>
+        <span>Leaderboard</span>
       </button>
 
-       <button data-page="store" onclick="navigate('store')">
-    🛍️
-    <span>Toko</span>
-  </button>
+      <button data-page="store" onclick="navigate('store')">
+        🛍️
+        <span>Toko</span>
+      </button>
 
-      <button onclick="navigate('account')">👤<span>Akun</span></button>
-<button data-page="admin" onclick="navigate('admin')">
-  🛡
-  <span>Admin</span>
-</button>
+      <button data-page="account" onclick="navigate('account')">
+        👤
+        <span>Akun</span>
+      </button>
+
+      <button data-page="admin" onclick="navigate('admin')">
+        🛡
+        <span>Admin</span>
+      </button>
+
     </nav>
 
   </div>
-<div id="createSessionSheet" class="sheet-container"></div>
+
+  <div id="createSessionSheet" class="sheet-container"></div>
+
   <!-- ================= LIBRARIES ================= -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <!-- ================= MAIN APP ================= -->
   <script type="module" src="main.js"></script>
   <script type="module" src="./wallet.js"></script>
-<script src="splash.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js"></script>
   <script type="module" src="./pinTrx.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
   <script type="module" src="admin.js"></script>
   <script type="module" src="./store/store.js"></script>
+
+  <script src="splash.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js"></script>
 
 </body>
 </html>
