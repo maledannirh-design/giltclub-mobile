@@ -22,17 +22,11 @@ export async function renderWallet(){
   const user = auth.currentUser;
   if(!content || !user) return;
 
-  /* =========================================
+/* =========================================
    🔐 PIN GATE BEFORE OPEN WALLET
 ========================================= */
 
-if(typeof window.requestTransactionPin !== "function"){
-  alert("Sistem keamanan tidak tersedia.");
-  navigate("home");
-  return;
-}
-
-const pin = await window.requestTransactionPin();
+const pin = await requestTransactionPin();
 
 if(!pin){
   navigate("home");
