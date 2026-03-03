@@ -72,6 +72,7 @@ async function checkMaintenanceAndFreeze(user){
 
           <div class="maintenance-message">
             <p>mutasi ledger sekarang lebih lengkap</p>
+            <p>khet sesama member jadi lebih mudah dan asik</p>
             <p>Security dan keamanan sistem telah ditingkatkan</p>
             <p>Penyesuaian software engine untuk kamera</p>
             <p>memberlist hanya anggota dapat melihat</p>
