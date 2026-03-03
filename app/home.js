@@ -108,9 +108,10 @@ content.innerHTML = `
   </div>
 `;
 // 🔥 LETAKKAN DI SINI
-document.querySelector(".leaderboard-fixed")
-  ?.addEventListener("click", ()=>{
-    window.navigate("leaderboard");
+document.querySelector(".leaderboard-btn")
+  ?.addEventListener("click", async ()=>{
+    const module = await import("./nav.js");
+    module.navigate("leaderboard");
   });
 
     /* =============================
