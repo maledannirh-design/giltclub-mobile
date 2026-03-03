@@ -2362,3 +2362,46 @@ body.scan-mode{
 .leaderboard-btn:hover{
   transform: translateY(-1px);
 }
+
+.chat-btn{
+  position:relative;
+  background:none;
+  border:none;
+  font-size:18px;
+  color:inherit;
+  cursor:pointer;
+}
+
+.chat-badge{
+  position:absolute;
+  top:-4px;
+  right:-6px;
+  min-width:16px;
+  height:16px;
+  padding:0 4px;
+  border-radius:999px;
+  background:#ff3b30;
+  color:#fff;
+  font-size:10px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.chat-badge.hidden{
+  display:none;
+}
+
+.home-user-text{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.chat-btn{
+  background:rgba(255,255,255,0.08);
+  border:none;
+  border-radius:8px;
+  padding:4px 8px;
+}
