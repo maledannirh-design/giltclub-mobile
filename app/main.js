@@ -62,13 +62,6 @@ async function checkMaintenanceAndFreeze(user){
 
     content.innerHTML = `
       <div class="maintenance-wrapper">
-      <div class="reaction-game">
-  <h3>🎮 Mini Game: Reaction Test</h3>
-  <button id="reactionBtn" class="reaction-btn">
-    Tunggu Warna Hijau...
-  </button>
-  <div id="reactionResult" class="reaction-result"></div>
-</div>
 
         <div class="police-line"></div>
 
@@ -98,6 +91,14 @@ async function checkMaintenanceAndFreeze(user){
             ${endAt ? "Menghitung waktu..." : ""}
           </div>
 
+          <div class="reaction-game">
+            <h3>🎮 Mini Game: Reaction Test</h3>
+            <button id="reactionBtn" class="reaction-btn">
+              Tunggu Warna Hijau...
+            </button>
+            <div id="reactionResult" class="reaction-result"></div>
+          </div>
+
         </div>
 
         <div class="police-line"></div>
@@ -105,7 +106,7 @@ async function checkMaintenanceAndFreeze(user){
     `;
 
     injectMaintenanceStyle();
-     setTimeout(initReactionGame, 100);
+    setTimeout(initReactionGame, 100);
 
     if(endAt){
       startMaintenanceCountdown(endAt);
@@ -118,6 +119,43 @@ async function checkMaintenanceAndFreeze(user){
     return false;
   }
 }
+
+
+/* =========================================
+   MAINTENANCE COUNTDOWN
+========================================= */
+
+function startMaintenanceCountdown(endAt){
+
+  const el = document.getElementById("maintenanceCountdown");
+  if(!el) return;
+
+  function update(){
+
+    const now = Date.now();
+    const diff = endAt - now;
+
+    if(diff <= 0){
+      el.innerHTML = "Maintenance selesai. Silakan refresh.";
+      return;
+    }
+
+    const h = Math.floor(diff / (1000*60*60));
+    const m = Math.floor((diff % (1000*60*60)) / (1000*60));
+    const s = Math.floor((diff % (1000*60)) / 1000);
+
+    el.innerHTML =
+      `⏳ Sisa waktu: <strong>${h}j ${m}m ${s}d</strong>`;
+  }
+
+  update();
+  setInterval(update,1000);
+}
+
+
+/* =========================================
+   MAINTENANCE STYLE INJECTOR
+========================================= */
 
 function injectMaintenanceStyle(){
 
@@ -177,34 +215,78 @@ function injectMaintenanceStyle(){
       );
       animation: moveStripe 2s linear infinite;
     }
-.reaction-game{
-  margin-top:30px;
-}
 
-.reaction-btn{
-  padding:12px 20px;
-  border:none;
-  border-radius:14px;
-  font-weight:bold;
-  background:#2563eb;
-  color:white;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.reaction-result{
-  margin-top:10px;
-  font-size:14px;
-  opacity:.9;
-}
     @keyframes moveStripe{
       from{ background-position:0 0; }
       to{ background-position:100px 0; }
+    }
+
+    .reaction-game{
+      margin-top:30px;
+    }
+
+    .reaction-btn{
+      padding:12px 20px;
+      border:none;
+      border-radius:14px;
+      font-weight:bold;
+      background:#2563eb;
+      color:white;
+      cursor:pointer;
+      transition:0.2s;
+    }
+
+    .reaction-result{
+      margin-top:10px;
+      font-size:14px;
+      opacity:.9;
     }
   `;
 
   document.head.appendChild(style);
 }
+
+
+/* =========================================
+   REACTION GAME
+========================================= */
+
+function initReactionGame(){
+
+  const btn = document.getElementById("reactionBtn");
+  const result = document.getElementById("reactionResult");
+
+  if(!btn) return;
+
+  let startTime = 0;
+
+  btn.onclick = () => {
+
+    if(btn.dataset.state === "ready"){
+      const reaction = Date.now() - startTime;
+      result.innerText = `⚡ Reaksi kamu: ${reaction} ms`;
+      btn.innerText = "Main Lagi";
+      btn.style.background = "#2563eb";
+      btn.dataset.state = "idle";
+      return;
+    }
+
+    btn.innerText = "Tunggu Hijau...";
+    btn.style.background = "#ef4444";
+    result.innerText = "";
+    btn.dataset.state = "waiting";
+
+    const delay = Math.random() * 3000 + 2000;
+
+    setTimeout(()=>{
+      btn.innerText = "KLIK SEKARANG!";
+      btn.style.background = "#22c55e";
+      startTime = Date.now();
+      btn.dataset.state = "ready";
+    }, delay);
+  };
+}
+
 
 /* =========================================
    GLOBAL INIT
@@ -234,7 +316,7 @@ window.addEventListener("load", () => {
 
 
 /* =========================================
-   ATTENDANCE LISTENER (SAFE SINGLE INSTANCE)
+   ATTENDANCE LISTENER
 ========================================= */
 
 let unsubscribeAttendance = null;
@@ -302,47 +384,8 @@ function listenAttendanceNotification(uid){
 }
 
 
-function initReactionGame(){
-
-  const btn = document.getElementById("reactionBtn");
-  const result = document.getElementById("reactionResult");
-
-  if(!btn) return;
-
-  let startTime = 0;
-  let timeout;
-
-  btn.onclick = () => {
-
-    if(btn.dataset.state === "ready"){
-      const reaction = Date.now() - startTime;
-      result.innerText = `⚡ Reaksi kamu: ${reaction} ms`;
-      btn.innerText = "Main Lagi";
-      btn.style.background = "#2563eb";
-      btn.dataset.state = "idle";
-      return;
-    }
-
-    btn.innerText = "Tunggu Hijau...";
-    btn.style.background = "#ef4444";
-    result.innerText = "";
-    btn.dataset.state = "waiting";
-
-    const delay = Math.random() * 3000 + 2000;
-
-    timeout = setTimeout(()=>{
-      btn.innerText = "KLIK SEKARANG!";
-      btn.style.background = "#22c55e";
-      startTime = Date.now();
-      btn.dataset.state = "ready";
-    }, delay);
-  };
-}
-
-
-
 /* =========================================
-   AUTH STATE (SINGLE SOURCE OF TRUTH)
+   AUTH STATE
 ========================================= */
 
 onAuthStateChanged(auth, async (user)=>{
@@ -350,16 +393,8 @@ onAuthStateChanged(auth, async (user)=>{
   const label = document.getElementById("currentUserLabel");
   const adminButton = document.querySelector('[data-page="admin"]');
 
-  /* =====================================================
-     GLOBAL MAINTENANCE CHECK (ALL USERS INCLUDING GUEST)
-  ===================================================== */
-
   const frozen = await checkMaintenanceAndFreeze(user);
   if(frozen) return;
-
-  /* =====================================================
-     NORMAL FLOW
-  ===================================================== */
 
   if(user){
 
@@ -429,4 +464,3 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
 });
-
