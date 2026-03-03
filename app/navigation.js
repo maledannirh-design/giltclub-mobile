@@ -1,9 +1,4 @@
 import { toggleTheme } from "./theme.js";
-import { renderMembers } from "./profile.js";
-import { renderChat } from "./chat.js";
-import { renderHome } from "./home.js";
-import { renderWallet } from "./wallet.js";
-import { renderStore } from "./store/store.js";
 
 let navLock = false;
 let currentPage = null;
@@ -33,47 +28,72 @@ export async function navigate(page){
 
     switch(page){
 
+      /* ======================
+         TERAS (HOME)
+      ====================== */
       case "home":
         (await import("./home.js")).renderHome();
         break;
 
+      /* ======================
+         AKUN
+      ====================== */
       case "account":
         (await import("./profile.js")).renderAccountUI();
         break;
 
-      case "chat":
-        (await import("./profile.js")).renderChatList();
-        break;
-
-      case "members":
-        (await import("./profile.js")).renderMembers();
-        break;
-
-      case "wallet":
-        (await import("./wallet.js")).renderWallet();
-        break;
-        case "flash-admin":
-  (await import("./store/flash-admin.js")).renderFlashAdmin();
-  break;
+      /* ======================
+         JADWAL (BOOKING)
+      ====================== */
       case "booking":
         (await import("./booking.js")).renderBooking();
         break;
-        case "reward":
-  (await import("./reward.js")).renderReward();
-  break;
-      case "cinema":
-        (await import("./cinema.js")).renderCinema();
+
+      /* ======================
+         SALDO (WALLET)
+      ====================== */
+      case "wallet":
+        (await import("./wallet.js")).renderWallet();
         break;
-case "admin":
-  (await import("./admin.js")).renderAdmin();
-  break;
-      case "ranking":
+
+      /* ======================
+         LEADERBOARD (FULL PAGE)
+      ====================== */
+      case "leaderboard":
         (await import("./leaderboard.js")).renderAttendanceLeaderboard();
         break;
 
-     case "store":
-  (await import("./store/store.js")).renderStore();
-  break;
+      /* ======================
+         TOKO
+      ====================== */
+      case "store":
+        (await import("./store/store.js")).renderStore();
+        break;
+
+      /* ======================
+         FLASH ADMIN (STORE)
+      ====================== */
+      case "flash-admin":
+        (await import("./store/flash-admin.js")).renderFlashAdmin();
+        break;
+
+      /* ======================
+         ADMIN PANEL
+      ====================== */
+      case "admin":
+        (await import("./admin.js")).renderAdmin();
+        break;
+
+      /* ======================
+         CINEMA (JIKA MASIH DIPAKAI)
+      ====================== */
+      case "cinema":
+        (await import("./cinema.js")).renderCinema();
+        break;
+
+      /* ======================
+         DASHBOARD (JIKA MASIH DIPAKAI)
+      ====================== */
       case "dashboard":
         (await import("./dashboard.js")).loadDashboard();
         break;
