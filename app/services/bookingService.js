@@ -10,6 +10,29 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { validateTransactionPin } from "../pinTrx.js";
 
+
+/* =====================================================
+   HELPER: HITUNG HARGA (CEIL PER JAM)
+===================================================== */
+function calculateSessionPrice(scheduleData){
+
+  const [startH, startM] = scheduleData.startTime.split(":").map(Number);
+  const [endH, endM] = scheduleData.endTime.split(":").map(Number);
+
+  const startMinutes = startH * 60 + startM;
+  const endMinutes = endH * 60 + endM;
+
+  const totalMinutes = endMinutes - startMinutes;
+
+  if (totalMinutes <= 0) {
+    throw new Error("Durasi sesi tidak valid");
+  }
+
+  // 1 menit tetap dihitung 1 jam
+  const billedHours = Math.ceil(totalMinutes / 60);
+
+  return billedHours * (scheduleData.pricePerHour || 0);
+}
 /* =====================================================
    CREATE BOOKING (FINAL CLEAN LEDGER VERSION)
 ===================================================== */
