@@ -13,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
-import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
+import { validateTransactionPin } from "./pinTrx.js";
 
 
 export async function renderWallet(){
@@ -26,7 +26,13 @@ export async function renderWallet(){
    🔐 PIN GATE BEFORE OPEN WALLET
 ========================================= */
 
-const pin = await requestTransactionPin();
+if(typeof window.requestTransactionPin !== "function"){
+  console.error("requestTransactionPin tidak tersedia");
+  navigate("home");
+  return;
+}
+
+const pin = await window.requestTransactionPin();
 
 if(!pin){
   navigate("home");
@@ -36,7 +42,7 @@ if(!pin){
 const pinCheck = await validateTransactionPin(user.uid, pin);
 
 if(!pinCheck.valid){
-  alert("PIN salah");
+  alert(pinCheck.reason || "PIN salah");
   navigate("home");
   return;
 }
