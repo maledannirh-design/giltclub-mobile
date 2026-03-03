@@ -118,31 +118,74 @@ export async function renderChat(){
     return;
   }
 
-  // ===============================
-  // MODE 2: CHAT ROOM
-  // ===============================
+ // ===============================
+// MODE 2: CHAT ROOM
+// ===============================
 
-  content.innerHTML = `
-    <div style="padding:16px">
-      <button id="backToList">← Back</button>
-      <div id="chatContainer">Loading...</div>
+content.innerHTML = `
+  <div class="chat-container">
+
+    <div class="chat-header">
+      <div class="chat-left">
+        <div id="backToList" class="chat-back">←</div>
+        <div class="chat-user-info">
+          <div class="chat-username">Chat</div>
+        </div>
+      </div>
     </div>
-  `;
 
-  document.getElementById("backToList").onclick = ()=>{
-    localStorage.removeItem("activeChatRoom");
-    renderChat();
-  };
+    <div id="chatContainer" class="chat-messages"></div>
 
-  await loadConversation(activeRoomId);
+    <div class="chat-input">
+      <textarea 
+        id="chatInput" 
+        rows="1" 
+        placeholder="Type a message..."
+      ></textarea>
+      <button id="sendBtn">Send</button>
+    </div>
 
-  await updateDoc(
-    doc(db,"chatRooms",activeRoomId),
-    {
-      [`unreadCount.${user.uid}`]: 0
-    }
-  );
-}
+  </div>
+`;
+
+document.getElementById("backToList").onclick = ()=>{
+  localStorage.removeItem("activeChatRoom");
+  renderChat();
+};
+
+await loadConversation(activeRoomId);
+
+// reset unread
+await updateDoc(
+  doc(db,"chatRooms",activeRoomId),
+  {
+    [`unreadCount.${user.uid}`]: 0
+  }
+);
+
+// ===============================
+// INPUT BEHAVIOR
+// ===============================
+
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+
+// Auto expand textarea
+chatInput.addEventListener("input", ()=>{
+  chatInput.style.height = "auto";
+  chatInput.style.height = chatInput.scrollHeight + "px";
+});
+
+// Kirim hanya lewat tombol
+sendBtn.onclick = async ()=>{
+  const text = chatInput.value.trim();
+  if(!text) return;
+
+  await sendMessage(activeRoomId, text);
+
+  chatInput.value = "";
+  chatInput.style.height = "auto";
+};
 
 function formatTime(date){
   const now = new Date();
