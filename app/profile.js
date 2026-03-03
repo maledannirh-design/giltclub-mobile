@@ -1233,7 +1233,22 @@ async function renderChatList(){
 
         const otherUser = room.userMap?.[otherUid] || {};
 
-        const username = otherUser.username || "User";
+        let username = otherUser.username;
+
+if(!username){
+  // fallback ambil dari users collection realtime
+  getDoc(doc(db,"users",otherUid)).then(snap=>{
+    if(snap.exists()){
+      const freshName = snap.data().username || "User";
+      const el = document.querySelector(
+        `.chatlist-card[onclick="renderChatUI('${roomId}','${otherUid}')"] .chatlist-username`
+      );
+      if(el) el.textContent = freshName;
+    }
+  });
+}
+
+username = username || "User";
         const photo = otherUser.avatar
           ? `<img src="${otherUser.avatar}" class="chatlist-avatar-img">`
           : `<div class="chatlist-avatar-placeholder">👤</div>`;
