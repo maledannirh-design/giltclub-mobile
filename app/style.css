@@ -51,6 +51,14 @@
   box-shadow:0 0 0 3px rgba(212,178,79,.25);
 }
 
+
+@font-face {
+  font-family: 'BrittanySignature';
+  src: url('./fonts/BrittanySignature.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 .field-group{
   margin-bottom:16px;
 }
@@ -110,9 +118,11 @@ html, body {
   backdrop-filter: blur(12px);
 }
 
-.header-title {
-  font-weight: 600;
-  font-size: 18px;
+.header-title{
+  font-family: 'BrittanySignature', serif;
+  font-size: 16px;          /* sedikit lebih besar karena script font lebih tipis */
+  line-height: 1.5;
+  letter-spacing: 0.5px;    /* jangan terlalu lebar untuk script */
 }
 
 .header-actions {
