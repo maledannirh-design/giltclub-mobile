@@ -71,13 +71,14 @@ async function checkMaintenanceAndFreeze(user){
           <h1>🚧 Sistem Sedang Maintenance</h1>
 
           <div class="maintenance-message">
-            <p>Mutasi rekening saldo ke bank server yang lebih besar</p>
+            <p>mutasi ledger sekarang lebih lengkap</p>
             <p>Security dan keamanan sistem telah ditingkatkan</p>
             <p>Penyesuaian software engine untuk kamera</p>
-            <p>Pembukaan toko, penjualan jersey dan product club telah diaktifkan</p>
-            <p>Checkin sistem harian, cashback dan sistem follow telah diaktifkan</p>
+            <p>memberlist hanya anggota dapat melihat</p>
+            <p>Checkin sistem harian, cashback telah diaktifkan</p>
             <p>Perhitungan kehadiran dan reward hadiah kehadiran diaktifkan</p>
             <p>Dashboard skill tiap pemain kini dapat terlihat sesuai privasi member</p>
+            <p>Kini all member dapat membuka toko sendiri</p>
 
             <div class="maintenance-estimate">
               <strong>Perkiraan waktu:</strong><br>
@@ -85,6 +86,7 @@ async function checkMaintenanceAndFreeze(user){
               Sebagai kompensasi, gameplay tadi malam mendapat
               <strong>double gPoint (2x lipat)</strong>,
               semua penalty yang pernah diterima, dihapuskan dan saldo penalty dikembalikan ke ewallet masing-masing.
+              dan pembagian gpoint 1000 untuk seluruh member yang login di 1 jam tertentu
             </div>
           </div>
 
