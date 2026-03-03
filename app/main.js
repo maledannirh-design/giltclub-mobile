@@ -83,7 +83,7 @@ async function checkMaintenanceAndFreeze(user){
               2 – 9 Jam<br><br>
               Sebagai kompensasi, gameplay tadi malam mendapat
               <strong>double gPoint (2x lipat)</strong>,
-              semua penalty dihapus dan saldo dikembalikan.
+              semua penalty yang pernah diterima, dihapuskan dan saldo penalty dikembalikan ke ewallet masing-masing.
             </div>
           </div>
 
