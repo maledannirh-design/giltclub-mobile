@@ -1,26 +1,3 @@
-import { 
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  doc,
-  updateDoc,
-  serverTimestamp,
-  getDoc
-} from "./firestore.js";
-
-import { auth, db, rtdb } from "./firebase.js";
-import { 
-  ref, 
-  onValue, 
-  set, 
-  remove 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-let unsubscribeRooms = null;
-let unsubscribeMessages = null;
-
 export async function renderChat(){
 
   const content = document.getElementById("content");
@@ -53,7 +30,7 @@ export async function renderChat(){
 
     if(unsubscribeRooms) unsubscribeRooms();
 
-    unsubscribeRooms = onSnapshot(q,(snap)=>{
+    unsubscribeRooms = onSnapshot(q, async (snap)=>{
 
       if(snap.empty){
         container.innerHTML = "No conversations yet.";
@@ -62,7 +39,7 @@ export async function renderChat(){
 
       let html = "";
 
-      snap.forEach(docSnap=>{
+      for(const docSnap of snap.docs){
 
         const data = docSnap.data();
         const roomId = docSnap.id;
@@ -73,9 +50,12 @@ export async function renderChat(){
         let avatar = `<div class="chatlist-avatar-placeholder">👤</div>`;
 
         if(isBroadcast){
+
           username = "Admin";
           avatar = `<div class="chatlist-avatar-placeholder">🛡</div>`;
+
         }else{
+
           const otherUid = (data.participants || [])
             .find(uid => uid !== user.uid);
 
@@ -83,8 +63,20 @@ export async function renderChat(){
 
           username =
             otherInfo.fullName?.trim() ||
-            otherInfo.username?.trim() ||
-            "User";
+            otherInfo.username?.trim();
+
+          // fallback fresh ambil dari users collection
+          if(!username || username === "User"){
+            const userSnap = await getDoc(doc(db,"users",otherUid));
+            if(userSnap.exists()){
+              username =
+                userSnap.data().fullName ||
+                userSnap.data().username ||
+                "User";
+            }else{
+              username = "User";
+            }
+          }
 
           if(otherInfo.photoURL){
             avatar = `<img src="${otherInfo.photoURL}" class="chatlist-avatar-img"/>`;
@@ -112,7 +104,7 @@ export async function renderChat(){
             </div>
           </div>
         `;
-      });
+      }
 
       container.innerHTML = html;
 
@@ -147,34 +139,32 @@ export async function renderChat(){
   let otherUid = null;
 
   if(isBroadcast){
+
     username = "Admin";
     avatar = `<div class="chat-avatar-placeholder">🛡</div>`;
+
   }else{
+
     otherUid = (roomData.participants || [])
       .find(uid => uid !== user.uid);
 
     const otherInfo = roomData.participantsInfo?.[otherUid] || {};
 
-    let username =
-  otherInfo.fullName?.trim() ||
-  otherInfo.username?.trim();
+    username =
+      otherInfo.fullName?.trim() ||
+      otherInfo.username?.trim();
 
-if(!username || username === "User"){
-  getDoc(doc(db,"users",otherUid)).then(snap=>{
-    if(snap.exists()){
-      const fresh = snap.data().fullName ||
-                    snap.data().username ||
-                    "User";
-
-      const el = document.querySelector(
-        `.chatlist-card[data-room="${roomId}"] .chatlist-username`
-      );
-      if(el) el.textContent = fresh;
+    if(!username || username === "User"){
+      const userSnap = await getDoc(doc(db,"users",otherUid));
+      if(userSnap.exists()){
+        username =
+          userSnap.data().fullName ||
+          userSnap.data().username ||
+          "User";
+      }else{
+        username = "User";
+      }
     }
-  });
-
-  username = "User";
-}
 
     if(otherInfo.photoURL){
       avatar = `<img src="${otherInfo.photoURL}" class="chat-avatar-img"/>`;
@@ -221,9 +211,6 @@ if(!username || username === "User"){
 
   const chatContainer = document.getElementById("chatContainer");
 
-  // ===============================
-  // LOAD MESSAGES
-  // ===============================
   const messagesRef = collection(db,"chatRooms",activeRoomId,"messages");
   const msgQuery = query(messagesRef, orderBy("createdAt","asc"));
 
@@ -254,15 +241,12 @@ if(!username || username === "User"){
     chatContainer.scrollTop = chatContainer.scrollHeight;
   });
 
-  // reset unread + read receipt
   await updateDoc(doc(db,"chatRooms",activeRoomId),{
     [`unreadCount.${user.uid}`]: 0,
     [`lastRead.${user.uid}`]: serverTimestamp()
   });
 
-  // ===============================
-  // ONLINE + TYPING (NON BROADCAST ONLY)
-  // ===============================
+  // ONLINE + TYPING tetap sama (tidak diubah)
   if(!isBroadcast && otherUid){
 
     const statusRef = ref(rtdb,"status/"+otherUid);
@@ -318,18 +302,4 @@ if(!username || username === "User"){
 
   }
 
-}
-
-function formatTime(date){
-  const now=new Date();
-  const isToday=
-    date.getDate()===now.getDate() &&
-    date.getMonth()===now.getMonth() &&
-    date.getFullYear()===now.getFullYear();
-
-  if(isToday){
-    return date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-  }else{
-    return date.toLocaleDateString();
-  }
 }
