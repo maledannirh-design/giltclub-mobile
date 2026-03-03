@@ -29,7 +29,7 @@ import {
 
 
 /* =========================================
-   MAINTENANCE GUARD
+   MAINTENANCE GUARD (PRO VERSION)
 ========================================= */
 
 async function checkMaintenanceAndFreeze(user){
@@ -45,6 +45,7 @@ async function checkMaintenanceAndFreeze(user){
     const data = snap.data();
     if(!data.enabled) return false;
 
+    // ADMIN BYPASS
     if(user){
       const userSnap = await getDoc(doc(db,"users", user.uid));
       if(userSnap.exists()){
@@ -55,40 +56,52 @@ async function checkMaintenanceAndFreeze(user){
       }
     }
 
+    const endAt = data.endAt?.toMillis
+      ? data.endAt.toMillis()
+      : null;
+
     content.innerHTML = `
-      <div style="
-        position:fixed;
-        inset:0;
-        background:#0f172a;
-        color:white;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        z-index:999999;
-        padding:30px;
-        text-align:center;
-        flex-direction:column;
-      ">
-        <h1 style="font-size:22px;margin-bottom:15px;">
-          🚧 Sistem Sedang Maintenance
-        </h1>
+      <div class="maintenance-wrapper">
 
-        <div style="opacity:.8;max-width:400px;">
-          <p>Mutasi rekening saldo ke bank server yang lebih besar</p>
-          <p>security dan keamanan sistem telah di tingkatkan</p>
-          <p>penyesuaian software engine untuk kamera</p>
-          <p>pembukaan toko, penjualan jersey dan product club telah diaktifkan<p> 
-          <p>checkin sistem harian, checkin cashback dan sistem follow serta follow  diaktifkan</p>
-          <p>perhitungan kehadiran, reward hadiah kehadiran diaktifkan</p>
-          <p>dashboard skill tiap pemain kini dapat terlihat sesuai privasi member</p>
+        <div class="police-line"></div>
 
-          <div style="margin-top:20px;">
-            Perkiraan waktu:<br>
-            <strong>2 – 9 Jam, sebagai kompensasi, gameplay tadi malam dpat double gpoint atau 2x lipat dari normal, semua penalty yg pernah dibuat di hapuskan dan saldo dikembalikan</strong>
+        <div class="maintenance-card">
+
+          <h1>🚧 Sistem Sedang Maintenance</h1>
+
+          <div class="maintenance-message">
+            <p>Mutasi rekening saldo ke bank server yang lebih besar</p>
+            <p>Security dan keamanan sistem telah ditingkatkan</p>
+            <p>Penyesuaian software engine untuk kamera</p>
+            <p>Pembukaan toko, penjualan jersey dan product club telah diaktifkan</p>
+            <p>Checkin sistem harian, cashback dan sistem follow telah diaktifkan</p>
+            <p>Perhitungan kehadiran dan reward hadiah kehadiran diaktifkan</p>
+            <p>Dashboard skill tiap pemain kini dapat terlihat sesuai privasi member</p>
+
+            <div class="maintenance-estimate">
+              <strong>Perkiraan waktu:</strong><br>
+              2 – 9 Jam<br><br>
+              Sebagai kompensasi, gameplay tadi malam mendapat
+              <strong>double gPoint (2x lipat)</strong>,
+              semua penalty dihapus dan saldo dikembalikan.
+            </div>
           </div>
+
+          <div id="maintenanceCountdown" class="maintenance-countdown">
+            ${endAt ? "Menghitung waktu..." : ""}
+          </div>
+
         </div>
+
+        <div class="police-line"></div>
       </div>
     `;
+
+    injectMaintenanceStyle();
+
+    if(endAt){
+      startMaintenanceCountdown(endAt);
+    }
 
     return true;
 
@@ -98,6 +111,73 @@ async function checkMaintenanceAndFreeze(user){
   }
 }
 
+function injectMaintenanceStyle(){
+
+  if(document.getElementById("maintenance-style")) return;
+
+  const style = document.createElement("style");
+  style.id = "maintenance-style";
+
+  style.innerHTML = `
+    .maintenance-wrapper{
+      position:fixed;
+      inset:0;
+      background:#0f172a;
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      z-index:999999;
+      font-family:system-ui, sans-serif;
+    }
+
+    .maintenance-card{
+      max-width:420px;
+      padding:30px;
+    }
+
+    .maintenance-message p{
+      opacity:.85;
+      margin:6px 0;
+      font-size:14px;
+    }
+
+    .maintenance-estimate{
+      margin-top:20px;
+      font-size:14px;
+      opacity:.9;
+    }
+
+    .maintenance-countdown{
+      margin-top:25px;
+      font-size:16px;
+      font-weight:bold;
+      color:#facc15;
+    }
+
+    .police-line{
+      width:100%;
+      height:40px;
+      background: repeating-linear-gradient(
+        45deg,
+        #facc15,
+        #facc15 20px,
+        #000 20px,
+        #000 40px
+      );
+      animation: moveStripe 2s linear infinite;
+    }
+
+    @keyframes moveStripe{
+      from{ background-position:0 0; }
+      to{ background-position:100px 0; }
+    }
+  `;
+
+  document.head.appendChild(style);
+}
 
 /* =========================================
    GLOBAL INIT
