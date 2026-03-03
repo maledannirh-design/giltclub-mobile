@@ -1,34 +1,24 @@
 import { 
-  collection,
-  getDocs,
   doc,
   setDoc,
   addDoc,
-  updateDoc,
   serverTimestamp
 } from "./firestore.js";
 
 import { db } from "./firebase.js";
 
-export async function sendAdminBroadcast(message){
+export async function sendAdminBroadcast(message, targetUids){
 
-  const usersSnap = await getDocs(collection(db,"users"));
+  for(const uid of targetUids){
 
-  for(const userDoc of usersSnap.docs){
-
-    const uid = userDoc.id;
     const roomId = "broadcast_" + uid;
 
-    const roomRef = doc(db,"chatRooms",roomId);
-
-    await setDoc(roomRef,{
+    await setDoc(doc(db,"chatRooms",roomId),{
       participants: [uid,"ADMIN_BROADCAST"],
       type: "broadcast",
       lastMessage: message,
       lastMessageAt: serverTimestamp(),
-      unreadCount: {
-        [uid]: 1
-      }
+      unreadCount: { [uid]: 1 }
     },{ merge:true });
 
     await addDoc(
