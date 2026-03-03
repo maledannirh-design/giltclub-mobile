@@ -7,7 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* =====================================================
-   CHECK-IN ATTENDANCE (LEDGER CLEAN VERSION)
+   CHECK-IN ATTENDANCE (FINAL MUTATION ENGINE VERSION)
 ===================================================== */
 export async function checkInAttendance({
   bookingId,
@@ -15,8 +15,7 @@ export async function checkInAttendance({
 }) {
 
   const bookingRef = doc(db, "bookings", bookingId);
-  const walletLedgerCol = collection(db, "walletTransactions");
-  const gPointLedgerCol = collection(db, "gPointLedger");
+  const mutationsCol = collection(db, "walletMutations");
 
   let cashback = 0;
   let earnedGPoint = 0;
@@ -116,16 +115,19 @@ export async function checkInAttendance({
       attendedAt: serverTimestamp(),
       rewardCashback: cashback,
       rewardGPoint: earnedGPoint,
-      rewardRole: userData.role || "MEMBER",
-      rewardSessionDate: scheduleData.date
+      rewardRole: role,
+      rewardSessionDate: sessionDate
     });
 
     /* ===============================
-       UPDATE USER
+       UPDATE USER SNAPSHOT
     =============================== */
 
     const balanceBefore = userData.walletBalance || 0;
-    const newBalance = balanceBefore + cashback;
+    const balanceAfter = balanceBefore + cashback;
+
+    const gPointBefore = userData.gPoint || 0;
+    const gPointAfter = gPointBefore + earnedGPoint;
 
     const nowDate = new Date();
     const monthKey =
@@ -137,52 +139,53 @@ export async function checkInAttendance({
     const currentMonthCount = monthAttendance[monthKey] || 0;
 
     transaction.update(userRef, {
-      walletBalance: newBalance,
-      gPoint: (userData.gPoint || 0) + earnedGPoint,
+      walletBalance: balanceAfter,
+      gPoint: gPointAfter,
       totalAttendance: (userData.totalAttendance || 0) + 1,
       ["monthAttendance." + monthKey]: currentMonthCount + 1
     });
 
     /* ===============================
-       LEDGER CASHBACK (RUPIAH)
+       MUTATION: CASHBACK (RUPIAH)
     =============================== */
 
     if (cashback > 0) {
 
-      const ledgerRef = doc(walletLedgerCol);
+      const cashbackRef = doc(mutationsCol);
 
-      transaction.set(ledgerRef, {
+      transaction.set(cashbackRef, {
         userId: bookingData.userId,
-        usernameSnapshot: userData.username || "",
-        fullNameSnapshot: userData.fullName || "",
-
-        entryType: "CREDIT",
-        referenceType: "SESSION_CASHBACK",
-        referenceId: bookingId,
-
+        asset: "RUPIAH",
+        mutationType: "SESSION_CASHBACK",
         amount: cashback,
-        balanceBefore,
-        balanceAfter: newBalance,
-
-        createdAt: serverTimestamp()
+        balanceAfter: balanceAfter,
+        referenceId: bookingId,
+        description: "Cashback Session",
+        createdAt: serverTimestamp(),
+        createdBy: bookingData.userId,
+        status: "success"
       });
     }
 
     /* ===============================
-       LEDGER GPOINT (TERPISAH)
+       MUTATION: GPOINT REWARD
     =============================== */
 
     if (earnedGPoint > 0) {
 
-      const gLedgerRef = doc(gPointLedgerCol);
+      const gpointRef = doc(mutationsCol);
 
-      transaction.set(gLedgerRef, {
+      transaction.set(gpointRef, {
         userId: bookingData.userId,
-        entryType: "CREDIT",
-        referenceType: "SESSION_GPOINT",
-        referenceId: bookingId,
+        asset: "GPOINT",
+        mutationType: "CHECKIN_REWARD",
         amount: earnedGPoint,
-        createdAt: serverTimestamp()
+        balanceAfter: gPointAfter,
+        referenceId: bookingId,
+        description: "Bonus Check-In",
+        createdAt: serverTimestamp(),
+        createdBy: bookingData.userId,
+        status: "success"
       });
     }
 
