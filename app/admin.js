@@ -13,6 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { runMigration } from "./migration.js";
+import { applyMutation } from "./services/mutationService.js";
 
 
 /* =====================================================
@@ -150,7 +151,7 @@ if (flashBtn) {
 }
 
 /* =====================================================
-   BALANCE ADJUSTMENT
+   BALANCE ADJUSTMENT (NEW ENGINE)
 ===================================================== */
 async function renderBalanceAdjustmentPanel() {
 
@@ -178,7 +179,13 @@ async function renderBalanceAdjustmentPanel() {
       <label>User</label>
       <select id="adjustUser">${options}</select>
 
-      <label>Wallet Adjustment (+ / -)</label>
+      <label>Asset</label>
+      <select id="adjustAsset">
+        <option value="RUPIAH">Saldo (Rupiah)</option>
+        <option value="GPOINT">GPoint</option>
+      </select>
+
+      <label>Adjustment (+ / -)</label>
       <input type="number" id="adjustAmount"
              placeholder="50000 atau -2000">
 
@@ -199,58 +206,42 @@ async function renderBalanceAdjustmentPanel() {
 }
 
 /* =====================================================
-   HANDLE ADJUSTMENT
+   HANDLE ADJUSTMENT (FINAL LEDGER ENGINE)
 ===================================================== */
 async function handleBalanceAdjustment() {
 
-  const userId =
-    document.getElementById("adjustUser").value;
+  try {
 
-  const walletAmount =
-    Number(document.getElementById("adjustAmount").value || 0);
+    const userId =
+      document.getElementById("adjustUser").value;
 
-  const reason =
-    document.getElementById("adjustReason").value;
+    const asset =
+      document.getElementById("adjustAsset").value;
 
-  if (!walletAmount)
-    return alert("Masukkan nominal adjustment.");
+    const amount =
+      Number(document.getElementById("adjustAmount").value || 0);
 
-  const userRef = doc(db, "users", userId);
-  const ledgerRef = doc(collection(db, "walletLedger"));
+    const reason =
+      document.getElementById("adjustReason").value;
 
-  await runTransaction(db, async (transaction) => {
+    if (!amount)
+      return alert("Masukkan nominal adjustment.");
 
-    const snap = await transaction.get(userRef);
-    if (!snap.exists())
-      throw new Error("User tidak ditemukan");
-
-    const data = snap.data();
-    const before = data.walletBalance || 0;
-    const after = before + walletAmount;
-
-    if (after < 0)
-      throw new Error("Saldo tidak boleh minus");
-
-    transaction.update(userRef, {
-      walletBalance: after
-    });
-
-    transaction.set(ledgerRef, {
+    await applyMutation({
       userId,
-      entryType:
-        walletAmount > 0 ? "CREDIT" : "DEBIT",
-      referenceType: "ADMIN_ADJUSTMENT",
-      amount: walletAmount,
-      balanceBefore: before,
-      balanceAfter: after,
-      description: reason,
-      createdAt: serverTimestamp(),
+      asset,
+      mutationType: "ADMIN_ADJUSTMENT",
+      amount,
+      description: reason || "Manual Adjustment",
       createdBy: auth.currentUser.uid
     });
-  });
 
-  alert("Adjustment berhasil");
-  renderAdmin();
+    alert("Adjustment berhasil");
+    renderAdmin();
+
+  } catch(error){
+    alert(error.message || "Gagal adjustment");
+  }
 }
 
 /* =====================================================
@@ -350,6 +341,8 @@ async function(trxId){
   alert("Top up ditolak");
   renderAdmin();
 };
+
+
 /* =====================================================
    EXPORT FUNCTIONS (RAPI & AMAN)
 ===================================================== */
