@@ -100,7 +100,6 @@ html, body {
 }
 
 /* ================= HEADER ================= */
-
 .header {
   position: sticky;
   top: 0;
@@ -108,13 +107,12 @@ html, body {
 
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;   /* ← ini kuncinya */
 
-  padding: 14px 12px;
+  padding: 8px 12px 6px;    /* sedikit dipadatkan */
 
   background: var(--color-card);
   border-bottom: 1px solid var(--color-border);
-
   backdrop-filter: blur(12px);
 }
 
