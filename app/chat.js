@@ -22,74 +22,103 @@ export async function renderChat(){
   const activeRoomId = localStorage.getItem("activeChatRoom");
 
   // ===============================
-  // MODE 1: CHAT LIST
-  // ===============================
-  if(!activeRoomId){
+// MODE 1: CHAT LIST (WA STYLE)
+// ===============================
+if(!activeRoomId){
 
-    content.innerHTML = `
-      <div style="padding:16px">
-        <h2>Messages</h2>
-        <div id="chatListContainer">Loading...</div>
+  content.innerHTML = `
+    <div class="chatlist-container">
+      <div class="chatlist-header">
+        <div class="chatlist-title">Messages</div>
       </div>
-    `;
+      <div id="chatListContainer" class="chatlist-body"></div>
+    </div>
+  `;
 
-    const container = document.getElementById("chatListContainer");
+  const container = document.getElementById("chatListContainer");
 
-    const q = query(
-      collection(db,"chatRooms"),
-      where("participants","array-contains",user.uid),
-      orderBy("lastMessageAt","desc")
-    );
+  const q = query(
+    collection(db,"chatRooms"),
+    where("participants","array-contains",user.uid),
+    orderBy("lastMessageAt","desc")
+  );
 
-    if(unsubscribeRooms) unsubscribeRooms();
+  if(unsubscribeRooms) unsubscribeRooms();
 
-    unsubscribeRooms = onSnapshot(q,(snap)=>{
+  unsubscribeRooms = onSnapshot(q, async (snap)=>{
 
-      if(snap.empty){
-        container.innerHTML = "No conversations yet.";
-        return;
-      }
+    if(snap.empty){
+      container.innerHTML = "No conversations yet.";
+      return;
+    }
 
-      let html = "";
+    let html = "";
 
-      snap.forEach(docSnap=>{
-        const data = docSnap.data();
-        const roomId = docSnap.id;
-        const unread = data.unreadCount?.[user.uid] || 0;
+    for(const docSnap of snap.docs){
 
-        html += `
-          <div class="chat-list-item" 
-               data-room="${roomId}"
-               style="
-                 padding:12px;
-                 border-bottom:1px solid #eee;
-                 cursor:pointer;
-                 ${unread > 0 ? "background:#f5faff;" : ""}
-               ">
-            <div style="font-weight:${unread>0?"600":"500"}">
-              ${data.lastMessage || "No message"}
+      const data = docSnap.data();
+      const roomId = docSnap.id;
+      const unread = data.unreadCount?.[user.uid] || 0;
+
+      // ambil lawan chat
+      const otherUid = data.participants.find(uid => uid !== user.uid);
+
+      let otherUser = null;
+
+      try{
+        const userSnap = await getDoc(doc(db,"users",otherUid));
+        if(userSnap.exists()) otherUser = userSnap.data();
+      }catch(e){}
+
+      const avatar = otherUser?.photoURL
+        ? `<img src="${otherUser.photoURL}" class="chatlist-avatar-img"/>`
+        : `<div class="chatlist-avatar-placeholder">👤</div>`;
+
+      const username = otherUser?.username || "User";
+
+      const time = data.lastMessageAt?.toDate
+        ? formatTime(data.lastMessageAt.toDate())
+        : "";
+
+      html += `
+        <div class="chatlist-card" data-room="${roomId}">
+          <div class="chatlist-left">
+            <div class="chatlist-avatar">
+              ${avatar}
             </div>
-            <div style="font-size:12px;opacity:.6">
-              ${unread > 0 ? unread + " unread" : ""}
+
+            <div class="chatlist-text">
+              <div class="chatlist-username">
+                ${username}
+              </div>
+              <div class="chatlist-preview">
+                ${data.lastMessage || ""}
+              </div>
             </div>
           </div>
-        `;
+
+          <div class="chatlist-right">
+            <div class="chatlist-time">${time}</div>
+            ${unread > 0 ? `<div class="chatlist-badge">${unread}</div>` : ""}
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+
+    document.querySelectorAll(".chatlist-card")
+      .forEach(el=>{
+        el.onclick = ()=>{
+          localStorage.setItem("activeChatRoom",el.dataset.room);
+          renderChat();
+        };
       });
 
-      container.innerHTML = html;
+  });
 
-      document.querySelectorAll(".chat-list-item")
-        .forEach(el=>{
-          el.onclick = ()=>{
-            localStorage.setItem("activeChatRoom",el.dataset.room);
-            renderChat();
-          };
-        });
-
-    });
-
-    return;
-  }
+  return;
+}
 
   // ===============================
   // MODE 2: CHAT ROOM
