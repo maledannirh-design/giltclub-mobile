@@ -120,9 +120,14 @@ html, body {
 
 .header-title{
   font-family: 'BrittanySignature', serif;
-  font-size: 16px;          /* sedikit lebih besar karena script font lebih tipis */
-  line-height: 1.5;
-  letter-spacing: 0.5px;    /* jangan terlalu lebar untuk script */
+  font-size: 15px;
+  line-height: 1.2;      /* dipadatkan */
+  letter-spacing: 0.5px;
+  white-space: nowrap;   /* cegah auto wrap */
+}
+
+.header-title br{
+  display: block;
 }
 
 .header-actions {
