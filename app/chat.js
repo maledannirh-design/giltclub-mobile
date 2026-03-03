@@ -5,10 +5,13 @@ import {
   orderBy,
   onSnapshot,
   doc,
-  updateDoc
+  updateDoc,
+  serverTimestamp,
+  getDoc
 } from "./firestore.js";
 
-import { auth, db } from "./firebase.js";
+import { auth, db, rtdb } from "./firebase.js";
+import { ref, onValue, set, remove } from "firebase/database";
 
 let unsubscribeRooms = null;
 
@@ -21,7 +24,7 @@ export async function renderChat(){
   const activeRoomId = localStorage.getItem("activeChatRoom");
 
   // ===============================
-  // MODE 1: CHAT LIST (WA STYLE - OPTIMIZED)
+  // MODE 1: CHAT LIST
   // ===============================
   if(!activeRoomId){
 
@@ -44,7 +47,7 @@ export async function renderChat(){
 
     if(unsubscribeRooms) unsubscribeRooms();
 
-    unsubscribeRooms = onSnapshot(q, (snap)=>{
+    unsubscribeRooms = onSnapshot(q,(snap)=>{
 
       if(snap.empty){
         container.innerHTML = "No conversations yet.";
@@ -54,12 +57,10 @@ export async function renderChat(){
       let html = "";
 
       snap.forEach(docSnap=>{
-
         const data = docSnap.data();
         const roomId = docSnap.id;
         const unread = data.unreadCount?.[user.uid] || 0;
 
-        // ambil lawan chat
         const otherUid = (data.participants || [])
           .find(uid => uid !== user.uid);
 
@@ -81,23 +82,17 @@ export async function renderChat(){
         html += `
           <div class="chatlist-card" data-room="${roomId}">
             <div class="chatlist-left">
-              <div class="chatlist-avatar">
-                ${avatar}
-              </div>
-
+              <div class="chatlist-avatar">${avatar}</div>
               <div class="chatlist-text">
-                <div class="chatlist-username" style="${unread > 0 ? 'font-weight:700;' : ''}">
+                <div class="chatlist-username" style="${unread>0?'font-weight:700;':''}">
                   ${username}
                 </div>
-                <div class="chatlist-preview">
-                  ${data.lastMessage || ""}
-                </div>
+                <div class="chatlist-preview">${data.lastMessage || ""}</div>
               </div>
             </div>
-
             <div class="chatlist-right">
               <div class="chatlist-time">${time}</div>
-              ${unread > 0 ? `<div class="chatlist-badge">${unread}</div>` : ""}
+              ${unread>0?`<div class="chatlist-badge">${unread}</div>`:""}
             </div>
           </div>
         `;
@@ -105,97 +100,149 @@ export async function renderChat(){
 
       container.innerHTML = html;
 
-      document.querySelectorAll(".chatlist-card")
-        .forEach(el=>{
-          el.onclick = ()=>{
-            localStorage.setItem("activeChatRoom",el.dataset.room);
-            renderChat();
-          };
-        });
+      document.querySelectorAll(".chatlist-card").forEach(el=>{
+        el.onclick = ()=>{
+          localStorage.setItem("activeChatRoom",el.dataset.room);
+          renderChat();
+        };
+      });
 
     });
 
     return;
   }
 
- // ===============================
-// MODE 2: CHAT ROOM
-// ===============================
+  // ===============================
+  // MODE 2: CHAT ROOM
+  // ===============================
 
-content.innerHTML = `
-  <div class="chat-container">
+  const roomSnap = await getDoc(doc(db,"chatRooms",activeRoomId));
+  if(!roomSnap.exists()){
+    localStorage.removeItem("activeChatRoom");
+    renderChat();
+    return;
+  }
 
-    <div class="chat-header">
-      <div class="chat-left">
-        <div id="backToList" class="chat-back">←</div>
-        <div class="chat-user-info">
-          <div class="chat-username">Chat</div>
+  const roomData = roomSnap.data();
+  const otherUid = (roomData.participants || [])
+    .find(uid => uid !== user.uid);
+
+  const otherInfo = roomData.participantsInfo?.[otherUid] || {};
+
+  const username =
+    otherInfo.fullName?.trim() ||
+    otherInfo.username?.trim() ||
+    "User";
+
+  content.innerHTML = `
+    <div class="chat-container">
+
+      <div class="chat-header">
+        <div class="chat-left">
+          <div id="backToList" class="chat-back">←</div>
+          <div class="chat-user-info">
+            <div class="chat-username">${username}</div>
+            <div class="chat-status">Checking...</div>
+          </div>
         </div>
       </div>
+
+      <div id="chatContainer" class="chat-messages"></div>
+
+      <div class="typing-indicator" style="display:none;">
+        <span></span><span></span><span></span>
+      </div>
+
+      <div class="chat-input">
+        <textarea id="chatInput" rows="1" placeholder="Type a message..."></textarea>
+        <button id="sendBtn">Send</button>
+      </div>
+
     </div>
+  `;
 
-    <div id="chatContainer" class="chat-messages"></div>
+  // Back
+  document.getElementById("backToList").onclick = ()=>{
+    localStorage.removeItem("activeChatRoom");
+    renderChat();
+  };
 
-    <div class="chat-input">
-      <textarea 
-        id="chatInput" 
-        rows="1" 
-        placeholder="Type a message..."
-      ></textarea>
-      <button id="sendBtn">Send</button>
-    </div>
+  await loadConversation(activeRoomId);
 
-  </div>
-`;
+  // Reset unread + update read receipt
+  await updateDoc(doc(db,"chatRooms",activeRoomId),{
+    [`unreadCount.${user.uid}`]: 0,
+    [`lastRead.${user.uid}`]: serverTimestamp()
+  });
 
-document.getElementById("backToList").onclick = ()=>{
-  localStorage.removeItem("activeChatRoom");
-  renderChat();
-};
+  // ===============================
+  // ONLINE INDICATOR
+  // ===============================
+  const statusRef = ref(rtdb,"status/"+otherUid);
+  onValue(statusRef,(snap)=>{
+    const status = snap.val();
+    const el = document.querySelector(".chat-status");
+    if(!el) return;
 
-await loadConversation(activeRoomId);
+    if(status?.online){
+      el.textContent = "Online";
+      el.style.color = "#4CAF50";
+    }else{
+      el.textContent = "Offline";
+      el.style.color = "#999";
+    }
+  });
 
-// reset unread
-await updateDoc(
-  doc(db,"chatRooms",activeRoomId),
-  {
-    [`unreadCount.${user.uid}`]: 0
-  }
-);
+  // ===============================
+  // TYPING INDICATOR
+  // ===============================
+  const typingRef = ref(rtdb,`typing/${activeRoomId}/${user.uid}`);
+  const otherTypingRef = ref(rtdb,`typing/${activeRoomId}/${otherUid}`);
 
-// ===============================
-// INPUT BEHAVIOR
-// ===============================
+  const chatInput = document.getElementById("chatInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const typingEl = document.querySelector(".typing-indicator");
 
-const chatInput = document.getElementById("chatInput");
-const sendBtn = document.getElementById("sendBtn");
+  chatInput.addEventListener("input",()=>{
+    chatInput.style.height="auto";
+    chatInput.style.height=chatInput.scrollHeight+"px";
 
-// Auto expand textarea
-chatInput.addEventListener("input", ()=>{
-  chatInput.style.height = "auto";
-  chatInput.style.height = chatInput.scrollHeight + "px";
-});
+    set(typingRef,true);
+    clearTimeout(window.typingTimeout);
+    window.typingTimeout=setTimeout(()=>{
+      remove(typingRef);
+    },1500);
+  });
 
-// Kirim hanya lewat tombol
-sendBtn.onclick = async ()=>{
-  const text = chatInput.value.trim();
-  if(!text) return;
+  onValue(otherTypingRef,(snap)=>{
+    typingEl.style.display = snap.exists() ? "flex" : "none";
+  });
 
-  await sendMessage(activeRoomId, text);
+  // ===============================
+  // SEND BUTTON
+  // ===============================
+  sendBtn.onclick = async ()=>{
+    const text = chatInput.value.trim();
+    if(!text) return;
 
-  chatInput.value = "";
-  chatInput.style.height = "auto";
-};
+    await sendMessage(activeRoomId,text);
+
+    chatInput.value="";
+    chatInput.style.height="auto";
+    remove(typingRef);
+  };
+
+}
 
 function formatTime(date){
-  const now = new Date();
-  const isToday =
-    date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
+  const now=new Date();
+  const isToday=
+    date.getDate()===now.getDate() &&
+    date.getMonth()===now.getMonth() &&
+    date.getFullYear()===now.getFullYear();
 
   if(isToday){
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
   }else{
     return date.toLocaleDateString();
   }
