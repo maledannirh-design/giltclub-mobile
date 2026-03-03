@@ -165,77 +165,94 @@ function eyeCloseSVG(){
 }
 
 /* =========================================
-   MUTASI
+   MUTASI (NEW ENGINE - walletMutations)
 ========================================= */
 
-async function renderLedger(){
+async function renderLedger(filterAsset = "ALL"){
 
   const user = auth.currentUser;
   const content = document.getElementById("content");
 
   if(!user || !content) return;
 
-  // 🔵 RUPIAH
-  const walletSnap = await getDocs(
+  const mutationSnap = await getDocs(
     query(
-      collection(db,"walletTransactions"),
+      collection(db,"walletMutations"),
       where("userId","==", user.uid),
       orderBy("createdAt","desc")
     )
   );
 
-  // 🟡 GPOINT
-  const gPointSnap = await getDocs(
-    query(
-      collection(db,"gPointLedger"),
-      where("userId","==", user.uid),
-      orderBy("createdAt","desc")
-    )
-  );
+  const mutations = [];
 
-  // 🔥 Gabungkan dua array
-  const combined = [];
+  mutationSnap.forEach(docSnap=>{
+    const data = docSnap.data();
 
-  walletSnap.forEach(docSnap=>{
-    combined.push({
-      ...docSnap.data(),
-      _source: "WALLET"
-    });
+    if(filterAsset !== "ALL" && data.asset !== filterAsset) return;
+
+    mutations.push(data);
   });
 
-  gPointSnap.forEach(docSnap=>{
-    combined.push({
-      ...docSnap.data(),
-      _source: "GPOINT"
-    });
-  });
-
-  // 🔥 Sort manual by createdAt
-  combined.sort((a,b)=>{
-    const aTime = a.createdAt?.seconds || 0;
-    const bTime = b.createdAt?.seconds || 0;
-    return bTime - aTime;
-  });
+  const labelMap = {
+    BOOKING_PAYMENT: "Pembayaran Booking",
+    BOOKING_REFUND: "Refund Booking",
+    BOOKING_PENALTY: "Denda Pembatalan",
+    SESSION_CASHBACK: "Cashback Session",
+    TOPUP: "Top Up Saldo",
+    TOPUP_BONUS: "Bonus Top Up",
+    PURCHASE_PAYMENT: "Pembelian Produk",
+    PURCHASE_REFUND: "Refund Produk",
+    REDEEM_GPOINT: "Redeem Poin",
+    REDEEM_GPOINT_REFUND: "Refund Redeem",
+    ADMIN_ADJUSTMENT: "Penyesuaian Sistem",
+    CHECKIN_REWARD: "Bonus Check-In"
+  };
 
   let html = `
     <div class="ledger-container">
+
       <h3>Mutasi Rekening</h3>
+
+      <div class="ledger-filter">
+        <button onclick="renderLedger('ALL')">Semua</button>
+        <button onclick="renderLedger('RUPIAH')">Saldo</button>
+        <button onclick="renderLedger('GPOINT')">GPoint</button>
+      </div>
   `;
 
-  for(const d of combined){
+  if(mutations.length === 0){
+    html += `<div style="opacity:.6;margin-top:20px;">Belum ada transaksi</div>`;
+  }
 
-    const amount = d.amount || 0;
+  for(const d of mutations){
+
+    const amount = Number(d.amount || 0);
+    const label = labelMap[d.mutationType] || d.mutationType || "-";
 
     let amountText = "";
     let balanceText = "";
 
-    if(d._source === "GPOINT"){
+    if(d.asset === "GPOINT"){
 
-      amountText = `⭐ ${amount}`;
+      amountText = `
+        <span style="color:${amount>=0?'#16a34a':'#dc2626'};">
+          ${amount>=0?'+':''}${amount} ⭐
+        </span>
+      `;
+
+      balanceText = `
+        <div class="ledger-balance">
+          Total: ${d.balanceAfter ?? "-"} ⭐
+        </div>
+      `;
 
     }else{
 
-      amountText = `Rp ${amount.toLocaleString("id-ID")}`;
+      amountText = `
+        <span style="color:${amount>=0?'#16a34a':'#dc2626'};">
+          ${amount>=0?'+':''}Rp ${Math.abs(amount).toLocaleString("id-ID")}
+        </span>
+      `;
 
       balanceText = `
         <div class="ledger-balance">
@@ -247,10 +264,11 @@ async function renderLedger(){
     html += `
       <div class="ledger-item">
         <div>
-          <div class="ledger-type">${d.referenceType || d.type || "-"}</div>
+          <div class="ledger-type">${label}</div>
           <div class="ledger-date">
-            ${d.createdAt?.toDate().toLocaleString("id-ID") || "-"}
+            ${d.createdAt?.toDate?.().toLocaleString("id-ID") || "-"}
           </div>
+          ${d.description ? `<div style="opacity:.6;font-size:12px;">${d.description}</div>` : ""}
         </div>
 
         <div style="text-align:right;">
@@ -264,8 +282,11 @@ async function renderLedger(){
   }
 
   html += `</div>`;
+
   content.innerHTML = html;
 }
+
+
 
 /* =========================================
    TOP UP SHEET
@@ -385,3 +406,6 @@ function startCountdown(duration){
 
   },1000);
 }
+
+
+window.renderLedger = renderLedger;
