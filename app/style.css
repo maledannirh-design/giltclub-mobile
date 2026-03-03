@@ -2380,9 +2380,19 @@ body.scan-mode{
 }
 
 .header-bottom-row{
-  margin-top:4px;
+  margin-top:-6px;   /* tarik naik supaya nempel */
+}
+.header-top-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
+.user-label{
+  display:flex;
+  align-items:center;
+  height:36px;   /* samakan dengan toggle */
+}
 
 /* ===== CHAT BUTTON ===== */
 
