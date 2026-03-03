@@ -47,13 +47,23 @@
     ... - Mahaelites</div>
 
       <div class="header-actions">
-        <button class="theme-toggle" onclick="toggleTheme()">
-          🌙
-        </button>
-        <span id="currentUserLabel" class="user-label">
-          Not logged in
-        </span>
-      </div>
+
+  <button class="theme-toggle" onclick="toggleTheme()">
+    🌙
+  </button>
+
+  <div class="header-user-area">
+    <div id="currentUserLabel" class="user-label">
+      Not logged in
+    </div>
+
+    <button id="chatButton" class="chat-btn" onclick="navigate('chat')">
+      <i class="fa-solid fa-envelope"></i>
+      <span id="chatUnreadBadge" class="chat-badge hidden">0</span>
+    </button>
+  </div>
+
+</div>
     </header>
 
     <!-- ================= MAIN CONTENT ================= -->
