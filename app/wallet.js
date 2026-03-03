@@ -15,6 +15,7 @@ import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
 import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
+
 export async function renderWallet(){
 
   const content = document.getElementById("content");
