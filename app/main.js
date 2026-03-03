@@ -302,6 +302,45 @@ function listenAttendanceNotification(uid){
 }
 
 
+function initReactionGame(){
+
+  const btn = document.getElementById("reactionBtn");
+  const result = document.getElementById("reactionResult");
+
+  if(!btn) return;
+
+  let startTime = 0;
+  let timeout;
+
+  btn.onclick = () => {
+
+    if(btn.dataset.state === "ready"){
+      const reaction = Date.now() - startTime;
+      result.innerText = `⚡ Reaksi kamu: ${reaction} ms`;
+      btn.innerText = "Main Lagi";
+      btn.style.background = "#2563eb";
+      btn.dataset.state = "idle";
+      return;
+    }
+
+    btn.innerText = "Tunggu Hijau...";
+    btn.style.background = "#ef4444";
+    result.innerText = "";
+    btn.dataset.state = "waiting";
+
+    const delay = Math.random() * 3000 + 2000;
+
+    timeout = setTimeout(()=>{
+      btn.innerText = "KLIK SEKARANG!";
+      btn.style.background = "#22c55e";
+      startTime = Date.now();
+      btn.dataset.state = "ready";
+    }, delay);
+  };
+}
+
+
+
 /* =========================================
    AUTH STATE (SINGLE SOURCE OF TRUTH)
 ========================================= */
@@ -311,11 +350,18 @@ onAuthStateChanged(auth, async (user)=>{
   const label = document.getElementById("currentUserLabel");
   const adminButton = document.querySelector('[data-page="admin"]');
 
-  if(user){
+  /* =====================================================
+     GLOBAL MAINTENANCE CHECK (ALL USERS INCLUDING GUEST)
+  ===================================================== */
 
-    // 🔒 MAINTENANCE CHECK (GLOBAL GUARD)
-    const frozen = await checkMaintenanceAndFreeze(user);
-    if(frozen) return;
+  const frozen = await checkMaintenanceAndFreeze(user);
+  if(frozen) return;
+
+  /* =====================================================
+     NORMAL FLOW
+  ===================================================== */
+
+  if(user){
 
     navigate("home");
 
@@ -384,40 +430,3 @@ onAuthStateChanged(auth, async (user)=>{
 
 });
 
-
-function initReactionGame(){
-
-  const btn = document.getElementById("reactionBtn");
-  const result = document.getElementById("reactionResult");
-
-  if(!btn) return;
-
-  let startTime = 0;
-  let timeout;
-
-  btn.onclick = () => {
-
-    if(btn.dataset.state === "ready"){
-      const reaction = Date.now() - startTime;
-      result.innerText = `⚡ Reaksi kamu: ${reaction} ms`;
-      btn.innerText = "Main Lagi";
-      btn.style.background = "#2563eb";
-      btn.dataset.state = "idle";
-      return;
-    }
-
-    btn.innerText = "Tunggu Hijau...";
-    btn.style.background = "#ef4444";
-    result.innerText = "";
-    btn.dataset.state = "waiting";
-
-    const delay = Math.random() * 3000 + 2000;
-
-    timeout = setTimeout(()=>{
-      btn.innerText = "KLIK SEKARANG!";
-      btn.style.background = "#22c55e";
-      startTime = Date.now();
-      btn.dataset.state = "ready";
-    }, delay);
-  };
-}
