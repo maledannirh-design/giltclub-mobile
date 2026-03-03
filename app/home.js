@@ -148,57 +148,95 @@ export async function renderHome(){
 }
 
 /* =========================================
-   FLOATING TROPHY (DRAGGABLE - LARGE)
+   FLOATING LEADERBOARD (CROWN - PREMIUM)
 ========================================= */
 function createFloatingTrophy(){
 
-  // hapus dulu kalau sudah ada (biar tidak dobel)
-  const old = document.getElementById("floatingTrophy");
+  const old = document.getElementById("floatingLeaderboard");
   if(old) old.remove();
 
-  const trophy = document.createElement("div");
-  trophy.id = "floatingTrophy";
-  trophy.innerHTML = "🏆";
+  const btn = document.createElement("div");
+  btn.id = "floatingLeaderboard";
 
-  trophy.style.position = "fixed";
-  trophy.style.top = "120px";
-  trophy.style.left = "20px";
-  trophy.style.fontSize = "120px";   // 🔥 5x lebih besar
-  trophy.style.cursor = "grab";
-  trophy.style.zIndex = "9999";
-  trophy.style.userSelect = "none";
-  trophy.style.transition = "transform .2s ease";
-  trophy.style.opacity = "0.9";
+  btn.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;">
+      <i class="fa-solid fa-crown"></i>
+      <span>Leaderboard</span>
+    </div>
+  `;
 
-  document.body.appendChild(trophy);
+  btn.style.position = "fixed";
+  btn.style.top = "100px";
+  btn.style.left = "10px";
+  btn.style.zIndex = "9999";
+  btn.style.cursor = "grab";
+  btn.style.userSelect = "none";
 
-  trophy.onclick = ()=>{
+  btn.style.padding = "8px 16px";
+  btn.style.borderRadius = "40px";
+  btn.style.background = "rgba(0,0,0,.35)";
+  btn.style.backdropFilter = "blur(8px)";
+  btn.style.color = "#E3C565";
+  btn.style.fontWeight = "600";
+  btn.style.fontSize = "16px";
+  btn.style.boxShadow = "0 4px 20px rgba(0,0,0,.4)";
+
+  // Perbesar crown
+  const icon = btn.querySelector("i");
+  icon.style.fontSize = "28px";
+
+  document.body.appendChild(btn);
+
+  btn.onclick = ()=>{
     window.navigate("leaderboard");
   };
 
-  /* DRAG LOGIC */
+  /* ================= DRAG SUPPORT ================= */
   let isDragging = false;
-  let offsetX, offsetY;
+  let offsetX = 0;
+  let offsetY = 0;
 
-  trophy.addEventListener("mousedown",(e)=>{
+  function startDrag(clientX, clientY){
     isDragging = true;
-    offsetX = e.clientX - trophy.offsetLeft;
-    offsetY = e.clientY - trophy.offsetTop;
-    trophy.style.cursor = "grabbing";
+    offsetX = clientX - btn.offsetLeft;
+    offsetY = clientY - btn.offsetTop;
+  }
+
+  function moveDrag(clientX, clientY){
+    if(!isDragging) return;
+    btn.style.left = (clientX - offsetX) + "px";
+    btn.style.top = (clientY - offsetY) + "px";
+  }
+
+  function endDrag(){
+    isDragging = false;
+  }
+
+  // Desktop
+  btn.addEventListener("mousedown",(e)=>{
+    startDrag(e.clientX, e.clientY);
   });
 
   document.addEventListener("mousemove",(e)=>{
-    if(!isDragging) return;
-
-    trophy.style.left = (e.clientX - offsetX) + "px";
-    trophy.style.top = (e.clientY - offsetY) + "px";
+    moveDrag(e.clientX, e.clientY);
   });
 
-  document.addEventListener("mouseup",()=>{
-    isDragging = false;
-    trophy.style.cursor = "grab";
+  document.addEventListener("mouseup", endDrag);
+
+  // Mobile
+  btn.addEventListener("touchstart",(e)=>{
+    const touch = e.touches[0];
+    startDrag(touch.clientX, touch.clientY);
   });
+
+  document.addEventListener("touchmove",(e)=>{
+    const touch = e.touches[0];
+    moveDrag(touch.clientX, touch.clientY);
+  });
+
+  document.addEventListener("touchend", endDrag);
 }
+
 
 /* =========================================
    COUNTDOWN ENGINE
