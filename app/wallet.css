@@ -357,3 +357,145 @@
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
+
+/* =========================================
+   LEDGER CONTAINER
+========================================= */
+
+.ledger-container{
+  padding:24px;
+  animation: fadeUp .25s ease;
+}
+
+.ledger-container h3{
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:18px;
+}
+
+
+/* =========================================
+   FILTER BUTTONS
+========================================= */
+
+.ledger-filter{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.ledger-filter button{
+  padding:8px 14px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);
+  color:var(--text-primary);
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+
+.ledger-filter button:hover{
+  background:rgba(255,255,255,.1);
+  transform:translateY(-1px);
+}
+
+/* Active state (optional later via JS class) */
+.ledger-filter button.active{
+  background:linear-gradient(135deg,#facc15,#f59e0b);
+  color:#000;
+  border:none;
+}
+
+
+/* =========================================
+   LEDGER ITEM CARD
+========================================= */
+
+.ledger-item{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;
+  padding:16px 18px;
+  margin-bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  transition:all .2s ease;
+}
+
+.ledger-item:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
+}
+
+.ledger-type{
+  font-weight:600;
+  font-size:14px;
+}
+
+.ledger-date{
+  font-size:12px;
+  opacity:.6;
+  margin-top:4px;
+}
+
+.ledger-balance{
+  font-size:12px;
+  opacity:.6;
+  margin-top:4px;
+}
+
+.ledger-amount{
+  font-weight:700;
+  font-size:15px;
+}
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.ledger-container .empty-state{
+  margin-top:30px;
+  opacity:.5;
+  font-size:14px;
+}
+
+
+/* =========================================
+   LIGHT MODE SUPPORT
+========================================= */
+
+body.light .ledger-item{
+  background:#ffffff;
+  border:1px solid #e6e6e6;
+  box-shadow:0 5px 15px rgba(0,0,0,.05);
+}
+
+body.light .ledger-filter button{
+  background:#f3f3f3;
+  border:1px solid #e2e2e2;
+  color:#222;
+}
+
+body.light .ledger-filter button:hover{
+  background:#e8e8e8;
+}
+
+
+/* =========================================
+   ANIMATION
+========================================= */
+
+@keyframes fadeUp{
+  from{
+    opacity:0;
+    transform:translateY(8px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
