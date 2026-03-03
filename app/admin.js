@@ -95,6 +95,44 @@ html += `
   </button>
 
   <hr style="margin:30px 0;">
+
+  <div class="admin-card">
+    <h3>Export & Audit Tools</h3>
+
+    <button onclick="exportTopupHistory()" class="admin-btn">
+      Export Topup History
+    </button>
+
+    <button onclick="exportBookingHistory()" class="admin-btn" style="margin-top:10px;">
+      Export Booking History
+    </button>
+
+    <button onclick="exportAdjustmentHistory()" class="admin-btn" style="margin-top:10px;">
+      Export Adjustment History
+    </button>
+
+    <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
+      Export Full Mutation
+    </button>
+
+    <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
+      Export Members
+    </button>
+
+    <button onclick="auditOldSystemReconciliation()" class="admin-btn" style="margin-top:10px;">
+      Audit Old System
+    </button>
+
+    <button onclick="runMigration()" class="admin-btn" style="margin-top:10px;">
+      Run Migration
+    </button>
+
+    <button onclick="massiveCleanupFields()" class="admin-btn" style="margin-top:10px; background:#b30000; color:#fff;">
+      Massive Cleanup Fields
+    </button>
+  </div>
+
+  <hr style="margin:30px 0;">
   <div id="adminBalanceAdjustment"></div>
 `;
 
