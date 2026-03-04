@@ -765,7 +765,7 @@ window.openCreateStore = function(){
         Saya menyetujui syarat dan ketentuan Club
       </label>
 
-      <button class="btn-primary" onclick="submitStoreApplication()">
+      <button class="btn-primary" onclick="submitStoreApp()">
         Kirim Pengajuan
       </button>
 
