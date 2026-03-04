@@ -15,6 +15,8 @@ import {
   runTransaction,
   arrayUnion,
   getDoc,
+  getDocs,
+  addDoc,
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
