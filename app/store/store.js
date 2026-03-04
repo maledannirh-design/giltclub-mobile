@@ -784,40 +784,51 @@ window.closeStoreSheet = function(){
 
 window.submitStoreApp = async function(){
 
-  const user = auth.currentUser;
-  if(!user){
-    alert("Login diperlukan.");
+  const nameEl  = document.getElementById("st_name");
+  const storeEl = document.getElementById("st_store");
+  const phoneEl = document.getElementById("st_phone");
+  const addrEl  = document.getElementById("st_addr");
+  const typeEl  = document.getElementById("st_type");
+  const prodEl  = document.getElementById("st_prod");
+  const revEl   = document.getElementById("st_rev");
+  const agreeEl = document.getElementById("st_agree");
+
+  if(
+    !nameEl ||
+    !storeEl ||
+    !phoneEl ||
+    !addrEl ||
+    !typeEl ||
+    !prodEl ||
+    !revEl ||
+    !agreeEl
+  ){
+    alert("Form tidak ditemukan.");
     return;
   }
 
-  const name  = document.getElementById("st_name").value.trim();
-  const store = document.getElementById("st_store").value.trim();
-  const phone = document.getElementById("st_phone").value.trim();
-  const addr  = document.getElementById("st_addr").value.trim();
-  const type  = document.getElementById("st_type").value;
-  const prod  = document.getElementById("st_prod").value;
-  const rev   = document.getElementById("st_rev").value;
-  const agree = document.getElementById("st_agree").checked;
+  const name  = nameEl.value.trim();
+  const store = storeEl.value.trim();
+  const phone = phoneEl.value.trim();
+  const addr  = addrEl.value.trim();
+  const type  = typeEl.value;
+  const prod  = prodEl.value;
+  const rev   = revEl.value;
+  const agree = agreeEl.checked;
 
-  /* =========================
-     VALIDASI SEMUA FIELD
-  ========================= */
-
-  if(
-    !name ||
-    !store ||
-    !phone ||
-    !addr ||
-    !type ||
-    !prod ||
-    !rev
-  ){
+  if(!name || !store || !phone || !addr || !type || !prod || !rev){
     alert("Semua field harus diisi.");
     return;
   }
 
   if(!agree){
-    alert("Anda harus menyetujui syarat dan ketentuan.");
+    alert("Harus menyetujui syarat club.");
+    return;
+  }
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login diperlukan.");
     return;
   }
 
@@ -835,21 +846,18 @@ window.submitStoreApp = async function(){
       return;
     }
 
-    await addDoc(
-      collection(db,"storeApplications"),
-      {
-        uid:user.uid,
-        name:name,
-        storeName:store,
-        phone:phone,
-        address:addr,
-        type:type,
-        productEstimate:prod,
-        revenueEstimate:rev,
-        status:"pending",
-        createdAt:serverTimestamp()
-      }
-    );
+    await addDoc(collection(db,"storeApplications"),{
+      uid:user.uid,
+      name,
+      storeName:store,
+      phone,
+      address:addr,
+      type,
+      productEstimate:prod,
+      revenueEstimate:rev,
+      status:"pending",
+      createdAt:serverTimestamp()
+    });
 
     alert("Pengajuan berhasil dikirim.");
 
