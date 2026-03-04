@@ -702,14 +702,8 @@ window.openCreateStore = function(){
     return;
   }
 
-  // sementara redirect sederhana
-  window.location.hash = "#create-store";
-
-};
-
-window.openCreateStore = function(){
-
   const sheet = document.getElementById("storeApplicationSheet");
+  if(!sheet) return;
 
   sheet.innerHTML = `
   <div class="sheet-backdrop" onclick="closeStoreSheet()"></div>
@@ -777,9 +771,15 @@ window.openCreateStore = function(){
   sheet.classList.remove("hidden");
 };
 
+
 window.closeStoreSheet = function(){
+
   const sheet = document.getElementById("storeApplicationSheet");
+  if(!sheet) return;
+
   sheet.classList.add("hidden");
+  sheet.innerHTML = "";
+
 };
 
 window.submitStoreApp = async function(){
