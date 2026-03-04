@@ -2536,3 +2536,41 @@ body.scan-mode{
   cursor:pointer;
   white-space:nowrap;
 }
+
+/* ===============================
+   CHAT INPUT FULL WIDTH FIX
+================================= */
+
+.chat-input{
+  position:relative;
+  width:100%;
+  display:flex;
+  gap:10px;
+  padding:10px 12px;
+  box-sizing:border-box;
+}
+
+.chat-input textarea{
+  flex:1;
+  resize:none;
+  border:none;
+  outline:none;
+  padding:12px 14px;
+  border-radius:16px;
+  font-size:14px;
+  box-sizing:border-box;
+  width:100%;
+  min-height:42px;
+}
+
+.chat-input button{
+  border:none;
+  padding:0 20px;
+  border-radius:20px;
+  background:#22c55e;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+  height:42px;
+}
