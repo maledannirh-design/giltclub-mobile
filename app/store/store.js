@@ -4,7 +4,7 @@ import {
 } from "./store-data.js";
 
 import { auth, db } from "../firebase.js";
-
+import { addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   doc,
   collection,
@@ -67,7 +67,9 @@ export async function renderStore() {
     </section>
 
     <div id="sizeModal" class="size-modal"></div>
-  </div>
+
+<!-- STORE APPLICATION BOTTOMSHEET -->
+<div id="storeApplicationSheet" class="store-sheet hidden"></div>
 `;
 
   renderProducts();
@@ -671,4 +673,132 @@ window.openCreateStore = function(){
 
 };
 
+window.openCreateStore = function(){
+
+  const sheet = document.getElementById("storeApplicationSheet");
+
+  sheet.innerHTML = `
+  <div class="sheet-backdrop" onclick="closeStoreSheet()"></div>
+
+  <div class="sheet-container">
+
+    <div class="sheet-header">
+      <h3>Pengajuan Toko Baru</h3>
+    </div>
+
+    <div class="sheet-body">
+
+      <input id="appFullName" placeholder="Nama lengkap">
+
+      <input id="appStoreName" placeholder="Nama toko">
+
+      <textarea id="appAddress" placeholder="Alamat toko / rumah"></textarea>
+
+      <input id="appPhone" placeholder="No. HP toko">
+
+      <label>Jenis toko</label>
+      <select id="appStoreType">
+        <option value="">Pilih</option>
+        <option>Barang</option>
+        <option>Jasa Konsultasi</option>
+        <option>Counselling</option>
+        <option>Sports Coaching</option>
+      </select>
+
+      <label>Jenis barang</label>
+      <select id="appProductCategory">
+        <option value="">Pilih</option>
+        <option>FNB</option>
+        <option>Apparel</option>
+        <option>Alat Masak</option>
+        <option>Lainnya</option>
+      </select>
+
+      <label>Kondisi produk</label>
+      <select id="appCondition">
+        <option value="">Pilih</option>
+        <option>Baru</option>
+        <option>Bekas</option>
+        <option>Baru & Bekas</option>
+      </select>
+
+      <input id="appProductCount" type="number" placeholder="Perkiraan jumlah produk">
+
+      <input id="appRevenue" placeholder="Perkiraan omzet per bulan">
+
+      <label class="tos-check">
+        <input type="checkbox" id="appAgree">
+        Saya menyetujui syarat dan ketentuan Club
+      </label>
+
+      <button class="btn-primary" onclick="submitStoreApplication()">
+        Kirim Pengajuan
+      </button>
+
+    </div>
+
+  </div>
+  `;
+
+  sheet.classList.remove("hidden");
+};
+
+window.closeStoreSheet = function(){
+  const sheet = document.getElementById("storeApplicationSheet");
+  sheet.classList.add("hidden");
+};
+window.submitStoreApplication = async function(){
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login required");
+    return;
+  }
+
+  const agreed = document.getElementById("appAgree").checked;
+  if(!agreed){
+    alert("Anda harus menyetujui syarat & ketentuan.");
+    return;
+  }
+
+  const data = {
+
+    uid: user.uid,
+
+    fullName: document.getElementById("appFullName").value.trim(),
+    storeName: document.getElementById("appStoreName").value.trim(),
+    address: document.getElementById("appAddress").value.trim(),
+    phone: document.getElementById("appPhone").value.trim(),
+
+    storeType: document.getElementById("appStoreType").value,
+    productCategory: document.getElementById("appProductCategory").value,
+    productCondition: document.getElementById("appCondition").value,
+
+    estimatedProductCount: document.getElementById("appProductCount").value,
+    estimatedRevenue: document.getElementById("appRevenue").value,
+
+    status: "pending",
+
+    createdAt: serverTimestamp()
+  };
+
+  try{
+
+    await addDoc(
+      collection(db,"storeApplications"),
+      data
+    );
+
+    alert("Pengajuan berhasil dikirim.");
+
+    closeStoreSheet();
+
+  }catch(err){
+
+    console.log(err);
+    alert("Terjadi kesalahan.");
+
+  }
+
+};
 window.redeemFlash = redeemFlash;
