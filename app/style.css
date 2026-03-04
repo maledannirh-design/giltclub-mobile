@@ -2502,3 +2502,37 @@ body.scan-mode{
   padding:3px 8px;
   border-radius:20px;
 }
+
+/* =========================================
+   CHAT INPUT FULL WIDTH FIX
+========================================= */
+
+.chat-input-wrapper{
+  width:100%;
+  display:flex;
+  gap:10px;
+  padding:10px 12px;
+  box-sizing:border-box;
+}
+
+.chat-input-wrapper textarea{
+  flex:1;
+  resize:none;
+  border-radius:14px;
+  border:none;
+  padding:10px 12px;
+  font-size:14px;
+  box-sizing:border-box;
+  width:100%;
+}
+
+.chat-input-wrapper button{
+  padding:0 18px;
+  border:none;
+  border-radius:20px;
+  background:#22c55e;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+}
