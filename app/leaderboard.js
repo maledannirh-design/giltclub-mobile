@@ -33,7 +33,7 @@ export async function recordAttendance() {
 
 
 // ======================================
-// RENDER LEADERBOARD
+// RENDER LEADERBOARD (BEACH STYLE)
 // ======================================
 export async function renderAttendanceLeaderboard(){
 
@@ -42,53 +42,84 @@ export async function renderAttendanceLeaderboard(){
 
   const currentMonth = new Date().toISOString().slice(0,7);
 
-  const users = await getMonthlyTopUsers(currentMonth, 20);
+  const users = await getMonthlyTopUsers(currentMonth, 10);
 
   if(!users.length){
     content.innerHTML = `
-      <h2>Attendance Leaderboard</h2>
-      <p>Belum ada data bulan ini.</p>
+      <div class="leaderboard-wrapper">
+        <h2>Leaderboard Kehadiran</h2>
+        <p>Belum ada data bulan ini.</p>
+      </div>
     `;
     return;
   }
 
-  let html = `<h2>Most Active Members</h2>`;
-  let rank = 1;
+  let topThree = users.slice(0,3);
+  let others = users.slice(3,10);
 
-  users.forEach(user=>{
+  let html = `
+  <div class="leaderboard-wrapper">
+    <h2>🏖 Leaderboard Kehadiran</h2>
+
+    <div class="top-three">
+  `;
+
+  topThree.forEach((user, index)=>{
+
+    let crown = "";
+    let sizeClass = "";
+
+    if(index === 0){
+      crown = "🥇";
+      sizeClass = "gold";
+    }
+    if(index === 1){
+      crown = "🥈";
+      sizeClass = "silver";
+    }
+    if(index === 2){
+      crown = "🥉";
+      sizeClass = "bronze";
+    }
+
     html += `
-      <div class="rank-item">
-        <strong>#${rank}</strong> - ${user.name || "Member"}
-        (${user.total || 0} sessions)
+      <div class="top-card ${sizeClass}">
+        <div class="avatar">
+          <span class="crown">${crown}</span>
+        </div>
+        <div class="info">
+          <div class="name">${user.fullname || user.username || "Member"}</div>
+          <div class="level">${user.playingLevel || "-"}</div>
+          <div class="stats">
+            Kontribusi: ${user.monthlyContribution || 0} |
+            Total Hadir: ${user.attendanceCount || 0}
+          </div>
+        </div>
       </div>
     `;
-    rank++;
   });
 
-  content.innerHTML = html;
-}
+  html += `
+    </div>
+    <div class="other-ranks">
+  `;
 
-async function loadLeaderboard(){
+  let position = 4;
 
-  const currentMonth = new Date().toISOString().slice(0,7);
-
-  const users = await getMonthlyTopUsers(currentMonth, 10);
-
-  let html = "";
-  let position = 1;
-
-  users.forEach(user => {
+  others.forEach(user=>{
     html += `
-      <div class="leader-item">
-        <div>#${position} ${user.name || "-"}</div>
-        <div>${user.attendance || 0} sessions</div>
+      <div class="rank-item">
+        <div>#${position} ${user.fullname || user.username || "-"}</div>
+        <div>${user.monthlyContribution || 0} kontribusi</div>
       </div>
     `;
     position++;
   });
 
-  const leaderboardList = document.getElementById("leaderboardList");
-  if(leaderboardList){
-    leaderboardList.innerHTML = html || `<div style="opacity:.6;font-size:13px;">No data</div>`;
-  }
+  html += `
+    </div>
+  </div>
+  `;
+
+  content.innerHTML = html;
 }
