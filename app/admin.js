@@ -479,6 +479,70 @@ async function initBroadcastUI(){
 
 }
 
+export async function loadStoreApplications(){
+
+  const container = document.getElementById("adminStoreApps");
+  if(!container) return;
+
+  container.innerHTML = "";
+
+  try{
+
+    const snap = await getDocs(collection(db,"storeApplications"));
+
+    snap.forEach(docu=>{
+
+      const d = docu.data();
+
+      container.innerHTML += `
+        <div class="admin-card">
+          <b>${d.storeName || "-"}</b><br>
+          ${d.name || "-"}<br>
+          ${d.phone || "-"}<br>
+          produk: ${d.productEstimate || "-"}<br>
+          omzet: ${d.revenueEstimate || "-"}
+        </div>
+      `;
+
+    });
+
+  }catch(err){
+    console.error(err);
+  }
+
+}
+window.exportStoreApplications = async function(){
+
+  try{
+
+    const snap = await getDocs(collection(db,"storeApplications"));
+
+    let csv = "Nama,NamaToko,Phone,Produk,Omzet\n";
+
+    snap.forEach(docu=>{
+
+      const d = docu.data();
+
+      csv += `${d.name || ""},${d.storeName || ""},${d.phone || ""},${d.productEstimate || ""},${d.revenueEstimate || ""}\n`;
+
+    });
+
+    const blob = new Blob([csv],{type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "storeApplications.csv";
+    a.click();
+
+  }catch(err){
+    console.error(err);
+  }
+
+};
+
+
+
 /* =====================================================
    EXPORT FUNCTIONS (RAPI & AMAN)
 ===================================================== */
