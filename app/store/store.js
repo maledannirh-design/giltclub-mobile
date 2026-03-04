@@ -5,6 +5,7 @@ import {
 
 import { auth, db } from "../firebase.js";
 import { addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   doc,
   collection,
@@ -75,6 +76,39 @@ export async function renderStore() {
   renderProducts();
   renderRewards();
   renderFlash();
+  checkStoreApplication();
+}
+
+async function checkStoreApplication(){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  try{
+
+    const q = query(
+      collection(db,"storeApplications"),
+      where("uid","==",user.uid)
+    );
+
+    const snap = await getDocs(q);
+
+    if(!snap.empty){
+
+      const banner = document.querySelector(".gilt-store-right");
+
+      if(banner){
+        banner.innerText = "Pengajuan terkirim";
+        banner.style.opacity = "0.6";
+        banner.onclick = null;
+      }
+
+    }
+
+  }catch(err){
+    console.error(err);
+  }
+
 }
 
 /* ===============================
@@ -747,58 +781,77 @@ window.closeStoreSheet = function(){
   const sheet = document.getElementById("storeApplicationSheet");
   sheet.classList.add("hidden");
 };
-window.submitStoreApplication = async function(){
+
+window.submitStoreApp = async function(){
 
   const user = auth.currentUser;
   if(!user){
-    alert("Login required");
+    alert("Login diperlukan.");
     return;
   }
 
-  const agreed = document.getElementById("appAgree").checked;
-  if(!agreed){
-    alert("Anda harus menyetujui syarat & ketentuan.");
+  const name  = document.getElementById("st_name").value.trim();
+  const store = document.getElementById("st_store").value.trim();
+  const phone = document.getElementById("st_phone").value.trim();
+  const addr  = document.getElementById("st_addr").value.trim();
+  const type  = document.getElementById("st_type").value;
+  const prod  = document.getElementById("st_prod").value;
+  const rev   = document.getElementById("st_rev").value;
+  const agree = document.getElementById("st_agree").checked;
+
+  if(!name || !store || !phone){
+    alert("Nama, toko, dan HP wajib diisi.");
     return;
   }
 
-  const data = {
-
-    uid: user.uid,
-
-    fullName: document.getElementById("appFullName").value.trim(),
-    storeName: document.getElementById("appStoreName").value.trim(),
-    address: document.getElementById("appAddress").value.trim(),
-    phone: document.getElementById("appPhone").value.trim(),
-
-    storeType: document.getElementById("appStoreType").value,
-    productCategory: document.getElementById("appProductCategory").value,
-    productCondition: document.getElementById("appCondition").value,
-
-    estimatedProductCount: document.getElementById("appProductCount").value,
-    estimatedRevenue: document.getElementById("appRevenue").value,
-
-    status: "pending",
-
-    createdAt: serverTimestamp()
-  };
+  if(!agree){
+    alert("Harus menyetujui syarat club.");
+    return;
+  }
 
   try{
 
+    const q = query(
+      collection(db,"storeApplications"),
+      where("uid","==",user.uid)
+    );
+
+    const snap = await getDocs(q);
+
+    if(!snap.empty){
+      alert("Anda sudah pernah mengajukan toko.");
+      return;
+    }
+
     await addDoc(
       collection(db,"storeApplications"),
-      data
+      {
+        uid:user.uid,
+        name:name,
+        storeName:store,
+        phone:phone,
+        address:addr,
+        type:type,
+        productEstimate:prod,
+        revenueEstimate:rev,
+        status:"pending",
+        createdAt:serverTimestamp()
+      }
     );
 
     alert("Pengajuan berhasil dikirim.");
-
     closeStoreSheet();
+
+    checkStoreApplication();
 
   }catch(err){
 
-    console.log(err);
+    console.error(err);
     alert("Terjadi kesalahan.");
 
   }
 
 };
+
+
 window.redeemFlash = redeemFlash;
