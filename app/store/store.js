@@ -801,13 +801,25 @@ window.submitStoreApp = async function(){
   const rev   = document.getElementById("st_rev").value;
   const agree = document.getElementById("st_agree").checked;
 
-  if(!name || !store || !phone){
-    alert("Nama, toko, dan HP wajib diisi.");
+  /* =========================
+     VALIDASI SEMUA FIELD
+  ========================= */
+
+  if(
+    !name ||
+    !store ||
+    !phone ||
+    !addr ||
+    !type ||
+    !prod ||
+    !rev
+  ){
+    alert("Semua field harus diisi.");
     return;
   }
 
   if(!agree){
-    alert("Harus menyetujui syarat club.");
+    alert("Anda harus menyetujui syarat dan ketentuan.");
     return;
   }
 
@@ -842,8 +854,8 @@ window.submitStoreApp = async function(){
     );
 
     alert("Pengajuan berhasil dikirim.");
-    closeStoreSheet();
 
+    closeStoreSheet();
     checkStoreApplication();
 
   }catch(err){
@@ -854,6 +866,5 @@ window.submitStoreApp = async function(){
   }
 
 };
-
 
 window.redeemFlash = redeemFlash;
