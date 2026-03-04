@@ -784,51 +784,43 @@ window.closeStoreSheet = function(){
 
 window.submitStoreApp = async function(){
 
-  const nameEl  = document.getElementById("st_name");
-  const storeEl = document.getElementById("st_store");
-  const phoneEl = document.getElementById("st_phone");
-  const addrEl  = document.getElementById("st_addr");
-  const typeEl  = document.getElementById("st_type");
-  const prodEl  = document.getElementById("st_prod");
-  const revEl   = document.getElementById("st_rev");
-  const agreeEl = document.getElementById("st_agree");
-
-  if(
-    !nameEl ||
-    !storeEl ||
-    !phoneEl ||
-    !addrEl ||
-    !typeEl ||
-    !prodEl ||
-    !revEl ||
-    !agreeEl
-  ){
-    alert("Form tidak ditemukan.");
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login required.");
     return;
   }
 
-  const name  = nameEl.value.trim();
-  const store = storeEl.value.trim();
-  const phone = phoneEl.value.trim();
-  const addr  = addrEl.value.trim();
-  const type  = typeEl.value;
-  const prod  = prodEl.value;
-  const rev   = revEl.value;
-  const agree = agreeEl.checked;
+  const name  = document.getElementById("appFullName").value.trim();
+  const store = document.getElementById("appStoreName").value.trim();
+  const addr  = document.getElementById("appAddress").value.trim();
+  const phone = document.getElementById("appPhone").value.trim();
 
-  if(!name || !store || !phone || !addr || !type || !prod || !rev){
+  const storeType = document.getElementById("appStoreType").value;
+  const category  = document.getElementById("appProductCategory").value;
+  const condition = document.getElementById("appCondition").value;
+
+  const prod  = document.getElementById("appProductCount").value;
+  const rev   = document.getElementById("appRevenue").value;
+
+  const agree = document.getElementById("appAgree").checked;
+
+  if(
+    !name ||
+    !store ||
+    !addr ||
+    !phone ||
+    !storeType ||
+    !category ||
+    !condition ||
+    !prod ||
+    !rev
+  ){
     alert("Semua field harus diisi.");
     return;
   }
 
   if(!agree){
-    alert("Harus menyetujui syarat club.");
-    return;
-  }
-
-  const user = auth.currentUser;
-  if(!user){
-    alert("Login diperlukan.");
+    alert("Anda harus menyetujui syarat dan ketentuan.");
     return;
   }
 
@@ -846,18 +838,23 @@ window.submitStoreApp = async function(){
       return;
     }
 
-    await addDoc(collection(db,"storeApplications"),{
-      uid:user.uid,
-      name,
-      storeName:store,
-      phone,
-      address:addr,
-      type,
-      productEstimate:prod,
-      revenueEstimate:rev,
-      status:"pending",
-      createdAt:serverTimestamp()
-    });
+    await addDoc(
+      collection(db,"storeApplications"),
+      {
+        uid:user.uid,
+        name:name,
+        storeName:store,
+        address:addr,
+        phone:phone,
+        storeType:storeType,
+        productCategory:category,
+        productCondition:condition,
+        estimatedProductCount:prod,
+        estimatedRevenue:rev,
+        status:"pending",
+        createdAt:serverTimestamp()
+      }
+    );
 
     alert("Pengajuan berhasil dikirim.");
 
