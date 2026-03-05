@@ -249,44 +249,56 @@ const msgQuery = query(messagesRef, orderBy("createdAt","asc"));
 
 if(unsubscribeMessages) unsubscribeMessages();
 
-unsubscribeMessages = onSnapshot(msgQuery,(snap)=>{
+unsubscribeMessages = onSnapshot(msgQuery, async (snap)=>{
 
   if(!chatContainer) return;
 
   chatContainer.innerHTML = "";
 
-  snap.forEach(docSnap=>{
+  for(const docSnap of snap.docs){
+
     const msg = docSnap.data();
     const isMine = msg.senderId === user.uid;
 
     chatContainer.innerHTML += `
-  <div class="chat-group ${isMine ? 'mine' : 'theirs'}">
-    <div class="chat-bubble ${isMine ? 'mine' : 'theirs'}">
-      
-      <div class="bubble-content">
-        ${(msg.text || "").replace(/\n/g,"<br>")}
+      <div class="chat-group ${isMine ? 'mine' : 'theirs'}">
+        <div class="chat-bubble ${isMine ? 'mine' : 'theirs'}">
+          
+          <div class="bubble-content">
+            ${(msg.text || "").replace(/\n/g,"<br>")}
+          </div>
+
+          <div class="bubble-footer">
+            <span class="bubble-time">
+              ${msg.createdAt?.toDate ? formatTime(msg.createdAt.toDate()) : ""}
+            </span>
+
+            ${
+              isMine
+                ? `<span class="chat-check ${msg.seen ? "seen" : ""}">
+                    ${msg.seen ? "✔✔" : "✔"}
+                  </span>`
+                : ""
+            }
+          </div>
+
+        </div>
       </div>
+    `;
 
-      <div class="bubble-footer">
-        <span class="bubble-time">
-          ${msg.createdAt?.toDate ? formatTime(msg.createdAt.toDate()) : ""}
-        </span>
+    // ================================
+    // MARK MESSAGE AS SEEN (REALTIME)
+    // ================================
+    if(!isMine && msg.seen === false){
+      await updateDoc(docSnap.ref,{
+        seen:true
+      });
+    }
 
-        ${
-          isMine
-            ? `<span class="chat-check ${msg.seen ? "seen" : ""}">
-                ${msg.seen ? "✔✔" : "✔"}
-              </span>`
-            : ""
-        }
-      </div>
-
-    </div>
-  </div>
-`;
-  });
+  }
 
   chatContainer.scrollTop = chatContainer.scrollHeight;
+
 });
 
 await updateDoc(doc(db,"chatRooms",roomId),{
@@ -294,27 +306,7 @@ await updateDoc(doc(db,"chatRooms",roomId),{
   [`lastRead.${user.uid}`]: serverTimestamp()
 });
 
-// ======================================
-// MARK MESSAGE AS SEEN
-// ======================================
-
-const unreadQuery = query(
-  collection(db,"chatRooms",roomId,"messages"),
-  where("seen","==",false)
-);
-
-const unreadSnap = await getDocs(unreadQuery);
-
-unreadSnap.forEach(async (d)=>{
-  const msg = d.data();
-
-  if(msg.senderId !== user.uid){
-    await updateDoc(d.ref,{
-      seen:true
-    });
-  }
-});
-// =====================================================
+// ===== }================================================
 // ONLINE + TYPING
 // =====================================================
 
