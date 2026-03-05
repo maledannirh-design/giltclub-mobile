@@ -293,20 +293,26 @@ await updateDoc(doc(db,"chatRooms",roomId),{
   [`unreadCount.${user.uid}`]: 0,
   [`lastRead.${user.uid}`]: serverTimestamp()
 });
+
 // ======================================
 // MARK MESSAGE AS SEEN
 // ======================================
 
 const unreadQuery = query(
   collection(db,"chatRooms",roomId,"messages"),
-  where("senderId","!=",user.uid),
   where("seen","==",false)
 );
 
 const unreadSnap = await getDocs(unreadQuery);
 
 unreadSnap.forEach(async (d)=>{
-  await updateDoc(d.ref,{ seen:true });
+  const msg = d.data();
+
+  if(msg.senderId !== user.uid){
+    await updateDoc(d.ref,{
+      seen:true
+    });
+  }
 });
 // =====================================================
 // ONLINE + TYPING
