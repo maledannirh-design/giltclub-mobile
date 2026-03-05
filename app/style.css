@@ -2644,3 +2644,12 @@ body.scan-mode{
   justify-content:space-between;
   font-size:14px;
 }
+.chat-check{
+  font-size:12px;
+  margin-left:6px;
+  color:#aaa;
+}
+
+.chat-check.seen{
+  color:#3da5ff;
+}
