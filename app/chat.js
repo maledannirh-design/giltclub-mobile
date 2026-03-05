@@ -385,5 +385,3 @@ if(!isBroadcast && otherUid){
   });
 
 }
-
-}
