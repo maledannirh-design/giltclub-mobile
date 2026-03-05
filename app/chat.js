@@ -6,6 +6,7 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  addDoc,
   serverTimestamp,
   getDoc
 } from "./firestore.js";
