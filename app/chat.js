@@ -364,4 +364,26 @@ if(!isBroadcast && otherUid){
   }
 }
 
+  async function sendMessage(roomId, text){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const messageRef = collection(db,"chatRooms",roomId,"messages");
+
+  await addDoc(messageRef,{
+    text: text,
+    senderId: user.uid,
+    createdAt: serverTimestamp(),
+    seen: false
+  });
+
+  await updateDoc(doc(db,"chatRooms",roomId),{
+    lastMessage: text,
+    lastMessageAt: serverTimestamp(),
+    lastSender: user.uid
+  });
+
+}
+
 }
