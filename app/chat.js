@@ -259,14 +259,27 @@ unsubscribeMessages = onSnapshot(msgQuery,(snap)=>{
     const isMine = msg.senderId === user.uid;
 
     chatContainer.innerHTML += `
-  <div class="chat-group ${isMine?'mine':'theirs'}">
-    <div class="chat-bubble ${isMine?'mine':'theirs'}">
-      <div class="bubble-content">${msg.text.replace(/\n/g,"<br>")}</div>
+  <div class="chat-group ${isMine ? 'mine' : 'theirs'}">
+    <div class="chat-bubble ${isMine ? 'mine' : 'theirs'}">
+      
+      <div class="bubble-content">
+        ${(msg.text || "").replace(/\n/g,"<br>")}
+      </div>
+
       <div class="bubble-footer">
         <span class="bubble-time">
           ${msg.createdAt?.toDate ? formatTime(msg.createdAt.toDate()) : ""}
         </span>
+
+        ${
+          isMine
+            ? `<span class="chat-check ${msg.seen ? "seen" : ""}">
+                ${msg.seen ? "✔✔" : "✔"}
+              </span>`
+            : ""
+        }
       </div>
+
     </div>
   </div>
 `;
