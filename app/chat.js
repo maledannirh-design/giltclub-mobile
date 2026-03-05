@@ -385,4 +385,5 @@ if(!isBroadcast && otherUid){
     lastSender: user.uid
   });
 
+  }
 }
