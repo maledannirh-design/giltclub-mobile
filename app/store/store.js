@@ -13,6 +13,7 @@ import {
   runTransaction,
   arrayUnion,
   getDoc,
+  setDoc,
   getDocs,
   addDoc,
   increment,
@@ -462,7 +463,8 @@ async function redeemFlash(flashId){
     });
 
     showConfetti();
-
+    await createInboxItem(flashId);
+    
   }catch(err){
   console.log("FLASH ERROR:", err);
   alert(err);
@@ -486,7 +488,40 @@ function formatWitaDate(date){
   }) + " WITA";
 }
 
+async function createInboxItem(flashId){
 
+  const user = auth.currentUser;
+  if(!user) return;
+
+  try{
+
+    const flashSnap = await getDoc(doc(db,"flashDrops",flashId));
+    if(!flashSnap.exists()) return;
+
+    const flash = flashSnap.data();
+
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() + 30);
+
+    await setDoc(
+      doc(collection(db,"users",user.uid,"storeInbox")),
+      {
+        type:"ticket",
+        name:flash.name,
+        image:flash.image || "",
+        source:"flashDrop",
+        referenceId:flashId,
+        status:"unused",
+        expiresAt:Timestamp.fromDate(expireDate),
+        createdAt:serverTimestamp()
+      }
+    );
+
+  }catch(e){
+    console.error("INBOX CREATE ERROR:",e);
+  }
+
+}
 /* ===============================
    LEADERBOARD (USERNAME BASED)
 ================================= */
