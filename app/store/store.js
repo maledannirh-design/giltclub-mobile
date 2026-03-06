@@ -24,6 +24,8 @@ import {
   validateTransactionPin
 } from "../pinTrx.js";
 
+import { applyMutation } from "./services/mutationService.js";
+
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
 
@@ -1154,49 +1156,6 @@ window.submitStoreApp = async function(){
 
 };
 
-window.openFlashImage = function(url){
-
-  const modal = document.getElementById("flashImageModal");
-  const img = document.getElementById("flashImagePreview");
-
-  img.src = url;
-
-  modal.classList.remove("hidden");
-
-}
-
-window.closeFlashImage = function(){
-
-  const modal = document.getElementById("flashImageModal");
-
-  modal.classList.add("hidden");
-
-}
-
-window.openStoreInbox = async function(){
-
-  const module = await import("./store-inbox.js");
-
-  module.renderStoreInbox();
-
-};
-
-window.openRedeemPage = function(){
-
-  document.getElementById("storeRewards").scrollIntoView({
-    behavior:"smooth"
-  });
-
-};
-
-window.openMyStore = function(){
-
-  openCreateStore();
-
-};
-
-
-window.redeemFlash = redeemFlash;
 
 /* ===============================
    REWARD CONFIRM MODAL
@@ -1387,3 +1346,46 @@ window.openImagePreview = function(imageUrl){
 
 };
 
+window.openFlashImage = function(url){
+
+  const modal = document.getElementById("flashImageModal");
+  const img = document.getElementById("flashImagePreview");
+
+  img.src = url;
+
+  modal.classList.remove("hidden");
+
+}
+
+window.closeFlashImage = function(){
+
+  const modal = document.getElementById("flashImageModal");
+
+  modal.classList.add("hidden");
+
+}
+
+window.openStoreInbox = async function(){
+
+  const module = await import("./store-inbox.js");
+
+  module.renderStoreInbox();
+
+};
+
+window.openRedeemPage = function(){
+
+  document.getElementById("storeRewards").scrollIntoView({
+    behavior:"smooth"
+  });
+
+};
+
+window.openMyStore = function(){
+
+  openCreateStore();
+
+};
+
+
+window.redeemFlash = redeemFlash;
