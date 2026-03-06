@@ -1060,11 +1060,12 @@ window.redeemFlash = redeemFlash;
 
 window.openRewardConfirm = async function(rewardId){
 
-  const reward = STORE_REWARDS.find(r => r.id === rewardId);
-  if(!reward) return;
+  const snap = await getDoc(doc(db,"rewards",rewardId));
+  if(!snap.exists()) return;
+
+  const reward = snap.data();
 
   const modal = document.createElement("div");
-
   modal.className = "flash-image-modal";
 
   modal.innerHTML = `
@@ -1079,13 +1080,13 @@ window.openRewardConfirm = async function(rewardId){
       <h3>${reward.name}</h3>
 
       <p>
-        Anda akan menukar
+        Tukar
         <b>${reward.pointCost.toLocaleString()} GP</b>
-        dengan item ini.
+        untuk item ini?
       </p>
 
       <button onclick="confirmRewardRedeem('${rewardId}')">
-        Setuju
+        Redeem
       </button>
 
     </div>
