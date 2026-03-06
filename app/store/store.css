@@ -543,7 +543,6 @@
   position:relative;
   z-index:1;
 }
-
 /* ===============================
    INBOX ITEM TYPE ICON
 ================================= */
@@ -551,8 +550,9 @@
 .inbox-type{
   font-size:13px;
   font-weight:600;
-  margin-bottom:4px;
+  margin-bottom:6px;
   opacity:.85;
+  letter-spacing:.3px;
 }
 
 .inbox-type.voucher::before{
@@ -575,6 +575,7 @@
 .store-card.expired{
   opacity:.55;
   filter:grayscale(60%);
+  transform:scale(.98);
 }
 
 
@@ -584,12 +585,17 @@
 
 .status{
   display:inline-block;
-  padding:4px 8px;
+
+  padding:4px 9px;
+
   border-radius:6px;
 
   font-size:12px;
   font-weight:600;
+
   text-transform:capitalize;
+
+  letter-spacing:.2px;
 }
 
 .status.unused{
@@ -613,9 +619,9 @@
 ================================= */
 
 .expire{
-  margin-top:4px;
+  margin-top:5px;
   font-size:12px;
-  opacity:.7;
+  opacity:.75;
 }
 
 
@@ -624,13 +630,15 @@
 ================================= */
 
 .btn-use{
-  margin-top:10px;
+
+  margin-top:12px;
 
   background:#facc15;
   color:#111;
 
   border:none;
-  padding:8px 12px;
+
+  padding:8px 14px;
 
   border-radius:8px;
 
@@ -639,9 +647,54 @@
 
   cursor:pointer;
 
-  transition:0.2s ease;
+  transition:all .2s ease;
+
+  box-shadow:0 2px 6px rgba(0,0,0,0.25);
 }
 
 .btn-use:hover{
   background:#fde047;
+  transform:translateY(-1px);
+}
+
+.btn-use:active{
+  transform:translateY(0);
+}
+
+
+/* ===============================
+   INBOX BADGE
+================================= */
+
+.btn-inbox{
+  position:relative;
+}
+
+.inbox-badge{
+
+  position:absolute;
+
+  top:-6px;
+  right:-8px;
+
+  background:#ef4444;
+  color:white;
+
+  font-size:11px;
+  font-weight:700;
+
+  padding:2px 6px;
+
+  border-radius:10px;
+
+  box-shadow:0 0 0 2px #111;
+}
+
+
+/* ===============================
+   HIDDEN UTILITY
+================================= */
+
+.hidden{
+  display:none !important;
 }
