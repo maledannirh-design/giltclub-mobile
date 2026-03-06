@@ -171,10 +171,6 @@ function renderProducts(){
       `;
     });
 }
-
-/* ===============================
-   REWARDS
-================================= */
 /* ===============================
    REWARDS
 ================================= */
@@ -186,79 +182,102 @@ async function renderRewards(){
 
   container.innerHTML = "";
 
-  const snap = await getDocs(collection(db,"rewards"));
+  try{
 
-  if(snap.empty){
+    const snap = await getDocs(collection(db,"rewards"));
 
-    container.innerHTML =
-      `<div style="opacity:.6">Belum ada reward.</div>`;
+    if(snap.empty){
 
-    return;
-  }
-
-  snap.forEach(docSnap=>{
-
-    const reward = docSnap.data();
-
-    const remaining =
-      reward.quota - (reward.redeemedCount || 0);
-
-    const soldOut = remaining <= 0;
-
-    const imageUrl =
-      reward.image
-      ? `/app/store/products/${reward.image}`
-      : "";
-
-    container.innerHTML += `
-
-      <div class="store-card reward-card">
-
-        <div class="card-image"
-             onclick="openRewardConfirm('${docSnap.id}')">
-
-          ${
-            imageUrl
-            ? `<img src="${imageUrl}">`
-            : `<div class="no-image">No Image</div>`
-          }
-
+      container.innerHTML = `
+        <div style="opacity:.6;padding:20px;">
+          Belum ada reward.
         </div>
+      `;
 
-        <div class="card-body">
+      return;
+    }
 
-          <h3>${reward.name}</h3>
+    snap.forEach(docSnap=>{
 
-          <div class="card-info">
+      const reward = docSnap.data();
+      const rewardId = docSnap.id;
 
-            <span class="price gp">
-              ${reward.pointCost.toLocaleString()} GP
-            </span>
+      const quota = Number(reward.quota || 0);
+      const redeemed = Number(reward.redeemedCount || 0);
+      const remaining = quota - redeemed;
 
-            <span class="stock">
-              ${remaining > 0
-                ? `Remaining: ${remaining}`
-                : "Sold Out"}
-            </span>
+      const soldOut = remaining <= 0;
+
+      const pointCost = Number(reward.pointCost || 0);
+
+      const imageUrl =
+        reward.image
+        ? `/app/store/products/${reward.image}`
+        : "";
+
+      container.innerHTML += `
+
+        <div class="store-card reward-card">
+
+          <div class="card-image"
+               onclick="openRewardConfirm('${rewardId}')">
+
+            ${
+              imageUrl
+              ? `<img src="${imageUrl}" loading="lazy">`
+              : `<div class="no-image">No Image</div>`
+            }
 
           </div>
 
-          ${
-            soldOut
-            ? `<button disabled>Sold Out</button>`
-            : `<button class="btn-gp"
-                 onclick="openRewardConfirm('${docSnap.id}')">
-                 Redeem
-               </button>`
-          }
+          <div class="card-body">
+
+            <h3>${reward.name || "Reward"}</h3>
+
+            <div class="card-info">
+
+              <span class="price gp">
+                ${pointCost.toLocaleString()} GP
+              </span>
+
+              <span class="stock">
+                ${
+                  soldOut
+                  ? "Sold Out"
+                  : `Remaining: ${remaining}`
+                }
+              </span>
+
+            </div>
+
+            ${
+              soldOut
+              ? `<button disabled>Sold Out</button>`
+              : `<button class="btn-gp"
+                        onclick="openRewardConfirm('${rewardId}')">
+                        Redeem
+                 </button>`
+            }
+
+          </div>
 
         </div>
 
-      </div>
+      `;
 
+    });
+
+  }catch(err){
+
+    console.error("Render rewards error:",err);
+
+    container.innerHTML = `
+      <div style="color:red;padding:20px;">
+        Gagal memuat rewards.
+      </div>
     `;
 
-  });
+  }
 
 }
 /* ===============================
