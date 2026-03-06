@@ -484,7 +484,7 @@ function checkAndStartWarOverlay(startTime){
 }
 
 /* ===============================
-   REDEEM ENGINE
+   REDEEM ENGINE FLASH DROP
 ================================= */
 async function redeemFlash(flashId){
 
@@ -592,6 +592,12 @@ async function redeemFlash(flashId){
     ========================== */
 
     showConfetti();
+    const modal = document.querySelector(".flash-image-modal");
+if(modal) modal.remove();
+
+showToast("Reward berhasil ditukar");
+
+renderStore();
 
   }catch(err){
 
@@ -918,6 +924,25 @@ async function watchInboxBadge(){
 
 }
 
+function showToast(message){
+
+  const toast = document.createElement("div");
+
+  toast.className = "app-toast";
+  toast.innerText = message;
+
+  document.body.appendChild(toast);
+
+  setTimeout(()=>{
+    toast.classList.add("show");
+  },50);
+
+  setTimeout(()=>{
+    toast.remove();
+  },3000);
+
+}
+
 /* ===============================
    SIZE MODAL
 ================================= */
@@ -1215,7 +1240,7 @@ window.openRewardConfirm = async function(rewardId){
 };
 
 /* ===============================
-   REDEEM REWARD ENGINE
+   REDEEM REWARD ENGINE PONT
 ================================= */
 
 window.confirmRewardRedeem = async function(rewardId){
@@ -1335,9 +1360,12 @@ window.confirmRewardRedeem = async function(rewardId){
 
     showConfetti();
 
-    alert("Reward berhasil ditukar!");
+    const modal = document.querySelector(".flash-image-modal");
+if(modal) modal.remove();
 
-    renderStore();
+showToast("Reward berhasil ditukar");
+
+renderStore();
 
   }catch(err){
 
