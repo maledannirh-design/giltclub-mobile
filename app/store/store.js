@@ -1,6 +1,5 @@
 import {
-  STORE_PRODUCTS,
-  STORE_REWARDS
+  STORE_PRODUCTS
 } from "./store-data.js";
 
 import { auth, db } from "../firebase.js";
