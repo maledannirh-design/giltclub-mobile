@@ -26,6 +26,7 @@ const FLASH_BASE_IMAGE_URL =
 
 // 🔒 GLOBAL GUARD
 let isRedeeming = false;
+let inboxBadgeWatcherStarted = false;
 
 // 🔥 WAR STATE
 let warOverlayActive = false;
@@ -728,6 +729,9 @@ function showLoseAnimation(seconds){
 ================================= */
 async function watchInboxBadge(){
 
+  if(inboxBadgeWatcherStarted) return;
+  inboxBadgeWatcherStarted = true;
+
   const user = auth.currentUser;
   if(!user) return;
 
@@ -754,7 +758,6 @@ async function watchInboxBadge(){
   });
 
 }
-
 
 /* ===============================
    SIZE MODAL
