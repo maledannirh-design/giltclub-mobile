@@ -12,7 +12,6 @@ import {
   where,
   runTransaction,
   arrayUnion,
-  doc,
   getDoc,
   setDoc,
   getDocs,
