@@ -212,7 +212,7 @@ async function renderRewards(){
       const imageUrl =
         reward.image
         ? `/app/store/products/${reward.image}`
-        : "";
+        : null;
 
       container.innerHTML += `
 
@@ -220,7 +220,7 @@ async function renderRewards(){
 
           <!-- IMAGE PREVIEW -->
           <div class="card-image"
-               onclick="openImagePreview('${imageUrl}')">
+               ${imageUrl ? `onclick="openImagePreview('${imageUrl}')"` : ""}>
 
             ${
               imageUrl
@@ -269,7 +269,7 @@ async function renderRewards(){
 
   }catch(err){
 
-    console.error("Render rewards error:",err);
+    console.error("Render rewards error:", err);
 
     container.innerHTML = `
       <div style="color:red;padding:20px;">
