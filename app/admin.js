@@ -143,11 +143,23 @@ html += `
     Send Broadcast
   </button>
 </div>
-  <hr style="margin:30px 0;">
+ <hr style="margin:30px 0;">
 
-  <button id="openFlashAdmin" class="admin-btn">
-    Flash Drop
+<button id="openFlashAdmin" class="admin-btn">
+Flash Drop
+</button>
+
+<hr style="margin:30px 0;">
+
+<div class="admin-card">
+  <h3>Store Applications</h3>
+
+  <button onclick="exportStoreApplications()" class="admin-btn">
+    Export Store Applications
   </button>
+
+  <div id="adminStoreApps" style="margin-top:15px;"></div>
+</div>
 
   <hr style="margin:30px 0;">
 
@@ -204,6 +216,7 @@ if (flashBtn) {
 }
   await renderBalanceAdjustmentPanel();
   await initBroadcastUI(); // 🔥 pindahkan ke sini
+  await loadStoreApplications();
 }
 
 /* =====================================================
@@ -495,14 +508,19 @@ export async function loadStoreApplications(){
       const d = docu.data();
 
       container.innerHTML += `
-        <div class="admin-card">
-          <b>${d.storeName || "-"}</b><br>
-          ${d.name || "-"}<br>
-          ${d.phone || "-"}<br>
-          produk: ${d.productEstimate || "-"}<br>
-          omzet: ${d.revenueEstimate || "-"}
-        </div>
-      `;
+  <div class="admin-card">
+
+    <b>${d.storeName || "-"}</b><br>
+    ${d.fullName || d.name || "-"}<br>
+    ${d.phone || "-"}<br>
+
+    produk: ${d.productEstimate || "-"}<br>
+    omzet: ${d.revenueEstimate || "-"}<br>
+
+    status: ${d.status || "pending"}
+
+  </div>
+`;
 
     });
 
