@@ -519,3 +519,41 @@
   background:#dc2626;
   color:white;
 }
+
+.status{
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.status.unused{
+  background:#16a34a;
+  color:white;
+}
+
+.status.used{
+  background:#64748b;
+  color:white;
+}
+
+.status.expired{
+  background:#dc2626;
+  color:white;
+}
+
+.expire{
+  font-size:12px;
+  opacity:.7;
+  margin-top:4px;
+}
+
+.btn-use{
+  margin-top:10px;
+  background:#facc15;
+  border:none;
+  padding:8px;
+  border-radius:8px;
+  font-weight:600;
+  cursor:pointer;
+}
