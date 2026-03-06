@@ -529,38 +529,57 @@
 
 
 /* ===============================
-   OPEN FLASH IMAGE
+   IMAGE PREVIEW MODAL
 ================================= */
 
 .flash-image-modal{
+
   position:fixed;
+
   inset:0;
+
   z-index:3000;
 
   display:flex;
-  align-items:center;
-  justify-content:center;
-}
 
-.flash-image-modal.hidden{
-  display:none;
+  align-items:center;
+
+  justify-content:center;
+
+  padding:20px;
+
 }
 
 .flash-image-bg{
+
   position:absolute;
+
   inset:0;
-  background:rgba(0,0,0,0.8);
+
+  background:rgba(0,0,0,.75);
+
 }
+
+/* IMAGE */
 
 #flashImagePreview{
-  max-width:90%;
-  max-height:90%;
-  border-radius:10px;
 
   position:relative;
-  z-index:1;
-}
 
+  max-width:90vw;
+
+  max-height:90vh;
+
+  object-fit:contain;
+
+  border-radius:12px;
+
+  box-shadow:
+    0 10px 40px rgba(0,0,0,.6);
+
+  z-index:2;
+
+}
 
 /* ===============================
    INBOX ITEM TYPE ICON
@@ -1112,8 +1131,68 @@
   color:white;
 
 }
+/* ===============================
+   GP BUTTON
+================================= */
 
+.btn-gp{
 
+  width:100%;
+
+  margin-top:10px;
+
+  padding:10px;
+
+  border:none;
+
+  border-radius:10px;
+
+  font-weight:600;
+
+  font-size:14px;
+
+  background:linear-gradient(
+    90deg,
+    #16a34a,
+    #15803d
+  );
+
+  color:white;
+
+  cursor:pointer;
+
+  transition:.2s;
+
+}
+
+.btn-gp:hover{
+
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.2);
+
+}
+
+.btn-gp:active{
+
+  transform:translateY(0);
+
+}
+.reward-card{
+
+  transition:.2s;
+
+}
+
+.reward-card:hover{
+
+  transform:translateY(-3px);
+
+  box-shadow:
+    0 10px 20px rgba(0,0,0,.15);
+
+}
 /* ===============================
    MOBILE IMPROVEMENT
 ================================= */
