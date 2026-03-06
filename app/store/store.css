@@ -25,7 +25,7 @@
 
 .store-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+grid-template-columns:repeat(2,1fr);
   gap:14px;
   margin-bottom:28px;
 }
@@ -523,11 +523,6 @@
   font-size:13px;
 }
 
-
-/* ===============================
-   IMAGE PREVIEW MODAL
-================================= */
-
 /* ===============================
    IMAGE PREVIEW MODAL
 ================================= */
@@ -815,7 +810,6 @@
   cursor:pointer;
 }
 
-
 /* ===============================
    REWARD CARD PREMIUM
 ================================= */
@@ -832,12 +826,14 @@
   transform:translateY(-3px);
 
   box-shadow:
-    0 8px 20px rgba(0,0,0,.25);
+    0 8px 20px rgba(0,0,0,.18);
 
 }
 
 
-/* IMAGE */
+/* ===============================
+   IMAGE
+================================= */
 
 .reward-image{
 
@@ -855,7 +851,9 @@
 }
 
 
-/* REWARD BADGE */
+/* ===============================
+   REWARD BADGE
+================================= */
 
 .badge.reward{
 
@@ -877,7 +875,9 @@
 }
 
 
-/* GP PRICE BADGE */
+/* ===============================
+   GP PRICE BADGE
+================================= */
 
 .reward-gp{
 
@@ -898,28 +898,38 @@
   font-size:12px;
 
   box-shadow:
-    0 0 8px rgba(0,0,0,.5);
+    0 0 8px rgba(0,0,0,.4);
 
 }
 
 
-/* REDEEM BUTTON */
+/* ===============================
+   GP BUTTON
+================================= */
 
 .btn-gp{
 
+  width:100%;
+
   margin-top:10px;
 
-  background:#16a34a;
+  padding:10px;
 
   border:none;
 
-  padding:8px 12px;
-
-  border-radius:8px;
-
-  color:white;
+  border-radius:10px;
 
   font-weight:600;
+
+  font-size:14px;
+
+  background:linear-gradient(
+    90deg,
+    #16a34a,
+    #15803d
+  );
+
+  color:white;
 
   cursor:pointer;
 
@@ -929,7 +939,16 @@
 
 .btn-gp:hover{
 
-  background:#22c55e;
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.2);
+
+}
+
+.btn-gp:active{
+
+  transform:translateY(0);
 
 }
 
@@ -938,7 +957,7 @@
    REWARD ADMIN PANEL
 ================================= */
 
-.store-page{
+.admin-store-page{
   padding:20px;
 }
 
@@ -969,20 +988,31 @@
   gap:12px;
 }
 
-/* TITLE */
 
-.store-page h2{
+/* ===============================
+   TITLE
+================================= */
+
+.admin-store-page h2{
+
   font-size:22px;
   font-weight:700;
+
   margin-bottom:12px;
+
   color:#065f5b;
+
 }
 
-.store-page h3{
+.admin-store-page h3{
+
   font-size:18px;
   font-weight:600;
+
   margin-bottom:10px;
+
   color:#065f5b;
+
 }
 
 
@@ -1068,7 +1098,7 @@
    EXISTING REWARD LIST
 ================================= */
 
-.store-card .card-body strong{
+.admin-card strong{
 
   font-size:16px;
 
@@ -1076,9 +1106,10 @@
 
 }
 
+
 /* ACTION BUTTONS */
 
-.store-card button{
+.admin-card button{
 
   padding:6px 10px;
 
@@ -1096,84 +1127,45 @@
 
 }
 
+
 /* ACTIVATE BUTTON */
 
-.store-card button:nth-child(1){
+.admin-card button:nth-child(1){
 
   background:#16a34a;
   color:white;
 
 }
 
+
 /* EDIT BUTTON */
 
-.store-card button:nth-child(2){
+.admin-card button:nth-child(2){
 
   background:#0ea5e9;
   color:white;
 
 }
 
+
 /* DELETE BUTTON */
 
-.store-card button:nth-child(3){
+.admin-card button:nth-child(3){
 
   background:#dc2626;
   color:white;
 
 }
+
+
 /* ===============================
-   GP BUTTON
+   IMAGE CLICK
 ================================= */
-
-.btn-gp{
-
-  width:100%;
-
-  margin-top:10px;
-
-  padding:10px;
-
-  border:none;
-
-  border-radius:10px;
-
-  font-weight:600;
-
-  font-size:14px;
-
-  background:linear-gradient(
-    90deg,
-    #16a34a,
-    #15803d
-  );
-
-  color:white;
-
-  cursor:pointer;
-
-  transition:.2s;
-
-}
-
-.btn-gp:hover{
-
-  transform:translateY(-1px);
-
-  box-shadow:
-    0 4px 10px rgba(0,0,0,.2);
-
-}
-
-.btn-gp:active{
-
-  transform:translateY(0);
-
-}
 
 .card-image{
   cursor:pointer;
 }
+
 
 /* ===============================
    MOBILE IMPROVEMENT
