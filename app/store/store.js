@@ -1131,32 +1131,53 @@ window.openRewardConfirm = async function(rewardId){
 window.confirmRewardRedeem = async function(rewardId){
 
   const user = auth.currentUser;
+
   if(!user){
     alert("Login required.");
     return;
   }
 
-  const rewardRef = doc(db,"rewards",rewardId);
-  const userRef   = doc(db,"users",user.uid);
-
-  const ledgerRef =
-    doc(collection(db,"users",user.uid,"gpointLedger"));
-
   try{
+
+    /* ==========================
+       MINTA PIN TRANSAKSI
+    ========================== */
+
+    const pin = prompt("Masukkan PIN Transaksi");
+
+    if(!pin) return;
+
+    const userSnap = await getDoc(doc(db,"users",user.uid));
+    const userData = userSnap.data();
+
+    if(pin !== userData.transactionPin){
+      alert("PIN salah");
+      return;
+    }
+
+    const rewardRef = doc(db,"rewards",rewardId);
+    const userRef   = doc(db,"users",user.uid);
+
+    const ledgerRef =
+      doc(collection(db,"users",user.uid,"gpointLedger"));
+
+    let rewardData;
 
     await runTransaction(db, async (transaction)=>{
 
       const rewardSnap = await transaction.get(rewardRef);
-      const userSnap   = await transaction.get(userRef);
+      const userSnapTx = await transaction.get(userRef);
 
       if(!rewardSnap.exists())
         throw "Reward tidak ditemukan";
 
-      if(!userSnap.exists())
+      if(!userSnapTx.exists())
         throw "User tidak ditemukan";
 
       const reward   = rewardSnap.data();
-      const userData = userSnap.data();
+      const userData = userSnapTx.data();
+
+      rewardData = reward;
 
       const remaining =
         reward.quota - (reward.redeemedCount || 0);
@@ -1210,7 +1231,14 @@ window.confirmRewardRedeem = async function(rewardId){
        MASUKKAN KE INBOX
     ========================== */
 
-    await createInboxItem(rewardId);
+    await createInboxItem({
+      uid:user.uid,
+      type:"voucher",
+      source:"reward",
+      name:rewardData.name,
+      image:rewardData.image,
+      expireDays:rewardData.expireDays || 30
+    });
 
     /* ==========================
        CONFETTI
@@ -1219,6 +1247,8 @@ window.confirmRewardRedeem = async function(rewardId){
     showConfetti();
 
     alert("Reward berhasil ditukar!");
+
+    renderStore();
 
   }catch(err){
 
