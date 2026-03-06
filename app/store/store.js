@@ -12,6 +12,7 @@ import {
   where,
   runTransaction,
   arrayUnion,
+  doc,
   getDoc,
   setDoc,
   getDocs,
@@ -1036,4 +1037,153 @@ window.openMyStore = function(){
 
 };
 
+
 window.redeemFlash = redeemFlash;
+
+/* ===============================
+   REWARD CONFIRM MODAL
+================================= */
+
+window.openRewardConfirm = async function(rewardId){
+
+  const reward = STORE_REWARDS.find(r => r.id === rewardId);
+  if(!reward) return;
+
+  const modal = document.createElement("div");
+
+  modal.className = "flash-image-modal";
+
+  modal.innerHTML = `
+
+    <div class="flash-image-bg"
+         onclick="this.parentElement.remove()"></div>
+
+    <div class="reward-confirm-box">
+
+      <img src="/app/store/products/${reward.image}" class="reward-img">
+
+      <h3>${reward.name}</h3>
+
+      <p>
+        Anda akan menukar
+        <b>${reward.pointCost.toLocaleString()} GP</b>
+        dengan item ini.
+      </p>
+
+      <button onclick="confirmRewardRedeem('${rewardId}')">
+        Setuju
+      </button>
+
+    </div>
+
+  `;
+
+  document.body.appendChild(modal);
+
+};
+
+/* ===============================
+   REDEEM REWARD ENGINE
+================================= */
+
+window.confirmRewardRedeem = async function(rewardId){
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Login required.");
+    return;
+  }
+
+  const rewardRef = doc(db,"rewards",rewardId);
+  const userRef   = doc(db,"users",user.uid);
+
+  const ledgerRef =
+    doc(collection(db,"users",user.uid,"gpointLedger"));
+
+  try{
+
+    await runTransaction(db, async (transaction)=>{
+
+      const rewardSnap = await transaction.get(rewardRef);
+      const userSnap   = await transaction.get(userRef);
+
+      if(!rewardSnap.exists())
+        throw "Reward tidak ditemukan";
+
+      if(!userSnap.exists())
+        throw "User tidak ditemukan";
+
+      const reward   = rewardSnap.data();
+      const userData = userSnap.data();
+
+      const remaining =
+        reward.quota - (reward.redeemedCount || 0);
+
+      if(!reward.active)
+        throw "Reward tidak aktif";
+
+      if(remaining <= 0)
+        throw "Reward sudah habis";
+
+      if(userData.gPoint < reward.pointCost)
+        throw "GPoint tidak cukup";
+
+      const beforeBalance = userData.gPoint;
+      const afterBalance  = beforeBalance - reward.pointCost;
+
+      /* ==========================
+         POTONG GP
+      ========================== */
+
+      transaction.update(userRef,{
+        gPoint: afterBalance,
+        gPointLastUpdated: serverTimestamp()
+      });
+
+      /* ==========================
+         UPDATE QUOTA
+      ========================== */
+
+      transaction.update(rewardRef,{
+        redeemedCount: increment(1)
+      });
+
+      /* ==========================
+         LEDGER
+      ========================== */
+
+      transaction.set(ledgerRef,{
+        type:"reward_redeem",
+        referenceId:rewardId,
+        amount:-reward.pointCost,
+        balanceBefore:beforeBalance,
+        balanceAfter:afterBalance,
+        description:"Redeem Reward",
+        createdAt:serverTimestamp()
+      });
+
+    });
+
+    /* ==========================
+       MASUKKAN KE INBOX
+    ========================== */
+
+    await createInboxItem(rewardId);
+
+    /* ==========================
+       CONFETTI
+    ========================== */
+
+    showConfetti();
+
+    alert("Reward berhasil ditukar!");
+
+  }catch(err){
+
+    console.log("REWARD ERROR:",err);
+    alert(err);
+
+  }
+
+};
+
