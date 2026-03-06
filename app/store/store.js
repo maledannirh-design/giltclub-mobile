@@ -41,27 +41,28 @@ export async function renderStore() {
   if (!content) return;
 
   content.innerHTML = `
-  <div class="store-page">
+  <div class="gilt-store-banner">
 
-    <!-- ================= GILT STORE BANNER ================= -->
-    <div class="gilt-store-banner">
+  <div class="gilt-store-title">
+    GILT STORE
+  </div>
 
-      <div class="gilt-store-left">
-        GILT-STORE
-      </div>
+  <div class="gilt-store-menu">
 
-      <div class="gilt-store-center">
+    <button class="store-menu-btn" onclick="openStoreInbox()">
+      📦 Inbox
+      <span id="inboxBadge" class="inbox-badge hidden">0</span>
+    </button>
 
-        <button class="btn-inbox" onclick="openStoreInbox()">
-  📦 Inbox
-  <span id="inboxBadge" class="inbox-badge hidden">0</span>
-</button>
+    <button class="store-menu-btn" onclick="openRedeemPage()">
+      🎁 Tukar GP
+    </button>
 
-      </div>
+    <button class="store-menu-btn" onclick="openMyStore()">
+      🏪 Toko Saya
+    </button>
 
-      <div class="gilt-store-right" onclick="openCreateStore()">
-        -> Buka toko
-      </div>
+  </div>
 
 </div>
 
@@ -978,6 +979,20 @@ window.openStoreInbox = async function(){
   const module = await import("./store-inbox.js");
 
   module.renderStoreInbox();
+
+};
+
+window.openRedeemPage = function(){
+
+  document.getElementById("storeRewards").scrollIntoView({
+    behavior:"smooth"
+  });
+
+};
+
+window.openMyStore = function(){
+
+  openCreateStore();
 
 };
 
