@@ -1085,28 +1085,36 @@ window.openRewardConfirm = async function(rewardId){
   const reward = snap.data();
 
   const modal = document.createElement("div");
-  modal.className = "flash-image-modal";
+  modal.className = "reward-confirm-modal";
 
   modal.innerHTML = `
 
-    <div class="flash-image-bg"
+    <div class="reward-confirm-bg"
          onclick="this.parentElement.remove()"></div>
 
     <div class="reward-confirm-box">
 
-      <img src="/app/store/products/${reward.image}" class="reward-img">
-
       <h3>${reward.name}</h3>
 
       <p>
-        Tukar
+        Anda akan menukar
         <b>${reward.pointCost.toLocaleString()} GP</b>
-        untuk item ini?
+        untuk item ini.
       </p>
 
-      <button onclick="confirmRewardRedeem('${rewardId}')">
-        Redeem
-      </button>
+      <div class="reward-actions">
+
+        <button class="btn-cancel"
+                onclick="this.closest('.reward-confirm-modal').remove()">
+          Batal
+        </button>
+
+        <button class="btn-redeem"
+                onclick="confirmRewardRedeem('${rewardId}')">
+          Redeem
+        </button>
+
+      </div>
 
     </div>
 
