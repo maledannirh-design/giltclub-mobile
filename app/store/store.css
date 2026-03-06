@@ -397,10 +397,10 @@
 
   border-radius:14px;
 
-  background:linear-gradient(90deg,#111,#1c1c1c,#111);
-  border:1px solid rgba(255,215,0,0.25);
+  background:linear-gradient(90deg,#0f766e,#065f5b,#0f766e);
+  border:1px solid rgba(208,138,143,0.45);
 
-  box-shadow:0 0 20px rgba(255,215,0,0.15);
+  box-shadow:0 0 20px rgba(208,138,143,0.25);
 }
 
 /* LEFT TITLE */
@@ -409,10 +409,10 @@
   font-weight:700;
   font-size:16px;
   letter-spacing:2px;
-  color:#ffd700;
+  color:#fce7e7;
 }
 
-/* CENTER AREA (INBOX BUTTON) */
+/* CENTER AREA */
 
 .gilt-store-center{
   flex:1;
@@ -422,8 +422,10 @@
 /* INBOX BUTTON */
 
 .btn-inbox{
-  background:#facc15;
-  color:#111;
+  position:relative;
+
+  background:#d08a8f;
+  color:#fff;
 
   border:none;
   padding:6px 14px;
@@ -433,42 +435,41 @@
   font-weight:600;
 
   cursor:pointer;
-
-  transition:0.2s ease;
+  transition:.2s ease;
 }
 
 .btn-inbox:hover{
-  background:#fde047;
+  background:#e8a4aa;
 }
 
 /* RIGHT ACTION */
 
 .gilt-store-right{
   font-size:13px;
-  color:#fff;
+  color:#f1f5f4;
 
   cursor:pointer;
-
   opacity:.85;
-  transition:0.2s ease;
+
+  transition:.2s ease;
 }
 
 .gilt-store-right:hover{
   opacity:1;
-  color:#ffd700;
-}
-
-
-  z-index:2000;
+  color:#fbd5d5;
 }
 
 
 /* ===============================
    PAGE OPEN TOKO
 ================================= */
+
 .store-sheet{
   position:fixed;
   inset:0;
+  z-index:2000;
+}
+
 .store-sheet.hidden{
   display:none;
 }
@@ -476,7 +477,7 @@
 .sheet-backdrop{
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,0.6);
+  background:rgba(0,0,0,0.55);
 }
 
 .sheet-container{
@@ -484,9 +485,13 @@
   bottom:0;
   left:0;
   right:0;
-  background:#111;
+
+  background:#f5f5f4;
+
   border-radius:16px 16px 0 0;
+
   padding:20px;
+
   max-height:85vh;
   overflow:auto;
 }
@@ -507,20 +512,23 @@
 .sheet-body select{
   padding:10px;
   border-radius:8px;
-  border:none;
+  border:1px solid #d4d4d4;
 }
 
 .tos-check{
   font-size:13px;
 }
 
+
 /* ===============================
    OPEN FLASH IMAGE
 ================================= */
+
 .flash-image-modal{
   position:fixed;
   inset:0;
   z-index:3000;
+
   display:flex;
   align-items:center;
   justify-content:center;
@@ -540,9 +548,12 @@
   max-width:90%;
   max-height:90%;
   border-radius:10px;
+
   position:relative;
   z-index:1;
 }
+
+
 /* ===============================
    INBOX ITEM TYPE ICON
 ================================= */
@@ -594,22 +605,21 @@
   font-weight:600;
 
   text-transform:capitalize;
-
   letter-spacing:.2px;
 }
 
 .status.unused{
-  background:#16a34a;
+  background:#0f766e;
   color:#fff;
 }
 
 .status.used{
-  background:#64748b;
+  background:#9ca3af;
   color:#fff;
 }
 
 .status.expired{
-  background:#dc2626;
+  background:#d08a8f;
   color:#fff;
 }
 
@@ -630,11 +640,10 @@
 ================================= */
 
 .btn-use{
-
   margin-top:12px;
 
-  background:#facc15;
-  color:#111;
+  background:#d08a8f;
+  color:#fff;
 
   border:none;
 
@@ -653,7 +662,7 @@
 }
 
 .btn-use:hover{
-  background:#fde047;
+  background:#e8a4aa;
   transform:translateY(-1px);
 }
 
@@ -666,18 +675,13 @@
    INBOX BADGE
 ================================= */
 
-.btn-inbox{
-  position:relative;
-}
-
 .inbox-badge{
-
   position:absolute;
 
   top:-6px;
   right:-8px;
 
-  background:#ef4444;
+  background:#d08a8f;
   color:white;
 
   font-size:11px;
@@ -687,7 +691,7 @@
 
   border-radius:10px;
 
-  box-shadow:0 0 0 2px #111;
+  box-shadow:0 0 0 2px #065f5b;
 }
 
 
