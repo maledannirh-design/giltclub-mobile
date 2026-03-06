@@ -314,11 +314,12 @@ function renderFlash(){
     }
 
     currentFlashList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    startWarWatcher(); // 🔥 start watcher sekali saja
+    startWarWatcher();
 
     for(const flash of currentFlashList){
 
       const remaining = Math.max(0, flash.quota - flash.redeemedCount);
+
       const imageUrl = flash.image
         ? FLASH_BASE_IMAGE_URL + flash.image
         : "";
@@ -333,9 +334,55 @@ function renderFlash(){
         now <= endTime &&
         remaining > 0;
 
-      // 🔥 Winner Banner
+      /* ===============================
+         FLASH PRICE CALCULATION
+      ================================= */
+
+      const normalPrice =
+        flash.normalPointCost || flash.flashPointCost;
+
+      const flashPrice =
+        flash.flashPointCost;
+
+      const discount =
+        normalPrice > flashPrice
+          ? Math.round((1 - flashPrice / normalPrice) * 100)
+          : 0;
+
+      const priceHTML = `
+        <div class="flash-price">
+
+          ${
+            discount > 0
+            ? `<div class="price-normal">
+                 ${normalPrice.toLocaleString()} GP
+               </div>`
+            : ``
+          }
+
+          <div class="price-flash">
+            ${flashPrice.toLocaleString()} GP
+          </div>
+
+          ${
+            discount > 0
+            ? `<div class="flash-discount">
+                 -${discount}%
+               </div>`
+            : ``
+          }
+
+        </div>
+      `;
+
+      /* ===============================
+         WINNER BANNER
+      ================================= */
+
       let winnerBannerHTML = "";
+
       if(flash.winners && flash.winners.length > 0){
+
         const sorted = [...flash.winners]
           .sort((a,b)=>{
             const at = a.time?.toMillis ? a.time.toMillis() : 0;
@@ -346,17 +393,29 @@ function renderFlash(){
         const lastWinner = sorted[0];
 
         try{
-          const userSnap = await getDoc(doc(db,"users",lastWinner.uid));
+
+          const userSnap =
+            await getDoc(doc(db,"users",lastWinner.uid));
+
           if(userSnap.exists()){
-            const username = userSnap.data().username || "Unknown";
+
+            const username =
+              userSnap.data().username || "Unknown";
+
             winnerBannerHTML = `
               <div class="winner-banner">
                 🏆 WINNER: @${username}
               </div>
             `;
+
           }
+
         }catch(e){}
       }
+
+      /* ===============================
+         FLASH CARD
+      ================================= */
 
       container.innerHTML += `
         <div class="store-card flash-card ${remaining<=0?'sold-out':''}">
@@ -364,36 +423,50 @@ function renderFlash(){
           ${winnerBannerHTML}
 
           <div class="card-image">
-            ${imageUrl 
-              ? `<img src="${imageUrl}" alt="flash-image" onclick="openFlashImage('${imageUrl}')">`
-              : `<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.5;">
+
+            ${
+              imageUrl
+              ? `<img src="${imageUrl}" alt="flash-image"
+                     onclick="openFlashImage('${imageUrl}')">`
+              : `<div style="
+                    height:100%;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:12px;
+                    opacity:.5;">
                    No Image
                  </div>`
             }
+
             <span class="badge flash">FLASH</span>
+
           </div>
 
           <div class="card-body">
 
             <h3>${flash.name}</h3>
 
+            ${priceHTML}
+
             <div class="card-info">
-              <span class="price gp">
-                ${flash.flashPointCost.toLocaleString()} GP
-              </span>
+
               <span class="stock">
-                ${remaining > 0 ? `Remaining: ${remaining}` : "Sold Out"}
+                ${remaining > 0
+                  ? `Remaining: ${remaining}`
+                  : "Sold Out"}
               </span>
+
             </div>
 
-            <div 
+            <div
               class="countdown"
               data-start="${startTime}"
               data-end="${endTime}"
               data-id="${flash.id}">
             </div>
 
-            <button 
+            <button
               class="btn-flash redeem-btn"
               data-id="${flash.id}"
               onclick="redeemFlash('${flash.id}')"
@@ -405,19 +478,24 @@ function renderFlash(){
             </div>
 
           </div>
+
         </div>
       `;
 
-      const leaderboardContainer = document.getElementById(`leader-${flash.id}`);
+      const leaderboardContainer =
+        document.getElementById(`leader-${flash.id}`);
+
       if(leaderboardContainer){
-        leaderboardContainer.innerHTML = await renderLeaderboardHTML(flash);
+        leaderboardContainer.innerHTML =
+          await renderLeaderboardHTML(flash);
       }
+
     }
 
     startCountdown();
+
   });
 }
-
 /* ===============================
    WAR WATCHER (STABLE 30 DETIK)
 ================================= */
