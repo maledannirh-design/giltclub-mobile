@@ -41,26 +41,28 @@ export async function renderStore() {
   if (!content) return;
 
   content.innerHTML = `
-  <div class="gilt-store-banner">
+ <div class="gilt-store-banner">
 
   <div class="gilt-store-title">
     GILT STORE
   </div>
 
-  <div class="gilt-store-menu">
+  <div class="store-menu">
 
-    <button class="store-menu-btn" onclick="openStoreInbox()">
-      📦 Inbox
-      <span id="inboxBadge" class="inbox-badge hidden">0</span>
-    </button>
+    <div class="store-menu-item" onclick="openStoreInbox()">
+      <div class="menu-icon">📦</div>
+      <div class="menu-label">Inbox</div>
+    </div>
 
-    <button class="store-menu-btn" onclick="openRedeemPage()">
-      🎁 Tukar GP
-    </button>
+    <div class="store-menu-item" onclick="openRedeemPage()">
+      <div class="menu-icon">🎁</div>
+      <div class="menu-label">Tukar GP</div>
+    </div>
 
-    <button class="store-menu-btn" onclick="openMyStore()">
-      🏪 Toko Saya
-    </button>
+    <div class="store-menu-item" onclick="openMyStore()">
+      <div class="menu-icon">🏪</div>
+      <div class="menu-label">Toko Saya</div>
+    </div>
 
   </div>
 
