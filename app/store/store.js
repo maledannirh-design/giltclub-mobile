@@ -24,7 +24,7 @@ import {
   validateTransactionPin
 } from "../pinTrx.js";
 
-import { applyMutation } from "./services/mutationService.js";
+import { applyMutation } from "../services/mutationService.js";
 
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
