@@ -296,9 +296,10 @@ function renderFlash(){
   if(!container) return;
 
   const q = query(
-    collection(db,"flashDrops"),
-    where("active","==",true)
-  );
+  collection(db,"flashDrops"),
+  where("active","==",true),
+  orderBy("startTime","desc")
+);
 
   onSnapshot(q, async (snapshot)=>{
 
