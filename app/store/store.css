@@ -378,7 +378,6 @@
   100% { transform: scale(1); }
 }
 
-
 /* ===============================
    GILT STORE BANNER
 ================================= */
@@ -388,75 +387,84 @@
   top: 0;
   z-index: 20;
 
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  padding:14px 16px;
+  padding:16px;
   margin-bottom:18px;
 
-  border-radius:14px;
+  border-radius:16px;
 
-  background:linear-gradient(90deg,#0f766e,#065f5b,#0f766e);
-  border:1px solid rgba(208,138,143,0.45);
+  background:linear-gradient(135deg,#0f766e,#065f5b);
 
-  box-shadow:0 0 20px rgba(208,138,143,0.25);
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+
+  color:#fff;
 }
 
-/* LEFT TITLE */
 
-.gilt-store-left{
+/* ===============================
+   STORE TITLE
+================================= */
+
+.gilt-store-title{
   font-weight:700;
   font-size:16px;
+
   letter-spacing:2px;
-  color:#fce7e7;
+
+  margin-bottom:12px;
 }
 
-/* CENTER AREA */
 
-.gilt-store-center{
-  flex:1;
-  text-align:center;
+/* ===============================
+   STORE MENU CONTAINER
+================================= */
+
+.store-menu{
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
 }
 
-/* INBOX BUTTON */
 
-.btn-inbox{
-  position:relative;
+/* ===============================
+   MENU ITEM
+================================= */
 
-  background:#d08a8f;
-  color:#fff;
+.store-menu-item{
 
-  border:none;
-  padding:6px 14px;
-
-  border-radius:8px;
-  font-size:13px;
-  font-weight:600;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 
   cursor:pointer;
-  transition:.2s ease;
+
+  font-size:12px;
+
+  transition:0.2s ease;
+
 }
 
-.btn-inbox:hover{
-  background:#e8a4aa;
+.store-menu-item:hover{
+  transform:translateY(-2px);
 }
 
-/* RIGHT ACTION */
 
-.gilt-store-right{
-  font-size:13px;
-  color:#f1f5f4;
+/* ===============================
+   MENU ICON
+================================= */
 
-  cursor:pointer;
-  opacity:.85;
-
-  transition:.2s ease;
+.menu-icon{
+  font-size:20px;
+  margin-bottom:4px;
 }
 
-.gilt-store-right:hover{
-  opacity:1;
-  color:#fbd5d5;
+
+/* ===============================
+   MENU LABEL
+================================= */
+
+.menu-label{
+  opacity:.9;
+  font-weight:500;
 }
 
 
