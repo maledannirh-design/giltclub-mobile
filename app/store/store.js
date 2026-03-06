@@ -21,7 +21,7 @@ import {
 import {
   requestTransactionPin,
   validateTransactionPin
-} from "./pin-trx.js";
+} from "../pin-trx.js";
 
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
