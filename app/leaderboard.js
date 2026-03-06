@@ -7,92 +7,52 @@ import {
   orderBy,
   limit,
   getDocs,
-  getDoc,
-  setDoc,
-  updateDoc,
   doc,
-  serverTimestamp
+  updateDoc
 } from "./firestore.js";
 
 /* ======================================================
    DATE UTIL
 ====================================================== */
-function getTodayKey(){
-  return new Date().toISOString().split("T")[0];
-}
 
 function getCurrentMonthKey(){
   return new Date().toISOString().slice(0,7);
 }
 
 /* ======================================================
-   1️⃣ SYNC ATTENDANCE SUMMARY FROM BOOKINGS
+   MONTHLY RESET CHECK
+   memastikan monthlyContribution tidak membawa bulan lama
 ====================================================== */
-export async function syncAttendanceSummary(){
 
-  const todayKey = getTodayKey();
+async function ensureMonthlyReset(userDoc){
+
   const currentMonth = getCurrentMonthKey();
+  const data = userDoc.data();
 
-  const bookingsRef = collection(db,"bookings");
+  if(data.monthlyKey !== currentMonth){
 
-  const q = query(
-    bookingsRef,
-    where("attendance","==",true)
-  );
+    const ref = doc(db,"users",userDoc.id);
 
-  const snap = await getDocs(q);
-
-  const userMap = {};
-
-  snap.forEach(docSnap=>{
-
-    const data = docSnap.data();
-    const userId = data.userId;
-    const attendedAt = data.attendedAt?.toDate?.();
-
-    if(!userId || !attendedAt) return;
-
-    if(!userMap[userId]){
-      userMap[userId] = {
-        total: 0,
-        monthly: 0
-      };
-    }
-
-    userMap[userId].total += 1;
-
-    const monthKey = attendedAt.toISOString().slice(0,7);
-
-    if(monthKey === currentMonth){
-      userMap[userId].monthly += 1;
-    }
-  });
-
-  for(const uid in userMap){
-
-    const userRef = doc(db,"users",uid);
-
-    await updateDoc(userRef,{
-      attendanceCount: userMap[uid].total,
-      monthlyContribution: userMap[uid].monthly,
-      monthlyKey: currentMonth,
-      lastAttendanceSync: todayKey
+    await updateDoc(ref,{
+      monthlyContribution:0,
+      monthlyKey:currentMonth
     });
+
+    data.monthlyContribution = 0;
   }
 
-  return true;
+  return data;
 }
 
 /* ======================================================
-   2️⃣ GENERATE MONTHLY SNAPSHOT (TOP 10)
-   Save to: leaderboards/{YYYY-MM}
+   GET TOP 10 USERS
 ====================================================== */
-async function generateMonthlySnapshot(){
 
-  const currentMonth = getCurrentMonthKey();
+async function getTopUsers(){
 
   const q = query(
     collection(db,"users"),
+    where("monthlyContribution",">",0),
     orderBy("monthlyContribution","desc"),
     orderBy("attendanceCount","desc"),
     limit(10)
@@ -100,52 +60,28 @@ async function generateMonthlySnapshot(){
 
   const snap = await getDocs(q);
 
-  const top10 = [];
+  const users = [];
 
-  snap.forEach(docSnap=>{
-    const data = docSnap.data();
+  for(const docSnap of snap.docs){
 
-    top10.push({
+    const data = await ensureMonthlyReset(docSnap);
+
+    users.push({
       userId: docSnap.id,
       name: data.name || data.username || "Member",
       monthlyContribution: data.monthlyContribution || 0,
       attendanceCount: data.attendanceCount || 0
     });
-  });
 
-  await setDoc(doc(db,"leaderboards",currentMonth),{
-    month: currentMonth,
-    generatedAt: serverTimestamp(),
-    top10: top10
-  });
-
-  return top10;
-}
-
-/* ======================================================
-   3️⃣ ENSURE DAILY SYNC (1x PER HARI)
-====================================================== */
-async function ensureDailySync(){
-
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const userRef = doc(db,"users",user.uid);
-  const userSnap = await getDoc(userRef);
-
-  if(!userSnap.exists()) return;
-
-  const todayKey = getTodayKey();
-  const lastSync = userSnap.data().lastAttendanceSync;
-
-  if(lastSync !== todayKey){
-    await syncAttendanceSummary();
   }
+
+  return users;
 }
 
 /* ======================================================
-   4️⃣ RENDER LEADERBOARD
+   RENDER LEADERBOARD
 ====================================================== */
+
 export async function renderAttendanceLeaderboard(){
 
   const content = document.getElementById("content");
@@ -153,28 +89,17 @@ export async function renderAttendanceLeaderboard(){
 
   const currentMonth = getCurrentMonthKey();
 
-  // 1. Pastikan sudah sync hari ini
-  await ensureDailySync();
-
-  // 2. Ambil snapshot bulan ini
-  const snapshotRef = doc(db,"leaderboards",currentMonth);
-  const snapshotSnap = await getDoc(snapshotRef);
-
-  let topUsers = [];
-
-  if(snapshotSnap.exists()){
-    topUsers = snapshotSnap.data().top10 || [];
-  }else{
-    topUsers = await generateMonthlySnapshot();
-  }
+  const topUsers = await getTopUsers();
 
   if(!topUsers.length){
+
     content.innerHTML = `
       <div style="padding:20px;">
-        <h2>Leaderboard Kehadiran</h2>
-        <p>Belum ada data bulan ini.</p>
+        <h2>🏆 Leaderboard Bulan ${currentMonth}</h2>
+        <p>Belum ada kehadiran bulan ini.</p>
       </div>
     `;
+
     return;
   }
 
@@ -211,9 +136,11 @@ export async function renderAttendanceLeaderboard(){
             Total Hadir: ${user.attendanceCount}
           </div>
         </div>
-        <div>
+
+        <div style="font-weight:600;">
           ${user.monthlyContribution} sesi bulan ini
         </div>
+
       </div>
     `;
   });
