@@ -484,127 +484,135 @@ function checkAndStartWarOverlay(startTime){
 }
 
 /* ===============================
-   REDEEM ENGINE FLASH DROP
+   FLASH REDEEM ENGINE (FINAL)
 ================================= */
+
 async function redeemFlash(flashId){
 
   if(isRedeeming) return;
   isRedeeming = true;
 
   const user = auth.currentUser;
+
   if(!user){
     isRedeeming = false;
     return alert("Login required.");
   }
 
-  const flashRef = doc(db, "flashDrops", flashId);
-  const userRef  = doc(db, "users", user.uid);
-  const userLedgerRef = doc(collection(db, "users", user.uid, "gpointLedger"));
+  const flashRef = doc(db,"flashDrops",flashId);
 
-  const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
+  const button =
+    document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
+
   if(button) button.disabled = true;
-
-  let flashData = null;
 
   try{
 
-    await runTransaction(db, async (transaction) => {
+    const flashSnap = await getDoc(flashRef);
 
-      const flashSnap = await transaction.get(flashRef);
-      const userSnap  = await transaction.get(userRef);
+    if(!flashSnap.exists())
+      throw "Flash tidak ditemukan";
 
-      if(!flashSnap.exists()) throw "Flash tidak ditemukan";
-      if(!userSnap.exists()) throw "User tidak ditemukan";
+    const flash = flashSnap.data();
 
-      const flash = flashSnap.data();
-      const userData = userSnap.data();
-      const now = new Date();
+    const now = new Date();
 
-      flashData = flash;
+    if(!flash.active)
+      throw "Flash tidak aktif";
 
-      if(!flash.active) throw "Flash tidak aktif";
-      if(now < flash.startTime.toDate()) throw "Belum mulai";
-      if(now > flash.endTime.toDate()) throw "Sudah berakhir";
-      if(flash.redeemedCount >= flash.quota) throw "Quota habis";
+    if(now < flash.startTime.toDate())
+      throw "Belum mulai";
 
-      if(!userData.gPoint || userData.gPoint < flash.flashPointCost)
-        throw "GPoint tidak cukup";
+    if(now > flash.endTime.toDate())
+      throw "Sudah berakhir";
 
-      if(flash.winners?.some(w => w.uid === user.uid))
+    if((flash.redeemedCount || 0) >= flash.quota)
+      throw "Quota habis";
+
+    /* ==========================
+       POTONG GP (LEDGER ENGINE)
+    ========================== */
+
+    await applyMutation({
+
+      userId: user.uid,
+      asset: "GPOINT",
+      mutationType: "FLASH_REDEEM",
+      amount: -flash.flashPointCost,
+      referenceId: flashId,
+      description: flash.name
+
+    });
+
+    /* ==========================
+       UPDATE FLASH
+    ========================== */
+
+    await runTransaction(db, async (transaction)=>{
+
+      const snap = await transaction.get(flashRef);
+
+      if(!snap.exists())
+        throw "Flash tidak ditemukan";
+
+      const data = snap.data();
+
+      if((data.redeemedCount || 0) >= data.quota)
+        throw "Quota habis";
+
+      const winners = data.winners || [];
+
+      if(winners.some(w => w.uid === user.uid))
         throw "Sudah redeem";
 
-      const beforeBalance = userData.gPoint || 0;
-      const afterBalance  = beforeBalance - flash.flashPointCost;
-
-      /* ==========================
-         POTONG GP
-      ========================== */
-
-      transaction.update(userRef,{
-        gPoint: afterBalance,
-        gPointLastUpdated: serverTimestamp()
-      });
-
-      /* ==========================
-         UPDATE FLASH
-      ========================== */
-
       transaction.update(flashRef,{
-        redeemedCount: increment(1),
-        winners: arrayUnion({
-          uid: user.uid,
-          time: Date.now()
-        })
-      });
 
-      /* ==========================
-         LEDGER
-      ========================== */
+        redeemedCount: (data.redeemedCount || 0) + 1,
 
-      transaction.set(userLedgerRef,{
-        type: "flash_redeem",
-        referenceId: flashId,
-        amount: -flash.flashPointCost,
-        balanceBefore: beforeBalance,
-        balanceAfter: afterBalance,
-        createdAt: serverTimestamp(),
-        description: "Flash Redeem"
+        winners: [
+          ...winners,
+          {
+            uid:user.uid,
+            time: Date.now()
+          }
+        ]
+
       });
 
     });
 
     /* ==========================
-       MASUKKAN KE INBOX
+       INBOX ITEM
     ========================== */
 
     await createInboxItem({
+
       uid: user.uid,
       type: "voucher",
       source: "flash",
-      name: flashData.name,
-      image: flashData.image,
+      name: flash.name,
+      image: flash.image,
       flashId: flashId,
       expireDays: 365
+
     });
 
     /* ==========================
-       CONFETTI
+       UI
     ========================== */
 
     showConfetti();
-    const modal = document.querySelector(".flash-image-modal");
-if(modal) modal.remove();
 
-showToast("Flash berhasil didapatkan");
-setTimeout(()=>{
-  renderStore();
-},800);
-renderStore();
+    showToast("Flash berhasil didapat!");
+
+    setTimeout(()=>{
+      renderStore();
+    },800);
 
   }catch(err){
 
     console.log("FLASH ERROR:", err);
-    alert(err);
+    showToast(err);
 
   }finally{
 
