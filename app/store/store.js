@@ -18,6 +18,10 @@ import {
   increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  requestTransactionPin,
+  validateTransactionPin
+} from "./pin-trx.js";
 
 const FLASH_BASE_IMAGE_URL =
   "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/store/products/";
@@ -1143,15 +1147,14 @@ window.confirmRewardRedeem = async function(rewardId){
        MINTA PIN TRANSAKSI
     ========================== */
 
-    const pin = prompt("Masukkan PIN Transaksi");
+    const pin = await requestTransactionPin();
 
     if(!pin) return;
 
-    const userSnap = await getDoc(doc(db,"users",user.uid));
-    const userData = userSnap.data();
+    const checkPin = await validateTransactionPin(user.uid, pin);
 
-    if(pin !== userData.transactionPin){
-      alert("PIN salah");
+    if(!checkPin.valid){
+      alert(checkPin.reason);
       return;
     }
 
@@ -1188,10 +1191,10 @@ window.confirmRewardRedeem = async function(rewardId){
       if(remaining <= 0)
         throw "Reward sudah habis";
 
-      if(userData.gPoint < reward.pointCost)
+      if((userData.gPoint || 0) < reward.pointCost)
         throw "GPoint tidak cukup";
 
-      const beforeBalance = userData.gPoint;
+      const beforeBalance = userData.gPoint || 0;
       const afterBalance  = beforeBalance - reward.pointCost;
 
       /* ==========================
