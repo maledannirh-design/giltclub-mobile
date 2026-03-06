@@ -545,36 +545,62 @@
 }
 
 /* ===============================
-   INBOX STATUS BADGE
+   INBOX ITEM TYPE ICON
+================================= */
+
+.inbox-type{
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:4px;
+  opacity:.85;
+}
+
+.inbox-type.voucher::before{
+  content:"🎟 ";
+}
+
+.inbox-type.reward::before{
+  content:"🎁 ";
+}
+
+.inbox-type.product::before{
+  content:"🛍 ";
+}
+
+
+/* ===============================
+   EXPIRED CARD EFFECT
+================================= */
+
+.store-card.expired{
+  opacity:.55;
+  filter:grayscale(60%);
+}
+
+
+/* ===============================
+   STATUS BADGE
 ================================= */
 
 .status{
   display:inline-block;
   padding:4px 8px;
-
   border-radius:6px;
 
   font-size:12px;
   font-weight:600;
-
   text-transform:capitalize;
 }
-
-/* UNUSED */
 
 .status.unused{
   background:#16a34a;
   color:#fff;
 }
 
-/* USED */
-
 .status.used{
   background:#64748b;
   color:#fff;
 }
-
-/* EXPIRED */
 
 .status.expired{
   background:#dc2626;
@@ -588,7 +614,6 @@
 
 .expire{
   margin-top:4px;
-
   font-size:12px;
   opacity:.7;
 }
