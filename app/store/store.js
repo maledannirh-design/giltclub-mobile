@@ -1242,26 +1242,21 @@ window.openRewardConfirm = async function(rewardId){
 };
 
 /* ===============================
-   REDEEM REWARD ENGINE PONT
+   REDEEM REWARD ENGINE (FINAL)
 ================================= */
 
 window.confirmRewardRedeem = async function(rewardId){
 
   const user = auth.currentUser;
-
-  if(!user){
-    alert("Login required.");
-    return;
-  }
+  if(!user) return alert("Login required.");
 
   try{
 
     /* ==========================
-       MINTA PIN TRANSAKSI
+       PIN TRANSACTION
     ========================== */
 
     const pin = await requestTransactionPin();
-
     if(!pin) return;
 
     const checkPin = await validateTransactionPin(user.uid, pin);
@@ -1272,109 +1267,98 @@ window.confirmRewardRedeem = async function(rewardId){
     }
 
     const rewardRef = doc(db,"rewards",rewardId);
-    const userRef   = doc(db,"users",user.uid);
 
-    const ledgerRef =
-      doc(collection(db,"users",user.uid,"gpointLedger"));
+    const rewardSnap = await getDoc(rewardRef);
 
-    let rewardData;
+    if(!rewardSnap.exists())
+      throw "Reward tidak ditemukan";
+
+    const reward = rewardSnap.data();
+
+    const remaining =
+      reward.quota - (reward.redeemedCount || 0);
+
+    if(!reward.active)
+      throw "Reward tidak aktif";
+
+    if(remaining <= 0)
+      throw "Reward sudah habis";
+
+    /* ==========================
+       POTONG GP (LEDGER ENGINE)
+    ========================== */
+
+    await applyMutation({
+
+      userId: user.uid,
+      asset: "GPOINT",
+      mutationType: "REWARD_REDEEM",
+      amount: -reward.pointCost,
+      referenceId: rewardId,
+      description: reward.name
+
+    });
+
+    /* ==========================
+       UPDATE QUOTA
+    ========================== */
 
     await runTransaction(db, async (transaction)=>{
 
-      const rewardSnap = await transaction.get(rewardRef);
-      const userSnapTx = await transaction.get(userRef);
+      const snap = await transaction.get(rewardRef);
 
-      if(!rewardSnap.exists())
+      if(!snap.exists())
         throw "Reward tidak ditemukan";
 
-      if(!userSnapTx.exists())
-        throw "User tidak ditemukan";
+      const data = snap.data();
 
-      const reward   = rewardSnap.data();
-      const userData = userSnapTx.data();
+      const redeemed =
+        data.redeemedCount || 0;
 
-      rewardData = reward;
-
-      const remaining =
-        reward.quota - (reward.redeemedCount || 0);
-
-      if(!reward.active)
-        throw "Reward tidak aktif";
-
-      if(remaining <= 0)
-        throw "Reward sudah habis";
-
-      if((userData.gPoint || 0) < reward.pointCost)
-        throw "GPoint tidak cukup";
-
-      const beforeBalance = userData.gPoint || 0;
-      const afterBalance  = beforeBalance - reward.pointCost;
-
-      /* ==========================
-         POTONG GP
-      ========================== */
-
-      transaction.update(userRef,{
-        gPoint: afterBalance,
-        gPointLastUpdated: serverTimestamp()
-      });
-
-      /* ==========================
-         UPDATE QUOTA
-      ========================== */
+      if(redeemed >= data.quota)
+        throw "Reward habis";
 
       transaction.update(rewardRef,{
-        redeemedCount: increment(1)
-      });
-
-      /* ==========================
-         LEDGER
-      ========================== */
-
-      transaction.set(ledgerRef,{
-        type:"reward_redeem",
-        referenceId:rewardId,
-        amount:-reward.pointCost,
-        balanceBefore:beforeBalance,
-        balanceAfter:afterBalance,
-        description:"Redeem Reward",
-        createdAt:serverTimestamp()
+        redeemedCount: redeemed + 1
       });
 
     });
 
     /* ==========================
-       MASUKKAN KE INBOX
+       INBOX ITEM
     ========================== */
 
     await createInboxItem({
-      uid:user.uid,
-      type:"voucher",
-      source:"reward",
-      name:rewardData.name,
-      image:rewardData.image,
-      expireDays:rewardData.expireDays || 30
+
+      uid: user.uid,
+      type: "voucher",
+      source: "reward",
+      name: reward.name,
+      image: reward.image,
+      rewardId: rewardId,
+      expireDays: reward.expireDays || 30
+
     });
 
     /* ==========================
-       CONFETTI
+       UI FEEDBACK
     ========================== */
 
     showConfetti();
 
     const modal = document.querySelector(".flash-image-modal");
-if(modal) modal.remove();
+    if(modal) modal.remove();
 
-showToast("Reward berhasil ditukar");
-setTimeout(()=>{
-  renderStore();
-},800);
-renderStore();
+    showToast("Reward berhasil ditukar");
+
+    setTimeout(()=>{
+      renderStore();
+    },800);
 
   }catch(err){
 
-    console.log("REWARD ERROR:",err);
-    alert(err);
+    console.log("REWARD ERROR:", err);
+    showToast(err);
 
   }
 
