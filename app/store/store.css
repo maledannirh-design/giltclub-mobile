@@ -498,3 +498,24 @@
   position:relative;
   z-index:1;
 }
+
+.status{
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+}
+
+.status.unused{
+  background:#16a34a;
+  color:white;
+}
+
+.status.used{
+  background:#64748b;
+  color:white;
+}
+
+.status.expired{
+  background:#dc2626;
+  color:white;
+}
