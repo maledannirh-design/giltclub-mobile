@@ -503,6 +503,8 @@ async function redeemFlash(flashId){
   const button = document.querySelector(`.redeem-btn[data-id="${flashId}"]`);
   if(button) button.disabled = true;
 
+  let flashData = null;
+
   try{
 
     await runTransaction(db, async (transaction) => {
@@ -517,20 +519,34 @@ async function redeemFlash(flashId){
       const userData = userSnap.data();
       const now = new Date();
 
+      flashData = flash;
+
       if(!flash.active) throw "Flash tidak aktif";
       if(now < flash.startTime.toDate()) throw "Belum mulai";
       if(now > flash.endTime.toDate()) throw "Sudah berakhir";
       if(flash.redeemedCount >= flash.quota) throw "Quota habis";
-      if(!userData.gPoint || userData.gPoint < flash.flashPointCost) throw "GPoint tidak cukup";
-      if(flash.winners?.some(w => w.uid === user.uid)) throw "Sudah redeem";
 
-      const beforeBalance = userData.gPoint;
+      if(!userData.gPoint || userData.gPoint < flash.flashPointCost)
+        throw "GPoint tidak cukup";
+
+      if(flash.winners?.some(w => w.uid === user.uid))
+        throw "Sudah redeem";
+
+      const beforeBalance = userData.gPoint || 0;
       const afterBalance  = beforeBalance - flash.flashPointCost;
+
+      /* ==========================
+         POTONG GP
+      ========================== */
 
       transaction.update(userRef,{
         gPoint: afterBalance,
         gPointLastUpdated: serverTimestamp()
       });
+
+      /* ==========================
+         UPDATE FLASH
+      ========================== */
 
       transaction.update(flashRef,{
         redeemedCount: increment(1),
@@ -539,6 +555,10 @@ async function redeemFlash(flashId){
           time: Date.now()
         })
       });
+
+      /* ==========================
+         LEDGER
+      ========================== */
 
       transaction.set(userLedgerRef,{
         type: "flash_redeem",
@@ -552,17 +572,39 @@ async function redeemFlash(flashId){
 
     });
 
+    /* ==========================
+       MASUKKAN KE INBOX
+    ========================== */
+
+    await createInboxItem({
+      uid: user.uid,
+      type: "voucher",
+      source: "flash",
+      name: flashData.name,
+      image: flashData.image,
+      flashId: flashId,
+      expireDays: 365
+    });
+
+    /* ==========================
+       CONFETTI
+    ========================== */
+
     showConfetti();
-    await createInboxItem(flashId);
-    
+
   }catch(err){
-  console.log("FLASH ERROR:", err);
-  alert(err);
-}
-  finally{
+
+    console.log("FLASH ERROR:", err);
+    alert(err);
+
+  }finally{
+
     isRedeeming = false;
+
     if(button) button.disabled = false;
+
   }
+
 }
 /* ===============================
    FORMAT WITA DATE
@@ -578,37 +620,80 @@ function formatWitaDate(date){
   }) + " WITA";
 }
 
-async function createInboxItem(flashId){
+/* ===============================
+   CREATE INBOX ITEM (UNIVERSAL)
+================================= */
 
-  const user = auth.currentUser;
-  if(!user) return;
+async function createInboxItem(data){
 
   try{
 
-    const flashSnap = await getDoc(doc(db,"flashDrops",flashId));
-    if(!flashSnap.exists()) return;
+    if(!data || !data.uid){
+      throw "UID tidak ditemukan untuk inbox item";
+    }
 
-    const flash = flashSnap.data();
+    const inboxRef =
+      doc(collection(db,"users",data.uid,"storeInbox"));
 
-    const expireDate = new Date();
-    expireDate.setDate(expireDate.getDate() + 30);
+    /* ==========================
+       EXPIRE DATE
+    ========================== */
 
-    await setDoc(
-      doc(collection(db,"users",user.uid,"storeInbox")),
-      {
-        type:"ticket",
-        name:flash.name,
-        image:flash.image || "",
-        source:"flashDrop",
-        referenceId:flashId,
-        status:"unused",
-        expiresAt:Timestamp.fromDate(expireDate),
-        createdAt:serverTimestamp()
-      }
-    );
+    let expiresAt = null;
 
-  }catch(e){
-    console.error("INBOX CREATE ERROR:",e);
+    if(data.expireDays){
+
+      const expireDate = new Date();
+
+      expireDate.setDate(
+        expireDate.getDate() + Number(data.expireDays)
+      );
+
+      expiresAt = Timestamp.fromDate(expireDate);
+    }
+
+    /* ==========================
+       PAYLOAD
+    ========================== */
+
+    const payload = {
+
+      uid: data.uid,
+
+      type: data.type || "voucher",
+
+      source: data.source || "store",
+
+      name: data.name || "Item",
+
+      image: data.image || "",
+
+      productId: data.productId || null,
+
+      flashId: data.flashId || null,
+
+      rewardId: data.rewardId || null,
+
+      sessionId: data.sessionId || null,
+
+      status: "unused",
+
+      createdAt: serverTimestamp(),
+
+      expiresAt: expiresAt
+
+    };
+
+    /* ==========================
+       SAVE
+    ========================== */
+
+    await setDoc(inboxRef, payload);
+
+  }catch(err){
+
+    console.log("INBOX CREATE ERROR:", err);
+
   }
 
 }
