@@ -297,8 +297,7 @@ function renderFlash(){
 
   const q = query(
   collection(db,"flashDrops"),
-  where("active","==",true),
-  orderBy("startTime","desc")
+  where("active","==",true)
 );
 
   onSnapshot(q, async (snapshot)=>{
@@ -314,7 +313,13 @@ function renderFlash(){
       return;
     }
 
-    currentFlashList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    currentFlashList = snapshot.docs
+  .map(d => ({ id: d.id, ...d.data() }))
+  .sort((a,b)=>{
+    const at = a.startTime?.toMillis ? a.startTime.toMillis() : 0;
+    const bt = b.startTime?.toMillis ? b.startTime.toMillis() : 0;
+    return bt - at; // flash terbaru di atas
+  });
     startWarWatcher();
 
     for(const flash of currentFlashList){
