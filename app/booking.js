@@ -595,7 +595,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
           return;
         }
 
-        const pin = await window.requestTransactionPin();
+        const pin = await requestTransactionPin();
         if (!pin) {
           bookingLock = false;
           return;
@@ -667,7 +667,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
         return;
       }
 
-      const pin = await window.requestTransactionPin();
+      const pin = await requestTransactionPin();
       if (!pin) {
         bookingLock = false;
         return;
