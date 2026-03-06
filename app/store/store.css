@@ -276,7 +276,6 @@
   }
 }
 
-
 /* ===============================
    RESPONSIVE
 ================================= */
@@ -388,16 +387,23 @@
   position: sticky;
   top: 0;
   z-index: 20;
+
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
+
   padding:14px 16px;
   margin-bottom:18px;
+
   border-radius:14px;
-  background: linear-gradient(90deg,#111,#1c1c1c,#111);
+
+  background:linear-gradient(90deg,#111,#1c1c1c,#111);
   border:1px solid rgba(255,215,0,0.25);
-  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+
+  box-shadow:0 0 20px rgba(255,215,0,0.15);
 }
+
+/* LEFT TITLE */
 
 .gilt-store-left{
   font-weight:700;
@@ -406,12 +412,45 @@
   color:#ffd700;
 }
 
+/* CENTER AREA (INBOX BUTTON) */
+
+.gilt-store-center{
+  flex:1;
+  text-align:center;
+}
+
+/* INBOX BUTTON */
+
+.btn-inbox{
+  background:#facc15;
+  color:#111;
+
+  border:none;
+  padding:6px 14px;
+
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+
+  cursor:pointer;
+
+  transition:0.2s ease;
+}
+
+.btn-inbox:hover{
+  background:#fde047;
+}
+
+/* RIGHT ACTION */
+
 .gilt-store-right{
   font-size:13px;
   color:#fff;
+
   cursor:pointer;
-  opacity:.8;
-  transition:.3s;
+
+  opacity:.85;
+  transition:0.2s ease;
 }
 
 .gilt-store-right:hover{
@@ -420,12 +459,16 @@
 }
 
 
-.store-sheet{
-  position:fixed;
-  inset:0;
   z-index:2000;
 }
 
+
+/* ===============================
+   PAGE OPEN TOKO
+================================= */
+.store-sheet{
+  position:fixed;
+  inset:0;
 .store-sheet.hidden{
   display:none;
 }
@@ -471,7 +514,9 @@
   font-size:13px;
 }
 
-
+/* ===============================
+   OPEN FLASH IMAGE
+================================= */
 .flash-image-modal{
   position:fixed;
   inset:0;
@@ -499,61 +544,79 @@
   z-index:1;
 }
 
-.status{
-  padding:4px 8px;
-  border-radius:6px;
-  font-size:12px;
-}
-
-.status.unused{
-  background:#16a34a;
-  color:white;
-}
-
-.status.used{
-  background:#64748b;
-  color:white;
-}
-
-.status.expired{
-  background:#dc2626;
-  color:white;
-}
+/* ===============================
+   INBOX STATUS BADGE
+================================= */
 
 .status{
+  display:inline-block;
   padding:4px 8px;
+
   border-radius:6px;
+
   font-size:12px;
   font-weight:600;
+
+  text-transform:capitalize;
 }
+
+/* UNUSED */
 
 .status.unused{
   background:#16a34a;
-  color:white;
+  color:#fff;
 }
+
+/* USED */
 
 .status.used{
   background:#64748b;
-  color:white;
+  color:#fff;
 }
+
+/* EXPIRED */
 
 .status.expired{
   background:#dc2626;
-  color:white;
+  color:#fff;
 }
 
+
+/* ===============================
+   EXPIRE DATE
+================================= */
+
 .expire{
+  margin-top:4px;
+
   font-size:12px;
   opacity:.7;
-  margin-top:4px;
 }
+
+
+/* ===============================
+   USE VOUCHER BUTTON
+================================= */
 
 .btn-use{
   margin-top:10px;
+
   background:#facc15;
+  color:#111;
+
   border:none;
-  padding:8px;
+  padding:8px 12px;
+
   border-radius:8px;
+
+  font-size:13px;
   font-weight:600;
+
   cursor:pointer;
+
+  transition:0.2s ease;
+}
+
+.btn-use:hover{
+  background:#fde047;
 }
