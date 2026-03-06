@@ -710,3 +710,97 @@
 .hidden{
   display:none !important;
 }
+
+/* FLASH ADMIN */
+
+.flash-admin-page{
+  max-width:700px;
+  margin:auto;
+}
+
+.flash-form{
+
+  display:flex;
+  flex-direction:column;
+
+  gap:10px;
+
+  background:#ffffff;
+
+  padding:18px;
+
+  border-radius:14px;
+
+  box-shadow:0 4px 14px rgba(0,0,0,0.08);
+}
+
+.flash-form input{
+
+  padding:10px;
+
+  border-radius:8px;
+
+  border:1px solid #ddd;
+
+}
+
+.flash-save-btn{
+
+  background:#0f766e;
+
+  color:white;
+
+  border:none;
+
+  padding:12px;
+
+  border-radius:10px;
+
+  font-weight:600;
+
+  cursor:pointer;
+}
+
+.flash-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.flash-card{
+
+  background:#fff;
+
+  border-radius:12px;
+
+  padding:14px;
+
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+}
+
+.flash-title{
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+.flash-info{
+  font-size:13px;
+  opacity:.8;
+}
+
+.flash-actions{
+  margin-top:10px;
+}
+
+.flash-actions button{
+
+  margin-right:6px;
+
+  padding:6px 10px;
+
+  border-radius:6px;
+
+  border:none;
+
+  cursor:pointer;
+}
