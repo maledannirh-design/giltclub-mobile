@@ -73,10 +73,26 @@ export function requestTransactionPin() {
 
     document.body.appendChild(overlay);
 
+    /* ===============================
+       PREVENT CLICK BUBBLE
+    =============================== */
+    overlay.querySelector("div").onclick = (e)=>{
+      e.stopPropagation();
+    };
+
+    /* ===============================
+       CLOSE IF CLICK BACKGROUND
+    =============================== */
+    overlay.onclick = (e)=>{
+      if(e.target === overlay){
+        overlay.remove();
+        resolve(null);
+      }
+    };
+
     let pin = "";
 
     const pinDisplay = document.getElementById("pinDisplay");
-    const pinError = document.getElementById("pinError");
     const pinPad = document.getElementById("pinPad");
 
     function renderDots() {
@@ -111,6 +127,10 @@ export function requestTransactionPin() {
 
       return btn;
     }
+
+    /* ===============================
+       KEYPAD
+    =============================== */
 
     // 1-9
     for (let i = 1; i <= 9; i++) {
@@ -172,8 +192,6 @@ export function requestTransactionPin() {
     renderDots();
   });
 }
-
-
 
 /* =====================================================
    VALIDATE TRANSACTION PIN (DATABASE CHECK)
