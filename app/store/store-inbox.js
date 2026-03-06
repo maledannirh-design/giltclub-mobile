@@ -74,7 +74,7 @@ function loadInbox(){
       const status = isExpired ? "expired" : d.status;
 
       container.innerHTML += `
-        <div class="store-card">
+        <div class="store-card ${status === "expired" ? "expired" : ""}">
 
           <div class="card-image">
 
@@ -88,7 +88,10 @@ function loadInbox(){
 
           <div class="card-body">
 
-            <h3>${d.name}</h3>
+            <div class="inbox-type ${d.type}">
+</div>
+
+<h3>${d.name}</h3>
 
             <div class="card-info">
 
