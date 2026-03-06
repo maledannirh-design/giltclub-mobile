@@ -219,8 +219,9 @@ async function renderRewards(){
 
         <div class="store-card reward-card">
 
+          <!-- IMAGE PREVIEW -->
           <div class="card-image"
-               onclick="openRewardConfirm('${rewardId}')">
+               onclick="openImagePreview('${imageUrl}')">
 
             ${
               imageUrl
@@ -1218,6 +1219,21 @@ window.confirmRewardRedeem = async function(rewardId){
     alert(err);
 
   }
+
+};
+
+window.openImagePreview = function(imageUrl){
+
+  if(!imageUrl) return;
+
+  const modal = document.getElementById("flashImageModal");
+  const img = document.getElementById("flashImagePreview");
+
+  if(!modal || !img) return;
+
+  img.src = imageUrl;
+
+  modal.classList.remove("hidden");
 
 };
 
