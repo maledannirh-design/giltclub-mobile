@@ -179,6 +179,8 @@ function renderProducts(){
 function renderRewards(){
 
   const container = document.getElementById("storeRewards");
+  if(!container) return;
+
   container.innerHTML = "";
 
   STORE_REWARDS
@@ -188,29 +190,62 @@ function renderRewards(){
       const remaining = reward.quota - reward.redeemedCount;
       const soldOut = remaining <= 0;
 
+      const imageUrl = reward.image
+        ? `/app/store/products/${reward.image}`
+        : "";
+
       container.innerHTML += `
-        <div class="store-card">
+
+        <div class="store-card reward-card">
+
+          <div class="card-image"
+               onclick="openRewardConfirm('${reward.id}')">
+
+            ${
+              imageUrl
+              ? `<img src="${imageUrl}" alt="reward">`
+              : `<div class="no-image">No Image</div>`
+            }
+
+          </div>
+
           <div class="card-body">
+
             <h3>${reward.name}</h3>
+
             <div class="card-info">
+
               <span class="price gp">
                 ${reward.pointCost.toLocaleString()} GP
               </span>
+
               <span class="stock">
-                Remaining: ${remaining}
+                ${remaining > 0
+                  ? `Remaining: ${remaining}`
+                  : "Sold Out"}
               </span>
+
             </div>
+
             ${
               soldOut
               ? `<button disabled>Sold Out</button>`
-              : `<button class="btn-gp">Redeem</button>`
+              : `<button
+                    class="btn-gp"
+                    onclick="openRewardConfirm('${reward.id}')">
+                    Redeem
+                 </button>`
             }
-          </div>
-        </div>
-      `;
-    });
-}
 
+          </div>
+
+        </div>
+
+      `;
+
+    });
+
+}
 /* ===============================
    FLASH DROP
 ================================= */
