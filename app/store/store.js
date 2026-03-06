@@ -60,7 +60,7 @@ export async function renderStore() {
       </div>
 
       <div class="gilt-store-right" onclick="openCreateStore()">
-        >>> buat toko sendiri
+        -> Buka toko
       </div>
 
 </div>
