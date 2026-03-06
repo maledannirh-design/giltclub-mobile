@@ -46,21 +46,21 @@ export async function renderStore() {
     <!-- ================= GILT STORE BANNER ================= -->
     <div class="gilt-store-banner">
 
-  <div class="gilt-store-left">
-    GILT-STORE
-  </div>
+      <div class="gilt-store-left">
+        GILT-STORE
+      </div>
 
-  <div style="display:flex;gap:10px;align-items:center">
+      <div class="gilt-store-center">
 
-    <button onclick="openStoreInbox()" class="btn-inbox">
-      📦 Inbox
-    </button>
+        <button class="btn-inbox" onclick="openStoreInbox()">
+          📦 Inbox
+        </button>
 
-    <div class="gilt-store-right">
-      >>> buat toko sendiri
-    </div>
+      </div>
 
-  </div>
+      <div class="gilt-store-right" onclick="openCreateStore()">
+        >>> buat toko sendiri
+      </div>
 
 </div>
 
@@ -938,5 +938,13 @@ window.closeFlashImage = function(){
   modal.classList.add("hidden");
 
 }
+
+window.openStoreInbox = async function(){
+
+  const module = await import("./store-inbox.js");
+
+  module.renderStoreInbox();
+
+};
 
 window.redeemFlash = redeemFlash;
