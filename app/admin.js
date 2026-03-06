@@ -23,6 +23,7 @@ export async function renderAdmin() {
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
+  
   if (!user) return;
 
   const userSnap = await getDoc(doc(db, "users", user.uid));
@@ -38,7 +39,10 @@ export async function renderAdmin() {
       `<div style="padding:20px;">Akses ditolak.</div>`;
     return;
   }
-
+const rewardBtn = document.getElementById("openRewardAdmin");
+if (rewardBtn) {
+  rewardBtn.onclick = openRewardAdmin;
+}
   const snap = await getDocs(
     query(
       collection(db, "walletTransactions"),
@@ -148,7 +152,9 @@ html += `
 <button id="openFlashAdmin" class="admin-btn">
 Flash Drop
 </button>
-
+<button id="openRewardAdmin" class="admin-btn">
+  Reward GP
+</button>
 <hr style="margin:30px 0;">
 
 <div class="admin-card">
@@ -1039,3 +1045,12 @@ window.openFlashAdmin = async function () {
 };
 window.handleBalanceAdjustment = handleBalanceAdjustment;
 window.runMigration = runMigration;
+
+window.openRewardAdmin = async function () {
+
+  const { renderRewardAdmin } =
+    await import("./store/reward-admin.js");
+
+  renderRewardAdmin();
+
+};
