@@ -45,13 +45,24 @@ export async function renderStore() {
 
     <!-- ================= GILT STORE BANNER ================= -->
     <div class="gilt-store-banner">
-      <div class="gilt-store-left">
-        GILT-STORE
-      </div>
-      <div class="gilt-store-right" onclick="openCreateStore()">
-        >>> buat toko sendiri
-      </div>
+
+  <div class="gilt-store-left">
+    GILT-STORE
+  </div>
+
+  <div style="display:flex;gap:10px;align-items:center">
+
+    <button onclick="openStoreInbox()" class="btn-inbox">
+      📦 Inbox
+    </button>
+
+    <div class="gilt-store-right">
+      >>> buat toko sendiri
     </div>
+
+  </div>
+
+</div>
 
     <section id="flashSection">
       <h2 class="section-title">Flash Drop</h2>
