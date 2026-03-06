@@ -39,10 +39,6 @@ export async function renderAdmin() {
       `<div style="padding:20px;">Akses ditolak.</div>`;
     return;
   }
-const rewardBtn = document.getElementById("openRewardAdmin");
-if (rewardBtn) {
-  rewardBtn.onclick = openRewardAdmin;
-}
   const snap = await getDocs(
     query(
       collection(db, "walletTransactions"),
@@ -215,14 +211,21 @@ Flash Drop
 `;
 
 
-  content.innerHTML = html;
+content.innerHTML = html;
+
 const flashBtn = document.getElementById("openFlashAdmin");
 if (flashBtn) {
   flashBtn.onclick = openFlashAdmin;
 }
-  await renderBalanceAdjustmentPanel();
-  await initBroadcastUI(); // 🔥 pindahkan ke sini
-  await loadStoreApplications();
+
+const rewardBtn = document.getElementById("openRewardAdmin");
+if (rewardBtn) {
+  rewardBtn.onclick = openRewardAdmin;
+}
+
+await renderBalanceAdjustmentPanel();
+await initBroadcastUI();
+await loadStoreApplications();
 }
 
 /* =====================================================
