@@ -176,74 +176,90 @@ function renderProducts(){
 /* ===============================
    REWARDS
 ================================= */
-function renderRewards(){
+/* ===============================
+   REWARDS
+================================= */
+
+async function renderRewards(){
 
   const container = document.getElementById("storeRewards");
   if(!container) return;
 
   container.innerHTML = "";
 
-  STORE_REWARDS
-    .filter(r => r.active)
-    .forEach(reward => {
+  const snap = await getDocs(collection(db,"rewards"));
 
-      const remaining = reward.quota - reward.redeemedCount;
-      const soldOut = remaining <= 0;
+  if(snap.empty){
 
-      const imageUrl = reward.image
-        ? `/app/store/products/${reward.image}`
-        : "";
+    container.innerHTML =
+      `<div style="opacity:.6">Belum ada reward.</div>`;
 
-      container.innerHTML += `
+    return;
+  }
 
-        <div class="store-card reward-card">
+  snap.forEach(docSnap=>{
 
-          <div class="card-image"
-               onclick="openRewardConfirm('${reward.id}')">
+    const reward = docSnap.data();
 
-            ${
-              imageUrl
-              ? `<img src="${imageUrl}" alt="reward">`
-              : `<div class="no-image">No Image</div>`
-            }
+    const remaining =
+      reward.quota - (reward.redeemedCount || 0);
 
-          </div>
+    const soldOut = remaining <= 0;
 
-          <div class="card-body">
+    const imageUrl =
+      reward.image
+      ? `/app/store/products/${reward.image}`
+      : "";
 
-            <h3>${reward.name}</h3>
+    container.innerHTML += `
 
-            <div class="card-info">
+      <div class="store-card reward-card">
 
-              <span class="price gp">
-                ${reward.pointCost.toLocaleString()} GP
-              </span>
+        <div class="card-image"
+             onclick="openRewardConfirm('${docSnap.id}')">
 
-              <span class="stock">
-                ${remaining > 0
-                  ? `Remaining: ${remaining}`
-                  : "Sold Out"}
-              </span>
-
-            </div>
-
-            ${
-              soldOut
-              ? `<button disabled>Sold Out</button>`
-              : `<button
-                    class="btn-gp"
-                    onclick="openRewardConfirm('${reward.id}')">
-                    Redeem
-                 </button>`
-            }
-
-          </div>
+          ${
+            imageUrl
+            ? `<img src="${imageUrl}">`
+            : `<div class="no-image">No Image</div>`
+          }
 
         </div>
 
-      `;
+        <div class="card-body">
 
-    });
+          <h3>${reward.name}</h3>
+
+          <div class="card-info">
+
+            <span class="price gp">
+              ${reward.pointCost.toLocaleString()} GP
+            </span>
+
+            <span class="stock">
+              ${remaining > 0
+                ? `Remaining: ${remaining}`
+                : "Sold Out"}
+            </span>
+
+          </div>
+
+          ${
+            soldOut
+            ? `<button disabled>Sold Out</button>`
+            : `<button class="btn-gp"
+                 onclick="openRewardConfirm('${docSnap.id}')">
+                 Redeem
+               </button>`
+          }
+
+        </div>
+
+      </div>
+
+    `;
+
+  });
 
 }
 /* ===============================
