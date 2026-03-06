@@ -1,10 +1,15 @@
-import { auth, db } from "./firebase.js";
+import { auth, db } from "../firebase.js";
+
 import {
   collection,
   query,
   orderBy,
-  onSnapshot
+  onSnapshot,
+  doc,
+  updateDoc,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 export function renderStoreInbox(){
 
@@ -25,6 +30,7 @@ export function renderStoreInbox(){
 
 }
 
+
 function loadInbox(){
 
   const user = auth.currentUser;
@@ -42,21 +48,42 @@ function loadInbox(){
     container.innerHTML = "";
 
     if(snap.empty){
+
       container.innerHTML = `
-        <div style="opacity:.6">Belum ada item.</div>
+        <div style="opacity:.6">
+          Belum ada item.
+        </div>
       `;
+
       return;
     }
 
-    snap.forEach(docu=>{
+    snap.forEach(docSnap=>{
 
-      const d = docu.data();
+      const d = docSnap.data();
+      const id = docSnap.id;
+
+      const expireText = d.expiresAt
+        ? new Date(d.expiresAt.seconds*1000).toLocaleDateString("id-ID")
+        : "-";
+
+      const isExpired =
+        d.expiresAt
+        && Date.now() > d.expiresAt.seconds*1000;
+
+      const status = isExpired ? "expired" : d.status;
 
       container.innerHTML += `
         <div class="store-card">
 
           <div class="card-image">
-            <img src="/app/store/products/${d.image}">
+
+            ${
+              d.image
+              ? `<img src="/app/store/products/${d.image}">`
+              : `<div class="no-image">No Image</div>`
+            }
+
           </div>
 
           <div class="card-body">
@@ -64,16 +91,29 @@ function loadInbox(){
             <h3>${d.name}</h3>
 
             <div class="card-info">
-              <span class="status ${d.status}">
-                ${d.status}
+
+              <span class="status ${status}">
+                ${status}
               </span>
+
             </div>
 
             ${
               d.expiresAt
               ? `<div class="expire">
-                   Exp: ${new Date(d.expiresAt.seconds*1000).toLocaleDateString()}
+                   Exp: ${expireText}
                  </div>`
+              : ""
+            }
+
+            ${
+              status === "unused"
+              && d.type === "voucher"
+              ? `<button
+                   class="btn-use"
+                   onclick="useVoucher('${id}')">
+                   Gunakan Voucher
+                 </button>`
               : ""
             }
 
@@ -85,5 +125,33 @@ function loadInbox(){
     });
 
   });
+
+}
+
+
+
+window.useVoucher = async function(itemId){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  try{
+
+    await updateDoc(
+      doc(db,"users",user.uid,"storeInbox",itemId),
+      {
+        status:"used",
+        usedAt:Timestamp.now()
+      }
+    );
+
+    alert("Voucher digunakan.");
+
+  }catch(err){
+
+    console.log(err);
+    alert("Gagal menggunakan voucher.");
+
+  }
 
 }
