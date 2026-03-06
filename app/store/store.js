@@ -71,6 +71,10 @@ export async function renderStore() {
 
 <!-- STORE APPLICATION BOTTOMSHEET -->
 <div id="storeApplicationSheet" class="store-sheet hidden"></div>
+<div id="flashImageModal" class="flash-image-modal hidden">
+  <div class="flash-image-bg" onclick="closeFlashImage()"></div>
+  <img id="flashImagePreview">
+</div>
 `;
 
   renderProducts();
@@ -267,7 +271,7 @@ function renderFlash(){
 
           <div class="card-image">
             ${imageUrl 
-              ? `<img src="${imageUrl}" alt="flash-image">`
+              ? `<img src="${imageUrl}" alt="flash-image" onclick="openFlashImage('${imageUrl}')">`
               : `<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.5;">
                    No Image
                  </div>`
@@ -869,5 +873,24 @@ window.submitStoreApp = async function(){
   }
 
 };
+
+window.openFlashImage = function(url){
+
+  const modal = document.getElementById("flashImageModal");
+  const img = document.getElementById("flashImagePreview");
+
+  img.src = url;
+
+  modal.classList.remove("hidden");
+
+}
+
+window.closeFlashImage = function(){
+
+  const modal = document.getElementById("flashImageModal");
+
+  modal.classList.add("hidden");
+
+}
 
 window.redeemFlash = redeemFlash;
