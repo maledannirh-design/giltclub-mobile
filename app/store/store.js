@@ -53,8 +53,9 @@ export async function renderStore() {
       <div class="gilt-store-center">
 
         <button class="btn-inbox" onclick="openStoreInbox()">
-          📦 Inbox
-        </button>
+  📦 Inbox
+  <span id="inboxBadge" class="inbox-badge hidden">0</span>
+</button>
 
       </div>
 
@@ -93,6 +94,7 @@ export async function renderStore() {
   renderRewards();
   renderFlash();
   checkStoreApplication();
+  watchInboxBadge();
 }
 
 async function checkStoreApplication(){
@@ -716,6 +718,38 @@ function showLoseAnimation(seconds){
 
   document.body.appendChild(div);
   setTimeout(()=> div.remove(), 2500);
+}
+
+/* ==============================
+  inbox badge
+================================= */
+async function watchInboxBadge(){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const badge = document.getElementById("inboxBadge");
+  if(!badge) return;
+
+  const q = query(
+    collection(db,"users",user.uid,"storeInbox"),
+    where("status","==","unused")
+  );
+
+  onSnapshot(q,(snap)=>{
+
+    const count = snap.size;
+
+    if(count > 0){
+      badge.innerText = count;
+      badge.classList.remove("hidden");
+    }
+    else{
+      badge.classList.add("hidden");
+    }
+
+  });
+
 }
 
 
