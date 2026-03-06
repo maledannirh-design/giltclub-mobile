@@ -595,8 +595,10 @@ async function redeemFlash(flashId){
     const modal = document.querySelector(".flash-image-modal");
 if(modal) modal.remove();
 
-showToast("Reward berhasil ditukar");
-
+showToast("Flash berhasil didapatkan");
+setTimeout(()=>{
+  renderStore();
+},800);
 renderStore();
 
   }catch(err){
@@ -1364,7 +1366,9 @@ window.confirmRewardRedeem = async function(rewardId){
 if(modal) modal.remove();
 
 showToast("Reward berhasil ditukar");
-
+setTimeout(()=>{
+  renderStore();
+},800);
 renderStore();
 
   }catch(err){
