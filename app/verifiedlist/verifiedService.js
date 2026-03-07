@@ -3,6 +3,7 @@ import { showVerifiedWarningPopup } from "./verifiedPopup.js";
 import { showVerifiedSuccessPopup } from "./verifiedSuccessPopup.js";
 import { showUpgradeChancePopup } from "./verifiedUpgradeChancePopup.js";
 
+
 export function runVerifiedCheck(user){
 
   if(!user) return;
