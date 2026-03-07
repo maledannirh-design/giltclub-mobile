@@ -2585,46 +2585,74 @@ body.scan-mode{
   color:#222;
 }
 
+
 /* =====================================================
-   TOP THREE LAYOUT
+   BASE CARD
 ===================================================== */
 
-.top-three{
+.rank-item{
+  background:rgba(255,255,255,.85);
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:14px;
   display:flex;
-  justify-content:space-around;
-  margin:30px 0;
-}
-
-.top-card{
-  border-radius:16px;
-  padding:15px;
-  text-align:center;
-  width:30%;
-  box-shadow:0 6px 18px rgba(0,0,0,.15);
+  justify-content:space-between;
+  align-items:center;
+  font-size:14px;
   position:relative;
   overflow:hidden;
-  color:#fff;
+  transition:.2s;
 }
+
 
 /* =====================================================
-   METALLIC PLATES
+   SHINE LIGHT EFFECT
 ===================================================== */
 
-/* #1 CRIMSON METALLIC */
-.top-card.gold{
-  transform:scale(1.12);
+.rank-item::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:60%;
+  height:100%;
   background:linear-gradient(
-    135deg,
-    #5a0000,
-    #b11226,
-    #ff4d6d,
-    #7a0010
+    120deg,
+    transparent,
+    rgba(255,255,255,.9),
+    transparent
   );
+  transform:skewX(-25deg);
 }
 
-/* #2 EMERALD JADE */
-.top-card.silver{
+
+/* =====================================================
+   RANK 1 - CRIMSON METALLIC
+===================================================== */
+
+.rank-1{
+  background:linear-gradient(
+    135deg,
+    #4d0000,
+    #b11226,
+    #ff4d6d,
+    #6a0000
+  );
+  color:#fff;
   transform:scale(1.05);
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
+}
+
+.rank-1::before{
+  animation:shineFast 1.2s infinite;
+}
+
+
+/* =====================================================
+   RANK 2 - EMERALD JADE
+===================================================== */
+
+.rank-2{
   background:linear-gradient(
     135deg,
     #014d40,
@@ -2632,10 +2660,19 @@ body.scan-mode{
     #2ecc71,
     #00695c
   );
+  color:#fff;
 }
 
-/* #3 PINK GOLD METALLIC */
-.top-card.bronze{
+.rank-2::before{
+  animation:shineMedium 2s infinite;
+}
+
+
+/* =====================================================
+   RANK 3 - PINK GOLD
+===================================================== */
+
+.rank-3{
   background:linear-gradient(
     135deg,
     #ff8fa3,
@@ -2645,113 +2682,29 @@ body.scan-mode{
   );
 }
 
-/* =====================================================
-   DISCO LIGHT SHINE
-===================================================== */
-
-.top-card::before{
-  content:"";
-  position:absolute;
-  top:0;
-  left:-120%;
-  width:80%;
-  height:100%;
-  background:linear-gradient(
-    120deg,
-    transparent,
-    rgba(255,255,255,.8),
-    transparent
-  );
-  transform:skewX(-25deg);
-}
-
-/* FAST SHINE - #1 */
-.top-card.gold::before{
-  animation:shineFast 1.2s infinite;
-}
-
-/* MEDIUM SHINE - #2 */
-.top-card.silver::before{
-  animation:shineMedium 2s infinite;
-}
-
-/* SLOW SHINE - #3 */
-.top-card.bronze::before{
+.rank-3::before{
   animation:shineSlow 3s infinite;
 }
 
+
 /* =====================================================
-   SHINE ANIMATIONS
+   SHINE ANIMATION
 ===================================================== */
 
 @keyframes shineFast{
   0%{ left:-120%; }
-  100%{ left:130%; }
+  100%{ left:120%; }
 }
 
 @keyframes shineMedium{
   0%{ left:-120%; }
-  100%{ left:130%; }
+  100%{ left:120%; }
 }
 
 @keyframes shineSlow{
   0%{ left:-120%; }
-  100%{ left:130%; }
+  100%{ left:120%; }
 }
-
-/* =====================================================
-   AVATAR
-===================================================== */
-
-.avatar{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  background:#fff;
-  margin:0 auto 10px;
-  position:relative;
-}
-
-.crown{
-  position:absolute;
-  top:-10px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:22px;
-}
-
-.name{
-  font-weight:600;
-}
-
-.level{
-  font-size:13px;
-  opacity:.8;
-}
-
-.stats{
-  font-size:12px;
-  margin-top:5px;
-}
-
-/* =====================================================
-   OTHER RANKS
-===================================================== */
-
-.other-ranks{
-  margin-top:20px;
-}
-
-.rank-item{
-  background:rgba(255,255,255,.85);
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:12px;
-  display:flex;
-  justify-content:space-between;
-  font-size:14px;
-}
-
 /* =====================================================
    CHAT SEEN
 ===================================================== */
