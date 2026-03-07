@@ -60,7 +60,7 @@ case "skill":
   const userData = userSnap.data();
 
   if(!userData.verified){
-    alert("Menu Skill hanya tersedia untuk member yang sudah terverifikasi.");
+    showVerifyRequiredModal();
     return;
   }
 
@@ -179,3 +179,18 @@ function updateActiveNav(page){
 ============================ */
 window.navigate = navigate;
 window.toggleTheme = toggleTheme;
+
+
+window.showVerifyRequiredModal = function(){
+
+  const modal = document.getElementById("verifyModal");
+  if(modal) modal.classList.add("show");
+
+}
+
+window.closeVerifyModal = function(){
+
+  const modal = document.getElementById("verifyModal");
+  if(modal) modal.classList.remove("show");
+
+}
