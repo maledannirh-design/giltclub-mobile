@@ -437,7 +437,9 @@ onAuthStateChanged(auth, async (user)=>{
 
         const data = snap.data();
           // VERIFIED SYSTEM CHECK
-  runVerifiedCheck(data);
+  setTimeout(()=>{
+    runVerifiedCheck(data);
+  },500);
         window.currentUserRole = data.role || "MEMBER";
 
         if(label){
