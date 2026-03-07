@@ -2725,3 +2725,115 @@ body.scan-mode{
 .chat-check.seen{
   color:#3da5ff;
 }
+
+
+/* ================================
+   VERIFY MODAL
+================================ */
+
+.verify-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+}
+
+.verify-modal.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+
+/* ================================
+   CARD
+================================ */
+
+.verify-modal-card{
+  width:85%;
+  max-width:360px;
+  background:white;
+  border-radius:18px;
+  padding:26px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  animation:verifyPop .35s ease;
+}
+
+@keyframes verifyPop{
+  from{
+    transform:scale(.85);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+
+/* ================================
+   ICON
+================================ */
+
+.verify-icon{
+  font-size:38px;
+  margin-bottom:10px;
+}
+
+
+/* ================================
+   TITLE
+================================ */
+
+.verify-title{
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+
+/* ================================
+   TEXT
+================================ */
+
+.verify-text{
+  font-size:14px;
+  opacity:.7;
+  margin-bottom:18px;
+  line-height:1.4;
+}
+
+
+/* ================================
+   BUTTONS
+================================ */
+
+.verify-buttons{
+  display:flex;
+  gap:10px;
+}
+
+.verify-primary{
+  flex:1;
+  background:#1ca7ec;
+  border:none;
+  color:white;
+  padding:10px;
+  border-radius:10px;
+  font-weight:600;
+}
+
+.verify-secondary{
+  flex:1;
+  background:#eee;
+  border:none;
+  padding:10px;
+  border-radius:10px;
+}
