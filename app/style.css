@@ -2686,7 +2686,14 @@ body.scan-mode{
   animation:shineSlow 3s infinite;
 }
 
-
+.leaderboard-title{
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 /* =====================================================
    SHINE ANIMATION
 ===================================================== */
