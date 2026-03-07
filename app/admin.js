@@ -795,14 +795,6 @@ window.exportAdjustmentHistory = async function(){
 };
 
 
-/* =====================================================
-   EXPORT MEMBERS – FULL AUDIT VERSION
-===================================================== */
-
-/* =====================================================
-   EXPORT MEMBERS – AUTO ALL FIELDS
-===================================================== */
-
 window.exportMembersToCSV = async function(){
 
   try{
@@ -814,10 +806,6 @@ window.exportMembersToCSV = async function(){
       return;
     }
 
-    /* --------------------------------
-       1. KUMPULKAN SEMUA FIELD
-    -------------------------------- */
-
     const fieldSet = new Set();
 
     snap.forEach(docSnap=>{
@@ -825,19 +813,11 @@ window.exportMembersToCSV = async function(){
       Object.keys(data).forEach(k=>fieldSet.add(k));
     });
 
-    const fields = Array.from(fieldSet);
-
-    /* --------------------------------
-       2. HEADER CSV
-    -------------------------------- */
+    const fields = Array.from(fieldSet).sort();
 
     const headers = ["UID", ...fields];
 
     let rows = [headers];
-
-    /* --------------------------------
-       3. BUILD ROWS
-    -------------------------------- */
 
     snap.forEach(docSnap=>{
 
@@ -853,6 +833,10 @@ window.exportMembersToCSV = async function(){
           val = val.toDate().toLocaleString("id-ID");
         }
 
+        if(typeof val === "object" && val !== null){
+          val = JSON.stringify(val);
+        }
+
         if(val === true) val = "YES";
         if(val === false) val = "NO";
 
@@ -864,20 +848,12 @@ window.exportMembersToCSV = async function(){
 
     });
 
-    /* --------------------------------
-       4. DOWNLOAD CSV
-    -------------------------------- */
-
     downloadCSV("giltclub_members_all_fields.csv", rows);
-
-    alert("Export Members selesai");
 
   }
   catch(err){
-
     console.error(err);
     alert("Gagal export members");
-
   }
 
 };
