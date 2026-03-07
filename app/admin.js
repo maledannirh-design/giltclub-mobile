@@ -799,85 +799,87 @@ window.exportAdjustmentHistory = async function(){
    EXPORT MEMBERS – FULL AUDIT VERSION
 ===================================================== */
 
+/* =====================================================
+   EXPORT MEMBERS – AUTO ALL FIELDS
+===================================================== */
+
 window.exportMembersToCSV = async function(){
 
-  try {
+  try{
 
-    const snap =
-      await getDocs(collection(db,"users"));
+    const snap = await getDocs(collection(db,"users"));
 
-    if (snap.empty) {
+    if(snap.empty){
       alert("Tidak ada data user");
       return;
     }
 
-    let rows = [[
-      "UID",
-      "Username",
-      "Full Name",
-      "Phone",
-      "Birth Place",
-      "Birth Date",
-      "Role",
-      "Membership",
-      "Member Code",
-      "Level",
-      "EXP",
-      "Wallet Balance",
-      "Total Top Up",
-      "Total Payment",
-      "GPoint",
-      "Attendance Count",
-      "Total Attendance",
-      "Followers",
-      "Following",
-      "Verified",
-      "Playing Level",
-      "Is Public",
-      "Created At"
-    ]];
+    /* --------------------------------
+       1. KUMPULKAN SEMUA FIELD
+    -------------------------------- */
 
-    snap.forEach(docSnap => {
+    const fieldSet = new Set();
+
+    snap.forEach(docSnap=>{
+      const data = docSnap.data();
+      Object.keys(data).forEach(k=>fieldSet.add(k));
+    });
+
+    const fields = Array.from(fieldSet);
+
+    /* --------------------------------
+       2. HEADER CSV
+    -------------------------------- */
+
+    const headers = ["UID", ...fields];
+
+    let rows = [headers];
+
+    /* --------------------------------
+       3. BUILD ROWS
+    -------------------------------- */
+
+    snap.forEach(docSnap=>{
 
       const d = docSnap.data();
 
-      rows.push([
-        docSnap.id,
-        d.username || "",
-        d.fullName || "",
-        d.phone || "",
-        d.birthPlace || "",
-        d.birthDate || "",
-        d.role || "",
-        d.membership || "",
-        d.memberCode || "",
-        d.level || 0,
-        d.exp || 0,
-        d.walletBalance || 0,
-        d.totalTopup || 0,
-        d.totalPayment || 0,
-        d.gPoint || 0,
-        d.attendanceCount || 0,
-        d.totalAttendance || 0,
-        d.followersCount || 0,
-        d.followingCount || 0,
-        d.verified === true ? "YES" : "NO",
-        d.playingLevel || "",
-        d.isPublic === true ? "YES" : "NO",
-        d.createdAt?.toDate?.()
-          ?.toLocaleString("id-ID") || ""
-      ]);
+      const row = [docSnap.id];
+
+      fields.forEach(f=>{
+
+        let val = d[f];
+
+        if(val?.toDate){
+          val = val.toDate().toLocaleString("id-ID");
+        }
+
+        if(val === true) val = "YES";
+        if(val === false) val = "NO";
+
+        row.push(val ?? "");
+
+      });
+
+      rows.push(row);
+
     });
 
-    downloadCSV("giltclub_members_clean.csv", rows);
+    /* --------------------------------
+       4. DOWNLOAD CSV
+    -------------------------------- */
+
+    downloadCSV("giltclub_members_all_fields.csv", rows);
 
     alert("Export Members selesai");
 
-  } catch(err) {
+  }
+  catch(err){
 
     console.error(err);
     alert("Gagal export members");
+
   }
+
 };
 
 
