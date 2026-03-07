@@ -35,3 +35,12 @@
   border-radius:8px;
   cursor:pointer;
 }
+
+.verified-checkbox{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  font-size:13px;
+  margin-top:10px;
+  margin-bottom:10px;
+}
