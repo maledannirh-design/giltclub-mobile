@@ -10,20 +10,15 @@ export function evaluateVerifiedStatus(user){
   const payment = user.lastMonthPayment || 0;
   const balance = user.walletBalance || 0;
 
-  const financialOk =
-    payment >= 250000 || balance >= 250000;
+  const attendanceOk = attendance >= 2;
+  const financialOk = payment >= 250000 || balance >= 250000;
 
-  const attendanceOk =
-    attendance >= 2;
+  const warning = !attendanceOk || !financialOk;
 
-  // verified status
-  const verified =
-    attendanceOk && financialOk;
+  const verified = attendanceOk && financialOk;
 
-  // warning jika finansial kurang
-  const warning =
-    attendanceOk && !financialOk;
-
-  return {verified, warning};
-
+  return {
+    verified,
+    warning
+  };
 }
