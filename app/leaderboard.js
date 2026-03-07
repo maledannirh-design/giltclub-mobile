@@ -81,7 +81,6 @@ async function getTopUsers(){
 /* ======================================================
    RENDER LEADERBOARD
 ====================================================== */
-
 export async function renderAttendanceLeaderboard(){
 
   const content = document.getElementById("content");
@@ -104,7 +103,7 @@ export async function renderAttendanceLeaderboard(){
   }
 
   let html = `
-    <div style="padding:20px;">
+    <div class="leaderboard-wrapper">
       <h2>🏆 Leaderboard Bulan ${currentMonth}</h2>
   `;
 
@@ -118,20 +117,13 @@ export async function renderAttendanceLeaderboard(){
     if(index === 2){ crown = "🥉"; crownSize="20px"; }
 
     html += `
-      <div style="
-        background:rgba(255,255,255,.95);
-        padding:14px;
-        border-radius:14px;
-        margin-bottom:12px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-      ">
+      <div class="rank-item rank-${index+1}">
         <div>
           <div style="font-weight:600;">
             ${crown ? `<span style="font-size:${crownSize};margin-right:6px;">${crown}</span>` : ""}
             #${index+1} ${user.name}
           </div>
+
           <div style="font-size:12px;opacity:.6;">
             Total Hadir: ${user.attendanceCount}
           </div>
@@ -140,7 +132,6 @@ export async function renderAttendanceLeaderboard(){
         <div style="font-weight:600;">
           ${user.monthlyContribution} sesi bulan ini
         </div>
-
       </div>
     `;
   });
