@@ -94,7 +94,9 @@ export async function renderAttendanceLeaderboard(){
 
     content.innerHTML = `
       <div style="padding:20px;">
-        <h2>🏆 Leaderboard Bulan ${currentMonth}</h2>
+        <h2 class="leaderboard-title">
+🏆 Leaderboard ${formatMonthID(currentMonth)}
+</h2>
         <p>Belum ada kehadiran bulan ini.</p>
       </div>
     `;
@@ -104,7 +106,9 @@ export async function renderAttendanceLeaderboard(){
 
   let html = `
     <div class="leaderboard-wrapper">
-      <h2>🏆 Leaderboard Bulan ${currentMonth}</h2>
+      <h2 class="leaderboard-title">
+🏆 Leaderboard ${formatMonthID(currentMonth)}
+</h2>
   `;
 
   topUsers.forEach((user,index)=>{
@@ -139,4 +143,16 @@ export async function renderAttendanceLeaderboard(){
   html += `</div>`;
 
   content.innerHTML = html;
+}
+
+function formatMonthID(monthKey){
+
+  const months = [
+    "Januari","Februari","Maret","April","Mei","Juni",
+    "Juli","Agustus","September","Oktober","November","Desember"
+  ];
+
+  const [year,month] = monthKey.split("-");
+
+  return `${months[parseInt(month)-1]} ${year}`;
 }
