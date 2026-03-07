@@ -8,7 +8,8 @@ import {
   limit,
   getDocs,
   doc,
-  updateDoc
+  updateDoc,
+  getDoc
 } from "./firestore.js";
 
 /* ======================================================
@@ -19,9 +20,99 @@ function getCurrentMonthKey(){
   return new Date().toISOString().slice(0,7);
 }
 
+function getTodayKey(){
+  return new Date().toISOString().split("T")[0];
+}
+
 /* ======================================================
-   MONTHLY RESET CHECK
-   memastikan monthlyContribution tidak membawa bulan lama
+   1️⃣ SYNC ATTENDANCE SUMMARY FROM BOOKINGS
+====================================================== */
+
+export async function syncAttendanceSummary(){
+
+  const todayKey = getTodayKey();
+  const currentMonth = getCurrentMonthKey();
+
+  const bookingsRef = collection(db,"bookings");
+
+  const q = query(
+    bookingsRef,
+    where("attendance","==",true)
+  );
+
+  const snap = await getDocs(q);
+
+  const userMap = {};
+
+  snap.forEach(docSnap=>{
+
+    const data = docSnap.data();
+
+    const userId = data.userId;
+    const attendedAt = data.attendedAt?.toDate?.();
+
+    if(!userId || !attendedAt) return;
+
+    if(!userMap[userId]){
+      userMap[userId] = {
+        total:0,
+        monthly:0
+      };
+    }
+
+    userMap[userId].total += 1;
+
+    const monthKey = attendedAt.toISOString().slice(0,7);
+
+    if(monthKey === currentMonth){
+      userMap[userId].monthly += 1;
+    }
+
+  });
+
+  for(const uid in userMap){
+
+    const userRef = doc(db,"users",uid);
+
+    await updateDoc(userRef,{
+      attendanceCount: userMap[uid].total,
+      monthlyContribution: userMap[uid].monthly,
+      monthlyKey: currentMonth,
+      lastAttendanceSync: todayKey
+    });
+
+  }
+
+  return true;
+}
+
+
+/* ======================================================
+   2️⃣ ENSURE DAILY SYNC (1x PER HARI)
+====================================================== */
+
+async function ensureDailySync(){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const userRef = doc(db,"users",user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()) return;
+
+  const todayKey = getTodayKey();
+  const lastSync = userSnap.data().lastAttendanceSync;
+
+  if(lastSync !== todayKey){
+    await syncAttendanceSummary();
+  }
+
+}
+
+
+/* ======================================================
+   3️⃣ MONTHLY RESET CHECK
 ====================================================== */
 
 async function ensureMonthlyReset(userDoc){
@@ -44,8 +135,9 @@ async function ensureMonthlyReset(userDoc){
   return data;
 }
 
+
 /* ======================================================
-   GET TOP 10 USERS
+   4️⃣ GET TOP 10 USERS
 ====================================================== */
 
 async function getTopUsers(){
@@ -78,15 +170,20 @@ async function getTopUsers(){
   return users;
 }
 
+
 /* ======================================================
-   RENDER LEADERBOARD
+   5️⃣ RENDER LEADERBOARD
 ====================================================== */
+
 export async function renderAttendanceLeaderboard(){
 
   const content = document.getElementById("content");
   if(!content) return;
 
   const currentMonth = getCurrentMonthKey();
+
+  /* jalankan sync harian */
+  await ensureDailySync();
 
   const topUsers = await getTopUsers();
 
@@ -144,6 +241,11 @@ export async function renderAttendanceLeaderboard(){
 
   content.innerHTML = html;
 }
+
+
+/* ======================================================
+   MONTH FORMAT
+====================================================== */
 
 function formatMonthID(monthKey){
 
