@@ -117,6 +117,33 @@
 
   <div id="createSessionSheet" class="sheet-container"></div>
 
+<div id="verifyModal" class="verify-modal">
+  <div class="verify-modal-card">
+
+    <div class="verify-icon">🔒</div>
+
+    <div class="verify-title">
+      Skill Locked
+    </div>
+
+    <div class="verify-text">
+      Fitur Skill hanya tersedia untuk member yang sudah terverifikasi.
+      Aktivasi membership card untuk membuka akses ini.
+    </div>
+
+    <div class="verify-buttons">
+      <button class="verify-primary" onclick="openMembership()">
+        Aktifkan Membership
+      </button>
+
+      <button class="verify-secondary" onclick="closeVerifyModal()">
+        Tutup
+      </button>
+    </div>
+
+  </div>
+</div>
+  
   <!-- ================= LIBRARIES ================= -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
