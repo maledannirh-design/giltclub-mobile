@@ -21,21 +21,21 @@ export function runVerifiedCheck(user){
 
   switch(result.state){
 
-    case "verified_warning":
-      showVerifiedWarningPopup();
-      break;
+    if(result.state === "verified_warning"){
+  showVerifiedWarningPopup();
+}
 
-    case "verified_stay":
-      showVerifiedSuccessPopup(user);
-      break;
+if(result.state === "verified_stay"){
+  showVerifiedSuccessPopup(user);
+}
 
-    case "verified_upgrade":
-      showVerifiedSuccessPopup(user);
-      break;
+if(result.state === "verified_upgrade"){
+  showVerifiedSuccessPopup(user);
+}
 
-    case "upgrade_chance":
-      showUpgradeChancePopup();
-      break;
+if(result.state === "upgrade_chance"){
+  showUpgradeChancePopup();
+}
 
   }
 
