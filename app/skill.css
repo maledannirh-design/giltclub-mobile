@@ -1,55 +1,166 @@
-/* ======================================
-   SKILL PAGE
-====================================== */
+/* ================================
+   SKILL BACKGROUND
+================================ */
 
 .skill-wrapper{
   padding:20px;
+  position:relative;
+  overflow:hidden;
 }
+
+/* ================================
+   DISCO LIGHT EFFECT
+================================ */
+
+.skill-bg-effects{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+  radial-gradient(circle at 20% 30%, rgba(255,0,100,.2), transparent 40%),
+  radial-gradient(circle at 70% 60%, rgba(0,255,200,.2), transparent 40%),
+  radial-gradient(circle at 40% 80%, rgba(255,255,0,.15), transparent 40%);
+  animation:discoMove 8s infinite linear;
+}
+
+@keyframes discoMove{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-30px)}
+  100%{transform:translateY(0)}
+}
+
+
+/* ================================
+   HEADER
+================================ */
 
 .skill-header{
-  font-size:20px;
+  font-size:22px;
   font-weight:700;
+  margin-bottom:18px;
+}
+
+
+/* ================================
+   TOP CARD
+================================ */
+
+.skill-topcard{
+  background:linear-gradient(120deg,#440000,#880000,#220000);
+  color:white;
+  padding:18px;
+  border-radius:14px;
   margin-bottom:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+  position:relative;
+  overflow:hidden;
 }
 
-.skill-card{
-  background:rgba(255,255,255,.9);
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,.08);
+/* disco shine */
+
+.skill-topcard::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:60%;
+  height:100%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,.6),
+    transparent
+  );
+  transform:skewX(-20deg);
+  animation:shineMove 3s infinite;
 }
 
-.skill-title{
+@keyframes shineMove{
+  0%{left:-120%}
+  100%{left:130%}
+}
+
+.skill-username{
+  font-size:18px;
   font-weight:600;
-  margin-bottom:6px;
 }
 
 .skill-level{
   font-size:13px;
-  opacity:.7;
-  margin-bottom:8px;
+  opacity:.8;
 }
 
-.skill-bar{
-  height:8px;
-  background:#e5e5e5;
-  border-radius:10px;
-  overflow:hidden;
+.skill-total{
+  position:absolute;
+  right:16px;
+  top:16px;
+  font-weight:700;
 }
 
-.skill-progress{
-  height:100%;
-  width:40%;
-  background:linear-gradient(
-    90deg,
-    #1ca7ec,
-    #00c896
-  );
+
+/* ================================
+   CATEGORY
+================================ */
+
+.skill-category{
+  margin-top:16px;
+  margin-bottom:6px;
+  font-weight:700;
+  color:#355;
 }
 
-.skill-xp{
-  font-size:12px;
-  margin-top:6px;
-  opacity:.7;
+
+/* ================================
+   ROW
+================================ */
+
+.skill-row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid rgba(0,0,0,.08);
+}
+
+
+/* ================================
+   STARS
+================================ */
+
+.skill-stars{
+  font-size:16px;
+}
+
+.star{
+  animation:starGlow 2s infinite alternate;
+}
+
+.star.off{
+  opacity:.25;
+}
+
+@keyframes starGlow{
+  0%{filter:drop-shadow(0 0 2px gold)}
+  100%{filter:drop-shadow(0 0 8px gold)}
+}
+
+
+/* ================================
+   FLOATING STARS
+================================ */
+
+.skill-wrapper::after{
+  content:"✨ 💛 ⭐ 💖 ⭐ ✨ 💛";
+  position:absolute;
+  top:-20px;
+  left:0;
+  width:100%;
+  text-align:center;
+  font-size:24px;
+  animation:floatStars 12s linear infinite;
+  opacity:.25;
+}
+
+@keyframes floatStars{
+  0%{transform:translateY(-40px)}
+  100%{transform:translateY(900px)}
 }
