@@ -164,3 +164,32 @@
   0%{transform:translateY(-40px)}
   100%{transform:translateY(900px)}
 }
+
+
+/* ================================
+   STAR EXPLOSION
+================================ */
+
+.explosion-star{
+
+  position:absolute;
+  font-size:18px;
+  pointer-events:none;
+  animation:starExplode 1.6s ease-out forwards;
+  filter:drop-shadow(0 0 6px gold);
+
+}
+
+@keyframes starExplode{
+
+  0%{
+    transform:translate(0,0) scale(.6);
+    opacity:1;
+  }
+
+  100%{
+    transform:translate(var(--x),var(--y)) scale(1.6);
+    opacity:0;
+  }
+
+}
