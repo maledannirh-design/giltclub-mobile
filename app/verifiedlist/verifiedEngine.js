@@ -1,9 +1,9 @@
 export function evaluateVerifiedStatus(user){
 
-  if(!user) return {verified:false, warning:false};
+  if(!user) return {state:"none"};
 
   if(user.membership === "VVIP"){
-    return {verified:true, warning:false};
+    return {state:"vvip"};
   }
 
   const attendance = user.lastMonthAttendance || 0;
@@ -13,12 +13,35 @@ export function evaluateVerifiedStatus(user){
   const attendanceOk = attendance >= 2;
   const financialOk = payment >= 250000 || balance >= 250000;
 
-  const warning = !attendanceOk || !financialOk;
+  // sudah memenuhi semua syarat
+  if(attendanceOk && financialOk){
 
-  const verified = attendanceOk && financialOk;
+    if(user.verified){
+      return {state:"verified_stay"};
+    }
 
-  return {
-    verified,
-    warning
-  };
+    return {state:"verified_upgrade"};
+  }
+
+  // attendance cukup tapi finansial kurang
+  if(attendanceOk && !financialOk){
+
+    if(user.verified){
+      return {state:"verified_warning"};
+    }
+
+    return {state:"upgrade_chance"};
+  }
+
+  // attendance kurang
+  if(!attendanceOk){
+
+    if(user.verified){
+      return {state:"verified_warning"};
+    }
+
+    return {state:"attendance_warning"};
+  }
+
+  return {state:"none"};
 }
