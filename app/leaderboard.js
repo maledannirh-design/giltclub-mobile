@@ -21,8 +21,22 @@ function getCurrentMonthKey(){
 
 
 /* ======================================================
-   MONTHLY RESET CHECK
-   reset monthlyContribution saat bulan berganti
+   HITUNG MONTHLY CONTRIBUTION DARI monthAttendance
+====================================================== */
+
+function calculateMonthlyContribution(data){
+
+  const currentMonth = getCurrentMonthKey();
+
+  const monthAttendance = data.monthAttendance || {};
+
+  return monthAttendance[currentMonth] || 0;
+
+}
+
+
+/* ======================================================
+   MONTHLY RESET + SYNC CHECK
 ====================================================== */
 
 async function ensureMonthlyReset(userDoc){
@@ -30,16 +44,21 @@ async function ensureMonthlyReset(userDoc){
   const currentMonth = getCurrentMonthKey();
   const data = userDoc.data();
 
-  if(data.monthlyKey !== currentMonth){
+  const calculatedMonthly = calculateMonthlyContribution(data);
+
+  if(
+    data.monthlyKey !== currentMonth ||
+    data.monthlyContribution !== calculatedMonthly
+  ){
 
     const ref = doc(db,"users",userDoc.id);
 
     await updateDoc(ref,{
-      monthlyContribution:0,
-      monthlyKey:currentMonth
+      monthlyContribution: calculatedMonthly,
+      monthlyKey: currentMonth
     });
 
-    data.monthlyContribution = 0;
+    data.monthlyContribution = calculatedMonthly;
   }
 
   return data;
