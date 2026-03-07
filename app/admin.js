@@ -608,7 +608,7 @@ function downloadCSV(filename, rows) {
 
 window.exportTopupHistory = async function(){
 
-  const ledgerSnap = await getDocs(collection(db,"walletLedger"));
+  const snap = await getDocs(collection(db,"walletMutations"));
 
   let rows = [[
     "Tanggal",
@@ -616,18 +616,16 @@ window.exportTopupHistory = async function(){
     "Username",
     "Email",
     "Amount",
-    "BalanceBefore",
     "BalanceAfter",
     "Status",
     "Source"
   ]];
 
-  for (const docSnap of ledgerSnap.docs){
+  for (const docSnap of snap.docs){
 
     const d = docSnap.data();
 
-    // hanya transaksi TOPUP
-    if (d.referenceType !== "TOPUP") continue;
+    if (d.mutationType !== "TOPUP") continue;
 
     let username = "";
     let email = "";
@@ -657,17 +655,15 @@ window.exportTopupHistory = async function(){
       username,
       email,
       d.amount || 0,
-      d.balanceBefore ?? "",
       d.balanceAfter ?? "",
-      d.status || "",
-      d.source || ""
+      d.description || "",
+      d.asset || ""
     ]);
 
   }
 
   downloadCSV("topup_history_all.csv", rows);
 };
-
 /* =====================================================
    EXPORT WALLET TRANSACTIONS (RAW – ALL FIELDS)
 ===================================================== */
