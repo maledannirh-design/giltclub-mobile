@@ -2574,12 +2574,20 @@ body.scan-mode{
   height:42px;
 }
 
+/* =====================================================
+   LEADERBOARD WRAPPER
+===================================================== */
+
 .leaderboard-wrapper{
   padding:20px;
   min-height:100vh;
   background: linear-gradient(to bottom, #1ca7ec, #fceabb);
   color:#222;
 }
+
+/* =====================================================
+   TOP THREE LAYOUT
+===================================================== */
 
 .top-three{
   display:flex;
@@ -2588,17 +2596,112 @@ body.scan-mode{
 }
 
 .top-card{
-  background:rgba(255,255,255,.85);
   border-radius:16px;
   padding:15px;
   text-align:center;
   width:30%;
   box-shadow:0 6px 18px rgba(0,0,0,.15);
+  position:relative;
+  overflow:hidden;
+  color:#fff;
 }
 
-.top-card.gold{ transform:scale(1.1); }
-.top-card.silver{ transform:scale(1.05); }
-.top-card.bronze{ transform:scale(1); }
+/* =====================================================
+   METALLIC PLATES
+===================================================== */
+
+/* #1 CRIMSON METALLIC */
+.top-card.gold{
+  transform:scale(1.12);
+  background:linear-gradient(
+    135deg,
+    #5a0000,
+    #b11226,
+    #ff4d6d,
+    #7a0010
+  );
+}
+
+/* #2 EMERALD JADE */
+.top-card.silver{
+  transform:scale(1.05);
+  background:linear-gradient(
+    135deg,
+    #014d40,
+    #1b9c85,
+    #2ecc71,
+    #00695c
+  );
+}
+
+/* #3 PINK GOLD METALLIC */
+.top-card.bronze{
+  background:linear-gradient(
+    135deg,
+    #ff8fa3,
+    #ffd6a5,
+    #fcd5ce,
+    #f8c291
+  );
+}
+
+/* =====================================================
+   DISCO LIGHT SHINE
+===================================================== */
+
+.top-card::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-120%;
+  width:80%;
+  height:100%;
+  background:linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,.8),
+    transparent
+  );
+  transform:skewX(-25deg);
+}
+
+/* FAST SHINE - #1 */
+.top-card.gold::before{
+  animation:shineFast 1.2s infinite;
+}
+
+/* MEDIUM SHINE - #2 */
+.top-card.silver::before{
+  animation:shineMedium 2s infinite;
+}
+
+/* SLOW SHINE - #3 */
+.top-card.bronze::before{
+  animation:shineSlow 3s infinite;
+}
+
+/* =====================================================
+   SHINE ANIMATIONS
+===================================================== */
+
+@keyframes shineFast{
+  0%{ left:-120%; }
+  100%{ left:130%; }
+}
+
+@keyframes shineMedium{
+  0%{ left:-120%; }
+  100%{ left:130%; }
+}
+
+@keyframes shineSlow{
+  0%{ left:-120%; }
+  100%{ left:130%; }
+}
+
+/* =====================================================
+   AVATAR
+===================================================== */
 
 .avatar{
   width:70px;
@@ -2623,7 +2726,7 @@ body.scan-mode{
 
 .level{
   font-size:13px;
-  opacity:.7;
+  opacity:.8;
 }
 
 .stats{
@@ -2631,12 +2734,16 @@ body.scan-mode{
   margin-top:5px;
 }
 
+/* =====================================================
+   OTHER RANKS
+===================================================== */
+
 .other-ranks{
   margin-top:20px;
 }
 
 .rank-item{
-  background:rgba(255,255,255,.8);
+  background:rgba(255,255,255,.85);
   padding:12px;
   margin-bottom:10px;
   border-radius:12px;
@@ -2644,6 +2751,11 @@ body.scan-mode{
   justify-content:space-between;
   font-size:14px;
 }
+
+/* =====================================================
+   CHAT SEEN
+===================================================== */
+
 .chat-check{
   font-size:12px;
   margin-left:6px;
