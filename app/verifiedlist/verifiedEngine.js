@@ -13,7 +13,7 @@ export function evaluateVerifiedStatus(user){
   const attendanceOk = attendance >= 2;
   const financialOk = payment >= 250000 || balance >= 250000;
 
-  // sudah memenuhi semua syarat
+  // semua syarat terpenuhi
   if(attendanceOk && financialOk){
 
     if(user.verified){
@@ -23,7 +23,6 @@ export function evaluateVerifiedStatus(user){
     return {state:"verified_upgrade"};
   }
 
-  
   // attendance cukup tapi finansial kurang
   if(attendanceOk && !financialOk){
 
@@ -45,4 +44,5 @@ export function evaluateVerifiedStatus(user){
   }
 
   return {state:"none"};
+
 }
