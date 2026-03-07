@@ -23,6 +23,7 @@ export function evaluateVerifiedStatus(user){
     return {state:"verified_upgrade"};
   }
 
+  
   // attendance cukup tapi finansial kurang
   if(attendanceOk && !financialOk){
 
