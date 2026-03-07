@@ -1,5 +1,18 @@
 export function showVerifiedSuccessPopup(user){
 
+  const now = new Date();
+  const witaDate = new Date(
+    now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
+  );
+
+  const key =
+    "verifiedPopupDismissed_success_" +
+    witaDate.getFullYear() +
+    "-" +
+    String(witaDate.getMonth()+1).padStart(2,"0");
+
+  if(localStorage.getItem(key) === "true") return;
+
   if(document.getElementById("verified-success-popup")) return;
 
   const popup = document.createElement("div");
@@ -16,51 +29,34 @@ export function showVerifiedSuccessPopup(user){
     message = `
       <h2>🎉 Selamat!</h2>
       <p>Anda akan naik menjadi <b>Verified Member</b>.</p>
-      <p>Screenshot halaman ini dan kirim ke admin
-      untuk mengambil promosi ini.</p>
+      <p>Screenshot halaman ini dan kirim ke admin untuk mengambil promosi ini.</p>
     `;
   }
 
   popup.innerHTML = `
-    <div class="verified-popup-backdrop">
-      <div class="verified-popup-box">
+  <div class="verified-popup-backdrop">
+    <div class="verified-popup-box">
 
-        ${message}
+      ${message}
 
-        <label class="verified-checkbox">
-          <input type="checkbox" id="dont-show-verified">
-          Jangan tampilkan lagi
-        </label>
+      <label class="verified-checkbox">
+        <input type="checkbox" id="dont-show-verified">
+        Jangan tampilkan lagi
+      </label>
 
-        <button id="verified-success-close">
-          Mengerti
-        </button>
+      <button id="verified-success-close">Mengerti</button>
 
-      </div>
     </div>
+  </div>
   `;
 
   document.body.appendChild(popup);
 
-  const closeBtn = document.getElementById("verified-success-close");
-
-  closeBtn.onclick = () => {
+  document.getElementById("verified-success-close").onclick = () => {
 
     const check = document.getElementById("dont-show-verified");
 
     if(check && check.checked){
-
-      const now = new Date();
-      const witaDate = new Date(
-        now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
-      );
-
-      const key =
-        "verifiedPopupDismissed_" +
-        witaDate.getFullYear() +
-        "-" +
-        String(witaDate.getMonth()+1).padStart(2,"0");
-
       localStorage.setItem(key,"true");
     }
 
