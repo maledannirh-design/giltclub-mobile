@@ -35,9 +35,35 @@ export async function navigate(page){
         (await import("./home.js")).renderHome();
         break;
 /* ======================
-   SKILL
+   SKILL (VERIFIED ONLY)
 ====================== */
 case "skill":
+
+  const { auth, db } = await import("./firebase.js");
+  const { doc, getDoc } = await import("./firestore.js");
+
+  const user = auth.currentUser;
+
+  if(!user){
+    alert("Silakan login terlebih dahulu.");
+    return;
+  }
+
+  const userRef = doc(db,"users",user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("Data user tidak ditemukan.");
+    return;
+  }
+
+  const userData = userSnap.data();
+
+  if(!userData.verified){
+    alert("Menu Skill hanya tersedia untuk member yang sudah terverifikasi.");
+    return;
+  }
+
   (await import("./skill.js")).renderSkill();
   break;
 
