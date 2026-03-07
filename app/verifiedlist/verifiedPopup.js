@@ -16,7 +16,7 @@ export function showVerifiedWarningPopup() {
         </p>
 
         <p>
-        Mohon lakukan pengisian saldo minimal
+        Mohon lakukan pengisian saldo ke batas minimal saldo tersisa
         <b>Rp250.000</b>
         sebelum tanggal <b>7</b>.
         </p>
