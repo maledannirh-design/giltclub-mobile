@@ -1,40 +1,3 @@
-/* ======================================================
-   RENDER SKILL PAGE
-====================================================== */
-
-export function renderSkill(){
-
-  const content = document.getElementById("content");
-  if(!content) return;
-
-  content.innerHTML = `
-    <div style="padding:20px;">
-      
-      <h2 style="margin-bottom:20px;">
-        ⭐ Skill
-      </h2>
-
-      <div style="
-        background:#fff;
-        padding:20px;
-        border-radius:16px;
-        box-shadow:0 6px 18px rgba(0,0,0,.1);
-      ">
-
-        <p style="margin-bottom:10px;">
-          Skill system akan tampil di sini.
-        </p>
-
-        <p style="font-size:13px;opacity:.7;">
-          Coming soon...
-        </p>
-
-      </div>
-
-    </div>
-  `;
-}
-
 import { auth, db } from "./firebase.js";
 import { doc, getDoc } from "./firestore.js";
 
@@ -137,14 +100,50 @@ function renderStars(value=0){
   for(let i=1;i<=5;i++){
 
     if(i<=value){
-      stars+="⭐";
+      stars += `<span class="star">⭐</span>`;
     }else{
-      stars+="☆";
+      stars += `<span class="star off">⭐</span>`;
     }
 
   }
 
   return stars;
+
+}
+
+
+/* ======================================================
+   STAR EXPLOSION EFFECT
+====================================================== */
+
+function starExplosion(){
+
+  const wrapper = document.querySelector(".skill-wrapper");
+  if(!wrapper) return;
+
+  for(let i=0;i<35;i++){
+
+    const star=document.createElement("div");
+
+    star.className="explosion-star";
+    star.innerText="⭐";
+
+    const x=(Math.random()*220)-110;
+    const y=(Math.random()*220)-110;
+
+    star.style.setProperty("--x",x+"px");
+    star.style.setProperty("--y",y+"px");
+
+    star.style.left="50%";
+    star.style.top="120px";
+
+    wrapper.appendChild(star);
+
+    setTimeout(()=>{
+      star.remove();
+    },1800);
+
+  }
 
 }
 
@@ -167,8 +166,7 @@ export async function renderSkill(){
      GET USER PROFILE
   ------------------------- */
 
-  const userRef = doc(db,"users",uid);
-  const userSnap = await getDoc(userRef);
+  const userSnap = await getDoc(doc(db,"users",uid));
 
   let username="Member";
   let playingLevel="Newbie";
@@ -186,8 +184,7 @@ export async function renderSkill(){
      GET USER SKILLS
   ------------------------- */
 
-  const skillRef = doc(db,"userSkills",uid);
-  const skillSnap = await getDoc(skillRef);
+  const skillSnap = await getDoc(doc(db,"userSkills",uid));
 
   let skills={};
 
@@ -275,5 +272,11 @@ export async function renderSkill(){
   html+=`</div>`;
 
   content.innerHTML=html;
+
+  /* trigger star explosion */
+
+  setTimeout(()=>{
+    starExplosion();
+  },250);
 
 }
