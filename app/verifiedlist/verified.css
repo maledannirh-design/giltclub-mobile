@@ -1,0 +1,37 @@
+.verified-popup-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.verified-popup-box{
+  width:320px;
+  background:#fff;
+  border-radius:14px;
+  padding:24px;
+  text-align:center;
+  font-family:Inter;
+}
+
+.verified-popup-box h2{
+  margin-bottom:12px;
+}
+
+.verified-popup-box p{
+  font-size:14px;
+  margin-bottom:10px;
+}
+
+.verified-popup-box button{
+  margin-top:12px;
+  background:#000;
+  color:#fff;
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+  cursor:pointer;
+}
