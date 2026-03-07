@@ -7,6 +7,7 @@ import { auth, db } from "./firebase.js";
 import { initTheme, toggleTheme } from "./theme.js";
 import { showToast } from "./ui.js";
 import { initChatUnreadGlobal } from "./services/chatUnreadGlobal.js";
+import { runVerifiedCheck } from "./verifiedlist/verifiedService.js";
 
 import {
   doc,
@@ -28,6 +29,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import { runVerifiedCheck } from "./verifiedlist/verifiedService.js";
 
 /* =========================================
    MAINTENANCE GUARD (PRO VERSION)
@@ -436,6 +438,8 @@ onAuthStateChanged(auth, async (user)=>{
       if(snap.exists()){
 
         const data = snap.data();
+          // VERIFIED SYSTEM CHECK
+  runVerifiedCheck(data);
         window.currentUserRole = data.role || "MEMBER";
 
         if(label){
