@@ -1,5 +1,18 @@
 export function showAttendanceWarningPopup(){
 
+  const now = new Date();
+  const witaDate = new Date(
+    now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
+  );
+
+  const key =
+    "verifiedPopupDismissed_attendance_" +
+    witaDate.getFullYear() +
+    "-" +
+    String(witaDate.getMonth()+1).padStart(2,"0");
+
+  if(localStorage.getItem(key) === "true") return;
+
   if(document.getElementById("attendance-warning-popup")) return;
 
   const popup = document.createElement("div");
@@ -16,9 +29,8 @@ export function showAttendanceWarningPopup(){
       </p>
 
       <p>
-      Datang bermain minimal <b>2 kali dalam 1 bulan</b>
-      untuk mendapatkan atau mempertahankan
-      status <b>Verified Member</b>.
+      Datang bermain minimal <b>2 kali</b> dalam 1 bulan
+      untuk mendapatkan status <b>Verified Member</b>.
       </p>
 
       <label class="verified-checkbox">
@@ -26,9 +38,7 @@ export function showAttendanceWarningPopup(){
         Jangan tampilkan lagi
       </label>
 
-      <button id="attendance-warning-close">
-        Mengerti
-      </button>
+      <button id="attendance-warning-close">Mengerti</button>
 
     </div>
   </div>
@@ -36,25 +46,11 @@ export function showAttendanceWarningPopup(){
 
   document.body.appendChild(popup);
 
-  const closeBtn = document.getElementById("attendance-warning-close");
-
-  closeBtn.onclick = () => {
+  document.getElementById("attendance-warning-close").onclick = () => {
 
     const check = document.getElementById("dont-show-verified");
 
     if(check && check.checked){
-
-      const now = new Date();
-      const witaDate = new Date(
-        now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
-      );
-
-      const key =
-        "verifiedPopupDismissed_" +
-        witaDate.getFullYear() +
-        "-" +
-        String(witaDate.getMonth()+1).padStart(2,"0");
-
       localStorage.setItem(key,"true");
     }
 
