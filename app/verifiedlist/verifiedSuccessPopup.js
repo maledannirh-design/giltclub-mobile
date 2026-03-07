@@ -27,6 +27,11 @@ export function showVerifiedSuccessPopup(user){
 
         ${message}
 
+        <label class="verified-checkbox">
+          <input type="checkbox" id="dont-show-verified">
+          Jangan tampilkan lagi
+        </label>
+
         <button id="verified-success-close">
           Mengerti
         </button>
@@ -37,8 +42,29 @@ export function showVerifiedSuccessPopup(user){
 
   document.body.appendChild(popup);
 
-  document
-    .getElementById("verified-success-close")
-    .onclick = () => popup.remove();
+  const closeBtn = document.getElementById("verified-success-close");
+
+  closeBtn.onclick = () => {
+
+    const check = document.getElementById("dont-show-verified");
+
+    if(check && check.checked){
+
+      const now = new Date();
+      const witaDate = new Date(
+        now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
+      );
+
+      const key =
+        "verifiedPopupDismissed_" +
+        witaDate.getFullYear() +
+        "-" +
+        String(witaDate.getMonth()+1).padStart(2,"0");
+
+      localStorage.setItem(key,"true");
+    }
+
+    popup.remove();
+  };
 
 }
