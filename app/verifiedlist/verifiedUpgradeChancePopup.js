@@ -1,5 +1,18 @@
 export function showUpgradeChancePopup(){
 
+  const now = new Date();
+  const witaDate = new Date(
+    now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
+  );
+
+  const key =
+    "verifiedPopupDismissed_upgrade_" +
+    witaDate.getFullYear() +
+    "-" +
+    String(witaDate.getMonth()+1).padStart(2,"0");
+
+  if(localStorage.getItem(key) === "true") return;
+
   if(document.getElementById("verified-upgrade-popup")) return;
 
   const popup = document.createElement("div");
@@ -17,9 +30,8 @@ export function showUpgradeChancePopup(){
       </p>
 
       <p>
-      Lakukan pengisian saldo sampai
-      minimal tersisa <b>Rp250.000</b>
-      sebelum tanggal <b>7</b>.
+      Lakukan pengisian saldo sampai minimal
+      tersisa <b>Rp250.000</b> sebelum tanggal <b>7</b>.
       </p>
 
       <label class="verified-checkbox">
@@ -27,9 +39,7 @@ export function showUpgradeChancePopup(){
         Jangan tampilkan lagi
       </label>
 
-      <button id="verified-upgrade-close">
-        Mengerti
-      </button>
+      <button id="verified-upgrade-close">Mengerti</button>
 
     </div>
   </div>
@@ -37,25 +47,11 @@ export function showUpgradeChancePopup(){
 
   document.body.appendChild(popup);
 
-  const closeBtn = document.getElementById("verified-upgrade-close");
-
-  closeBtn.onclick = () => {
+  document.getElementById("verified-upgrade-close").onclick = () => {
 
     const check = document.getElementById("dont-show-verified");
 
     if(check && check.checked){
-
-      const now = new Date();
-      const witaDate = new Date(
-        now.toLocaleString("en-US",{timeZone:"Asia/Makassar"})
-      );
-
-      const key =
-        "verifiedPopupDismissed_" +
-        witaDate.getFullYear() +
-        "-" +
-        String(witaDate.getMonth()+1).padStart(2,"0");
-
       localStorage.setItem(key,"true");
     }
 
