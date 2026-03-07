@@ -602,43 +602,71 @@ function downloadCSV(filename, rows) {
 
 
 /* =====================================================
-   EXPORT TOPUP HISTORY
+   EXPORT TOPUP HISTORY (ALL TIME)
+   Includes: username + email
 ===================================================== */
 
 window.exportTopupHistory = async function(){
 
-  const snap =
-    await getDocs(collection(db,"walletLedger"));
+  const ledgerSnap = await getDocs(collection(db,"walletLedger"));
 
   let rows = [[
     "Tanggal",
     "UID",
+    "Username",
+    "Email",
     "Amount",
     "BalanceBefore",
     "BalanceAfter",
+    "Status",
     "Source"
   ]];
 
-  snap.forEach(docSnap => {
+  for (const docSnap of ledgerSnap.docs){
 
     const d = docSnap.data();
 
-    if (d.referenceType !== "TOPUP") return;
+    // hanya transaksi TOPUP
+    if (d.referenceType !== "TOPUP") continue;
+
+    let username = "";
+    let email = "";
+
+    if (d.userId){
+
+      try{
+
+        const userRef = doc(db,"users",d.userId);
+        const userSnap = await getDoc(userRef);
+
+        if(userSnap.exists()){
+          const u = userSnap.data();
+          username = u.username || u.name || "";
+          email = u.email || "";
+        }
+
+      }catch(e){
+        console.warn("User fetch error", e);
+      }
+
+    }
 
     rows.push([
-      d.createdAt?.toDate?.()
-        ?.toLocaleString("id-ID") || "",
+      d.createdAt?.toDate?.()?.toLocaleString("id-ID") || "",
       d.userId || "",
+      username,
+      email,
       d.amount || 0,
       d.balanceBefore ?? "",
       d.balanceAfter ?? "",
+      d.status || "",
       d.source || ""
     ]);
-  });
 
-  downloadCSV("topup_history.csv", rows);
+  }
+
+  downloadCSV("topup_history_all.csv", rows);
 };
-
 
 /* =====================================================
    EXPORT WALLET TRANSACTIONS (RAW – ALL FIELDS)
