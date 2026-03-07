@@ -34,7 +34,14 @@ export async function navigate(page){
       case "home":
         (await import("./home.js")).renderHome();
         break;
+/* ======================
+   SKILL
+====================== */
+case "skill":
+  (await import("./skill.js")).renderSkill();
+  break;
 
+        
       /* ======================
          AKUN
       ====================== */
