@@ -8,6 +8,7 @@ import { initTheme, toggleTheme } from "./theme.js";
 import { showToast } from "./ui.js";
 import { initChatUnreadGlobal } from "./services/chatUnreadGlobal.js";
 import { runVerifiedCheck } from "./verifiedlist/verifiedService.js";
+import { recordUserOnlineLog } from "./services/userService.js";
 
 import {
   doc,
@@ -485,8 +486,12 @@ onAuthStateChanged(auth, async (user)=>{
   }
 
 });
+
+
 /* =========================================
    GLOBAL SERVICES INIT (ONCE)
 ========================================= */
 
 initChatUnreadGlobal();
+
+recordUserOnlineLog();
