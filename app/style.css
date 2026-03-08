@@ -2876,3 +2876,28 @@ body.scan-mode{
 .rules-text{
   margin-bottom:6px;
 }
+
+.header-stats{
+  display:flex;
+  flex-direction:column;
+  font-size:11px;
+  line-height:1.2;
+  margin-right:6px;
+}
+
+.stat-weekly{
+  color:#cccccc;
+}
+
+
+.stat-online{
+  color:#7CFF8A;
+  font-weight:600;
+  animation:pulseOnline 2s infinite;
+}
+
+@keyframes pulseOnline{
+  0%{opacity:1;}
+  50%{opacity:0.5;}
+  100%{opacity:1;}
+}
