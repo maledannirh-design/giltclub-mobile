@@ -6,7 +6,7 @@ import {
   where,
   orderBy,
   limit,
-  getDocs,
+  onSnapshot,
   doc,
   updateDoc
 } from "./firestore.js";
@@ -19,24 +19,8 @@ function getCurrentMonthKey(){
   return new Date().toISOString().slice(0,7);
 }
 
-
 /* ======================================================
-   HITUNG MONTHLY CONTRIBUTION DARI monthAttendance
-====================================================== */
-
-function calculateMonthlyContribution(data){
-
-  const currentMonth = getCurrentMonthKey();
-
-  const monthAttendance = data.monthAttendance || {};
-
-  return monthAttendance[currentMonth] || 0;
-
-}
-
-
-/* ======================================================
-   MONTHLY RESET + SYNC CHECK
+   MONTHLY RESET
 ====================================================== */
 
 async function ensureMonthlyReset(userDoc){
@@ -44,32 +28,31 @@ async function ensureMonthlyReset(userDoc){
   const currentMonth = getCurrentMonthKey();
   const data = userDoc.data();
 
-  const calculatedMonthly = calculateMonthlyContribution(data);
-
-  if(
-    data.monthlyKey !== currentMonth ||
-    data.monthlyContribution !== calculatedMonthly
-  ){
+  if(data.monthlyKey !== currentMonth){
 
     const ref = doc(db,"users",userDoc.id);
 
     await updateDoc(ref,{
-      monthlyContribution: calculatedMonthly,
-      monthlyKey: currentMonth
+      monthlyContribution:0,
+      monthlyKey:currentMonth
     });
 
-    data.monthlyContribution = calculatedMonthly;
+    data.monthlyContribution = 0;
   }
 
   return data;
 }
 
-
 /* ======================================================
-   GET TOP USERS
+   REALTIME LEADERBOARD
 ====================================================== */
 
-async function getTopUsers(){
+export function renderAttendanceLeaderboard(){
+
+  const content = document.getElementById("content");
+  if(!content) return;
+
+  const currentMonth = getCurrentMonthKey();
 
   const q = query(
     collection(db,"users"),
@@ -79,116 +62,85 @@ async function getTopUsers(){
     limit(10)
   );
 
-  const snap = await getDocs(q);
+  onSnapshot(q, async (snap)=>{
 
-  const users = [];
+    const users = [];
 
-  for(const docSnap of snap.docs){
+    for(const docSnap of snap.docs){
 
-    const data = await ensureMonthlyReset(docSnap);
+      const data = await ensureMonthlyReset(docSnap);
 
-    users.push({
-      userId: docSnap.id,
-      name: data.name || data.username || "Member",
-      monthlyContribution: data.monthlyContribution || 0,
-      attendanceCount: data.attendanceCount || 0
-    });
+      users.push({
+        userId: docSnap.id,
+        name: data.name || data.username || "Member",
+        monthlyContribution: data.monthlyContribution || 0,
+        attendanceCount: data.attendanceCount || 0
+      });
 
-  }
+    }
 
-  return users;
-}
+    if(!users.length){
 
+      content.innerHTML = `
+        <div style="padding:20px;">
+          <h2 class="leaderboard-title">
+🏆 Leaderboard ${formatMonthID(currentMonth)}
+</h2>
+          <p>Belum ada kehadiran bulan ini.</p>
+        </div>
+      `;
 
-/* ======================================================
-   RENDER LEADERBOARD
-====================================================== */
+      return;
+    }
 
-export async function renderAttendanceLeaderboard(){
+    let html = `
+      <div class="leaderboard-wrapper">
 
-  const content = document.getElementById("content");
-  if(!content) return;
-
-  const currentMonth = getCurrentMonthKey();
-
-  const topUsers = await getTopUsers();
-
-  if(!topUsers.length){
-
-    content.innerHTML = `
-      <div style="padding:20px;">
         <h2 class="leaderboard-title">
 🏆 Leaderboard ${formatMonthID(currentMonth)}
 </h2>
-        <p>Belum ada kehadiran bulan ini.</p>
-      </div>
     `;
 
-    return;
-  }
+    users.forEach((user,index)=>{
 
-  let html = `
-    <div class="leaderboard-wrapper">
+      let crown = "";
+      let crownSize = "18px";
 
-      <h2 class="leaderboard-title">
-🏆 Leaderboard ${formatMonthID(currentMonth)}
-</h2>
+      if(index === 0){ crown = "🥇"; crownSize="26px"; }
+      if(index === 1){ crown = "🥈"; crownSize="22px"; }
+      if(index === 2){ crown = "🥉"; crownSize="20px"; }
 
-  `;
+      html += `
+        <div class="rank-item rank-${index+1}">
 
-  topUsers.forEach((user,index)=>{
+          <div>
 
-    let crown = "";
-    let crownSize = "18px";
+            <div style="font-weight:600;">
+              ${crown ? `<span style="font-size:${crownSize};margin-right:6px;">${crown}</span>` : ""}
+              #${index+1} ${user.name}
+            </div>
 
-    if(index === 0){
-      crown = "🥇";
-      crownSize = "26px";
-    }
+            <div style="font-size:12px;opacity:.6;">
+              Total Hadir: ${user.attendanceCount}
+            </div>
 
-    if(index === 1){
-      crown = "🥈";
-      crownSize = "22px";
-    }
-
-    if(index === 2){
-      crown = "🥉";
-      crownSize = "20px";
-    }
-
-    html += `
-
-      <div class="rank-item rank-${index+1}">
-
-        <div>
+          </div>
 
           <div style="font-weight:600;">
-            ${crown ? `<span style="font-size:${crownSize};margin-right:6px;">${crown}</span>` : ""}
-            #${index+1} ${user.name}
-          </div>
-
-          <div style="font-size:12px;opacity:.6;">
-            Total Hadir: ${user.attendanceCount}
+            ${user.monthlyContribution} sesi bulan ini
           </div>
 
         </div>
+      `;
+    });
 
-        <div style="font-weight:600;">
-          ${user.monthlyContribution} sesi bulan ini
-        </div>
+    html += `</div>`;
 
-      </div>
-
-    `;
+    content.innerHTML = html;
 
   });
 
-  html += `</div>`;
-
-  content.innerHTML = html;
-
 }
-
 
 /* ======================================================
    FORMAT MONTH
