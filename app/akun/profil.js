@@ -60,51 +60,51 @@ export async function renderProfil(){
 
   <option value="">Playing Level</option>
 
-  <option value="1.0" ${userData.playingLevel === "1.0" ? "selected" : ""}>
+  <option value="1.0" ${userData.playingLevel === "New Player (NTRP 1.0)" ? "selected" : ""}>
     New Player (NTRP 1.0)
   </option>
 
-  <option value="1.5" ${userData.playingLevel === "1.5" ? "selected" : ""}>
+  <option value="1.5" ${userData.playingLevel === "Beginner – Basic Strokes (NTRP 1.5)" ? "selected" : ""}>
     Beginner – Basic Strokes (NTRP 1.5)
   </option>
 
-  <option value="2.0" ${userData.playingLevel === "2.0" ? "selected" : ""}>
+  <option value="2.0" ${userData.playingLevel === "Beginner – Limited Rally (NTRP 2.0)" ? "selected" : ""}>
     Beginner – Limited Rally (NTRP 2.0)
   </option>
 
-  <option value="2.5" ${userData.playingLevel === "2.5" ? "selected" : ""}>
+  <option value="2.5" ${userData.playingLevel === "Advanced Beginner (NTRP 2.5)" ? "selected" : ""}>
     Advanced Beginner (NTRP 2.5)
   </option>
 
-  <option value="3.0" ${userData.playingLevel === "3.0" ? "selected" : ""}>
+  <option value="3.0" ${userData.playingLevel === "Lower Intermediate (NTRP 3.0)" ? "selected" : ""}>
     Lower Intermediate (NTRP 3.0)
   </option>
 
-  <option value="3.5" ${userData.playingLevel === "3.5" ? "selected" : ""}>
+  <option value="3.5" ${userData.playingLevel === "Intermediate (NTRP 3.5)" ? "selected" : ""}>
     Intermediate (NTRP 3.5)
   </option>
 
-  <option value="4.0" ${userData.playingLevel === "4.0" ? "selected" : ""}>
+  <option value="4.0" ${userData.playingLevel === "Advanced Intermediate (NTRP 4.0)" ? "selected" : ""}>
     Advanced Intermediate (NTRP 4.0)
   </option>
 
-  <option value="4.5" ${userData.playingLevel === "4.5" ? "selected" : ""}>
+  <option value="4.5" ${userData.playingLevel === "Advanced (NTRP 4.5)" ? "selected" : ""}>
     Advanced (NTRP 4.5)
   </option>
 
-  <option value="5.0" ${userData.playingLevel === "5.0" ? "selected" : ""}>
+  <option value="5.0" ${userData.playingLevel === "Expert / Tournament Player (NTRP 5.0)" ? "selected" : ""}>
     Expert / Tournament Player (NTRP 5.0)
   </option>
 
-  <option value="5.5" ${userData.playingLevel === "5.5" ? "selected" : ""}>
+  <option value="5.5" ${userData.playingLevel === "Elite Amateur (NTRP 5.5)" ? "selected" : ""}>
     Elite Amateur (NTRP 5.5)
   </option>
 
-  <option value="6.0" ${userData.playingLevel === "6.0" ? "selected" : ""}>
+  <option value="6.0" ${userData.playingLevel === "National Level Player (NTRP 6.0)" ? "selected" : ""}>
     National Level Player (NTRP 6.0)
   </option>
 
-  <option value="7.0" ${userData.playingLevel === "7.0" ? "selected" : ""}>
+  <option value="7.0" ${userData.playingLevel === "Touring Professional (NTRP 7.0)" ? "selected" : ""}>
     Touring Professional (NTRP 7.0)
   </option>
 
