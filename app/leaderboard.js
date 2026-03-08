@@ -25,8 +25,10 @@ function getRankReward(rank){
 
   if(rank >=4 && rank <=5)
     return "⭐ Bonus Bulanan 2500 GPoint";
-   if(rank >=6 && rank <7)
+  
+   if(rank >=6 && rank <=7)
     return "⭐ Bonus Bulanan 1500 GPoint";
+  
   if(rank >=8 && rank <=10)
     return "⭐ Bonus Bulanan 1000 GPoint";
 
@@ -152,42 +154,54 @@ export function renderAttendanceLeaderboard(){
 
           <div class="rank-right">
 
-  <div class="rank-session">
-    ${user.monthlyContribution} sesi bulan ini
-  </div>
+            <div class="rank-session">
+              ${user.monthlyContribution} sesi bulan ini
+            </div>
 
-  <div class="rank-reward">
-    ${getRankReward(index+1)}
-  </div>
+            <div class="rank-reward">
+              ${getRankReward(index+1)}
+            </div>
 
-</div>
+          </div>
 
         </div>
       `;
     });
 
-   html += `
+    /* =============================
+       OFFICIAL LEADERBOARD RULES
+    ============================== */
 
-  <div class="leaderboard-note">
-    <p>
-      *Penentuan rank 1 - 5 tidak memperhatikan total kehadiran, hanya berdasarkan jumlah sesi bulan ini. 
-      Jika terdapat kesamaan jumlah sesi, maka akan dilakukan undian pada tanggal 8 dari beberapa member.
-    </p>
+    html += `
 
-    <p>
-      Reward akan dibagikan ke inbox toko dan dapat mulai digunakan pada tanggal 9 setiap bulannya.
-    </p>
-  </div>
+      <div class="leaderboard-rules">
 
-</div>
-`;
+        <div class="rules-title">
+          ℹ️ Official Leaderboard Rules
+        </div>
+
+        <div class="rules-text">
+          Penentuan rank 1 - 5 tidak memperhatikan total kehadiran,
+          hanya berdasarkan jumlah sesi bulan ini.
+          Jika terdapat kesamaan jumlah sesi maka akan dilakukan
+          undian pada tanggal 8 dari beberapa member.
+        </div>
+
+        <div class="rules-text">
+          Reward akan dibagikan ke inbox toko dan dapat mulai
+          digunakan pada tanggal 9 setiap bulannya.
+        </div>
+
+      </div>
+
+    </div>
+    `;
 
     content.innerHTML = html;
 
   });
 
 }
-
 /* ======================================================
    FORMAT MONTH
 ====================================================== */
