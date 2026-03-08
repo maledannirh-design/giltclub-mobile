@@ -13,6 +13,7 @@ import { recordUserOnlineLog } from "./services/userService.js";
 import {
   doc,
   getDoc,
+   getDocs,
   collection,
   query,
   where,
@@ -401,6 +402,59 @@ function listenAttendanceNotification(uid){
   });
 }
 
+/* =========================================
+   HEADER STATS
+========================================= */
+
+async function loadHeaderStats(){
+
+  try{
+
+    /* ONLINE MEMBERS (RealtimeDB) */
+
+    const statusRef = ref(rtdb,"status");
+
+    onSnapshot(statusRef,()=>{});
+
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js")
+      .then(({ onValue })=>{
+
+        onValue(statusRef,(snap)=>{
+
+          let count = 0;
+
+          snap.forEach(child=>{
+            if(child.val()?.online === true) count++;
+          });
+
+          const el = document.getElementById("onlineMembers");
+          if(el) el.innerText = count;
+
+        });
+
+      });
+
+
+    /* WEEKLY VISITS */
+
+    const start = new Date();
+    start.setDate(start.getDate() - 7);
+
+    const q = query(
+      collection(db,"onlineLogs"),
+      where("timestamp",">=",start)
+    );
+
+    const visitSnap = await getDocs(q);
+
+    const visitEl = document.getElementById("weeklyVisits");
+    if(visitEl) visitEl.innerText = visitSnap.size;
+
+  }catch(err){
+    console.error("Header stats error:",err);
+  }
+
+}
 
 /* =========================================
    AUTH STATE
@@ -417,7 +471,7 @@ onAuthStateChanged(auth, async (user)=>{
   if(user){
 
     navigate("home");
-
+loadHeaderStats();
     const statusRef = ref(rtdb, "status/" + user.uid);
 
     set(statusRef,{
@@ -495,4 +549,6 @@ onAuthStateChanged(auth, async (user)=>{
 ========================================= */
 
 initChatUnreadGlobal();
+
+
 
