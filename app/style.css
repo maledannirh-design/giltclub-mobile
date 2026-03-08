@@ -2854,3 +2854,14 @@ body.scan-mode{
   opacity:.9;
   color:#7a4b00;
 }
+.leaderboard-note{
+  margin-top:20px;
+  font-size:12px;
+  opacity:.75;
+  line-height:1.5;
+  text-align:left;
+}
+
+.leaderboard-note p{
+  margin:6px 0;
+}
