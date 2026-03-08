@@ -17,14 +17,16 @@ import {
   collection,
   query,
   where,
-  onSnapshot
+  onSnapshot,
+   
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
   getDatabase,
   ref,
   set,
-  onDisconnect
+  onDisconnect,
+   onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 import {
@@ -410,29 +412,22 @@ async function loadHeaderStats(){
 
   try{
 
-    /* ONLINE MEMBERS (RealtimeDB) */
+    /* ONLINE MEMBERS */
 
     const statusRef = ref(rtdb,"status");
 
-    onSnapshot(statusRef,()=>{});
+    onValue(statusRef,(snap)=>{
 
-    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js")
-      .then(({ onValue })=>{
+      let count = 0;
 
-        onValue(statusRef,(snap)=>{
-
-          let count = 0;
-
-          snap.forEach(child=>{
-            if(child.val()?.online === true) count++;
-          });
-
-          const el = document.getElementById("onlineMembers");
-          if(el) el.innerText = count;
-
-        });
-
+      snap.forEach(child=>{
+        if(child.val()?.online === true) count++;
       });
+
+      const el = document.getElementById("onlineMembers");
+      if(el) el.innerText = count;
+
+    });
 
 
     /* WEEKLY VISITS */
@@ -445,10 +440,10 @@ async function loadHeaderStats(){
       where("timestamp",">=",start)
     );
 
-    const visitSnap = await getDocs(q);
+    const snap = await getDocs(q);
 
     const visitEl = document.getElementById("weeklyVisits");
-    if(visitEl) visitEl.innerText = visitSnap.size;
+    if(visitEl) visitEl.innerText = snap.size;
 
   }catch(err){
     console.error("Header stats error:",err);
