@@ -11,6 +11,29 @@ import {
   updateDoc
 } from "./firestore.js";
 
+
+function getRankReward(rank){
+
+  if(rank === 1)
+    return "🎟️ Voucher Semi Private GRATIS";
+
+  if(rank === 2)
+    return "🎟️ Voucher Mabar GRATIS + 1500 GPoint";
+
+  if(rank === 3)
+    return "🎟️ Voucher Mabar GRATIS";
+
+  if(rank >=4 && rank <=6)
+    return "⭐ Bonus Bulanan 2500 GPoint";
+
+  if(rank >=7 && rank <=10)
+    return "⭐ Bonus Bulanan 1000 GPoint";
+
+  return "";
+
+}
+
+
 /* ======================================================
    DATE UTIL
 ====================================================== */
@@ -127,8 +150,12 @@ export function renderAttendanceLeaderboard(){
           </div>
 
           <div style="font-weight:600;">
-            ${user.monthlyContribution} sesi bulan ini
-          </div>
+  ${user.monthlyContribution} sesi bulan ini
+</div>
+
+<div class="rank-reward">
+  ${getRankReward(index+1)}
+</div>
 
         </div>
       `;
