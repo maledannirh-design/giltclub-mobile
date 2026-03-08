@@ -2877,23 +2877,30 @@ body.scan-mode{
   margin-bottom:6px;
 }
 
+.header-bottom-row{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+
 .header-stats{
   display:flex;
   flex-direction:column;
-  font-size:11px;
+  justify-content:center;
+  font-size:12px;
   line-height:1.2;
-  margin-right:6px;
+  text-align:right;
 }
-
-.stat-weekly{
-  color:#cccccc;
-}
-
 
 .stat-online{
   color:#7CFF8A;
   font-weight:600;
   animation:pulseOnline 2s infinite;
+}
+
+.stat-weekly{
+  color:#cccccc;
 }
 
 @keyframes pulseOnline{
