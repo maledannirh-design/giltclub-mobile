@@ -2837,3 +2837,11 @@ body.scan-mode{
   padding:10px;
   border-radius:10px;
 }
+
+.rank-reward{
+  font-size:12px;
+  margin-top:4px;
+  opacity:.9;
+  font-weight:500;
+  color:#7a4b00;
+}
