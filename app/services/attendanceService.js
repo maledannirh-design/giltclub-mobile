@@ -139,11 +139,18 @@ export async function checkInAttendance({
     const currentMonthCount = monthAttendance[monthKey] || 0;
 
     transaction.update(userRef, {
-      walletBalance: balanceAfter,
-      gPoint: gPointAfter,
-      totalAttendance: (userData.totalAttendance || 0) + 1,
-      ["monthAttendance." + monthKey]: currentMonthCount + 1
-    });
+  walletBalance: balanceAfter,
+  gPoint: gPointAfter,
+
+  /* TOTAL ATTENDANCE */
+  attendanceCount: (userData.attendanceCount || 0) + 1,
+
+  /* ATTENDANCE BULAN INI */
+  monthlyContribution: (userData.monthlyContribution || 0) + 1,
+
+  /* HISTORY ATTENDANCE PER BULAN */
+  ["monthAttendance." + monthKey]: currentMonthCount + 1
+});
 
     /* ===============================
        MUTATION: CASHBACK (RUPIAH)
