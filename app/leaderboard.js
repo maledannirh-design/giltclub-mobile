@@ -23,10 +23,11 @@ function getRankReward(rank){
   if(rank === 3)
     return "🎟️ Voucher Mabar GRATIS";
 
-  if(rank >=4 && rank <=6)
+  if(rank >=4 && rank <=5)
     return "⭐ Bonus Bulanan 2500 GPoint";
-
-  if(rank >=7 && rank <=10)
+   if(rank >=6 && rank <7)
+    return "⭐ Bonus Bulanan 1500 GPoint";
+  if(rank >=8 && rank <=10)
     return "⭐ Bonus Bulanan 1000 GPoint";
 
   return "";
@@ -169,7 +170,7 @@ export function renderAttendanceLeaderboard(){
 
   <div class="leaderboard-note">
     <p>
-      *Penentuan rank 1 - 3 tidak memperhatikan total kehadiran, hanya berdasarkan jumlah sesi bulan ini. 
+      *Penentuan rank 1 - 5 tidak memperhatikan total kehadiran, hanya berdasarkan jumlah sesi bulan ini. 
       Jika terdapat kesamaan jumlah sesi, maka akan dilakukan undian pada tanggal 8 dari beberapa member.
     </p>
 
