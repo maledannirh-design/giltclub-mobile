@@ -3,17 +3,16 @@
 /* ======================================================
    RECORD USER ONLINE LOG (ANTI SPAM + REAL VISIT)
 ====================================================== */
-
 import {
   collection,
   addDoc,
   serverTimestamp
-} from "./firestore.js";
+} from "../firestore.js";
 
 import {
   auth,
   db
-} from "./firebase.js";
+} from "../firebase.js";
 
 export async function getTopMonthlyUsers(month){
    const ref = collection(db,"monthly_stats",month,"users");
