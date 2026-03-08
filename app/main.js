@@ -466,7 +466,7 @@ onAuthStateChanged(auth, async (user)=>{
   if(user){
 
     navigate("home");
-loadHeaderStats();
+
     const statusRef = ref(rtdb, "status/" + user.uid);
 
     set(statusRef,{
@@ -545,5 +545,5 @@ loadHeaderStats();
 
 initChatUnreadGlobal();
 
-
+loadHeaderStats();
 
