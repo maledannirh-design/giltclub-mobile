@@ -55,9 +55,6 @@ export async function renderProfil(){
           <option value="male" ${userData.genre === "male" ? "selected" : ""}>Male</option>
           <option value="female" ${userData.genre === "female" ? "selected" : ""}>Female</option>
         </select>
-
-        <select id="playingLevel">
-
 <select id="playingLevel">
 
   <option value="">Playing Level</option>
