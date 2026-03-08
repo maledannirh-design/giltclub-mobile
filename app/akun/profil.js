@@ -56,6 +56,60 @@ export async function renderProfil(){
           <option value="female" ${userData.genre === "female" ? "selected" : ""}>Female</option>
         </select>
 
+        <select id="playingLevel">
+
+  <option value="">Playing Level</option>
+
+  <option value="1.0" ${userData.playingLevel === "1.0" ? "selected" : ""}>
+    New Player (NTRP 1.0)
+  </option>
+
+  <option value="1.5" ${userData.playingLevel === "1.5" ? "selected" : ""}>
+    Beginner – Basic Strokes (NTRP 1.5)
+  </option>
+
+  <option value="2.0" ${userData.playingLevel === "2.0" ? "selected" : ""}>
+    Beginner – Limited Rally (NTRP 2.0)
+  </option>
+
+  <option value="2.5" ${userData.playingLevel === "2.5" ? "selected" : ""}>
+    Advanced Beginner (NTRP 2.5)
+  </option>
+
+  <option value="3.0" ${userData.playingLevel === "3.0" ? "selected" : ""}>
+    Lower Intermediate (NTRP 3.0)
+  </option>
+
+  <option value="3.5" ${userData.playingLevel === "3.5" ? "selected" : ""}>
+    Intermediate (NTRP 3.5)
+  </option>
+
+  <option value="4.0" ${userData.playingLevel === "4.0" ? "selected" : ""}>
+    Advanced Intermediate (NTRP 4.0)
+  </option>
+
+  <option value="4.5" ${userData.playingLevel === "4.5" ? "selected" : ""}>
+    Advanced (NTRP 4.5)
+  </option>
+
+  <option value="5.0" ${userData.playingLevel === "5.0" ? "selected" : ""}>
+    Expert / Tournament Player (NTRP 5.0)
+  </option>
+
+  <option value="5.5" ${userData.playingLevel === "5.5" ? "selected" : ""}>
+    Elite Amateur (NTRP 5.5)
+  </option>
+
+  <option value="6.0" ${userData.playingLevel === "6.0" ? "selected" : ""}>
+    National Level Player (NTRP 6.0)
+  </option>
+
+  <option value="7.0" ${userData.playingLevel === "7.0" ? "selected" : ""}>
+    Touring Professional (NTRP 7.0)
+  </option>
+
+</select>
+
         <input id="birthPlace"
           placeholder="Tempat Lahir"
           value="${userData.birthPlace || ""}">
@@ -91,14 +145,15 @@ export async function renderProfil(){
 
   document.getElementById("saveProfileBtn").onclick = async () => {
 
-    const username   = document.getElementById("username").value.trim();
-    const fullName   = document.getElementById("fullName").value.trim();
-    const phone      = document.getElementById("phone").value.trim();
-    const birthPlace = document.getElementById("birthPlace").value.trim();
-    const birthDate  = document.getElementById("birthDate").value;
-    const bio        = document.getElementById("bio").value.trim();
-    const genre      = document.getElementById("genre").value;
-    const alamat     = document.getElementById("alamat").value.trim();
+    const username     = document.getElementById("username").value.trim();
+    const fullName     = document.getElementById("fullName").value.trim();
+    const phone        = document.getElementById("phone").value.trim();
+    const birthPlace   = document.getElementById("birthPlace").value.trim();
+    const birthDate    = document.getElementById("birthDate").value;
+    const bio          = document.getElementById("bio").value.trim();
+    const genre        = document.getElementById("genre").value;
+    const alamat       = document.getElementById("alamat").value.trim();
+    const playingLevel = document.getElementById("playingLevel").value;
 
     const usernameRegex = /^[A-Za-z0-9.\s]{3,30}$/;
     if(!usernameRegex.test(username)){
@@ -118,8 +173,8 @@ export async function renderProfil(){
 
     try{
 
-      // Auto generate memberCode jika belum ada
       let memberCode = userData.memberCode;
+
       if(!memberCode){
         const year = new Date().getFullYear().toString().slice(-2);
         memberCode = `GC-${year}${Math.floor(Math.random()*90000)+10000}`;
@@ -134,8 +189,9 @@ export async function renderProfil(){
         bio,
         genre,
         alamat,
+        playingLevel,
         memberCode,
-        membership: userData.membership || "Regular"
+        membership: userData.membership || "MEMBER"
       });
 
       alert("Profil berhasil diperbarui.");
