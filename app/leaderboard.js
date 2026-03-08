@@ -149,12 +149,16 @@ export function renderAttendanceLeaderboard(){
 
           </div>
 
-          <div style="font-weight:600;">
-  ${user.monthlyContribution} sesi bulan ini
-</div>
+          <div class="rank-right">
 
-<div class="rank-reward">
-  ${getRankReward(index+1)}
+  <div class="rank-session">
+    ${user.monthlyContribution} sesi bulan ini
+  </div>
+
+  <div class="rank-reward">
+    ${getRankReward(index+1)}
+  </div>
+
 </div>
 
         </div>
