@@ -165,7 +165,21 @@ export function renderAttendanceLeaderboard(){
       `;
     });
 
-    html += `</div>`;
+   html += `
+
+  <div class="leaderboard-note">
+    <p>
+      *Penentuan rank 1 - 3 tidak memperhatikan total kehadiran, hanya berdasarkan jumlah sesi bulan ini. 
+      Jika terdapat kesamaan jumlah sesi, maka akan dilakukan undian pada tanggal 8 dari beberapa member.
+    </p>
+
+    <p>
+      Reward akan dibagikan ke inbox toko dan dapat mulai digunakan pada tanggal 9 setiap bulannya.
+    </p>
+  </div>
+
+</div>
+`;
 
     content.innerHTML = html;
 
