@@ -430,6 +430,8 @@ onAuthStateChanged(auth, async (user)=>{
       lastSeen: Date.now()
     });
 
+       // LOG USER VISIT
+  recordUserOnlineLog();
     try{
 
       const snap = await getDoc(doc(db, "users", user.uid));
@@ -494,4 +496,3 @@ onAuthStateChanged(auth, async (user)=>{
 
 initChatUnreadGlobal();
 
-recordUserOnlineLog();
