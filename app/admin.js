@@ -183,7 +183,11 @@ Flash Drop
     <button onclick="exportBookingHistory()" class="admin-btn" style="margin-top:10px;">
       Export Booking History
     </button>
-
+<button onclick="exportOnlineLogs()" 
+        class="admin-btn" 
+        style="margin-top:10px;">
+  Export Online Logs
+</button>
     <button onclick="exportAdjustmentHistory()" class="admin-btn" style="margin-top:10px;">
       Export Adjustment History
     </button>
@@ -1058,5 +1062,41 @@ window.openRewardAdmin = async function () {
     await import("./store/reward-admin.js");
 
   renderRewardAdmin();
+
+};
+
+/* =====================================================
+   EXPORT ONLINE LOGS
+===================================================== */
+
+window.exportOnlineLogs = async function(){
+
+  const snap =
+    await getDocs(collection(db,"onlineLogs"));
+
+  let rows = [[
+    "Timestamp",
+    "UID",
+    "Username",
+    "Device",
+    "Page"
+  ]];
+
+  snap.forEach(docSnap => {
+
+    const d = docSnap.data();
+
+    rows.push([
+      d.timestamp?.toDate?.()
+        ?.toLocaleString("id-ID") || "",
+      d.uid || "",
+      d.username || "",
+      d.device || "",
+      d.page || ""
+    ]);
+
+  });
+
+  downloadCSV("online_logs.csv", rows);
 
 };
