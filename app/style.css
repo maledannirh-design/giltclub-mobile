@@ -2838,10 +2838,19 @@ body.scan-mode{
   border-radius:10px;
 }
 
+.rank-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+}
+
+.rank-session{
+  font-weight:600;
+}
+
 .rank-reward{
   font-size:12px;
   margin-top:4px;
   opacity:.9;
-  font-weight:500;
   color:#7a4b00;
 }
