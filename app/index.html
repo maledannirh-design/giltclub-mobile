@@ -43,32 +43,45 @@
   <div id="app">
 
     <!-- ================= HEADER ================= -->
-    <header class="header">
-      <div class="header-title">
+<header class="header">
+  <div class="header-title">
     Girl in Love with Tennis..<br>
-    ...- Maha Elites</div>
-
-     <div class="header-actions">
-
-  <div class="header-top-row">
-    <button class="theme-toggle" onclick="toggleTheme()">
-      🌙
-    </button>
-
-    <span id="currentUserLabel" class="user-label">
-      Not logged in
-    </span>
+    - Maha Elites-
   </div>
 
-  <div class="header-bottom-row">
-    <button id="chatButton" class="chat-btn" onclick="navigate('chat')">
-      <i class="fa-solid fa-envelope"></i>
-      <span id="chatUnreadBadge" class="chat-badge hidden">0</span>
-    </button>
-  </div>
+  <div class="header-actions">
 
-</div>
-    </header>
+    <div class="header-top-row">
+      <button class="theme-toggle" onclick="toggleTheme()">
+        🌙
+      </button>
+
+      <span id="currentUserLabel" class="user-label">
+        Not logged in
+      </span>
+    </div>
+
+    <div class="header-bottom-row">
+
+      <!-- ONLINE + WEEKLY STATS -->
+      <div class="header-stats">
+        <div class="stat-online">
+          🟢 <span id="onlineMembers">0</span>
+        </div>
+        <div class="stat-weekly">
+          👣 <span id="weeklyVisits">0</span>
+        </div>
+      </div>
+
+      <button id="chatButton" class="chat-btn" onclick="navigate('chat')">
+        <i class="fa-solid fa-envelope"></i>
+        <span id="chatUnreadBadge" class="chat-badge hidden">0</span>
+      </button>
+
+    </div>
+
+  </div>
+</header>
 
     <!-- ================= MAIN CONTENT ================= -->
     <main id="content" class="content"></main>
