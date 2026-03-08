@@ -1,23 +1,21 @@
 
 
 /* ======================================================
-   RECORD USER ONLINE LOG (ANTI SPAM + REAL VISIT)
+   RECORD USER ONLINE LOG
 ====================================================== */
+
 import {
   collection,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  doc,
+  getDoc
 } from "../firestore.js";
 
 import {
   auth,
   db
 } from "../firebase.js";
-
-export async function getTopMonthlyUsers(month){
-   const ref = collection(db,"monthly_stats",month,"users");
-   return getDocs(query(ref,orderBy("attendance","desc"),limit(10)));
-}
 
 export async function recordUserOnlineLog(){
 
@@ -26,18 +24,16 @@ export async function recordUserOnlineLog(){
 
   try{
 
-    const COOLDOWN = 10 * 60 * 1000;
-
-    const lastVisit = localStorage.getItem("visitLogTime");
-
-    const now = Date.now();
-
-    if(lastVisit && now - parseInt(lastVisit) < COOLDOWN){
-      return;
-    }
-
     const uid = user.uid;
-    const username = user.displayName || "";
+
+    let username = "";
+
+    // ambil username dari Firestore users collection
+    const userSnap = await getDoc(doc(db,"users",uid));
+
+    if(userSnap.exists()){
+      username = userSnap.data().username || "";
+    }
 
     await addDoc(
       collection(db,"onlineLogs"),
@@ -49,8 +45,6 @@ export async function recordUserOnlineLog(){
         page: window.location.pathname
       }
     );
-
-    localStorage.setItem("visitLogTime", now.toString());
 
   }catch(e){
     console.error("online log error",e);
