@@ -729,25 +729,38 @@ async function attachSlotInteraction(currentUserRole) {
       ================================================= */
       if (slot.classList.contains("empty-slot")) {
 
-        // MEMBER → BOOKING
-        if (!isPrivileged) {
+      // MEMBER → BOOKING
+if (!isPrivileged) {
 
-          try {
+  try {
 
-            await createBooking({
-              userId: currentUser.uid,
-              scheduleId
-            });
+    const confirmed = await showConfirm({
+      title: "Gabung Sesi",
+      message: "Lanjutkan booking sesi ini?",
+      confirmText: "Ya",
+      cancelText: "Batal"
+    });
 
-            showToast("Berhasil join sesi","success");
-            renderBooking();
+    if (!confirmed) return;
 
-          } catch (err) {
-            showToast(err.message || "Gagal join","error");
-          }
+    const pin = await requestTransactionPin();
+    if (!pin) return;
 
-          return;
-        }
+    await createBooking({
+      userId: currentUser.uid,
+      scheduleId: scheduleId,
+      pin: pin
+    });
+
+    showToast("Berhasil join sesi","success");
+    renderBooking();
+
+  } catch (err) {
+    showToast(err.message || "Gagal join","error");
+  }
+
+  return;
+}
 
         // PRIVILEGED → LOCK SLOT
         const label = prompt("Masukkan label untuk lock slot:");
