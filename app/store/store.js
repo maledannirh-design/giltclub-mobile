@@ -1790,3 +1790,285 @@ window.openMyStore = function(){
 
 
 window.redeemFlash = redeemFlash;
+
+// ===============================
+// OPEN CART CHECKOUT PAGE
+// ===============================
+
+window.openCartCheckout = async function(){
+
+  const content = document.getElementById("content");
+  if(!content) return;
+
+  if(cartItems.length === 0){
+
+    content.innerHTML = `
+      <div style="padding:20px;">
+        Cart kosong.
+      </div>
+    `;
+    return;
+
+  }
+
+  const user = auth.currentUser;
+
+  const userSnap =
+    await getDoc(doc(db,"users",user.uid));
+
+  const userData = userSnap.data();
+
+  const balance =
+    Number(userData.walletBalance || 0);
+
+  let totalPayment = 0;
+  let totalItem = 0;
+
+  let html = `
+    <div class="store-page">
+
+      <h2>Checkout</h2>
+  `;
+
+  cartItems.forEach((item,index)=>{
+
+    const subtotal = item.qty * item.price;
+
+    totalPayment += subtotal;
+    totalItem += item.qty;
+
+    html += `
+
+      <div class="store-card">
+
+        <div class="card-body">
+
+          <strong>${item.name}</strong><br>
+
+          ${
+            item.size
+            ? `Size: ${item.size}<br>`
+            : ""
+          }
+
+          Qty: ${item.qty}<br>
+
+          Rp ${item.price.toLocaleString()}
+
+          <div style="margin-top:8px;">
+
+            <button onclick="changeCartQty(${index},-1)">
+              -
+            </button>
+
+            <button onclick="changeCartQty(${index},1)">
+              +
+            </button>
+
+            <button onclick="removeCartItem(${index})">
+              Remove
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+  html += `
+
+      <div class="store-card">
+
+        <div class="card-body">
+
+          <strong>Total Item:</strong>
+          ${totalItem}
+
+          <br>
+
+          <strong>Total Payment:</strong>
+          Rp ${totalPayment.toLocaleString()}
+
+          <hr>
+
+          <strong>Saldo Anda:</strong>
+          Rp ${balance.toLocaleString()}
+
+          <div style="margin-top:12px;">
+
+            ${
+              balance < totalPayment
+              ? `<button disabled>
+                   Saldo tidak cukup
+                 </button>`
+              : `<button class="btn-primary"
+                         onclick="confirmCheckout(${totalPayment})">
+                   Pay Now
+                 </button>`
+            }
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  content.innerHTML = html;
+
+};
+
+// ===============================
+// CART EDIT
+// ===============================
+
+window.changeCartQty = function(index,delta){
+
+  const item = cartItems[index];
+
+  item.qty += delta;
+
+  if(item.qty <= 0){
+
+    cartItems.splice(index,1);
+
+  }
+
+  saveCart();
+
+  openCartCheckout();
+
+};
+
+
+window.removeCartItem = function(index){
+
+  cartItems.splice(index,1);
+
+  saveCart();
+
+  openCartCheckout();
+
+};
+
+// ===============================
+// CONFIRM CHECKOUT
+// ===============================
+
+window.confirmCheckout = async function(totalPayment){
+
+  const user = auth.currentUser;
+
+  try{
+
+    await runTransaction(db, async(transaction)=>{
+
+      const userRef = doc(db,"users",user.uid);
+
+      const userSnap =
+        await transaction.get(userRef);
+
+      if(!userSnap.exists())
+        throw "User tidak ditemukan";
+
+      const userData = userSnap.data();
+
+      const balance =
+        Number(userData.walletBalance || 0);
+
+      if(balance < totalPayment)
+        throw "Saldo tidak cukup";
+
+      for(const item of cartItems){
+
+        const productRef =
+          doc(db,"products",item.productId);
+
+        const productSnap =
+          await transaction.get(productRef);
+
+        if(!productSnap.exists())
+          throw "Product tidak ditemukan";
+
+        const p = productSnap.data();
+
+        if(p.sizeEnabled){
+
+          const current =
+            Number(p.sizes[item.size] || 0);
+
+          if(current < item.qty)
+            throw "Stock tidak cukup";
+
+          const newSizes = {
+            ...p.sizes,
+            [item.size]: current - item.qty
+          };
+
+          transaction.update(productRef,{
+            sizes:newSizes
+          });
+
+        }else{
+
+          const current =
+            Number(p.stock || 0);
+
+          if(current < item.qty)
+            throw "Stock tidak cukup";
+
+          transaction.update(productRef,{
+            stock: current - item.qty
+          });
+
+        }
+
+        await createInboxItem({
+
+          uid:user.uid,
+          type:"product",
+          source:"store",
+          name:item.name,
+          image:item.image,
+          productId:item.productId,
+          expireDays:365
+
+        });
+
+      }
+
+    });
+
+
+    await applyMutation({
+
+      userId:user.uid,
+      asset:"RUPIAH",
+      mutationType:"STORE_PURCHASE",
+      amount:-totalPayment,
+      description:"Store Purchase"
+
+    });
+
+
+    cartItems = [];
+    saveCart();
+
+    showToast("Pembelian berhasil");
+
+    renderStore();
+
+  }catch(err){
+
+    console.log(err);
+    showToast(err);
+
+  }
+
+};
