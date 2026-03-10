@@ -1449,12 +1449,26 @@ grid-template-columns:repeat(2,1fr);
   }
 }
 
+/* ===============================
+   CART HEADER
+================================= */
+
 .cart-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
   margin-bottom:10px;
 }
+
+.cart-header span{
+  cursor:pointer;
+  font-size:18px;
+}
+
+
+/* ===============================
+   CART ITEM
+================================= */
 
 .cart-item{
   display:flex;
@@ -1473,14 +1487,151 @@ grid-template-columns:repeat(2,1fr);
   flex:1;
 }
 
+.cart-info b{
+  font-size:13px;
+}
+
+.cart-info small{
+  opacity:.6;
+}
+
+
+/* ===============================
+   QTY BUTTON
+================================= */
+
 .cart-qty{
   display:flex;
   gap:6px;
   margin-top:6px;
 }
 
+.cart-qty button{
+
+  width:24px;
+  height:24px;
+
+  border:none;
+
+  border-radius:6px;
+
+  background:#f1f1f1;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+}
+
+.cart-qty span{
+  min-width:18px;
+  text-align:center;
+}
+
+
+/* ===============================
+   CART SUMMARY
+================================= */
+
 .cart-summary{
   display:flex;
   justify-content:space-between;
   margin:10px 0;
+  font-weight:600;
+}
+
+
+/* ===============================
+   GP REWARD PREVIEW
+================================= */
+
+.cart-gp-reward{
+
+  margin-top:6px;
+
+  padding:10px;
+
+  background:#fef9c3;
+
+  border-radius:10px;
+
+  font-size:13px;
+
+  text-align:center;
+
+  color:#92400e;
+
+  font-weight:600;
+
+}
+
+
+/* ===============================
+   SUCCESS PURCHASE NOTICE
+================================= */
+
+.store-success-box{
+
+  position:fixed;
+  inset:0;
+
+  background:rgba(0,0,0,.5);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  z-index:9999;
+
+}
+
+.store-success-card{
+
+  background:#fff;
+
+  padding:30px;
+
+  border-radius:18px;
+
+  text-align:center;
+
+  box-shadow:
+    0 20px 40px rgba(0,0,0,.25);
+
+  animation:pop .25s ease-out;
+
+}
+
+.store-success-card h2{
+  margin-bottom:8px;
+}
+
+.gp-reward{
+
+  font-size:28px;
+  font-weight:700;
+
+  color:#eab308;
+
+  margin:12px 0;
+
+}
+
+
+/* ===============================
+   POP ANIMATION
+================================= */
+
+@keyframes pop{
+
+  from{
+    transform:scale(.85);
+    opacity:0;
+  }
+
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+
 }
