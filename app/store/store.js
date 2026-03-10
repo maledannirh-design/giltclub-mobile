@@ -144,38 +144,355 @@ async function checkStoreApplication(){
 function renderProducts(){
 
   const container = document.getElementById("storeProducts");
-  container.innerHTML = "";
+  if(!container) return;
 
-  STORE_PRODUCTS
-    .filter(p => p.active)
-    .forEach(product => {
+  container.innerHTML = "Loading...";
 
-      const soldOut = product.stock <= 0;
+  const q = query(
+    collection(db,"products"),
+    where("active","==",true)
+  );
 
-      container.innerHTML += `
-        <div class="store-card">
-          <div class="card-image">
-            <img src="${product.image}">
+  onSnapshot(q,(snapshot)=>{
+
+    container.innerHTML = "";
+
+    if(snapshot.empty){
+      container.innerHTML =
+        "<div style='opacity:.6'>Belum ada product.</div>";
+      return;
+    }
+
+    snapshot.forEach(docSnap=>{
+
+      const p = docSnap.data();
+
+      const normal = Number(p.normalPrice || 0);
+      const discount = Number(p.discountPrice || 0);
+
+      const finalPrice =
+        discount > 0 ? discount : normal;
+
+      const discountPercent =
+        discount > 0
+          ? Math.round((1 - discount/normal)*100)
+          : 0;
+
+      let stock = 0;
+
+      if(p.sizeEnabled && p.sizes){
+
+        Object.values(p.sizes).forEach(v=>{
+          stock += Number(v || 0);
+        });
+
+      }else{
+
+        stock = Number(p.stock || 0);
+
+      }
+
+      const soldOut = stock <= 0;
+
+      const priceHTML = `
+
+        <div class="flash-price">
+
+          ${
+            discount > 0
+            ? `<div class="price-normal">
+                Rp ${normal.toLocaleString()}
+               </div>`
+            : ""
+          }
+
+          <div class="price-flash">
+            Rp ${finalPrice.toLocaleString()}
           </div>
-          <div class="card-body">
-            <h3>${product.name}</h3>
-            <div class="card-info">
-              <span class="price">
-                Rp ${product.price.toLocaleString()}
-              </span>
-              <span class="stock">
-                ${soldOut ? "Sold Out" : `Stock: ${product.stock}`}
-              </span>
-            </div>
-            ${
-              soldOut
-              ? `<button disabled>Unavailable</button>`
-              : `<button class="btn-primary" onclick="openSizeModal('${product.id}')">Select Size</button>`
-            }
-          </div>
+
+          ${
+            discountPercent > 0
+            ? `<div class="flash-discount">
+                 -${discountPercent}%
+               </div>`
+            : ""
+          }
+
         </div>
       `;
+
+      container.innerHTML += `
+
+        <div class="store-card">
+
+          <div class="card-image">
+
+            <img src="${FLASH_BASE_IMAGE_URL}${p.image}">
+
+          </div>
+
+          <div class="card-body">
+
+            <h3>${p.name}</h3>
+
+            ${priceHTML}
+
+            <div class="card-info">
+
+              <span class="stock">
+                ${
+                  soldOut
+                  ? "Sold Out"
+                  : `Stock: ${stock}`
+                }
+              </span>
+
+            </div>
+
+            ${
+              soldOut
+              ? `<button disabled>
+                   Sold Out
+                 </button>`
+              : `<button class="btn-primary"
+                         onclick="openProductSelector('${docSnap.id}')">
+                   Add To Cart
+                 </button>`
+            }
+
+          </div>
+
+        </div>
+
+      `;
+
     });
+
+  });
+
+}
+
+// ===============================
+// CART ENGINE
+// ===============================
+
+let cartItems = JSON.parse(
+  localStorage.getItem("storeCart") || "[]"
+);
+
+function saveCart(){
+  localStorage.setItem(
+    "storeCart",
+    JSON.stringify(cartItems)
+  );
+  updateCartBadge();
+}
+
+function updateCartBadge(){
+
+  const badge =
+    document.getElementById("cartBadge");
+
+  if(!badge) return;
+
+  let total = 0;
+
+  cartItems.forEach(i=>{
+    total += Number(i.qty || 0);
+  });
+
+  if(total > 0){
+    badge.innerText = total;
+    badge.classList.remove("hidden");
+  }else{
+    badge.classList.add("hidden");
+  }
+
+}
+
+
+// ===============================
+// PRODUCT SELECTOR MODAL
+// ===============================
+
+window.openProductSelector = async function(productId){
+
+  const snap =
+    await getDoc(doc(db,"products",productId));
+
+  if(!snap.exists()) return;
+
+  const p = snap.data();
+
+  const normal = Number(p.normalPrice || 0);
+  const discount = Number(p.discountPrice || 0);
+
+  const price =
+    discount > 0 ? discount : normal;
+
+  const modal = document.createElement("div");
+  modal.className = "reward-confirm-modal";
+
+  let sizeHTML = "";
+
+  if(p.sizeEnabled && p.sizes){
+
+    sizeHTML += `<label>Select Size</label>`;
+
+    Object.keys(p.sizes).forEach(s=>{
+
+      const qty = Number(p.sizes[s] || 0);
+
+      sizeHTML += `
+        <button class="size-btn"
+          data-size="${s}"
+          ${qty<=0?"disabled":""}>
+          ${s}
+          (${qty})
+        </button>
+      `;
+
+    });
+
+  }else{
+
+    sizeHTML =
+      `<div style="margin:10px 0;">All Size</div>`;
+
+  }
+
+  modal.innerHTML = `
+
+    <div class="reward-confirm-bg"
+         onclick="this.parentElement.remove()"></div>
+
+    <div class="reward-confirm-box">
+
+      <h3>${p.name}</h3>
+
+      <img src="${FLASH_BASE_IMAGE_URL}${p.image}"
+           style="width:100%;border-radius:10px;margin-bottom:10px;">
+
+      <div style="margin-bottom:10px;">
+
+        ${
+          discount>0
+          ? `<div style="text-decoration:line-through;opacity:.6">
+               Rp ${normal.toLocaleString()}
+             </div>`
+          : ""
+        }
+
+        <div style="font-weight:700;font-size:18px;">
+          Rp ${price.toLocaleString()}
+        </div>
+
+      </div>
+
+      ${sizeHTML}
+
+      <label style="margin-top:12px;">Qty</label>
+
+      <input id="cartQty"
+             type="number"
+             value="1"
+             min="1"
+             style="width:100%;padding:8px;border-radius:8px;">
+
+      <div class="reward-actions">
+
+        <button class="btn-cancel"
+          onclick="this.closest('.reward-confirm-modal').remove()">
+          Cancel
+        </button>
+
+        <button class="btn-redeem"
+          id="addCartBtn">
+          Add To Cart
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+  document.body.appendChild(modal);
+
+  let selectedSize = null;
+
+  document.querySelectorAll(".size-btn")
+    .forEach(btn=>{
+
+      btn.onclick = ()=>{
+
+        document
+          .querySelectorAll(".size-btn")
+          .forEach(b=>b.classList.remove("active"));
+
+        btn.classList.add("active");
+
+        selectedSize = btn.dataset.size;
+
+      };
+
+    });
+
+
+  document.getElementById("addCartBtn")
+    .onclick = ()=>{
+
+      const qty =
+        Number(document.getElementById("cartQty").value);
+
+      if(p.sizeEnabled && !selectedSize){
+        alert("Pilih size terlebih dahulu");
+        return;
+      }
+
+      addToCart({
+        productId,
+        name:p.name,
+        image:p.image,
+        size:selectedSize,
+        qty,
+        price
+      });
+
+      modal.remove();
+
+    };
+
+};
+
+
+
+// ===============================
+// ADD TO CART
+// ===============================
+
+function addToCart(item){
+
+  const existing =
+    cartItems.find(i=>
+      i.productId===item.productId &&
+      i.size===item.size
+    );
+
+  if(existing){
+
+    existing.qty += item.qty;
+
+  }else{
+
+    cartItems.push(item);
+
+  }
+
+  saveCart();
+
+  showToast("Item added to cart");
+
 }
 /* ===============================
    REWARDS
