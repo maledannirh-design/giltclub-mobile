@@ -1996,12 +1996,70 @@ window.removeCartItem = function(index){
 window.confirmCheckout = async function(totalPayment){
 
   const user = auth.currentUser;
+  if(!user) return;
 
   try{
 
+    /* ==========================
+       GET USER DATA
+    ========================== */
+
+    const userSnap = await getDoc(doc(db,"users",user.uid));
+
+    if(!userSnap.exists())
+      throw "User tidak ditemukan";
+
+    const userData = userSnap.data();
+
+    const role =
+      userData.role || "member";
+
+
+    /* ==========================
+       CALCULATE GP REWARD
+    ========================== */
+
+    const base = Math.floor(totalPayment / 50000);
+
+    let gpReward = 0;
+
+    if(role === "member")
+      gpReward = base * 100;
+
+    if(role === "verified")
+      gpReward = base * 150;
+
+    if(role === "vvip")
+      gpReward = base * 250;
+
+
+    /* ==========================
+       REQUEST PIN
+    ========================== */
+
+    const pin = await requestTransactionPin();
+
+    if(!pin) return;
+
+    const checkPin =
+      await validateTransactionPin(user.uid,pin);
+
+    if(!checkPin.valid){
+
+      alert(checkPin.reason);
+      return;
+
+    }
+
+
+    /* ==========================
+       STOCK TRANSACTION
+    ========================== */
+
     await runTransaction(db, async(transaction)=>{
 
-      const userRef = doc(db,"users",user.uid);
+      const userRef =
+        doc(db,"users",user.uid);
 
       const userSnap =
         await transaction.get(userRef);
@@ -2009,13 +2067,12 @@ window.confirmCheckout = async function(totalPayment){
       if(!userSnap.exists())
         throw "User tidak ditemukan";
 
-      const userData = userSnap.data();
-
       const balance =
-        Number(userData.walletBalance || 0);
+        Number(userSnap.data().walletBalance || 0);
 
       if(balance < totalPayment)
         throw "Saldo tidak cukup";
+
 
       for(const item of cartItems){
 
@@ -2029,6 +2086,7 @@ window.confirmCheckout = async function(totalPayment){
           throw "Product tidak ditemukan";
 
         const p = productSnap.data();
+
 
         if(p.sizeEnabled){
 
@@ -2047,7 +2105,8 @@ window.confirmCheckout = async function(totalPayment){
             sizes:newSizes
           });
 
-        }else{
+        }
+        else{
 
           const current =
             Number(p.stock || 0);
@@ -2061,22 +2120,14 @@ window.confirmCheckout = async function(totalPayment){
 
         }
 
-        await createInboxItem({
-
-          uid:user.uid,
-          type:"product",
-          source:"store",
-          name:item.name,
-          image:item.image,
-          productId:item.productId,
-          expireDays:365
-
-        });
-
       }
 
     });
 
+
+    /* ==========================
+       WALLET MUTATION (RUPIAH)
+    ========================== */
 
     await applyMutation({
 
@@ -2089,16 +2140,100 @@ window.confirmCheckout = async function(totalPayment){
     });
 
 
+    /* ==========================
+       GP REWARD MUTATION
+    ========================== */
+
+    if(gpReward > 0){
+
+      await applyMutation({
+
+        userId:user.uid,
+        asset:"GPOINT",
+        mutationType:"STORE_REWARD",
+        amount:gpReward,
+        description:"Reward dari pembelian store"
+
+      });
+
+    }
+
+
+    /* ==========================
+       CREATE INBOX ITEM
+    ========================== */
+
+    for(const item of cartItems){
+
+      await createInboxItem({
+
+        uid:user.uid,
+        type:"product",
+        source:"store",
+        name:item.name,
+        image:item.image,
+        productId:item.productId,
+        expireDays:365
+
+      });
+
+    }
+
+
+    /* ==========================
+       CLEAR CART
+    ========================== */
+
     cartItems = [];
     saveCart();
 
-    showToast("Pembelian berhasil");
+
+    /* ==========================
+       PREMIUM SUCCESS MESSAGE
+    ========================== */
+
+    const notice = document.createElement("div");
+
+    notice.className = "store-success-box";
+
+    notice.innerHTML = `
+      <div class="store-success-card">
+
+        <h2>🎉 Pembayaran Berhasil</h2>
+
+        <p>
+          Selamat! Anda mendapatkan
+        </p>
+
+        <div class="gp-reward">
+          +${gpReward.toLocaleString()} GP
+        </div>
+
+        <p style="opacity:.7">
+          dari transaksi pembelian ini.
+        </p>
+
+      </div>
+    `;
+
+    document.body.appendChild(notice);
+
+    setTimeout(()=>{
+      notice.remove();
+    },3500);
+
+
+    showToast("Checkout berhasil");
+
+    closeCartDrawer();
 
     renderStore();
 
-  }catch(err){
+  }
+  catch(err){
 
-    console.log(err);
+    console.log("CHECKOUT ERROR:",err);
+
     showToast(err);
 
   }
@@ -2215,3 +2350,20 @@ window.closeCartDrawer = function(){
   drawer.classList.add("hidden");
 
 };
+
+function calculateStoreGP(role,total){
+
+  const base = Math.floor(total / 50000);
+
+  if(role === "member")
+    return base * 100;
+
+  if(role === "verified")
+    return base * 150;
+
+  if(role === "vvip")
+    return base * 250;
+
+  return 0;
+
+}
