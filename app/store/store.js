@@ -38,6 +38,8 @@ let warOverlayActive = false;
 let warWatcherStarted = false;
 let currentFlashList = [];
 
+let productsWatcher = null;
+
 /* ===============================
    MAIN ENTRY
 ================================= */
@@ -180,12 +182,18 @@ function renderProducts(){
 
   container.innerHTML = "Loading...";
 
+  // stop old listener jika ada
+  if(productsWatcher){
+    productsWatcher();
+    productsWatcher = null;
+  }
+
   const q = query(
     collection(db,"products"),
     where("active","==",true)
   );
 
-  onSnapshot(q,(snapshot)=>{
+  productsWatcher = onSnapshot(q,(snapshot)=>{
 
     container.innerHTML = "";
 
