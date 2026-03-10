@@ -870,58 +870,40 @@ window.exportMembersToCSV = async function(){
 
 window.exportFullMutation = async function(){
 
-  const walletSnap =
-    await getDocs(collection(db,"walletLedger"));
-
-  const gPointSnap =
-    await getDocs(collection(db,"gPointLedger"));
+  const snap = await getDocs(collection(db,"walletMutations"));
 
   let rows = [[
-    "Tanggal",
-    "UID",
-    "Type",
+    "CreatedAt",
+    "UserId",
+    "MutationType",
+    "Asset",
     "Amount",
-    "BalanceBefore",
     "BalanceAfter",
-    "ReferenceType",
-    "Note"
+    "ReferenceId",
+    "Description",
+    "CreatedBy"
   ]];
 
-  walletSnap.forEach(docSnap => {
+  snap.forEach(docSnap => {
 
     const d = docSnap.data();
 
     rows.push([
-      d.createdAt?.toDate?.()
-        ?.toLocaleString("id-ID") || "",
+      d.createdAt?.toDate?.().toLocaleString("id-ID") || "",
       d.userId || "",
-      "WALLET_" + (d.entryType || ""),
+      d.mutationType || "",
+      d.asset || "",
       d.amount || 0,
-      d.balanceBefore ?? "",
       d.balanceAfter ?? "",
-      d.referenceType || "",
-      d.note || ""
+      d.referenceId || "",
+      d.description || "",
+      d.createdBy || ""
     ]);
+
   });
 
-  gPointSnap.forEach(docSnap => {
+  downloadCSV("wallet_mutations_full.csv", rows);
 
-    const d = docSnap.data();
-
-    rows.push([
-      d.createdAt?.toDate?.()
-        ?.toLocaleString("id-ID") || "",
-      d.userId || "",
-      "GPOINT_" + (d.entryType || ""),
-      d.amount || 0,
-      d.balanceBefore ?? "",
-      d.balanceAfter ?? "",
-      d.referenceType || "",
-      d.note || ""
-    ]);
-  });
-
-  downloadCSV("full_mutation.csv", rows);
 };
 
 
