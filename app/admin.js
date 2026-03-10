@@ -195,6 +195,9 @@ Flash Drop
     <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
       Export Members
     </button>
+    <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
+  Export Full Wallet Mutations
+</button>
 
     <button onclick="auditOldSystemReconciliation()" class="admin-btn" style="margin-top:10px;">
       Audit Old System
