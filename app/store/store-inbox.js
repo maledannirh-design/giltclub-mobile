@@ -30,7 +30,6 @@ export function renderStoreInbox(){
 
 }
 
-
 function loadInbox(){
 
   const user = auth.currentUser;
@@ -63,15 +62,53 @@ function loadInbox(){
       const d = docSnap.data();
       const id = docSnap.id;
 
-      const expireText = d.expiresAt
-        ? new Date(d.expiresAt.seconds*1000).toLocaleDateString("id-ID")
-        : "-";
+      let status = d.status || "";
 
-      const isExpired =
-        d.expiresAt
-        && Date.now() > d.expiresAt.seconds*1000;
+      let expireHTML = "";
 
-      const status = isExpired ? "expired" : d.status;
+      /* ==========================
+         VOUCHER SYSTEM
+      ========================== */
+
+      if(d.type === "voucher"){
+
+        const expireText = d.expiresAt
+          ? new Date(d.expiresAt.seconds*1000)
+              .toLocaleDateString("id-ID")
+          : "-";
+
+        const isExpired =
+          d.expiresAt &&
+          Date.now() > d.expiresAt.seconds*1000;
+
+        if(isExpired){
+          status = "expired";
+        }
+
+        if(d.expiresAt){
+
+          expireHTML = `
+            <div class="expire">
+              Exp: ${expireText}
+            </div>
+          `;
+
+        }
+
+      }
+
+      /* ==========================
+         PRODUCT SYSTEM
+      ========================== */
+
+      if(d.type === "product"){
+
+        if(!status){
+          status = "belum_diterima";
+        }
+
+      }
+
 
       container.innerHTML += `
         <div class="store-card ${status === "expired" ? "expired" : ""}">
@@ -88,10 +125,9 @@ function loadInbox(){
 
           <div class="card-body">
 
-            <div class="inbox-type ${d.type}">
-</div>
+            <div class="inbox-type ${d.type}"></div>
 
-<h3>${d.name}</h3>
+            <h3>${d.name}</h3>
 
             <div class="card-info">
 
@@ -101,13 +137,7 @@ function loadInbox(){
 
             </div>
 
-            ${
-              d.expiresAt
-              ? `<div class="expire">
-                   Exp: ${expireText}
-                 </div>`
-              : ""
-            }
+            ${expireHTML}
 
             ${
               status === "unused"
@@ -116,6 +146,17 @@ function loadInbox(){
                    class="btn-use"
                    onclick="useVoucher('${id}')">
                    Gunakan Voucher
+                 </button>`
+              : ""
+            }
+
+            ${
+              d.type === "product"
+              && status === "belum_diterima"
+              ? `<button
+                   class="btn-use"
+                   onclick="confirmProductReceived('${id}')">
+                   Tandai Sudah Diterima
                  </button>`
               : ""
             }
@@ -130,7 +171,6 @@ function loadInbox(){
   });
 
 }
-
 
 
 window.useVoucher = async function(itemId){
