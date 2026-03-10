@@ -151,8 +151,10 @@ Flash Drop
 <button id="openRewardAdmin" class="admin-btn">
   Reward GP
 </button>
+<button id="openProductAdmin" class="admin-btn">
+Store Products
+</button>
 <hr style="margin:30px 0;">
-
 <div class="admin-card">
   <h3>Store Applications</h3>
 
