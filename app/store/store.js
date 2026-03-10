@@ -2033,26 +2033,22 @@ window.confirmCheckout = async function(totalPayment){
 
     const userData = userSnap.data();
 
-    const role =
-      userData.role || "member";
-
 
     /* ==========================
        CALCULATE GP REWARD
     ========================== */
 
-    const base = Math.floor(totalPayment / 50000);
-
     let gpReward = 0;
 
-    if(role === "member")
-      gpReward = base * 100;
-
-    if(role === "verified")
-      gpReward = base * 150;
-
-    if(role === "vvip")
-      gpReward = base * 250;
+    if(userData.membership === "VVIP"){
+      gpReward = Math.floor(totalPayment * 0.005);
+    }
+    else if(userData.verified === true){
+      gpReward = Math.floor(totalPayment * 0.003);
+    }
+    else{
+      gpReward = Math.floor(totalPayment * 0.002);
+    }
 
 
     /* ==========================
@@ -2080,90 +2076,90 @@ window.confirmCheckout = async function(totalPayment){
 
     await runTransaction(db, async (transaction)=>{
 
-  const userRef = doc(db,"users",user.uid);
+      const userRef = doc(db,"users",user.uid);
 
-  const userSnap = await transaction.get(userRef);
+      const userSnap = await transaction.get(userRef);
 
-  if(!userSnap.exists())
-    throw "User tidak ditemukan";
+      if(!userSnap.exists())
+        throw "User tidak ditemukan";
 
-  const balance =
-    Number(userSnap.data().walletBalance || 0);
+      const balance =
+        Number(userSnap.data().walletBalance || 0);
 
-  if(balance < totalPayment)
-    throw "Saldo tidak cukup";
+      if(balance < totalPayment)
+        throw "Saldo tidak cukup";
 
 
-  /* ==========================
-     READ ALL PRODUCTS FIRST
-  ========================== */
+      /* ==========================
+         READ ALL PRODUCTS FIRST
+      ========================== */
 
-  const productDocs = [];
+      const productDocs = [];
 
-  for(const item of cartItems){
+      for(const item of cartItems){
 
-    const productRef =
-      doc(db,"products",item.productId);
+        const productRef =
+          doc(db,"products",item.productId);
 
-    const productSnap =
-      await transaction.get(productRef);
+        const productSnap =
+          await transaction.get(productRef);
 
-    if(!productSnap.exists())
-      throw "Product tidak ditemukan";
+        if(!productSnap.exists())
+          throw "Product tidak ditemukan";
 
-    productDocs.push({
-      ref:productRef,
-      data:productSnap.data(),
-      item
+        productDocs.push({
+          ref:productRef,
+          data:productSnap.data(),
+          item
+        });
+
+      }
+
+
+      /* ==========================
+         WRITE AFTER ALL READS
+      ========================== */
+
+      productDocs.forEach(p=>{
+
+        const data = p.data;
+        const item = p.item;
+
+        if(data.sizeEnabled){
+
+          const current =
+            Number(data.sizes[item.size] || 0);
+
+          if(current < item.qty)
+            throw "Stock tidak cukup";
+
+          const newSizes = {
+            ...data.sizes,
+            [item.size]: current - item.qty
+          };
+
+          transaction.update(p.ref,{
+            sizes:newSizes
+          });
+
+        }
+        else{
+
+          const current =
+            Number(data.stock || 0);
+
+          if(current < item.qty)
+            throw "Stock tidak cukup";
+
+          transaction.update(p.ref,{
+            stock: current - item.qty
+          });
+
+        }
+
+      });
+
     });
-
-  }
-
-
-  /* ==========================
-     WRITE AFTER ALL READS
-  ========================== */
-
-  productDocs.forEach(p=>{
-
-    const data = p.data;
-    const item = p.item;
-
-    if(data.sizeEnabled){
-
-      const current =
-        Number(data.sizes[item.size] || 0);
-
-      if(current < item.qty)
-        throw "Stock tidak cukup";
-
-      const newSizes = {
-        ...data.sizes,
-        [item.size]: current - item.qty
-      };
-
-      transaction.update(p.ref,{
-        sizes:newSizes
-      });
-
-    }
-    else{
-
-      const current =
-        Number(data.stock || 0);
-
-      if(current < item.qty)
-        throw "Stock tidak cukup";
-
-      transaction.update(p.ref,{
-        stock: current - item.qty
-      });
-
-    }
-
-  });
-
-});
 
 
     /* ==========================
@@ -2392,19 +2388,21 @@ window.closeCartDrawer = function(){
 
 };
 
-function calculateStoreGP(role,total){
+function calculateStoreGP(user,total){
 
-  const base = Math.floor(total / 50000);
+  if(!user) return 0;
 
-  if(role === "member")
-    return base * 100;
+  // VVIP always highest reward
+  if(user.membership === "VVIP"){
+    return Math.floor(total * 0.005);
+  }
 
-  if(role === "verified")
-    return base * 150;
+  // verified member
+  if(user.verified === true){
+    return Math.floor(total * 0.003);
+  }
 
-  if(role === "vvip")
-    return base * 250;
-
-  return 0;
+  // normal member
+  return Math.floor(total * 0.002);
 
 }
