@@ -198,3 +198,30 @@ window.useVoucher = async function(itemId){
   }
 
 }
+
+
+window.confirmProductReceived = async function(itemId){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  try{
+
+    await updateDoc(
+      doc(db,"users",user.uid,"storeInbox",itemId),
+      {
+        status:"diterima",
+        receivedAt:Timestamp.now()
+      }
+    );
+
+    alert("Barang ditandai sudah diterima.");
+
+  }catch(err){
+
+    console.log(err);
+    alert("Gagal update status.");
+
+  }
+
+};
