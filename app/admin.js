@@ -231,6 +231,10 @@ const rewardBtn = document.getElementById("openRewardAdmin");
 if (rewardBtn) {
   rewardBtn.onclick = openRewardAdmin;
 }
+const productBtn = document.getElementById("openProductAdmin");
+if(productBtn){
+  productBtn.onclick = openProductAdmin;
+}
 
 await renderBalanceAdjustmentPanel();
 await initBroadcastUI();
