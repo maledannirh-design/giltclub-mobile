@@ -65,6 +65,17 @@ export async function renderStore() {
       <div class="menu-label">Tukar GP</div>
     </div>
 
+    <div class="store-menu-item" onclick="openCartCheckout()">
+
+  <div class="menu-icon" style="position:relative;">
+    🛒
+    <span id="cartBadge" class="inbox-badge hidden"></span>
+  </div>
+
+  <div class="menu-label">Checkout</div>
+
+</div>
+
     <div class="store-menu-item" onclick="openMyStore()">
       <div class="menu-icon">🏪</div>
       <div class="menu-label">Toko Saya</div>
@@ -89,13 +100,33 @@ export async function renderStore() {
       <div id="storeRewards" class="store-grid"></div>
     </section>
 
-    <div id="sizeModal" class="size-modal"></div>
+<div id="sizeModal" class="size-modal"></div>
 
-<!-- STORE APPLICATION BOTTOMSHEET -->
+<!-- STORE APPLICATION -->
 <div id="storeApplicationSheet" class="store-sheet hidden"></div>
+
+<!-- FLASH IMAGE MODAL -->
 <div id="flashImageModal" class="flash-image-modal hidden">
   <div class="flash-image-bg" onclick="closeFlashImage()"></div>
   <img id="flashImagePreview">
+</div>
+
+<!-- CART DRAWER -->
+<div id="cartDrawer" class="cart-drawer hidden">
+
+  <div class="cart-backdrop" onclick="closeCartDrawer()"></div>
+
+  <div class="cart-panel">
+
+    <div class="cart-header">
+      <h3>Cart</h3>
+      <span onclick="closeCartDrawer()">✕</span>
+    </div>
+
+    <div id="cartDrawerContent"></div>
+
+  </div>
+
 </div>
 `;
 
@@ -104,6 +135,7 @@ export async function renderStore() {
   renderFlash();
   checkStoreApplication();
   watchInboxBadge();
+  updateCartBadge();
 }
 
 async function checkStoreApplication(){
@@ -2070,5 +2102,116 @@ window.confirmCheckout = async function(totalPayment){
     showToast(err);
 
   }
+
+};
+
+window.openCartCheckout = function(){
+
+  const drawer = document.getElementById("cartDrawer");
+  const content = document.getElementById("cartDrawerContent");
+
+  if(!drawer || !content) return;
+
+  drawer.classList.remove("hidden");
+
+  renderCartDrawer();
+
+};
+
+function renderCartDrawer(){
+
+  const content = document.getElementById("cartDrawerContent");
+
+  if(!content) return;
+
+  if(cartItems.length === 0){
+
+    content.innerHTML = `
+      <div style="padding:20px;text-align:center;opacity:.6;">
+        Cart kosong
+      </div>
+    `;
+
+    return;
+  }
+
+  let total = 0;
+
+  let html = "";
+
+  cartItems.forEach((item,index)=>{
+
+    const subtotal = item.qty * item.price;
+
+    total += subtotal;
+
+    html += `
+
+      <div class="cart-item">
+
+        <img src="${FLASH_BASE_IMAGE_URL}${item.image}">
+
+        <div class="cart-info">
+
+          <strong>${item.name}</strong>
+
+          ${
+            item.size
+            ? `<div>Size: ${item.size}</div>`
+            : ""
+          }
+
+          <div>Rp ${item.price.toLocaleString()}</div>
+
+          <div class="cart-qty">
+
+            <button onclick="changeCartQty(${index},-1)">-</button>
+
+            <span>${item.qty}</span>
+
+            <button onclick="changeCartQty(${index},1)">+</button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+  });
+
+  html += `
+
+    <div class="cart-summary">
+
+      <div>
+        Total
+      </div>
+
+      <strong>
+        Rp ${total.toLocaleString()}
+      </strong>
+
+    </div>
+
+    <button class="btn-primary"
+            onclick="confirmCheckout(${total})">
+      Pay Now
+    </button>
+
+  `;
+
+  content.innerHTML = html;
+
+}
+
+window.closeCartDrawer = function(){
+
+  const drawer = document.getElementById("cartDrawer");
+
+  if(!drawer) return;
+
+  drawer.classList.add("hidden");
 
 };
