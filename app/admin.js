@@ -1087,3 +1087,13 @@ window.exportOnlineLogs = async function(){
   downloadCSV("online_logs.csv", rows);
 
 };
+
+
+window.openProductAdmin = async function(){
+
+  const { renderProductAdmin } =
+    await import("./store/product-admin.js");
+
+  renderProductAdmin();
+
+};
