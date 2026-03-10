@@ -64,6 +64,15 @@ function loadInbox(){
 
       let status = d.status || "";
 
+// override untuk product
+if(d.type === "product"){
+
+  if(status === "unused"){
+    status = "belum_diterima";
+  }
+
+}
+
       let expireHTML = "";
 
       /* ==========================
