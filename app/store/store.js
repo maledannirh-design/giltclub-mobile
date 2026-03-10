@@ -310,7 +310,7 @@ function renderProducts(){
                  </button>`
               : `<button class="btn-primary"
                          onclick="openProductSelector('${docSnap.id}')">
-                   Add To Cart
+                   Tambahkan ke Keranjang
                  </button>`
             }
 
@@ -462,7 +462,7 @@ window.openProductSelector = async function(productId){
 
         <button class="btn-redeem"
           id="addCartBtn">
-          Add To Cart
+          Tambahkan ke Keranjang
         </button>
 
       </div>
@@ -633,7 +633,7 @@ async function renderRewards(){
               ? `<button disabled>Sold Out</button>`
               : `<button class="btn-gp"
                         onclick="openRewardConfirm('${rewardId}')">
-                        Redeem
+                        Tukar Gpoint
                  </button>`
             }
 
@@ -984,7 +984,7 @@ async function redeemFlash(flashId){
       throw "Sudah berakhir";
 
     if((flash.redeemedCount || 0) >= flash.quota)
-      throw "Quota habis";
+      throw "Voucher habis";
 
     /* ==========================
        POTONG GP (LEDGER ENGINE)
@@ -1015,7 +1015,7 @@ async function redeemFlash(flashId){
       const data = snap.data();
 
       if((data.redeemedCount || 0) >= data.quota)
-        throw "Quota habis";
+        throw "Voucher habis";
 
       const winners = data.winners || [];
 
@@ -1871,7 +1871,7 @@ window.openCartCheckout = async function(){
 
     content.innerHTML = `
       <div style="padding:20px;">
-        Cart kosong.
+        Keranjang kosong.
       </div>
     `;
     return;
