@@ -1110,12 +1110,23 @@ async function createInboxItem(data){
       doc(collection(db,"users",data.uid,"storeInbox"));
 
     /* ==========================
+       STATUS RULE
+    ========================== */
+
+    let status = "unused";
+
+    if(data.type === "product"){
+      status = "belum_diterima";
+    }
+
+    /* ==========================
        EXPIRE DATE
     ========================== */
 
     let expiresAt = null;
 
-    if(data.expireDays){
+    // product tidak punya expire
+    if(data.type !== "product" && data.expireDays){
 
       const expireDate = new Date();
 
@@ -1150,7 +1161,7 @@ async function createInboxItem(data){
 
       sessionId: data.sessionId || null,
 
-      status: "unused",
+      status: status,
 
       createdAt: serverTimestamp(),
 
@@ -1171,6 +1182,8 @@ async function createInboxItem(data){
   }
 
 }
+
+
 /* ===============================
    LEADERBOARD (USERNAME BASED)
 ================================= */
