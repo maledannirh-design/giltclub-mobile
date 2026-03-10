@@ -2313,7 +2313,7 @@ function renderCartDrawer(){
 
     content.innerHTML = `
       <div style="padding:20px;text-align:center;opacity:.6;">
-        Cart kosong
+        Keranjang kosong
       </div>
     `;
 
