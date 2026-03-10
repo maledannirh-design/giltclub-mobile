@@ -253,56 +253,64 @@ function renderProducts(){
         </div>
       `;
 
-      container.innerHTML += `
+     container.innerHTML += `
 
-        <div class="store-card">
+  <div class="store-card">
 
-          <div class="card-image">
+    <!-- IMAGE PREVIEW -->
+    <div class="card-image"
+         ${p.image ? `onclick="openImagePreview('${FLASH_BASE_IMAGE_URL}${p.image}')"` : ""}>
 
-            <img src="${FLASH_BASE_IMAGE_URL}${p.image}">
+      ${
+        p.image
+        ? `<img src="${FLASH_BASE_IMAGE_URL}${p.image}" loading="lazy">`
+        : `<div style="
+              height:100%;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-size:12px;
+              opacity:.5;">
+             No Image
+           </div>`
+      }
 
-          </div>
+    </div>
 
-          <div class="card-body">
+    <div class="card-body">
 
-            <h3>${p.name}</h3>
+      <h3>${p.name}</h3>
 
-            ${priceHTML}
+      ${priceHTML}
 
-            <div class="card-info">
+      <div class="card-info">
 
-              <span class="stock">
-                ${
-                  soldOut
-                  ? "Sold Out"
-                  : `Stock: ${stock}`
-                }
-              </span>
+        <span class="stock">
+          ${
+            soldOut
+            ? "Sold Out"
+            : `Stock: ${stock}`
+          }
+        </span>
 
-            </div>
+      </div>
 
-            ${
-              soldOut
-              ? `<button disabled>
-                   Sold Out
-                 </button>`
-              : `<button class="btn-primary"
-                         onclick="openProductSelector('${docSnap.id}')">
-                   Add To Cart
-                 </button>`
-            }
+      ${
+        soldOut
+        ? `<button disabled>
+             Sold Out
+           </button>`
+        : `<button class="btn-primary"
+                   onclick="openProductSelector('${docSnap.id}')">
+             Add To Cart
+           </button>`
+      }
 
-          </div>
+    </div>
 
-        </div>
+  </div>
 
-      `;
-
-    });
-
-  });
-
-}
+`;
 
 // ===============================
 // CART ENGINE
