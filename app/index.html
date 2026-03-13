@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GILT & ME Club App - Modern Tennis</title>
-
+<link rel="manifest" href="/app/manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./image/logo_giltclub.webp">
   <!-- Styles -->
   <link rel="stylesheet" href="splash.css" />
   <link rel="stylesheet" href="style.css" />
@@ -180,6 +185,50 @@
 
   <script src="splash.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js"></script>
+
+  <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/app/service-worker.js")
+      .then(() => console.log("Service Worker registered"))
+      .catch(err => console.log("SW failed", err));
+  });
+}
+
+/* INSTALL PROMPT HANDLER */
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  console.log("PWA install available");
+
+  // optional: tampilkan tombol install
+  const installBtn = document.createElement("button");
+  installBtn.innerText = "Install App";
+  installBtn.style.position = "fixed";
+  installBtn.style.bottom = "80px";
+  installBtn.style.left = "50%";
+  installBtn.style.transform = "translateX(-50%)";
+  installBtn.style.zIndex = "9999";
+  installBtn.style.padding = "10px 18px";
+  installBtn.style.borderRadius = "10px";
+  installBtn.style.border = "none";
+  installBtn.style.background = "#0f172a";
+  installBtn.style.color = "white";
+  installBtn.style.fontWeight = "bold";
+
+  installBtn.onclick = async () => {
+    installBtn.remove();
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  };
+
+  document.body.appendChild(installBtn);
+});
+</script>
 
 </body>
 </html>
