@@ -553,44 +553,65 @@ loadHeaderStats();
 ========================================= */
 
 let deferredPrompt = null;
+let installButtonShown = false;
 
-/* REGISTER SERVICE WORKER */
+
+/* =========================================
+   REGISTER SERVICE WORKER
+========================================= */
 
 if ("serviceWorker" in navigator) {
+
   window.addEventListener("load", () => {
 
     navigator.serviceWorker
       .register("/app/service-worker.js")
-      .then(reg => {
-        console.log("✅ Service Worker registered:", reg.scope);
+      .then((reg) => {
+
+        console.log("Service worker registered:", reg.scope);
+
       })
-      .catch(err => {
-        console.error("❌ Service Worker failed:", err);
+      .catch((err) => {
+
+        console.error("Service worker failed:", err);
+
       });
 
   });
+
 }
 
 
-/* INSTALL PROMPT HANDLER */
+/* =========================================
+   INSTALL PROMPT LISTENER
+========================================= */
 
 window.addEventListener("beforeinstallprompt", (e) => {
 
   e.preventDefault();
+
   deferredPrompt = e;
 
   console.log("PWA install available");
 
-  showInstallButton();
+  if (!installButtonShown) {
+
+    showInstallButton();
+
+    installButtonShown = true;
+
+  }
 
 });
 
 
-/* INSTALL BUTTON UI */
+/* =========================================
+   INSTALL BUTTON UI
+========================================= */
 
-function showInstallButton(){
+function showInstallButton() {
 
-  if(document.getElementById("installAppBtn")) return;
+  if (document.getElementById("installAppBtn")) return;
 
   const btn = document.createElement("button");
 
@@ -618,33 +639,39 @@ function showInstallButton(){
 }
 
 
-/* INSTALL PROCESS */
+/* =========================================
+   INSTALL PROCESS
+========================================= */
 
-async function installPWA(){
+async function installPWA() {
 
-  if(!deferredPrompt) return;
+  if (!deferredPrompt) return;
 
   deferredPrompt.prompt();
 
-  const choice = await deferredPrompt.userChoice;
+  const result = await deferredPrompt.userChoice;
 
-  console.log("Install result:", choice.outcome);
+  console.log("Install result:", result.outcome);
 
   deferredPrompt = null;
 
   const btn = document.getElementById("installAppBtn");
-  if(btn) btn.remove();
+
+  if (btn) btn.remove();
 
 }
 
 
-/* APP INSTALLED EVENT */
+/* =========================================
+   APP INSTALLED EVENT
+========================================= */
 
 window.addEventListener("appinstalled", () => {
 
   console.log("🎉 GILT Club installed");
 
   const btn = document.getElementById("installAppBtn");
-  if(btn) btn.remove();
+
+  if (btn) btn.remove();
 
 });
