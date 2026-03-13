@@ -547,3 +547,104 @@ initChatUnreadGlobal();
 
 loadHeaderStats();
 
+
+/* =========================================
+   PWA SERVICE WORKER + INSTALL PROMPT
+========================================= */
+
+let deferredPrompt = null;
+
+/* REGISTER SERVICE WORKER */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+
+    navigator.serviceWorker
+      .register("/app/service-worker.js")
+      .then(reg => {
+        console.log("✅ Service Worker registered:", reg.scope);
+      })
+      .catch(err => {
+        console.error("❌ Service Worker failed:", err);
+      });
+
+  });
+}
+
+
+/* INSTALL PROMPT HANDLER */
+
+window.addEventListener("beforeinstallprompt", (e) => {
+
+  e.preventDefault();
+  deferredPrompt = e;
+
+  console.log("PWA install available");
+
+  showInstallButton();
+
+});
+
+
+/* INSTALL BUTTON UI */
+
+function showInstallButton(){
+
+  if(document.getElementById("installAppBtn")) return;
+
+  const btn = document.createElement("button");
+
+  btn.id = "installAppBtn";
+  btn.innerText = "Install App";
+
+  btn.style.position = "fixed";
+  btn.style.bottom = "90px";
+  btn.style.left = "50%";
+  btn.style.transform = "translateX(-50%)";
+  btn.style.padding = "12px 20px";
+  btn.style.borderRadius = "14px";
+  btn.style.border = "none";
+  btn.style.background = "#0f172a";
+  btn.style.color = "#fff";
+  btn.style.fontWeight = "600";
+  btn.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+  btn.style.zIndex = "9999";
+  btn.style.cursor = "pointer";
+
+  btn.onclick = installPWA;
+
+  document.body.appendChild(btn);
+
+}
+
+
+/* INSTALL PROCESS */
+
+async function installPWA(){
+
+  if(!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+
+  const choice = await deferredPrompt.userChoice;
+
+  console.log("Install result:", choice.outcome);
+
+  deferredPrompt = null;
+
+  const btn = document.getElementById("installAppBtn");
+  if(btn) btn.remove();
+
+}
+
+
+/* APP INSTALLED EVENT */
+
+window.addEventListener("appinstalled", () => {
+
+  console.log("🎉 GILT Club installed");
+
+  const btn = document.getElementById("installAppBtn");
+  if(btn) btn.remove();
+
+});
