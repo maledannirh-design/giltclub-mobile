@@ -2907,3 +2907,12 @@ body.scan-mode{
   50%{opacity:0.5;}
   100%{opacity:1;}
 }
+
+.page-loading {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.content {
+  transition: opacity 0.2s ease;
+}
