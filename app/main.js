@@ -547,7 +547,6 @@ initChatUnreadGlobal();
 
 loadHeaderStats();
 
-
 /* =========================================
    PWA SERVICE WORKER + INSTALL PROMPT
 ========================================= */
@@ -567,14 +566,10 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/app/service-worker.js")
       .then((reg) => {
-
         console.log("Service worker registered:", reg.scope);
-
       })
       .catch((err) => {
-
         console.error("Service worker failed:", err);
-
       });
 
   });
