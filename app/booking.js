@@ -1071,17 +1071,18 @@ export async function openCreateSessionSheet(){
 ================================= */
 function attachGlobalEvents(){
 
-  // ===== SPORT FILTER =====
-const sportItem = e.target.closest(".sport-item");
-if (sportItem) {
-  selectedSport = sportItem.dataset.sport;
-  renderFullUI();
-  return;
-}
   const content = document.getElementById("content");
   if(!content) return;
 
   content.onclick = async (e) => {
+
+    // ===== SPORT FILTER =====
+    const sportItem = e.target.closest(".sport-item");
+    if (sportItem) {
+      selectedSport = sportItem.dataset.sport;
+      renderFullUI();
+      return;
+    }
 
     // ===== Klik tanggal kalender =====
     const monthDay = e.target.closest(".month-day");
@@ -1120,7 +1121,7 @@ if (sportItem) {
     }
 
   };
-  
+
 }
 
 /* ===============================
