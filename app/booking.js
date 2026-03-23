@@ -23,6 +23,7 @@ let bookingLock = false;
 let allSchedules = [];
 let userBookings = [];
 let currentMonth = new Date();
+let selectedSport = "all";
 let slideDirection = "next";
 
 /* ===============================
