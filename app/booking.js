@@ -171,6 +171,17 @@ function renderCalendarMonth() {
 
   let html = `
     <div class="month-wrapper slide-${slideDirection}">
+
+      <!-- 🔥 CABOR FILTER BAR -->
+      <div class="sport-filter-bar">
+        <div class="sport-item ${selectedSport==="all"?"active":""}" data-sport="all">Semua</div>
+        <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
+        <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
+        <div class="sport-item ${selectedSport==="lari"?"active":""}" data-sport="lari">🏃 Lari</div>
+        <div class="sport-item ${selectedSport==="badminton"?"active":""}" data-sport="badminton">🏸 Badminton</div>
+        <div class="sport-item ${selectedSport==="coffee"?"active":""}" data-sport="coffee">☕ Coffee</div>
+      </div>
+
       <div class="month-header-row">
         <button id="prevMonth">‹</button>
         <div class="month-header">${monthName}</div>
@@ -199,8 +210,17 @@ function renderCalendarMonth() {
     const dateObj = new Date(year, month, d);
     const dateStr = formatDate(dateObj);
 
-    // 🔥 CUKUP CEK ADA SESSION ATAU TIDAK
-    const hasSession = allSchedules.some(s => s.date === dateStr);
+    // 🔥 FILTER SPORT (sementara dummy karena belum ada field)
+    const hasSession = allSchedules.some(s => {
+
+      if (s.date !== dateStr) return false;
+
+      if (selectedSport === "all") return true;
+
+      // nanti ini akan pakai s.sportType
+      return (s.sportType || "tennis") === selectedSport;
+
+    });
 
     const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
@@ -1050,6 +1070,13 @@ export async function openCreateSessionSheet(){
 ================================= */
 function attachGlobalEvents(){
 
+  // ===== SPORT FILTER =====
+const sportItem = e.target.closest(".sport-item");
+if (sportItem) {
+  selectedSport = sportItem.dataset.sport;
+  renderFullUI();
+  return;
+}
   const content = document.getElementById("content");
   if(!content) return;
 
