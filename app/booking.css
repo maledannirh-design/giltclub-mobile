@@ -989,3 +989,7 @@ body.dark .edit-session-btn{
   color:#000;
   font-weight:600;
 }
+
+.sport-filter-bar::-webkit-scrollbar{
+  display:none;
+}
