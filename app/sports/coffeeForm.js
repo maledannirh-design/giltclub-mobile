@@ -1,5 +1,5 @@
-window.openCoffeeForm = function(){
-
+export async function openCoffeeForm(){
+  
   const sheet = document.getElementById("createSessionSheet");
 
   sheet.classList.add("active");
