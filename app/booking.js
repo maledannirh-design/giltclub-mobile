@@ -1215,8 +1215,11 @@ async function setupCreateSessionSubmit(){
 
       const notes       = document.getElementById("notes").value.trim();
       const cashbackMember   = Number(document.getElementById("cashbackMember").value);
-const cashbackVerified = Number(document.getElementById("cashbackVerified").value);
-const cashbackVVIP     = Number(document.getElementById("cashbackVVIP").value);
+      const cashbackVerified = Number(document.getElementById("cashbackVerified").value);
+      const cashbackVVIP     = Number(document.getElementById("cashbackVVIP").value);
+
+      // 🔥 NEW (AMBIL SPORT TYPE DARI FORM / DEFAULT TENNIS)
+      const sportType = document.getElementById("sportType")?.value || "tennis";
 
       if(!date || !startTime || !endTime){
         showToast("Lengkapi tanggal dan jam","error");
@@ -1229,6 +1232,9 @@ const cashbackVVIP     = Number(document.getElementById("cashbackVVIP").value);
       }
 
       await addDoc(collection(db,"schedules"),{
+
+        // 🔥 CORE DATA
+        sportType,
 
         date,
         startTime,
@@ -1259,9 +1265,10 @@ const cashbackVVIP     = Number(document.getElementById("cashbackVVIP").value);
         notes: notes || "",
         status: "open",
         createdAt: serverTimestamp(),
+
         cashbackMember: cashbackMember || 0,
-cashbackVerified: cashbackVerified || 0,
-cashbackVVIP: cashbackVVIP || 0,
+        cashbackVerified: cashbackVerified || 0,
+        cashbackVVIP: cashbackVVIP || 0,
         
       });
 
