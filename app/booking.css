@@ -235,19 +235,23 @@ body.dark .month-header-row button {
   aspect-ratio: 1/1;
   display: grid;
   place-items: center;
-  background: transparent !important; /* 🔥 matiin background box */
+
+  background: transparent !important; /* 🔥 no background */
   border: none !important;
+  border-radius: 0 !important; /* 🔥 hapus bentuk lingkaran lama */
+
   cursor: pointer;
   transition: var(--transition);
   font-size: 14px;
 }
 
+/* 🔥 MATIKAN BACKGROUND THEME */
 body.light .month-day {
-  background: #f3f4f6;
+  background: transparent !important;
 }
 
 body.dark .month-day {
-  background: #1f1f1f;
+  background: transparent !important;
 }
 
 .month-day:hover {
@@ -1018,11 +1022,15 @@ body.dark .edit-session-btn{
   width:28px;
   height:28px;
   border-radius:50%;
-  border:2px solid #00c896;
 
-  font-size:12px;
+  font-size:13px;
   font-weight:600;
   margin:0 auto;
+}
+
+/* 🔥 hanya yang ada session */
+.day-number.active-day{
+  border:2px solid #00c896;
 }
 
 /* 🔥 DOT DI LUAR LINGKARAN */
@@ -1058,6 +1066,7 @@ body.dark .edit-session-btn{
   font-size:8px;
   opacity:0.6;
 }
+
 
 /* ===============================
    WA BUTTON
