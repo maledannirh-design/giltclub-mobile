@@ -1042,3 +1042,20 @@ body.dark .edit-session-btn{
 .more-icon{
   opacity:0.6;
 }
+
+.wa-contact-btn{
+  margin-top:10px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:#25D366;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.wa-contact-btn:hover{
+  transform:scale(1.03);
+}
