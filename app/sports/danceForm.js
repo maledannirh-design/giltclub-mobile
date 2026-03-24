@@ -16,6 +16,7 @@ window.openDanceForm = function(){
     </div>
   `;
 
+  
   submitDance.onclick = async ()=>{
     await addDoc(collection(db,"schedules"),{
       sportType: "dance",
