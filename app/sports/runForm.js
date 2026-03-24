@@ -1,4 +1,4 @@
-window.openRunForm = function(){
+export async function openRunForm(){
 
   const sheet = document.getElementById("createSessionSheet");
 
