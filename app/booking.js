@@ -180,14 +180,14 @@ function renderCalendarMonth() {
 
   <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
   <div class="sport-item ${selectedSport==="pound"?"active":""}" data-sport="pound">🥁 Pound</div>
-  <div class="sport-item ${selectedSport==="dance"?"active":""}" data-sport="dance">💃 Dance</div>
+  <div class="sport-item ${selectedSport==="dance"?"active":""}" data-sport="dance">💃 Tari</div>
   <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
-  <div class="sport-item ${selectedSport==="run"?"active":""}" data-sport="run">🏃 Run</div>
+  <div class="sport-item ${selectedSport==="run"?"active":""}" data-sport="run">🏃 Lari</div>
   <div class="sport-item ${selectedSport==="badminton"?"active":""}" data-sport="badminton">🏸 Badminton</div>
   <div class="sport-item ${selectedSport==="coffee"?"active":""}" data-sport="coffee">☕ Coffee</div>
   <div class="sport-item ${selectedSport==="science"?"active":""}" data-sport="science">🧠 Science</div>
   <div class="sport-item ${selectedSport==="counselling"?"active":""}" data-sport="counselling">🫂 Counselling</div>
-  <div class="sport-item ${selectedSport==="swim"?"active":""}" data-sport="swim">🏊 Swim</div>
+  <div class="sport-item ${selectedSport==="swim"?"active":""}" data-sport="swim">🏊 Renang</div>
 
   <div class="sport-scroll-hint">⇄</div>
 
