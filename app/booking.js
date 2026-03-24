@@ -1274,7 +1274,7 @@ function attachGlobalEvents(){
 /* ===============================
    CREATE SESSION SUBMIT (FINAL CLEAN)
 ================================= */
-async function setupCreateSessionSubmit(){
+export async function setupCreateSessionSubmit(){
 
   const btn = document.getElementById("submitCreateSession");
   if(!btn) return;
@@ -1913,51 +1913,47 @@ window.openRacketSelector = function(scheduleData){
 
 function openSportForm(sportType){
 
-  switch(sportType){
+  const map = {
+    tennis: () => import("./sports/tennisForm.js"),
+    golf: () => import("./sports/golfForm.js"),
+    run: () => import("./sports/runForm.js"),
+    dance: () => import("./sports/danceForm.js"),
+    pound: () => import("./sports/poundForm.js"),
+    badminton: () => import("./sports/badmintonForm.js"),
+    swim: () => import("./sports/swimForm.js"),
+    coffee: () => import("./sports/coffeeForm.js"),
+    science: () => import("./sports/scienceForm.js"),
+    counselling: () => import("./sports/counsellingForm.js")
+  };
 
-    case "tennis":
-      import("./sports/tennisForm.js").then(m => m.openTennisForm());
-      break;
+  const loader = map[sportType];
 
-    case "golf":
-      import("./sports/golfForm.js").then(m => m.openGolfForm());
-      break;
-
-    case "run":
-      import("./sports/runForm.js").then(m => m.openRunForm());
-      break;
-
-    case "dance":
-      import("./sports/danceForm.js").then(m => m.openDanceForm());
-      break;
-
-    case "pound":
-      import("./sports/poundForm.js").then(m => m.openPoundForm());
-      break;
-
-    case "badminton":
-      import("./sports/badmintonForm.js").then(m => m.openBadmintonForm());
-      break;
-
-    case "swim":
-      import("./sports/swimForm.js").then(m => m.openSwimForm());
-      break;
-
-    case "coffee":
-      import("./sports/coffeeForm.js").then(m => m.openCoffeeForm());
-      break;
-
-    case "science":
-      import("./sports/scienceForm.js").then(m => m.openScienceForm());
-      break;
-
-    case "counselling":
-      import("./sports/counsellingForm.js").then(m => m.openCounsellingForm());
-      break;
-
-    default:
-      showToast("Cabor belum tersedia","warning");
+  if(!loader){
+    showToast("Cabor belum tersedia","warning");
+    return;
   }
+
+  loader()
+    .then(module => {
+
+      const fn = module[`open${capitalize(sportType)}Form`];
+
+      if(typeof fn !== "function"){
+        showToast("Form belum tersedia","error");
+        return;
+      }
+
+      fn();
+
+    })
+    .catch(err => {
+      console.error(err);
+      showToast("Form belum dibuat","error");
+    });
+}
+
+function capitalize(str){
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 
