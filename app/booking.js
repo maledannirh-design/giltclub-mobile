@@ -265,7 +265,7 @@ function renderCalendarMonth() {
       <div class="month-day ${hasSession ? "has-session" : ""} ${isWeekend ? "weekend":""}"
            data-date="${dateStr}">
 
-        <div class="day-number">${d}</div>
+        <div class="day-number ${hasSession ? "active-day" : ""}">${d}</div>
 
         ${
           hasSession
