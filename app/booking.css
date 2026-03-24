@@ -1002,44 +1002,46 @@ body.dark .edit-session-btn{
    CALENDAR BASE (UNCHANGED)
 ================================= */
 
-.month-day.has-session{
-  border:1px solid rgba(255,255,255,0.1);
-}
-
 .month-day{
   position:relative;
-  padding-top:6px;
-  padding-bottom:10px; /* 🔥 dikurangin biar gak bolong bawah */
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+  padding:6px 0 12px; /* atas kecil, bawah cukup buat dot */
+  text-align:center;
 }
 
+/* 🔥 BALIK KE STYLE AWAL (ini yang bener) */
 .day-number{
-  font-size:14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  border:2px solid #00c896;
+
+  font-size:12px;
   font-weight:600;
-  line-height:28px; /* 🔥 kunci biar center */
+  margin:0 auto;
+}
+
+/* 🔥 DOT DI LUAR LINGKARAN */
+.day-dots{
+  position:absolute;
+  bottom:2px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:3px;
 }
 
 /* DOT */
-.day-dots{
-  margin-top:3px; /* 🔥 dekatin ke lingkaran */
-  display:flex;
-  gap:3px;
-  justify-content:center;
-}
-
 .day-dot{
   width:3px;
   height:3px;
   border-radius:50%;
 }
 
-/* ===============================
-   COLOR PER CABOR
-================================= */
-
+/* WARNA */
 .dot-tennis{ background:#22c55e; }
 .dot-coffee{ background:#a16207; }
 .dot-golf{ background:#c0c0c0; }
