@@ -1003,26 +1003,36 @@ body.dark .edit-session-btn{
 
 .month-day{
   position:relative;
-  padding-top:6px;
+  padding-top:10px;   /* 🔥 kasih napas atas */
+  padding-bottom:10px; /* 🔥 kasih ruang bawah */
 }
 
 .day-number{
   font-size:14px;
   font-weight:600;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-/* 🔥 DOT SYSTEM (NEW CORE UI) */
+/* 🔥 DOT POSITION (JANGAN NEMPEL LINGKARAN) */
 .day-dots{
   display:flex;
   justify-content:center;
   gap:4px;
-  margin-top:4px;
+  margin-top:6px;   /* 🔥 jarak dari angka */
 }
 
+/* 🔥 DOT SIZE LEBIH HALUS */
 .day-dot{
-  width:6px;
-  height:6px;
+  width:4px;        /* lebih kecil */
+  height:4px;
   border-radius:50%;
+}
+
+/* kalau mau lebih premium dikit */
+.day-dot{
+  box-shadow:0 0 4px rgba(0,0,0,0.2);
 }
 
 /* 🔥 WARNA PER CABOR */
