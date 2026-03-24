@@ -2,7 +2,7 @@ import { db, auth } from "../firebase.js";
 import { showToast } from "../ui.js";
 import { setupCreateSessionSubmit } from "../booking.js";
 
-window.openTennisForm = async function(){
+export async function openTennisForm(){
 
   if(!auth.currentUser){
     showToast("Login terlebih dahulu","error");
