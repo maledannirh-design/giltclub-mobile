@@ -1059,3 +1059,33 @@ body.dark .edit-session-btn{
 .wa-contact-btn:hover{
   transform:scale(1.03);
 }
+
+.session-admin-actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.delete-session-btn{
+  padding:8px 14px;
+  border-radius:10px;
+  border:none;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+
+  background:#2a2a2a; /* sama tone edit */
+  color:#ff4d4f;       /* merah elegan */
+
+  transition:all .2s ease;
+}
+
+.delete-session-btn:hover{
+  background:#ff4d4f;
+  color:#fff;
+}
+.delete-session-btn{
+  background:transparent;
+  border:1px solid #ff4d4f;
+  color:#ff4d4f;
+}
