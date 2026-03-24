@@ -1178,7 +1178,7 @@ function attachGlobalEvents(){
 
     // ===== Open Create Session =====
     if (e.target.id === "openCreateSession"){
-      openCreateSessionSheet();
+      openSportForm(selectedSport);
       return;
     }
 
@@ -1818,3 +1818,54 @@ window.openRacketSelector = function(scheduleData){
   });
 
 };
+
+
+function openSportForm(sportType){
+
+  switch(sportType){
+
+    case "tennis":
+      window.openTennisForm();
+      break;
+
+    case "golf":
+      window.openGolfForm();
+      break;
+
+    case "run":
+      window.openRunForm();
+      break;
+
+    case "dance":
+      window.openDanceForm();
+      break;
+
+    case "pound":
+      window.openPoundForm();
+      break;
+
+    case "badminton":
+      window.openBadmintonForm();
+      break;
+
+    case "swim":
+      window.openSwimForm();
+      break;
+
+    case "coffee":
+      window.openCoffeeForm();
+      break;
+
+    case "science":
+      window.openScienceForm();
+      break;
+
+    case "counselling":
+      window.openCounsellingForm();
+      break;
+
+    default:
+      showToast("Cabor belum tersedia","warning");
+
+  }
+}
