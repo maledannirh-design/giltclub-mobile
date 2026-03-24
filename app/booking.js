@@ -1928,7 +1928,7 @@ function openSportForm(sportType){
   const loader = map[sportType];
 
   if(!loader){
-    showToast("Cabor belum tersedia","warning");
+    showToast("Pilih Cabor terlebih dahulu","warning");
     return;
   }
 
