@@ -993,3 +993,21 @@ body.dark .edit-session-btn{
 .sport-filter-bar::-webkit-scrollbar{
   display:none;
 }
+
+/* ===== SPORT COLORS ===== */
+
+.sport-tennis{ background: rgba(0,255,150,0.15); }
+.sport-golf{ background: rgba(255,215,0,0.15); }
+.sport-run{ background: rgba(255,80,80,0.15); }
+.sport-badminton{ background: rgba(0,200,255,0.15); }
+.sport-coffee{ background: rgba(139,69,19,0.2); }
+.sport-dance{ background: rgba(255,0,200,0.15); }
+.sport-pound{ background: rgba(255,140,0,0.2); }
+.sport-science{ background: rgba(120,120,255,0.2); }
+.sport-counselling{ background: rgba(0,255,200,0.15); }
+.sport-swim{ background: rgba(0,150,255,0.2); }
+
+/* optional glow biar premium */
+.month-day.has-session{
+  border:1px solid rgba(255,255,255,0.1);
+}
