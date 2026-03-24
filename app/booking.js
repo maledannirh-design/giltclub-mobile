@@ -1586,45 +1586,78 @@ async function openEditSessionSheet(scheduleId){
 
   const s = snap.data();
 
-  await openCreateSessionSheet();
+  // 🔥 AMBIL SPORT TYPE
+  const sportType = s.sportType || "tennis";
+
+  // 🔥 ROUTE KE FORM SESUAI CABOR
+  if(sportType === "tennis"){
+    await openCreateSessionSheet(); // tetap pakai default tennis
+  }else{
+    await openSportForm(sportType); // cabor lain
+  }
 
   setTimeout(()=>{
 
-    document.getElementById("tier").value = s.tier || "Newbie";
-    document.getElementById("sessionType").value = s.sessionType || "Mabar";
-    document.getElementById("sessionMode").value = s.mode || "reguler";
+    // =========================
+    // SAFE FILL (ANTI ERROR)
+    // =========================
 
-    document.getElementById("sessionDate").value = s.date || "";
-    document.getElementById("startTime").value = s.startTime || "";
-    document.getElementById("endTime").value = s.endTime || "";
+    const setVal = (id,val)=>{
+      const el = document.getElementById(id);
+      if(el) el.value = val;
+    };
 
-    document.getElementById("maxPlayers").value = s.maxPlayers || 0;
-    document.getElementById("court").value = s.court || "";
+    // 🔥 COMMON FIELD (SEMUA CABOR)
+    setVal("date", s.date);
+    setVal("sessionDate", s.date);
 
-    document.getElementById("ratePerHour").value = s.pricePerHour || 0;
-    document.getElementById("racketStock").value = s.racketStock || 0;
-    document.getElementById("racketRate").value = s.racketPrice || 0;
+    setVal("startTime", s.startTime);
+    setVal("endTime", s.endTime);
 
-    document.getElementById("notes").value = s.notes || "";
-    document.getElementById("cashbackMember").value = s.cashbackMember || 0;
-document.getElementById("cashbackVerified").value = s.cashbackVerified || 0;
-document.getElementById("cashbackVVIP").value = s.cashbackVVIP || 0;
+    setVal("maxPlayers", s.maxPlayers);
+    setVal("notes", s.notes);
 
-    const submitBtn = document.getElementById("submitCreateSession");
+    setVal("court", s.court);
+
+    // 🔥 TENNIS ONLY (AUTO SAFE)
+    setVal("tier", s.tier || "Newbie");
+    setVal("sessionType", s.sessionType || "Mabar");
+    setVal("sessionMode", s.mode || "reguler");
+
+    setVal("ratePerHour", s.pricePerHour || 0);
+    setVal("racketStock", s.racketStock || 0);
+    setVal("racketRate", s.racketPrice || 0);
+
+    setVal("cashbackMember", s.cashbackMember || 0);
+    setVal("cashbackVerified", s.cashbackVerified || 0);
+    setVal("cashbackVVIP", s.cashbackVVIP || 0);
+
+    // =========================
+    // BUTTON DETECTION (MULTI FORM)
+    // =========================
+
+    const submitBtn =
+      document.getElementById("submitCreateSession") ||
+      document.getElementById("submitPound") ||
+      document.getElementById("submitPadel");
+
+    if(!submitBtn) return;
+
     submitBtn.innerText = "Update Session";
 
     submitBtn.onclick = async ()=>{
 
       try{
 
-        const newMaxPlayers = Number(document.getElementById("maxPlayers").value);
+        const newMaxPlayers =
+          Number(document.getElementById("maxPlayers")?.value) || 0;
 
         if(!newMaxPlayers || newMaxPlayers <= 0){
           showToast("Maksimal pemain tidak valid","error");
           return;
         }
 
-        // 🔥 Hitung booking aktif
+        // 🔥 HITUNG BOOKING AKTIF
         const bookingSnap = await getDocs(
           query(
             collection(db,"bookings"),
@@ -1635,7 +1668,7 @@ document.getElementById("cashbackVVIP").value = s.cashbackVVIP || 0;
 
         const activeBookings = bookingSnap.size;
 
-        // 🔥 Hitung locked slot
+        // 🔥 HITUNG LOCKED SLOT
         const currentSnap = await getDoc(scheduleRef);
         const currentData = currentSnap.data();
         const lockedCount = (currentData.lockedSlots || []).length;
@@ -1654,27 +1687,33 @@ document.getElementById("cashbackVVIP").value = s.cashbackVVIP || 0;
 
         await updateDoc(scheduleRef,{
 
-          tier: document.getElementById("tier").value,
-          sessionType: document.getElementById("sessionType").value,
-          mode: document.getElementById("sessionMode").value,
+          // 🔥 CORE
+          date: document.getElementById("date")?.value ||
+                document.getElementById("sessionDate")?.value ||
+                s.date,
 
-          date: document.getElementById("sessionDate").value,
-          startTime: document.getElementById("startTime").value,
-          endTime: document.getElementById("endTime").value,
+          startTime: document.getElementById("startTime")?.value || s.startTime,
+          endTime: document.getElementById("endTime")?.value || s.endTime,
 
           maxPlayers: newMaxPlayers,
-          slots: newSlots,   // 🔥 sinkron ulang
+          slots: newSlots,
 
-          court: document.getElementById("court").value.trim(),
+          court: document.getElementById("court")?.value || s.court,
+          notes: document.getElementById("notes")?.value || "",
 
-          pricePerHour: Number(document.getElementById("ratePerHour").value),
-          racketStock: Number(document.getElementById("racketStock").value),
-          racketPrice: Number(document.getElementById("racketRate").value),
+          // 🔥 OPTIONAL (AUTO SAFE)
+          tier: document.getElementById("tier")?.value || s.tier,
+          sessionType: document.getElementById("sessionType")?.value || s.sessionType,
+          mode: document.getElementById("sessionMode")?.value || s.mode,
 
-          notes: document.getElementById("notes").value.trim(),
-          cashbackMember: Number(document.getElementById("cashbackMember").value) || 0,
-cashbackVerified: Number(document.getElementById("cashbackVerified").value) || 0,
-cashbackVVIP: Number(document.getElementById("cashbackVVIP").value) || 0,
+          pricePerHour: Number(document.getElementById("ratePerHour")?.value) || s.pricePerHour || 0,
+          racketStock: Number(document.getElementById("racketStock")?.value) || s.racketStock || 0,
+          racketPrice: Number(document.getElementById("racketRate")?.value) || s.racketPrice || 0,
+
+          cashbackMember: Number(document.getElementById("cashbackMember")?.value) || 0,
+          cashbackVerified: Number(document.getElementById("cashbackVerified")?.value) || 0,
+          cashbackVVIP: Number(document.getElementById("cashbackVVIP")?.value) || 0,
+
         });
 
         showToast("Session berhasil diperbarui","success");
@@ -1692,9 +1731,8 @@ cashbackVVIP: Number(document.getElementById("cashbackVVIP").value) || 0,
 
     };
 
-  },200);
+  },250);
 }
-
 
 /* ===============================
    AUTO CLOSE FINISHED SESSIONS
