@@ -289,33 +289,6 @@ body.dark .month-day {
 }
 
 /* =====================================
-   DATE WIHT THE SESSION - PERFECT CIRCLE RING
-===================================== */
-
-.month-day.has-session::after{
-  content: "";
-  position: absolute;
-  width: 65%;
-  height: 65%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 2px solid #10b981;
-  pointer-events: none;
-  transition: .25s ease;
-}
-
-body.dark .month-day.has-session::after{
-  border: 2px solid #E3C565;
-  box-shadow: 0 0 6px rgba(227,197,101,.4);
-}
-
-.month-day.has-session:hover::after{
-  transform: translate(-50%, -50%) scale(1.1);
-}
-
-/* =====================================
    POPUP SESI DITANGGAL KALENDAR
 ===================================== */
 
