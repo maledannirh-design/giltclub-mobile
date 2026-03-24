@@ -999,7 +999,7 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   CALENDAR BASE
+   CALENDAR BASE (UNCHANGED)
 ================================= */
 
 .month-day.has-session{
@@ -1009,33 +1009,33 @@ body.dark .edit-session-btn{
 .month-day{
   position:relative;
   padding-top:6px;
-  padding-bottom:16px; /* 🔥 ruang dot */
+  padding-bottom:18px; /* 🔥 ruang dot diperbesar */
 }
 
-/* 🔥 PENTING: JANGAN SENTUH BORDER LINGKARAN */
 .day-number{
   font-size:14px;
   font-weight:600;
 }
 
 /* ===============================
-   DOT (OUTSIDE CIRCLE - CLEAN)
+   DOT (OUTSIDE PERFECT POSITION)
 ================================= */
 
 .day-dots{
   position:absolute;
-  bottom:3px; /* 🔥 di bawah angka */
+  bottom:4px; /* 🔥 lebih turun dari lingkaran */
   left:50%;
   transform:translateX(-50%);
   display:flex;
   gap:4px;
 }
 
+/* DOT */
 .day-dot{
-  width:4px;
-  height:4px;
+  width:3px;   /* 🔥 lebih kecil biar subtle */
+  height:3px;
   border-radius:50%;
-  box-shadow:0 0 4px rgba(0,0,0,0.2);
+  box-shadow:0 0 3px rgba(0,0,0,0.2);
 }
 
 /* ===============================
