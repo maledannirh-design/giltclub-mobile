@@ -966,6 +966,11 @@ body.dark .edit-session-btn{
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+
+/* =====================================
+  date calendar active session
+===================================== */
 .sport-filter-bar{
   display:flex;
   gap:10px;
@@ -993,79 +998,70 @@ body.dark .edit-session-btn{
   display:none;
 }
 
-/* ❌ REMOVE BACKGROUND SPORT (NO OVERRIDE) */
-/* (semua sport-* background dihapus agar clean dot system) */
+/* ===============================
+   CALENDAR BASE
+================================= */
 
-/* optional glow biar premium */
 .month-day.has-session{
   border:1px solid rgba(255,255,255,0.1);
 }
 
 .month-day{
   position:relative;
-  padding-top:10px;
-  padding-bottom:14px; /* 🔥 kasih ruang bawah buat dot */
+  padding-top:6px;
+  padding-bottom:16px; /* 🔥 ruang dot */
 }
 
+/* 🔥 PENTING: JANGAN SENTUH BORDER LINGKARAN */
 .day-number{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  border:2px solid #00c896;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0 auto;
+  font-size:14px;
   font-weight:600;
 }
 
-/* 🔥 DOT DI LUAR LINGKARAN */
+/* ===============================
+   DOT (OUTSIDE CIRCLE - CLEAN)
+================================= */
+
 .day-dots{
   position:absolute;
-  bottom:2px;       /* 🔥 di bawah lingkaran */
+  bottom:3px; /* 🔥 di bawah angka */
   left:50%;
   transform:translateX(-50%);
   display:flex;
   gap:4px;
 }
 
-/* DOT */
 .day-dot{
   width:4px;
   height:4px;
   border-radius:50%;
-}
-
-/* kalau mau lebih premium dikit */
-.day-dot{
   box-shadow:0 0 4px rgba(0,0,0,0.2);
 }
 
-/* 🔥 WARNA PER CABOR */
-.dot-tennis{ background:#22c55e; }     /* hijau */
-.dot-coffee{ background:#a16207; }     /* coklat */
-.dot-golf{ background:#c0c0c0; }       /* silver */
-.dot-swim{ background:#38bdf8; }       /* biru langit */
-.dot-pound{ background:#f97316; }      /* jingga */
-.dot-dance{ background:#a855f7; }      /* ungu */
-.dot-counselling{ background:#ffffff; border:1px solid #ccc; } /* putih */
-.dot-science{ background:#000000; }    /* hitam */
-.dot-run{ background:#7c3aed; }        /* ungu */
-.dot-badminton{ background:#111827; }  /* hitam soft */
+/* ===============================
+   COLOR PER CABOR
+================================= */
+
+.dot-tennis{ background:#22c55e; }
+.dot-coffee{ background:#a16207; }
+.dot-golf{ background:#c0c0c0; }
+.dot-swim{ background:#38bdf8; }
+.dot-pound{ background:#f97316; }
+.dot-dance{ background:#a855f7; }
+.dot-counselling{ background:#ffffff; border:1px solid #ccc; }
+.dot-science{ background:#000000; }
+.dot-run{ background:#7c3aed; }
+.dot-badminton{ background:#111827; }
 
 .dot-more{
   font-size:8px;
   opacity:0.6;
 }
 
-/* ❌ REMOVE ICON STYLE (tidak dipakai lagi) */
-/*
-.day-icons{ ... }
-.day-icons span{ ... }
-.more-icon{ ... }
-*/
+/* ===============================
+   WA BUTTON
+================================= */
 
-/* WA BUTTON */
 .wa-contact-btn{
   margin-top:10px;
   width:100%;
@@ -1083,14 +1079,16 @@ body.dark .edit-session-btn{
   transform:scale(1.03);
 }
 
-/* ADMIN ACTION */
+/* ===============================
+   ADMIN ACTION
+================================= */
+
 .session-admin-actions{
   display:flex;
   gap:10px;
   margin-top:10px;
 }
 
-/* DELETE BUTTON CLEAN */
 .delete-session-btn{
   padding:8px 14px;
   border-radius:10px;
