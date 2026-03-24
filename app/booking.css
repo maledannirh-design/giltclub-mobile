@@ -966,7 +966,6 @@ body.dark .edit-session-btn{
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 .sport-filter-bar{
   display:flex;
   gap:10px;
@@ -994,18 +993,8 @@ body.dark .edit-session-btn{
   display:none;
 }
 
-/* ===== SPORT COLORS ===== */
-
-.sport-tennis{ background: rgba(0,255,150,0.15); }
-.sport-golf{ background: rgba(255,215,0,0.15); }
-.sport-run{ background: rgba(255,80,80,0.15); }
-.sport-badminton{ background: rgba(0,200,255,0.15); }
-.sport-coffee{ background: rgba(139,69,19,0.2); }
-.sport-dance{ background: rgba(255,0,200,0.15); }
-.sport-pound{ background: rgba(255,140,0,0.2); }
-.sport-science{ background: rgba(120,120,255,0.2); }
-.sport-counselling{ background: rgba(0,255,200,0.15); }
-.sport-swim{ background: rgba(0,150,255,0.2); }
+/* ❌ REMOVE BACKGROUND SPORT (NO OVERRIDE) */
+/* (semua sport-* background dihapus agar clean dot system) */
 
 /* optional glow biar premium */
 .month-day.has-session{
@@ -1022,27 +1011,45 @@ body.dark .edit-session-btn{
   font-weight:600;
 }
 
-.day-icons{
-  position:absolute;
-  bottom:4px;
-  left:4px;
-  right:4px;
+/* 🔥 DOT SYSTEM (NEW CORE UI) */
+.day-dots{
   display:flex;
-  gap:2px;
-  font-size:10px;
-  justify-content:flex-start;
+  justify-content:center;
+  gap:4px;
+  margin-top:4px;
 }
 
-.day-icons span{
-  background:rgba(255,255,255,0.1);
-  border-radius:4px;
-  padding:1px 3px;
+.day-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
 }
 
-.more-icon{
+/* 🔥 WARNA PER CABOR */
+.dot-tennis{ background:#22c55e; }     /* hijau */
+.dot-coffee{ background:#a16207; }     /* coklat */
+.dot-golf{ background:#c0c0c0; }       /* silver */
+.dot-swim{ background:#38bdf8; }       /* biru langit */
+.dot-pound{ background:#f97316; }      /* jingga */
+.dot-dance{ background:#a855f7; }      /* ungu */
+.dot-counselling{ background:#ffffff; border:1px solid #ccc; } /* putih */
+.dot-science{ background:#000000; }    /* hitam */
+.dot-run{ background:#7c3aed; }        /* ungu */
+.dot-badminton{ background:#111827; }  /* hitam soft */
+
+.dot-more{
+  font-size:8px;
   opacity:0.6;
 }
 
+/* ❌ REMOVE ICON STYLE (tidak dipakai lagi) */
+/*
+.day-icons{ ... }
+.day-icons span{ ... }
+.more-icon{ ... }
+*/
+
+/* WA BUTTON */
 .wa-contact-btn{
   margin-top:10px;
   width:100%;
@@ -1060,22 +1067,24 @@ body.dark .edit-session-btn{
   transform:scale(1.03);
 }
 
+/* ADMIN ACTION */
 .session-admin-actions{
   display:flex;
   gap:10px;
   margin-top:10px;
 }
 
+/* DELETE BUTTON CLEAN */
 .delete-session-btn{
   padding:8px 14px;
   border-radius:10px;
-  border:none;
+  border:1px solid #ff4d4f;
   font-size:13px;
   font-weight:600;
   cursor:pointer;
 
-  background:#2a2a2a; /* sama tone edit */
-  color:#ff4d4f;       /* merah elegan */
+  background:transparent;
+  color:#ff4d4f;
 
   transition:all .2s ease;
 }
@@ -1083,9 +1092,4 @@ body.dark .edit-session-btn{
 .delete-session-btn:hover{
   background:#ff4d4f;
   color:#fff;
-}
-.delete-session-btn{
-  background:transparent;
-  border:1px solid #ff4d4f;
-  color:#ff4d4f;
 }
