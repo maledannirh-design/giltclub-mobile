@@ -16,6 +16,7 @@ window.openRunForm = function(){
     </div>
   `;
 
+  
   submitRun.onclick = async ()=>{
     await addDoc(collection(db,"schedules"),{
       sportType: "run",
