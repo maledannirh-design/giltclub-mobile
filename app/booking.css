@@ -1011,3 +1011,34 @@ body.dark .edit-session-btn{
 .month-day.has-session{
   border:1px solid rgba(255,255,255,0.1);
 }
+
+.month-day{
+  position:relative;
+  padding-top:6px;
+}
+
+.day-number{
+  font-size:14px;
+  font-weight:600;
+}
+
+.day-icons{
+  position:absolute;
+  bottom:4px;
+  left:4px;
+  right:4px;
+  display:flex;
+  gap:2px;
+  font-size:10px;
+  justify-content:flex-start;
+}
+
+.day-icons span{
+  background:rgba(255,255,255,0.1);
+  border-radius:4px;
+  padding:1px 3px;
+}
+
+.more-icon{
+  opacity:0.6;
+}
