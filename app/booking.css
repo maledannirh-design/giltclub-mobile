@@ -1003,29 +1003,35 @@ body.dark .edit-session-btn{
 
 .month-day{
   position:relative;
-  padding-top:10px;   /* 🔥 kasih napas atas */
-  padding-bottom:10px; /* 🔥 kasih ruang bawah */
+  padding-top:10px;
+  padding-bottom:14px; /* 🔥 kasih ruang bawah buat dot */
 }
 
 .day-number{
-  font-size:14px;
-  font-weight:600;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  border:2px solid #00c896;
   display:flex;
-  justify-content:center;
   align-items:center;
-}
-
-/* 🔥 DOT POSITION (JANGAN NEMPEL LINGKARAN) */
-.day-dots{
-  display:flex;
   justify-content:center;
-  gap:4px;
-  margin-top:6px;   /* 🔥 jarak dari angka */
+  margin:0 auto;
+  font-weight:600;
 }
 
-/* 🔥 DOT SIZE LEBIH HALUS */
+/* 🔥 DOT DI LUAR LINGKARAN */
+.day-dots{
+  position:absolute;
+  bottom:2px;       /* 🔥 di bawah lingkaran */
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:4px;
+}
+
+/* DOT */
 .day-dot{
-  width:4px;        /* lebih kecil */
+  width:4px;
   height:4px;
   border-radius:50%;
 }
