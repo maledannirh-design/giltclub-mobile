@@ -176,22 +176,22 @@ function renderCalendarMonth() {
       <!-- 🔥 CABOR FILTER BAR -->
       <div class="sport-filter-bar">
 
-  <div class="sport-item ${selectedSport==="all"?"active":""}" data-sport="all">All</div>
+        <div class="sport-item ${selectedSport==="all"?"active":""}" data-sport="all">All</div>
 
-  <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
-  <div class="sport-item ${selectedSport==="pound"?"active":""}" data-sport="pound">🥁 Pound</div>
-  <div class="sport-item ${selectedSport==="dance"?"active":""}" data-sport="dance">💃 Tari</div>
-  <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
-  <div class="sport-item ${selectedSport==="run"?"active":""}" data-sport="run">🏃 Lari</div>
-  <div class="sport-item ${selectedSport==="badminton"?"active":""}" data-sport="badminton">🏸 Badminton</div>
-  <div class="sport-item ${selectedSport==="coffee"?"active":""}" data-sport="coffee">☕ Coffee</div>
-  <div class="sport-item ${selectedSport==="science"?"active":""}" data-sport="science">🧠 Science</div>
-  <div class="sport-item ${selectedSport==="counselling"?"active":""}" data-sport="counselling">🫂 Counselling</div>
-  <div class="sport-item ${selectedSport==="swim"?"active":""}" data-sport="swim">🏊 Renang</div>
+        <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
+        <div class="sport-item ${selectedSport==="pound"?"active":""}" data-sport="pound">🥁 Pound</div>
+        <div class="sport-item ${selectedSport==="dance"?"active":""}" data-sport="dance">💃 Tari</div>
+        <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
+        <div class="sport-item ${selectedSport==="run"?"active":""}" data-sport="run">🏃 Lari</div>
+        <div class="sport-item ${selectedSport==="badminton"?"active":""}" data-sport="badminton">🏸 Badminton</div>
+        <div class="sport-item ${selectedSport==="coffee"?"active":""}" data-sport="coffee">☕ Coffee</div>
+        <div class="sport-item ${selectedSport==="science"?"active":""}" data-sport="science">🧠 Science</div>
+        <div class="sport-item ${selectedSport==="counselling"?"active":""}" data-sport="counselling">🫂 Counselling</div>
+        <div class="sport-item ${selectedSport==="swim"?"active":""}" data-sport="swim">🏊 Renang</div>
 
-  <div class="sport-scroll-hint">⇄</div>
+        <div class="sport-scroll-hint">⇄</div>
 
-</div>
+      </div>
 
       <div class="month-header-row">
         <button id="prevMonth">‹</button>
@@ -221,34 +221,56 @@ function renderCalendarMonth() {
     const dateObj = new Date(year, month, d);
     const dateStr = formatDate(dateObj);
 
-    // 🔥 FILTER SPORT (sementara dummy karena belum ada field)
-   let sportClass = "";
+    let sportClass = "";
+    let sportIcons = [];
 
-const hasSession = allSchedules.some(s => {
+    const hasSession = allSchedules.some(s => {
 
-  if (s.date !== dateStr) return false;
+      if (s.date !== dateStr) return false;
 
-  const sport = s.sportType || "tennis";
+      const sport = s.sportType || "tennis";
 
-  if (selectedSport !== "all" && sport !== selectedSport) return false;
+      if (selectedSport !== "all" && sport !== selectedSport) return false;
 
-  // 🔥 SET WARNA PER CABOR
-  switch(sport){
-    case "tennis": sportClass = "sport-tennis"; break;
-    case "golf": sportClass = "sport-golf"; break;
-    case "run": sportClass = "sport-run"; break;
-    case "badminton": sportClass = "sport-badminton"; break;
-    case "coffee": sportClass = "sport-coffee"; break;
-    case "dance": sportClass = "sport-dance"; break;
-    case "pound": sportClass = "sport-pound"; break;
-    case "science": sportClass = "sport-science"; break;
-    case "counselling": sportClass = "sport-counselling"; break;
-    case "swim": sportClass = "sport-swim"; break;
-  }
+      // 🔥 ICON MAP
+      const iconMap = {
+        tennis: "🎾",
+        golf: "⛳",
+        run: "🏃",
+        badminton: "🏸",
+        coffee: "☕",
+        dance: "💃",
+        pound: "🥁",
+        science: "🧠",
+        counselling: "🫂",
+        swim: "🏊"
+      };
 
-  return true;
+      const icon = iconMap[sport] || "•";
 
-});
+      if (!sportIcons.includes(icon)) {
+        sportIcons.push(icon);
+      }
+
+      // 🔥 COLOR CLASS (ambil dari salah satu saja cukup)
+      if (!sportClass) {
+        switch(sport){
+          case "tennis": sportClass = "sport-tennis"; break;
+          case "golf": sportClass = "sport-golf"; break;
+          case "run": sportClass = "sport-run"; break;
+          case "badminton": sportClass = "sport-badminton"; break;
+          case "coffee": sportClass = "sport-coffee"; break;
+          case "dance": sportClass = "sport-dance"; break;
+          case "pound": sportClass = "sport-pound"; break;
+          case "science": sportClass = "sport-science"; break;
+          case "counselling": sportClass = "sport-counselling"; break;
+          case "swim": sportClass = "sport-swim"; break;
+        }
+      }
+
+      return true;
+
+    });
 
     const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
@@ -256,7 +278,20 @@ const hasSession = allSchedules.some(s => {
     html += `
       <div class="month-day ${hasSession ? "has-session" : ""} ${sportClass} ${isWeekend ? "weekend":""}"
            data-date="${dateStr}">
-        ${d}
+
+        <div class="day-number">${d}</div>
+
+        ${
+          sportIcons.length
+            ? `
+            <div class="day-icons">
+              ${sportIcons.slice(0,3).map(i=>`<span>${i}</span>`).join("")}
+              ${sportIcons.length > 3 ? `<span class="more-icon">+${sportIcons.length-3}</span>` : ""}
+            </div>
+            `
+            : ""
+        }
+
       </div>
     `;
   }
