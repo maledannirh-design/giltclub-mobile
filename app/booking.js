@@ -549,8 +549,8 @@ async function openSessionPopup(dateStr) {
                   ✏️ Edit Session
                 </button>
                 <button class="delete-session-btn" data-id="${s.id}">
-                  🗑 Hapus Session
-                </button>
+  🗑 Hapus
+</button>
               </div>
               `
               : ""
