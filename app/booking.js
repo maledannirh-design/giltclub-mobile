@@ -1911,57 +1911,66 @@ window.openRacketSelector = function(scheduleData){
 
 };
 
-
 function openSportForm(sportType){
+
+  let fn = null;
 
   switch(sportType){
 
     case "tennis":
-      window.openTennisForm();
+      fn = window.openTennisForm;
       break;
 
     case "golf":
-      window.openGolfForm();
+      fn = window.openGolfForm;
       break;
 
     case "run":
-      window.openRunForm();
+      fn = window.openRunForm;
       break;
 
     case "dance":
-      window.openDanceForm();
+      fn = window.openDanceForm;
       break;
 
     case "pound":
-      window.openPoundForm();
+      fn = window.openPoundForm;
       break;
 
     case "badminton":
-      window.openBadmintonForm();
+      fn = window.openBadmintonForm;
       break;
 
     case "swim":
-      window.openSwimForm();
+      fn = window.openSwimForm;
       break;
 
     case "coffee":
-      window.openCoffeeForm();
+      fn = window.openCoffeeForm;
       break;
 
     case "science":
-      window.openScienceForm();
+      fn = window.openScienceForm;
       break;
 
     case "counselling":
-      window.openCounsellingForm();
+      fn = window.openCounsellingForm;
       break;
 
     default:
       showToast("Cabor belum tersedia","warning");
-
+      return;
   }
-}
 
+  // 🔥 PROTECTION (INI YANG FIX ERROR LU)
+  if(typeof fn !== "function"){
+    console.error("Form tidak ditemukan:", sportType);
+    showToast("Form belum tersedia","error");
+    return;
+  }
+
+  fn();
+}
 function extractWhatsAppNumber(text){
 
   if(!text) return null;
