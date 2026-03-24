@@ -428,7 +428,9 @@ async function openSessionPopup(dateStr) {
 
         if (member) {
           slotHtml += `
-            <div class="member-wrapper slot filled-slot">
+            <div class="member-wrapper slot filled-slot"
+     data-schedule="${s.id}"
+     data-index="${i}">
               <div class="member-avatar">
                 ${
                   member.photoURL
