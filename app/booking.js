@@ -9,6 +9,7 @@ import {
   doc,
   getDocs,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   addDoc,
   runTransaction,   // ✅ TAMBAHKAN INI
