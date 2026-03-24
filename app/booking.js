@@ -404,6 +404,7 @@ async function openSessionPopup(dateStr) {
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
 
+      /* SLOT RENDER */
       let slotHtml = "";
       let memberPointer = 0;
 
@@ -414,7 +415,10 @@ async function openSessionPopup(dateStr) {
         if (locked) {
           slotHtml += `
             <div class="member-wrapper slot locked-slot">
-              🔒 ${locked.label || "Locked"}
+              <div class="member-avatar">
+                <div class="avatar-initial">🔒</div>
+              </div>
+              <div class="member-name">${locked.label || "Locked"}</div>
             </div>
           `;
           continue;
@@ -425,14 +429,28 @@ async function openSessionPopup(dateStr) {
         if (member) {
           slotHtml += `
             <div class="member-wrapper slot filled-slot">
-              ${member.username}
+              <div class="member-avatar">
+                ${
+                  member.photoURL
+                    ? `<img src="${member.photoURL}">`
+                    : `<div class="avatar-initial">${member.avatarInitial}</div>`
+                }
+              </div>
+              <div class="member-name">${member.username}</div>
             </div>
           `;
           memberPointer++;
           continue;
         }
 
-        slotHtml += `<div class="member-wrapper slot empty-slot">+</div>`;
+        slotHtml += `
+          <div class="member-wrapper slot empty-slot">
+            <div class="member-avatar">
+              <div class="avatar-initial">+</div>
+            </div>
+            <div class="member-name">Kosong</div>
+          </div>
+        `;
       }
 
       // 🔥 WA PARSER
@@ -523,6 +541,27 @@ async function openSessionPopup(dateStr) {
               : ""
           }
 
+          ${
+            isPrivileged
+              ? `
+              <div class="session-admin-actions">
+                <button class="edit-session-btn" data-id="${s.id}">
+                  ✏️ Edit Session
+                </button>
+                <button class="delete-session-btn" data-id="${s.id}">
+                  🗑 Hapus Session
+                </button>
+              </div>
+              `
+              : ""
+          }
+
+          ${
+            isPrivileged && isRunning && !isClosed
+              ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
+              : ""
+          }
+
           <div class="session-members">
             ${slotHtml}
           </div>
@@ -540,7 +579,11 @@ async function openSessionPopup(dateStr) {
 
   popup.innerHTML = html;
 
-  // 🔥 WA BUTTON SAFE HANDLER
+  attachSlotInteraction(currentUserRole);
+
+  /* ===============================
+     WA BUTTON HANDLER (SAFE)
+  =============================== */
   document.querySelectorAll(".wa-contact-btn").forEach(btn => {
 
     btn.onclick = null;
@@ -569,7 +612,41 @@ async function openSessionPopup(dateStr) {
 
   });
 
-  attachSlotInteraction(currentUserRole);
+  /* ===============================
+     DELETE SESSION HANDLER
+  =============================== */
+  document.querySelectorAll(".delete-session-btn").forEach(btn => {
+
+    btn.onclick = async () => {
+
+      const scheduleId = btn.dataset.id;
+
+      const confirmed = await showConfirm({
+        title: "Hapus Sesi?",
+        message: "Sesi akan dihapus permanen.",
+        confirmText: "Ya, Hapus",
+        cancelText: "Batal"
+      });
+
+      if (!confirmed) return;
+
+      try {
+
+        await deleteDoc(doc(db, "schedules", scheduleId));
+
+        showToast("Sesi berhasil dihapus","success");
+
+        const popup = document.getElementById("popupContainer");
+        if(popup) popup.innerHTML = "";
+
+      } catch (err) {
+        console.error(err);
+        showToast("Gagal menghapus sesi","error");
+      }
+
+    };
+
+  });
 
   /* ===============================
      EDIT BUTTON
