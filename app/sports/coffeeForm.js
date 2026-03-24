@@ -20,6 +20,7 @@ window.openCoffeeForm = function(){
     </div>
   `;
 
+  
   submitCoffee.onclick = async ()=>{
     await addDoc(collection(db,"schedules"),{
       sportType: "coffee",
