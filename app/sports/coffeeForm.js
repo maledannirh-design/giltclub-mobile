@@ -6,20 +6,35 @@ window.openCoffeeForm = function(){
 
   sheet.innerHTML = `
     <div class="premium-sheet">
-      <h2>Coffee Session</h2>
+      <h2>☕ Coffee Time</h2>
 
-      <div class="sheet-section">
-        <label>Tempat</label>
-        <input type="text" id="location">
-      </div>
+      <input type="date" id="date">
+      <input type="time" id="startTime">
 
-      <div class="sheet-section">
-        <label>Kapasitas</label>
-        <input type="number" id="capacity">
-      </div>
+      <input type="text" id="location" placeholder="Cafe Location">
+      <input type="number" id="maxPlayers" placeholder="Capacity">
+
+      <textarea id="notes"></textarea>
 
       <button id="submitCoffee">Create</button>
     </div>
   `;
+
+  submitCoffee.onclick = async ()=>{
+    await addDoc(collection(db,"schedules"),{
+      sportType: "coffee",
+      date: date.value,
+      startTime: startTime.value,
+      maxPlayers: Number(maxPlayers.value),
+      location: location.value,
+      notes: notes.value,
+      hostId: auth.currentUser.uid,
+      createdAt: serverTimestamp(),
+      status: "open"
+    });
+
+    showToast("Coffee created","success");
+    renderBooking();
+  };
 
 };
