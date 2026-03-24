@@ -15,7 +15,6 @@ export async function openRunForm(){
       <button id="submitRun">Create</button>
     </div>
   `;
-
   
   submitRun.onclick = async ()=>{
     await addDoc(collection(db,"schedules"),{
