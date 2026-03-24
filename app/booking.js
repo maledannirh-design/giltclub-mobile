@@ -222,10 +222,8 @@ function renderCalendarMonth() {
     const dateObj = new Date(year, month, d);
     const dateStr = formatDate(dateObj);
 
-    let sportClass = "";
-    let sportIcons = [];
-
-    const hasSession = allSchedules.some(s => {
+    // 🔥 AMBIL SEMUA SESSION DI HARI INI
+    const sessionsToday = allSchedules.filter(s => {
 
       if (s.date !== dateStr) return false;
 
@@ -233,61 +231,57 @@ function renderCalendarMonth() {
 
       if (selectedSport !== "all" && sport !== selectedSport) return false;
 
-      // 🔥 ICON MAP
-      const iconMap = {
-        tennis: "🎾",
-        golf: "⛳",
-        run: "🏃",
-        badminton: "🏸",
-        coffee: "☕",
-        dance: "💃",
-        pound: "🥁",
-        science: "🧠",
-        counselling: "🫂",
-        swim: "🏊"
-      };
-
-      const icon = iconMap[sport] || "•";
-
-      if (!sportIcons.includes(icon)) {
-        sportIcons.push(icon);
-      }
-
-      // 🔥 COLOR CLASS (ambil dari salah satu saja cukup)
-      if (!sportClass) {
-        switch(sport){
-          case "tennis": sportClass = "sport-tennis"; break;
-          case "golf": sportClass = "sport-golf"; break;
-          case "run": sportClass = "sport-run"; break;
-          case "badminton": sportClass = "sport-badminton"; break;
-          case "coffee": sportClass = "sport-coffee"; break;
-          case "dance": sportClass = "sport-dance"; break;
-          case "pound": sportClass = "sport-pound"; break;
-          case "science": sportClass = "sport-science"; break;
-          case "counselling": sportClass = "sport-counselling"; break;
-          case "swim": sportClass = "sport-swim"; break;
-        }
-      }
-
       return true;
 
     });
 
+    // 🔥 UNIQUE SPORT
+    const sportSet = new Set(
+      sessionsToday.map(s => s.sportType || "tennis")
+    );
+
+    const sportsToday = Array.from(sportSet);
+
+    const hasSession = sportsToday.length > 0;
+
     const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
+    // 🔥 COLOR MAP DOT
+    const sportColorMap = {
+      tennis: "dot-tennis",
+      coffee: "dot-coffee",
+      golf: "dot-golf",
+      swim: "dot-swim",
+      pound: "dot-pound",
+      dance: "dot-dance",
+      counselling: "dot-counselling",
+      science: "dot-science",
+      run: "dot-run",
+      badminton: "dot-badminton"
+    };
+
     html += `
-      <div class="month-day ${hasSession ? "has-session" : ""} ${sportClass} ${isWeekend ? "weekend":""}"
+      <div class="month-day ${hasSession ? "has-session" : ""} ${isWeekend ? "weekend":""}"
            data-date="${dateStr}">
 
         <div class="day-number">${d}</div>
 
         ${
-          sportIcons.length
+          hasSession
             ? `
-            <div class="day-icons">
-              ${sportIcons.slice(0,3).map(i=>`<span>${i}</span>`).join("")}
-              ${sportIcons.length > 3 ? `<span class="more-icon">+${sportIcons.length-3}</span>` : ""}
+            <div class="day-dots">
+              ${
+                sportsToday.slice(0,3).map(sport=>{
+                  const cls = sportColorMap[sport] || "dot-default";
+                  return `<span class="day-dot ${cls}"></span>`;
+                }).join("")
+              }
+              ${
+                sportsToday.length > 3
+                  ? `<span class="dot-more">+${sportsToday.length - 3}</span>`
+                  : ""
+              }
             </div>
             `
             : ""
