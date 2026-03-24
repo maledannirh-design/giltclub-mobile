@@ -1913,64 +1913,54 @@ window.openRacketSelector = function(scheduleData){
 
 function openSportForm(sportType){
 
-  let fn = null;
-
   switch(sportType){
 
     case "tennis":
-      fn = window.openTennisForm;
+      import("./sports/tennisForm.js").then(m => m.openTennisForm());
       break;
 
     case "golf":
-      fn = window.openGolfForm;
+      import("./sports/golfForm.js").then(m => m.openGolfForm());
       break;
 
     case "run":
-      fn = window.openRunForm;
+      import("./sports/runForm.js").then(m => m.openRunForm());
       break;
 
     case "dance":
-      fn = window.openDanceForm;
+      import("./sports/danceForm.js").then(m => m.openDanceForm());
       break;
 
     case "pound":
-      fn = window.openPoundForm;
+      import("./sports/poundForm.js").then(m => m.openPoundForm());
       break;
 
     case "badminton":
-      fn = window.openBadmintonForm;
+      import("./sports/badmintonForm.js").then(m => m.openBadmintonForm());
       break;
 
     case "swim":
-      fn = window.openSwimForm;
+      import("./sports/swimForm.js").then(m => m.openSwimForm());
       break;
 
     case "coffee":
-      fn = window.openCoffeeForm;
+      import("./sports/coffeeForm.js").then(m => m.openCoffeeForm());
       break;
 
     case "science":
-      fn = window.openScienceForm;
+      import("./sports/scienceForm.js").then(m => m.openScienceForm());
       break;
 
     case "counselling":
-      fn = window.openCounsellingForm;
+      import("./sports/counsellingForm.js").then(m => m.openCounsellingForm());
       break;
 
     default:
       showToast("Cabor belum tersedia","warning");
-      return;
   }
-
-  // 🔥 PROTECTION (INI YANG FIX ERROR LU)
-  if(typeof fn !== "function"){
-    console.error("Form tidak ditemukan:", sportType);
-    showToast("Form belum tersedia","error");
-    return;
-  }
-
-  fn();
 }
+
+
 function extractWhatsAppNumber(text){
 
   if(!text) return null;
