@@ -399,6 +399,62 @@ async function openSessionPopup(dateStr) {
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
+ /* ===============================
+         🔥 SPLIT RENDER NON TENNIS
+      =============================== */
+
+      if((s.sportType || "tennis") !== "tennis"){
+
+        html += `
+          <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
+
+            ${isClosed ? `<div class="session-closed-label">SESSION CLOSED</div>` : ""}
+
+            <div class="session-title">
+              ${getSportIcon(s.sportType)} ${s.court || "Session"}
+            </div>
+
+            <div><strong>Jam:</strong> ${s.startTime || "-"}</div>
+            <div><strong>Kapasitas:</strong> ${maxPlayers}</div>
+            <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
+
+            ${
+              s.notes
+                ? `
+                <div class="session-notes">
+                  ${s.notes.replace(/\n/g, "<br>")}
+                </div>
+                `
+                : ""
+            }
+
+            ${
+              currentUser
+                ? `
+                <button class="join-btn"
+                  data-id="${s.id}"
+                  ${isClosed || isFinished || (isFull && !alreadyJoined) ? "disabled" : ""}>
+                  ${
+                    isClosed
+                      ? "Session Closed"
+                      : isFinished
+                        ? "Sesi Selesai"
+                        : isFull && !alreadyJoined
+                          ? "Slot Penuh"
+                          : alreadyJoined
+                            ? "Cancel Join"
+                            : "Gabung Sesi Ini"
+                  }
+                </button>
+                `
+                : ""
+            }
+
+          </div>
+        `;
+
+        continue;
+      }
 
       /* SLOT RENDER */
       let slotHtml = "";
@@ -2012,4 +2068,22 @@ function extractWhatsAppNumber(text){
   }
 
   return number;
+}
+
+function getSportIcon(type){
+
+  const map = {
+    pound: "🥁",
+    dance: "💃",
+    golf: "⛳",
+    run: "🏃",
+    badminton: "🏸",
+    swim: "🏊",
+    coffee: "☕",
+    science: "🧠",
+    counselling: "🫂",
+    padel: "🏓"
+  };
+
+  return map[type] || "🎯";
 }
