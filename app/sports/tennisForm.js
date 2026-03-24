@@ -1,6 +1,6 @@
 import { db, auth } from "../firebase.js";
 import { showToast } from "../ui.js";
-import { setupCreateSessionSubmit } from "../booking.js"; // 🔥 pakai engine existing
+import { setupCreateSessionSubmit } from "../booking.js";
 
 window.openTennisForm = async function(){
 
@@ -21,7 +21,8 @@ window.openTennisForm = async function(){
       <div class="sheet-handle"></div>
       <h2>Buat Sesi Tennis</h2>
 
-      <!-- 🔥 SEMUA ID HARUS SAMA DENGAN ENGINE -->
+      <!-- 🔥 HIDDEN SPORT TYPE -->
+      <input type="hidden" id="sportType" value="tennis">
 
       <div class="sheet-section">
         <label>Tier Sesi</label>
@@ -120,13 +121,11 @@ window.openTennisForm = async function(){
     </div>
   `;
 
-  // 🔥 CLOSE
   document.getElementById("createSessionOverlay").onclick = ()=>{
     sheet.classList.remove("active");
     sheet.innerHTML = "";
   };
 
-  // 🔥 PANGGIL ENGINE EXISTING (INI KUNCINYA)
   setupCreateSessionSubmit();
 
 };
