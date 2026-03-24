@@ -1,4 +1,4 @@
-window.openScienceForm = function(){
+export async function openScienceForm(){
 
   const sheet = document.getElementById("createSessionSheet");
 
