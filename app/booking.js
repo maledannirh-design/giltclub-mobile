@@ -409,13 +409,15 @@ async function openSessionPopup(dateStr) {
 
         if (locked) {
           slotHtml += `
-            <div class="member-wrapper slot locked-slot">
-              <div class="member-avatar">
-                <div class="avatar-initial">🔒</div>
-              </div>
-              <div class="member-name">${locked.label || "Locked"}</div>
-            </div>
-          `;
+  <div class="member-wrapper slot locked-slot"
+       data-schedule="${s.id}"
+       data-index="${i}">
+    <div class="member-avatar">
+      <div class="avatar-initial">🔒</div>
+    </div>
+    <div class="member-name">${locked.label || "Locked"}</div>
+  </div>
+`;
           continue;
         }
 
@@ -441,13 +443,15 @@ async function openSessionPopup(dateStr) {
         }
 
         slotHtml += `
-          <div class="member-wrapper slot empty-slot">
-            <div class="member-avatar">
-              <div class="avatar-initial">+</div>
-            </div>
-            <div class="member-name">Kosong</div>
-          </div>
-        `;
+  <div class="member-wrapper slot empty-slot"
+       data-schedule="${s.id}"
+       data-index="${i}">
+    <div class="member-avatar">
+      <div class="avatar-initial">+</div>
+    </div>
+    <div class="member-name">Kosong</div>
+  </div>
+`;
       }
 
       // 🔥 WA PARSER
