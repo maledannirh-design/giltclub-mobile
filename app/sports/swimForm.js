@@ -1,4 +1,4 @@
-window.openSwimForm = function(){
+export async function openSwimForm(){
 
   const sheet = document.getElementById("createSessionSheet");
 
