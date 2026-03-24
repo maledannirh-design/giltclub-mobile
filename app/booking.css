@@ -235,7 +235,8 @@ body.dark .month-header-row button {
   aspect-ratio: 1/1;
   display: grid;
   place-items: center;
-  border-radius: 14px;
+  background: transparent !important; /* 🔥 matiin background box */
+  border: none !important;
   cursor: pointer;
   transition: var(--transition);
   font-size: 14px;
@@ -1014,8 +1015,8 @@ body.dark .edit-session-btn{
   align-items:center;
   justify-content:center;
 
-  width:24px;
-  height:24px;
+  width:28px;
+  height:28px;
   border-radius:50%;
   border:2px solid #00c896;
 
