@@ -309,19 +309,19 @@ async function openSessionPopup(dateStr) {
   if (!popup) return;
 
   const currentUser = auth.currentUser;
-let currentUserRole = "MEMBER";
+  let currentUserRole = "MEMBER";
 
-if (currentUser) {
-  try {
-    const userRef = doc(db, "users", currentUser.uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      currentUserRole = (userSnap.data().role || "MEMBER").toUpperCase();
+  if (currentUser) {
+    try {
+      const userRef = doc(db, "users", currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        currentUserRole = (userSnap.data().role || "MEMBER").toUpperCase();
+      }
+    } catch (e) {
+      console.error("Failed to fetch role", e);
     }
-  } catch (e) {
-    console.error("Failed to fetch role", e);
   }
-}
 
   const sessions = allSchedules
     .filter(s => s.date === dateStr)
@@ -353,38 +353,37 @@ if (currentUser) {
       const lockedSlots = s.lockedSlots || [];
       const members = [];
 
-     for (const docSnap of bookingSnap.docs) {
+      for (const docSnap of bookingSnap.docs) {
 
-  const bookingData = docSnap.data();
+        const bookingData = docSnap.data();
 
-  const isPrivilegedViewer =
-    ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
-    bookingData.userId === currentUser?.uid;
+        const isPrivilegedViewer =
+          ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
+          bookingData.userId === currentUser?.uid;
 
-  let resolvedName;
+        let resolvedName;
 
-  if (bookingData.isAnonymous && !isPrivilegedViewer) {
-    resolvedName = "Anonymous";
-  } else {
-    resolvedName =
-      bookingData.displayName ||
-      bookingData.usernameID ||
-      bookingData.fullName ||
-      bookingData.username ||
-      "Member";
-  }
+        if (bookingData.isAnonymous && !isPrivilegedViewer) {
+          resolvedName = "Anonymous";
+        } else {
+          resolvedName =
+            bookingData.displayName ||
+            bookingData.usernameID ||
+            bookingData.fullName ||
+            bookingData.username ||
+            "Member";
+        }
 
-  members.push({
-    userId: bookingData.userId,
-    username: resolvedName,
-    avatarInitial: resolvedName.charAt(0).toUpperCase(),
-    photoURL: bookingData.isAnonymous && !isPrivilegedViewer
-      ? null
-      : bookingData.photoURL || null,
-    isAnonymous: bookingData.isAnonymous || false
-  });
+        members.push({
+          userId: bookingData.userId,
+          username: resolvedName,
+          avatarInitial: resolvedName.charAt(0).toUpperCase(),
+          photoURL: bookingData.isAnonymous && !isPrivilegedViewer
+            ? null
+            : bookingData.photoURL || null,
+        });
 
-}
+      }
 
       const alreadyJoined = currentUser
         ? members.some(m => m.userId === currentUser.uid)
@@ -405,8 +404,6 @@ if (currentUser) {
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
 
-      /* SLOT RENDER */
-
       let slotHtml = "";
       let memberPointer = 0;
 
@@ -416,13 +413,8 @@ if (currentUser) {
 
         if (locked) {
           slotHtml += `
-            <div class="member-wrapper slot locked-slot"
-                 data-schedule="${s.id}"
-                 data-index="${i}">
-              <div class="member-avatar">
-                <div class="avatar-initial">🔒</div>
-              </div>
-              <div class="member-name">${locked.label || "Locked"}</div>
+            <div class="member-wrapper slot locked-slot">
+              🔒 ${locked.label || "Locked"}
             </div>
           `;
           continue;
@@ -433,31 +425,18 @@ if (currentUser) {
         if (member) {
           slotHtml += `
             <div class="member-wrapper slot filled-slot">
-              <div class="member-avatar">
-                ${
-                  member.photoURL
-                    ? `<img src="${member.photoURL}">`
-                    : `<div class="avatar-initial">${member.avatarInitial}</div>`
-                }
-              </div>
-              <div class="member-name">${member.username}</div>
+              ${member.username}
             </div>
           `;
           memberPointer++;
           continue;
         }
 
-        slotHtml += `
-          <div class="member-wrapper slot empty-slot"
-               data-schedule="${s.id}"
-               data-index="${i}">
-            <div class="member-avatar">
-              <div class="avatar-initial">+</div>
-            </div>
-            <div class="member-name">Kosong</div>
-          </div>
-        `;
+        slotHtml += `<div class="member-wrapper slot empty-slot">+</div>`;
       }
+
+      // 🔥 WA PARSER
+      const phone = extractWhatsAppNumber(s.notes);
 
       html += `
         <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
@@ -475,36 +454,52 @@ if (currentUser) {
           <div><strong>Maks Pemain:</strong> ${maxPlayers}</div>
           <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
           <div><strong>Rate / Jam:</strong> Rp ${(s.pricePerHour || 0).toLocaleString("id-ID")}</div>
-          ${
-  (s.cashbackMember || s.cashbackVerified || s.cashbackVVIP)
-    ? `
-    <div class="session-cashback-info">
-      <strong>Cashback Check-In:</strong>
-      <div class="cashback-list">
-        ${s.cashbackMember ? `<div>Member: Rp ${(s.cashbackMember).toLocaleString("id-ID")}</div>` : ""}
-        ${s.cashbackVerified ? `<div>Verified: Rp ${(s.cashbackVerified).toLocaleString("id-ID")}</div>` : ""}
-        ${s.cashbackVVIP ? `<div>VVIP: Rp ${(s.cashbackVVIP).toLocaleString("id-ID")}</div>` : ""}
-      </div>
-    </div>
-    `
-    : ""
-}
-          ${s.notes ? `
-  <div class="session-notes">
-    <strong>Catatan:</strong>
-    <div class="notes-content">
-      ${s.notes.replace(/\n/g, "<br>")}
-    </div>
-  </div>
-` : ""}
 
-          ${s.racketStock && s.racketStock > 0 ? `
-  <div class="racket-availability">
-    Raket Sewaan Tersedia: ${s.racketStock} unit
-    <br>
-    Rp ${(s.racketPrice || 0).toLocaleString("id-ID")} / sesi
-  </div>
-` : ""}
+          ${
+            (s.cashbackMember || s.cashbackVerified || s.cashbackVVIP)
+            ? `
+            <div class="session-cashback-info">
+              <strong>Cashback Check-In:</strong>
+              <div class="cashback-list">
+                ${s.cashbackMember ? `<div>Member: Rp ${(s.cashbackMember).toLocaleString("id-ID")}</div>` : ""}
+                ${s.cashbackVerified ? `<div>Verified: Rp ${(s.cashbackVerified).toLocaleString("id-ID")}</div>` : ""}
+                ${s.cashbackVVIP ? `<div>VVIP: Rp ${(s.cashbackVVIP).toLocaleString("id-ID")}</div>` : ""}
+              </div>
+            </div>
+            `
+            : ""
+          }
+
+          ${
+            s.notes
+              ? `
+              <div class="session-notes">
+                <strong>Catatan:</strong>
+                <div class="notes-content">
+                  ${s.notes.replace(/\n/g, "<br>")}
+                </div>
+
+                ${
+                  phone
+                  ? `<button class="wa-contact-btn" data-phone="${phone}">📞 Hubungi</button>`
+                  : ""
+                }
+              </div>
+              `
+              : ""
+          }
+
+          ${
+            s.racketStock && s.racketStock > 0
+              ? `
+              <div class="racket-availability">
+                Raket Sewaan Tersedia: ${s.racketStock} unit
+                <br>
+                Rp ${(s.racketPrice || 0).toLocaleString("id-ID")} / sesi
+              </div>
+              `
+              : ""
+          }
 
           ${
             currentUser
@@ -528,24 +523,6 @@ if (currentUser) {
               : ""
           }
 
-          ${
-            isPrivileged
-              ? `
-              <div class="session-admin-actions">
-                <button class="edit-session-btn" data-id="${s.id}">
-                  ✏️ Edit Session
-                </button>
-              </div>
-              `
-              : ""
-          }
-
-          ${
-            isPrivileged && isRunning && !isClosed
-              ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
-              : ""
-          }
-
           <div class="session-members">
             ${slotHtml}
           </div>
@@ -562,6 +539,35 @@ if (currentUser) {
   `;
 
   popup.innerHTML = html;
+
+  // 🔥 WA BUTTON SAFE HANDLER
+  document.querySelectorAll(".wa-contact-btn").forEach(btn => {
+
+    btn.onclick = null;
+
+    btn.addEventListener("click", () => {
+
+      let phone = btn.dataset.phone;
+
+      if(!phone){
+        showToast("Nomor tidak tersedia","error");
+        return;
+      }
+
+      phone = phone.replace(/\D/g, "");
+
+      if(phone.length < 9){
+        showToast("Nomor tidak valid","error");
+        return;
+      }
+
+      const message = encodeURIComponent("Halo, saya tertarik dengan sesi ini");
+
+      window.open(`https://wa.me/${phone}?text=${message}`, "_blank");
+
+    });
+
+  });
 
   attachSlotInteraction(currentUserRole);
 
@@ -1875,4 +1881,23 @@ function openSportForm(sportType){
       showToast("Cabor belum tersedia","warning");
 
   }
+}
+
+function extractWhatsAppNumber(text){
+
+  if(!text) return null;
+
+  // ambil angka dari text
+  const match = text.match(/(\+?\d{9,15})/);
+
+  if(!match) return null;
+
+  let number = match[1];
+
+  // normalisasi: 08 → 628
+  if(number.startsWith("0")){
+    number = "62" + number.substring(1);
+  }
+
+  return number;
 }
