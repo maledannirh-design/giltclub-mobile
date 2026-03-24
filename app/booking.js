@@ -175,13 +175,23 @@ function renderCalendarMonth() {
 
       <!-- 🔥 CABOR FILTER BAR -->
       <div class="sport-filter-bar">
-        <div class="sport-item ${selectedSport==="all"?"active":""}" data-sport="all">Semua</div>
-        <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
-        <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
-        <div class="sport-item ${selectedSport==="lari"?"active":""}" data-sport="lari">🏃 Lari</div>
-        <div class="sport-item ${selectedSport==="badminton"?"active":""}" data-sport="badminton">🏸 Badminton</div>
-        <div class="sport-item ${selectedSport==="coffee"?"active":""}" data-sport="coffee">☕ Coffee</div>
-      </div>
+
+  <div class="sport-item ${selectedSport==="all"?"active":""}" data-sport="all">All</div>
+
+  <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
+  <div class="sport-item ${selectedSport==="pound"?"active":""}" data-sport="pound">🥁 Pound</div>
+  <div class="sport-item ${selectedSport==="dance"?"active":""}" data-sport="dance">💃 Dance</div>
+  <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
+  <div class="sport-item ${selectedSport==="run"?"active":""}" data-sport="run">🏃 Run</div>
+  <div class="sport-item ${selectedSport==="badminton"?"active":""}" data-sport="badminton">🏸 Badminton</div>
+  <div class="sport-item ${selectedSport==="coffee"?"active":""}" data-sport="coffee">☕ Coffee</div>
+  <div class="sport-item ${selectedSport==="science"?"active":""}" data-sport="science">🧠 Science</div>
+  <div class="sport-item ${selectedSport==="counselling"?"active":""}" data-sport="counselling">🫂 Counselling</div>
+  <div class="sport-item ${selectedSport==="swim"?"active":""}" data-sport="swim">🏊 Swim</div>
+
+  <div class="sport-scroll-hint">⇄</div>
+
+</div>
 
       <div class="month-header-row">
         <button id="prevMonth">‹</button>
@@ -212,22 +222,39 @@ function renderCalendarMonth() {
     const dateStr = formatDate(dateObj);
 
     // 🔥 FILTER SPORT (sementara dummy karena belum ada field)
-    const hasSession = allSchedules.some(s => {
+   let sportClass = "";
 
-      if (s.date !== dateStr) return false;
+const hasSession = allSchedules.some(s => {
 
-      if (selectedSport === "all") return true;
+  if (s.date !== dateStr) return false;
 
-      // nanti ini akan pakai s.sportType
-      return (s.sportType || "tennis") === selectedSport;
+  const sport = s.sportType || "tennis";
 
-    });
+  if (selectedSport !== "all" && sport !== selectedSport) return false;
+
+  // 🔥 SET WARNA PER CABOR
+  switch(sport){
+    case "tennis": sportClass = "sport-tennis"; break;
+    case "golf": sportClass = "sport-golf"; break;
+    case "run": sportClass = "sport-run"; break;
+    case "badminton": sportClass = "sport-badminton"; break;
+    case "coffee": sportClass = "sport-coffee"; break;
+    case "dance": sportClass = "sport-dance"; break;
+    case "pound": sportClass = "sport-pound"; break;
+    case "science": sportClass = "sport-science"; break;
+    case "counselling": sportClass = "sport-counselling"; break;
+    case "swim": sportClass = "sport-swim"; break;
+  }
+
+  return true;
+
+});
 
     const dayOfWeek = dateObj.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     html += `
-      <div class="month-day ${hasSession ? "has-session" : ""} ${isWeekend ? "weekend":""}"
+      <div class="month-day ${hasSession ? "has-session" : ""} ${sportClass} ${isWeekend ? "weekend":""}"
            data-date="${dateStr}">
         ${d}
       </div>
