@@ -2069,7 +2069,36 @@ function extractWhatsAppNumber(text){
 
   return number;
 }
+function renderUniversalSessionCard(s){
 
+  return `
+    <div class="popup-session-card">
+
+      <div class="session-title">
+        ${getSportIcon(s.sportType)} ${s.court || "Session"}
+      </div>
+
+      <div><strong>Jam:</strong> ${s.startTime || "-"} </div>
+      <div><strong>Kapasitas:</strong> ${s.maxPlayers || 0}</div>
+      <div><strong>Sisa Slot:</strong> ${s.slots ?? 0}</div>
+
+      ${
+        s.notes
+        ? `
+        <div class="session-notes">
+          ${s.notes.replace(/\n/g,"<br>")}
+        </div>
+        `
+        : ""
+      }
+
+      <button class="join-btn" data-id="${s.id}">
+        Gabung Sesi
+      </button>
+
+    </div>
+  `;
+}
 function getSportIcon(type){
 
   const map = {
