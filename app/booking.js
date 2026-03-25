@@ -2010,6 +2010,7 @@ function openSportForm(sportType){
 
   const map = {
     tennis: () => import("./sports/tennisForm.js"),
+    dukun: () => import("./sports/dukunForm.js"),
     golf: () => import("./sports/golfForm.js"),
     run: () => import("./sports/runForm.js"),
     dance: () => import("./sports/danceForm.js"),
