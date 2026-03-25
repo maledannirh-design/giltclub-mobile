@@ -180,6 +180,7 @@ function renderCalendarMonth() {
         <div class="sport-item ${selectedSport==="all"?"active":""}" data-sport="all">All</div>
 
         <div class="sport-item ${selectedSport==="tennis"?"active":""}" data-sport="tennis">🎾 Tennis</div>
+        <div class="sport-item ${selectedSport==="dukun"?"active":""}" data-sport="dukun">🧙‍♂️ Pesugihan</div>
         <div class="sport-item ${selectedSport==="pound"?"active":""}" data-sport="pound">🥁 Pound</div>
         <div class="sport-item ${selectedSport==="dance"?"active":""}" data-sport="dance">💃 Tari</div>
         <div class="sport-item ${selectedSport==="golf"?"active":""}" data-sport="golf">⛳ Golf</div>
