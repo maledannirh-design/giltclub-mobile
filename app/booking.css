@@ -1101,20 +1101,28 @@ body.dark .edit-session-btn{
 }
 
 .simple-slot .slot{
-  aspect-ratio:1/1;
-  width:100%;
+  width:44px;
+  height:44px;
   border-radius:50%;
-  overflow:hidden; /* 🔥 ini kunci */
   display:flex;
   align-items:center;
   justify-content:center;
 }
 
-.simple-slot .avatar{
+.simple-slot .avatar-initial{
   width:100%;
   height:100%;
+  border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
-  border-radius:50%; /* 🔥 double ensure */
+  font-weight:bold;
+  font-size:16px;
+  background:#ec4899; /* 🔥 pink sama kayak tennis */
+  color:white;
+}.simple-slot .empty .avatar-initial{
+  background:#eee;
+  color:#999;
+}.simple-slot .filled .avatar-initial{
+  background:linear-gradient(135deg,#ec4899,#f472b6);
 }
