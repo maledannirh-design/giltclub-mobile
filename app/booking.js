@@ -401,61 +401,97 @@ async function openSessionPopup(dateStr) {
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
  /* ===============================
-         🔥 SPLIT RENDER NON TENNIS
-      =============================== */
+   🔥 SPLIT RENDER NON TENNIS
+================================= */
 
-      if((s.sportType || "tennis") !== "tennis"){
+if((s.sportType || "tennis") !== "tennis"){
 
-        html += `
-          <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
+  html += `
+    <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
 
-            ${isClosed ? `<div class="session-closed-label">SESSION CLOSED</div>` : ""}
+      ${isClosed ? `<div class="session-closed-label">SESSION CLOSED</div>` : ""}
 
-            <div class="session-title">
-              ${getSportIcon(s.sportType)} ${s.court || "Session"}
-            </div>
+      <div class="session-title">
+        ${getSportIcon(s.sportType)} ${s.court || "Session"}
+      </div>
 
-            <div><strong>Jam:</strong> ${s.startTime || "-"}</div>
-            <div><strong>Kapasitas:</strong> ${maxPlayers}</div>
-            <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
+      <div><strong>Jam:</strong> ${s.startTime || "-"}</div>
+      <div><strong>Kapasitas:</strong> ${maxPlayers}</div>
+      <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
 
-            ${
-              s.notes
-                ? `
-                <div class="session-notes">
-                  ${s.notes.replace(/\n/g, "<br>")}
+      <div class="session-members simple-slot">
+        ${
+          Array.from({length: maxPlayers}, (_,i)=>{
+
+            if(i < (maxPlayers - sisaSlot)){
+              return `
+                <div class="slot filled">
+                  <div class="avatar">👤</div>
                 </div>
-                `
-                : ""
+              `;
             }
 
-            ${
-              currentUser
-                ? `
-                <button class="join-btn"
-                  data-id="${s.id}"
-                  ${isClosed || isFinished || (isFull && !alreadyJoined) ? "disabled" : ""}>
-                  ${
-                    isClosed
-                      ? "Session Closed"
-                      : isFinished
-                        ? "Sesi Selesai"
-                        : isFull && !alreadyJoined
-                          ? "Slot Penuh"
-                          : alreadyJoined
-                            ? "Cancel Join"
-                            : "Gabung Sesi Ini"
-                  }
-                </button>
-                `
-                : ""
-            }
+            return `
+              <div class="slot empty">
+                <div class="avatar">+</div>
+              </div>
+            `;
+          }).join("")
+        }
+      </div>
 
+      ${
+        s.notes
+          ? `
+          <div class="session-notes">
+            ${s.notes.replace(/\n/g, "<br>")}
           </div>
-        `;
-
-        continue;
+          `
+          : ""
       }
+
+      ${
+        currentUser
+          ? `
+          <button class="join-btn"
+            data-id="${s.id}"
+            ${isClosed || isFinished || (isFull && !alreadyJoined) ? "disabled" : ""}>
+            ${
+              isClosed
+                ? "Session Closed"
+                : isFinished
+                  ? "Sesi Selesai"
+                  : isFull && !alreadyJoined
+                    ? "Slot Penuh"
+                    : alreadyJoined
+                      ? "Cancel Join"
+                      : "Gabung Sesi Ini"
+            }
+          </button>
+          `
+          : ""
+      }
+
+      ${
+        isPrivileged
+          ? `
+          <div class="session-admin-actions">
+            <button class="edit-session-btn" data-id="${s.id}">
+              ✏️ Edit Session
+            </button>
+            <button class="delete-session-btn" data-id="${s.id}">
+              🗑 Hapus
+            </button>
+          </div>
+          `
+          : ""
+      }
+
+    </div>
+  `;
+
+  continue;
+}
 
       /* SLOT RENDER */
       let slotHtml = "";
