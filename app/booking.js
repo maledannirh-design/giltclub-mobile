@@ -2137,6 +2137,7 @@ function renderUniversalSessionCard(s){
     </div>
   `;
 }
+
 function getSportIcon(type){
 
   const map = {
@@ -2154,3 +2155,4 @@ function getSportIcon(type){
 
   return map[type] || "🎯";
 }
+
