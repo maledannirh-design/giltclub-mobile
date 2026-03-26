@@ -400,6 +400,7 @@ async function openSessionPopup(dateStr) {
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
+      
  /* ===============================
    🔥 SPLIT RENDER NON TENNIS
 ================================= */
@@ -419,26 +420,32 @@ if((s.sportType || "tennis") !== "tennis"){
       <div><strong>Kapasitas:</strong> ${maxPlayers}</div>
       <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
 
-      <div class="session-members simple-slot">
-        ${
-          Array.from({length: maxPlayers}, (_,i)=>{
+      <div class="session-members">
+  ${
+    Array.from({length: maxPlayers}, (_,i)=>{
 
-            if(i < (maxPlayers - sisaSlot)){
-              return `
-                <div class="slot filled">
-                  <div class="avatar-initial">U</div>
-                </div>
-              `;
-            }
+      if(i < (maxPlayers - sisaSlot)){
+        return `
+          <div class="member-wrapper slot filled-slot">
+            <div class="member-avatar">
+              <div class="avatar-initial">U</div>
+            </div>
+            <div class="member-name">Member</div>
+          </div>
+        `;
+      }
 
-            return `
-              <div class="slot empty">
-                <div class="avatar-initial">+</div>
-              </div>
-            `;
-          }).join("")
-        }
-      </div>
+      return `
+        <div class="member-wrapper slot empty-slot">
+          <div class="member-avatar">
+            <div class="avatar-initial">+</div>
+          </div>
+          <div class="member-name">Kosong</div>
+        </div>
+      `;
+    }).join("")
+  }
+</div>
 
       ${
         s.notes
@@ -1957,9 +1964,6 @@ window.openScanForCheckIn = function(scheduleId) {
     overlay.remove();
   };
 };
-
-
-
 
 window.openRacketSelector = function(scheduleData){
 
