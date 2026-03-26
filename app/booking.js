@@ -426,14 +426,14 @@ if((s.sportType || "tennis") !== "tennis"){
             if(i < (maxPlayers - sisaSlot)){
               return `
                 <div class="slot filled">
-                  <div class="avatar">👤</div>
+                  <div class="avatar-initial">U</div>
                 </div>
               `;
             }
 
             return `
               <div class="slot empty">
-                <div class="avatar">+</div>
+                <div class="avatar-initial">+</div>
               </div>
             `;
           }).join("")
