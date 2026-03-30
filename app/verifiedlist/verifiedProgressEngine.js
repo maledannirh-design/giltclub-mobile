@@ -4,13 +4,13 @@ export function getVerifiedProgress(user){
     return null;
   }
 
-  // ===== ATTENDANCE =====
-  const attendanceRaw = user.lastMonthAttendance || 0;
+  // ===== ATTENDANCE (MONTHLY) =====
+  const attendanceRaw = user.monthlyAttendance || 0;
   const attendanceMax = 2;
   const attendanceValue = Math.min(attendanceRaw, attendanceMax);
 
-  // ===== FINANCIAL =====
-  const payment = user.lastMonthPayment || 0;
+  // ===== FINANCIAL (MONTHLY) =====
+  const payment = user.monthlyPayment || 0;
   const balance = user.walletBalance || 0;
   const financialMax = 250000;
 
@@ -28,11 +28,13 @@ export function getVerifiedProgress(user){
   return {
     attendance: {
       value: attendanceValue,
-      max: attendanceMax
+      max: attendanceMax,
+      raw: attendanceRaw
     },
     financial: {
       value: financialValue,
       max: financialMax,
+      rawPayment: payment,
       source: source
     }
   };
