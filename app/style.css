@@ -2917,27 +2917,36 @@ body.scan-mode{
   transition: opacity 0.2s ease;
 }
 
-
 /* =============================
-   VERIFIED PROGRESS
+   VERIFIED PROGRESS - OBSIDIAN PREMIUM
 ============================= */
 
 .verified-progress-card{
   margin-top: 16px;
   padding: 16px;
-  border-radius: 16px;
+  border-radius: 18px;
 
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(10px);
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 40%),
+    linear-gradient(145deg, #0f1115, #1a1d22);
 
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 8px 24px rgba(0,0,0,0.6);
+
+  backdrop-filter: blur(12px);
 }
 
+/* TITLE */
 .verified-title{
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 12px;
-  opacity: 0.9;
+
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.3px;
 }
 
 /* ROW */
@@ -2954,72 +2963,117 @@ body.scan-mode{
   margin-top: 0;
 }
 
-.verified-label{
-  opacity: 0.7;
+/* LABEL */
+.verified-row div:first-child{
+  opacity: 0.65;
 }
 
-.verified-value{
+/* VALUE */
+.verified-row div:last-child{
   font-weight: 500;
+  display: flex;
+  align-items: center;
 }
 
-/* BAR */
+/* =============================
+   BAR (TRACK)
+============================= */
+
 .verified-bar{
-  height: 8px;
+  height: 10px;
   width: 100%;
 
-  background: var(--color-border); /* adaptive */
-  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.6));
+
+  border-radius: 999px;
   overflow: hidden;
 
   margin-top: 6px;
+
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.8),
+    inset 0 -1px 2px rgba(255,255,255,0.05);
 }
 
-/* FILL BASE */
+/* =============================
+   FILL BASE (NEON GLASS)
+============================= */
+
 .verified-fill{
   height: 100%;
   width: 0%;
 
-  border-radius: 10px;
+  border-radius: 999px;
 
-  background: var(--color-primary); /* pakai theme */
-  transition: width 0.4s ease;
+  background:
+    linear-gradient(90deg, #00ffae, #00d4ff);
+
+  box-shadow:
+    0 0 8px rgba(0,255,174,0.6),
+    0 0 16px rgba(0,212,255,0.4);
+
+  transition: width 0.5s ease;
 }
 
-/* FINANCIAL (GOLD STYLE) */
-.verified-fill.gold{
-  background: linear-gradient(90deg, #FFD700, #FFA500);
-  box-shadow: 0 0 6px rgba(255,215,0,0.6);
-}
 /* =============================
-   STATE COLORS (OPTIONAL FUTURE)
+   GOLD BAR (INGOT STYLE)
 ============================= */
 
-.verified-fill.low{
-  background: #ff4d4f;
+.verified-fill.gold{
+  background:
+    linear-gradient(
+      90deg,
+      #7a5c00 0%,
+      #ffd700 25%,
+      #fff3a0 50%,
+      #ffd700 75%,
+      #7a5c00 100%
+    );
+
+  box-shadow:
+    0 0 6px rgba(255,215,0,0.6),
+    inset 0 0 6px rgba(255,255,255,0.4);
 }
 
-.verified-fill.mid{
-  background: #faad14;
-}
+/* =============================
+   FULL STATE (SUCCESS GLOW)
+============================= */
 
 .verified-fill.full{
-  background: #52c41a !important;
-  box-shadow: 0 0 10px rgba(82,196,26,0.9);
+  background:
+    linear-gradient(90deg, #52c41a, #95de64) !important;
+
+  box-shadow:
+    0 0 10px rgba(82,196,26,0.9),
+    0 0 20px rgba(82,196,26,0.5);
 }
 
-/* CHECK ICON */
+/* =============================
+   CHECK ICON
+============================= */
+
 .verified-check{
   color: #52c41a;
   font-weight: bold;
   margin-left: 6px;
+
+  text-shadow: 0 0 6px rgba(82,196,26,0.6);
 }
 
-/* BAR FULL (SUCCESS) */
-.verified-fill.full{
-  background: #52c41a !important;
-  box-shadow: 0 0 8px rgba(82,196,26,0.6);
-}
+/* =============================
+   DISCO LIGHT EFFECT (SUBTLE)
+============================= */
 
-.verified-progress-card{
-  border: 1px solid var(--color-border);
+.verified-progress-card::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,215,0,0.08), transparent 50%);
+
+  pointer-events: none;
+  border-radius: inherit;
 }
