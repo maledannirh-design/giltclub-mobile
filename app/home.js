@@ -214,12 +214,12 @@ function renderVerifiedProgress(userData){
     <div class="verified-progress-card">
 
       <div class="verified-title">
-        Progress Menjadi Member "Verified (centang biru)"
+        Progress menjadi Member "Verified"
       </div>
 
       <!-- ATTENDANCE -->
       <div class="verified-row">
-        <div>Attendance</div>
+        <div>Total kehadiran bulanan (tanpa voucher)</div>
         <div>
           ${data.attendance.value} / ${data.attendance.max}
         </div>
@@ -233,7 +233,7 @@ function renderVerifiedProgress(userData){
 
       <!-- FINANCIAL -->
       <div class="verified-row">
-        <div>Payment Contribution</div>
+        <div>Financial Contribution</div>
         <div>
           ${formatRupiah(data.financial.value)} /
           ${formatRupiah(data.financial.max)}
