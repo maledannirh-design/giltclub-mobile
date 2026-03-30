@@ -2967,7 +2967,7 @@ body.scan-mode{
   height: 8px;
   width: 100%;
 
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.15); /* lebih terang */
   border-radius: 10px;
   overflow: hidden;
 
@@ -2983,14 +2983,16 @@ body.scan-mode{
 
   background: linear-gradient(90deg, #00ffae, #00d4ff);
 
+  box-shadow: 0 0 6px rgba(0,255,174,0.6); /* glow biar hidup */
+
   transition: width 0.4s ease;
 }
 
 /* FINANCIAL (GOLD STYLE) */
 .verified-fill.gold{
   background: linear-gradient(90deg, #FFD700, #FFA500);
+  box-shadow: 0 0 6px rgba(255,215,0,0.6);
 }
-
 /* =============================
    STATE COLORS (OPTIONAL FUTURE)
 ============================= */
@@ -3004,7 +3006,8 @@ body.scan-mode{
 }
 
 .verified-fill.full{
-  background: #52c41a;
+  background: #52c41a !important;
+  box-shadow: 0 0 10px rgba(82,196,26,0.9);
 }
 
 /* CHECK ICON */
