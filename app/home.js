@@ -9,6 +9,7 @@ import {
 } from "./firestore.js";
 import { renderMemberCard } from "./utils.js";
 import { onSnapshot } from "./firestore.js";
+import { getVerifiedProgress } from "./verifiedlist/verifiedProgressEngine.js";
 
 let userUnsubscribe = null;
 let dailyLock = false;
@@ -197,8 +198,6 @@ function startResetCountdown(){
   update();
   countdownInterval = setInterval(update,1000);
 }
-
-import { getVerifiedProgress } from "./verifiedProgressEngine.js";
 
 function renderVerifiedProgress(userData){
 
