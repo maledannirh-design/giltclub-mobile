@@ -204,7 +204,7 @@ function renderVerifiedProgress(userData){
   const data = getVerifiedProgress(userData);
   if(!data) return "";
 
-  // ✅ SAFE + CLAMP (ANTI NaN & >100)
+  // ✅ SAFE + CLAMP
   const attPercent = Math.min(
     data.attendance.max > 0
       ? (data.attendance.value / data.attendance.max) * 100
@@ -219,40 +219,45 @@ function renderVerifiedProgress(userData){
     100
   );
 
+  const attendanceDone = data.attendance.value >= data.attendance.max;
+  const financialDone = data.financial.value >= data.financial.max;
+
   return `
     <div class="verified-progress-card">
 
       <div class="verified-title">
-        Progress menjadi Member "Verified"
+        Progress Verified (Bulan Ini)
       </div>
 
       <!-- ATTENDANCE -->
       <div class="verified-row">
-        <div>Total kehadiran bulanan (tanpa voucher)</div>
+        <div>Kehadiran bulan ini</div>
         <div>
           ${data.attendance.value} / ${data.attendance.max}
-          ${data.attendance.value >= data.attendance.max ? '<span class="verified-check">✔</span>' : ''}
+          ${attendanceDone ? '<span class="verified-check">✔</span>' : ''}
         </div>
       </div>
 
       <div class="verified-bar">
-        <div class="verified-fill ${data.attendance.value >= data.attendance.max ? 'full' : ''}"
+        <div class="verified-fill ${attendanceDone ? 'full' : ''}"
              style="width:${attPercent}%">
         </div>
       </div>
 
       <!-- FINANCIAL -->
       <div class="verified-row">
-        <div>Financial Contribution</div>
+        <div>Kontribusi bulan ini</div>
         <div>
           ${formatRupiah(data.financial.value)} /
           ${formatRupiah(data.financial.max)}
-          ${data.financial.value >= data.financial.max ? '<span class="verified-check">✔</span>' : ''}
+          ${financialDone ? '<span class="verified-check">✔</span>' : ''}
         </div>
       </div>
 
       <div class="verified-bar">
-        <div class="verified-fill gold ${data.financial.value >= data.financial.max ? 'full' : ''}"
+        <div class="verified-fill ${
+          financialDone ? 'full' : 'gold'
+        }"
              style="width:${finPercent}%">
         </div>
       </div>
@@ -260,7 +265,6 @@ function renderVerifiedProgress(userData){
     </div>
   `;
 }
-
 function formatRupiah(num){
   return "Rp " + (num || 0)
     .toString()
