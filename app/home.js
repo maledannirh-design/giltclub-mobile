@@ -222,14 +222,13 @@ function renderVerifiedProgress(userData){
         <div>Total kehadiran bulanan (tanpa voucher)</div>
         <div>
           ${data.attendance.value} / ${data.attendance.max}
+          ${data.attendance.value >= data.attendance.max ? ' <span class="verified-check">✔</span>' : ''}
         </div>
       </div>
 
-      <div class="verified-bar">
-        <div class="verified-fill"
-             style="width:${attPercent}%">
-        </div>
-      </div>
+      <div class="verified-fill ${data.attendance.value >= data.attendance.max ? 'full' : ''}"
+     style="width:${attPercent}%">
+</div>
 
       <!-- FINANCIAL -->
       <div class="verified-row">
@@ -237,14 +236,13 @@ function renderVerifiedProgress(userData){
         <div>
           ${formatRupiah(data.financial.value)} /
           ${formatRupiah(data.financial.max)}
+          ${data.financial.value >= data.financial.max ? ' <span class="verified-check">✔</span>' : ''}
         </div>
       </div>
 
-      <div class="verified-bar">
-        <div class="verified-fill gold"
-             style="width:${finPercent}%">
-        </div>
-      </div>
+      <div class="verified-fill gold ${data.financial.value >= data.financial.max ? 'full' : ''}"
+     style="width:${finPercent}%">
+</div>
 
     </div>
   `;
