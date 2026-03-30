@@ -5,7 +5,7 @@ export function getVerifiedProgress(user){
   }
 
   // ===== ATTENDANCE (MONTHLY) =====
-  const attendanceRaw = user.monthlyAttendance || 0;
+  const attendanceRaw = user.monthlyContribution || 0;
   const attendanceMax = 2;
   const attendanceValue = Math.min(attendanceRaw, attendanceMax);
 
