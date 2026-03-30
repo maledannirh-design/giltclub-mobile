@@ -3006,3 +3006,16 @@ body.scan-mode{
 .verified-fill.full{
   background: #52c41a;
 }
+
+/* CHECK ICON */
+.verified-check{
+  color: #52c41a;
+  font-weight: bold;
+  margin-left: 6px;
+}
+
+/* BAR FULL (SUCCESS) */
+.verified-fill.full{
+  background: #52c41a !important;
+  box-shadow: 0 0 8px rgba(82,196,26,0.6);
+}
