@@ -265,6 +265,8 @@ function renderVerifiedProgress(userData){
     </div>
   `;
 }
+
+
 function formatRupiah(num){
   return "Rp " + (num || 0)
     .toString()
