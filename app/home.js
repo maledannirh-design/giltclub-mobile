@@ -107,6 +107,7 @@ content.innerHTML = `
       </div>
 
     </div>
+    ${renderVerifiedProgress(userData)}
 
   </div>
 `;
@@ -148,6 +149,7 @@ document.querySelector(".leaderboard-btn")
     });
 
     startResetCountdown();
+    
 
   }catch(error){
 
@@ -194,6 +196,66 @@ function startResetCountdown(){
 
   update();
   countdownInterval = setInterval(update,1000);
+}
+
+import { getVerifiedProgress } from "./verifiedProgressEngine.js";
+
+function renderVerifiedProgress(userData){
+
+  const data = getVerifiedProgress(userData);
+  if(!data) return "";
+
+  const attPercent =
+    (data.attendance.value / data.attendance.max) * 100;
+
+  const finPercent =
+    (data.financial.value / data.financial.max) * 100;
+
+  return `
+    <div class="verified-progress-card">
+
+      <div class="verified-title">
+        Verified Progress
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="verified-row">
+        <div>Attendance</div>
+        <div>
+          ${data.attendance.value} / ${data.attendance.max}
+        </div>
+      </div>
+
+      <div class="verified-bar">
+        <div class="verified-fill"
+             style="width:${attPercent}%">
+        </div>
+      </div>
+
+      <!-- FINANCIAL -->
+      <div class="verified-row">
+        <div>Financial</div>
+        <div>
+          ${formatRupiah(data.financial.value)} /
+          ${formatRupiah(data.financial.max)}
+        </div>
+      </div>
+
+      <div class="verified-bar">
+        <div class="verified-fill gold"
+             style="width:${finPercent}%">
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+
+function formatRupiah(num){
+  return "Rp " + (num || 0)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
 
 window.openDailyScan = function(day){
