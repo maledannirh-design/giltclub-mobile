@@ -226,9 +226,11 @@ function renderVerifiedProgress(userData){
         </div>
       </div>
 
-      <div class="verified-fill ${data.attendance.value >= data.attendance.max ? 'full' : ''}"
-     style="width:${attPercent}%">
-</div>
+      <div class="verified-bar">
+        <div class="verified-fill ${data.attendance.value >= data.attendance.max ? 'full' : ''}"
+             style="width:${attPercent}%">
+        </div>
+      </div>
 
       <!-- FINANCIAL -->
       <div class="verified-row">
@@ -240,9 +242,11 @@ function renderVerifiedProgress(userData){
         </div>
       </div>
 
-      <div class="verified-fill gold ${data.financial.value >= data.financial.max ? 'full' : ''}"
-     style="width:${finPercent}%">
-</div>
+      <div class="verified-bar">
+        <div class="verified-fill gold ${data.financial.value >= data.financial.max ? 'full' : ''}"
+             style="width:${finPercent}%">
+        </div>
+      </div>
 
     </div>
   `;
