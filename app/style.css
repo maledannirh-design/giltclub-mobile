@@ -2967,7 +2967,7 @@ body.scan-mode{
   height: 8px;
   width: 100%;
 
-  background: rgba(255,255,255,0.15); /* lebih terang */
+  background: var(--color-border); /* adaptive */
   border-radius: 10px;
   overflow: hidden;
 
@@ -2981,10 +2981,7 @@ body.scan-mode{
 
   border-radius: 10px;
 
-  background: linear-gradient(90deg, #00ffae, #00d4ff);
-
-  box-shadow: 0 0 6px rgba(0,255,174,0.6); /* glow biar hidup */
-
+  background: var(--color-primary); /* pakai theme */
   transition: width 0.4s ease;
 }
 
@@ -3021,4 +3018,8 @@ body.scan-mode{
 .verified-fill.full{
   background: #52c41a !important;
   box-shadow: 0 0 8px rgba(82,196,26,0.6);
+}
+
+.verified-progress-card{
+  border: 1px solid var(--color-border);
 }
