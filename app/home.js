@@ -204,11 +204,20 @@ function renderVerifiedProgress(userData){
   const data = getVerifiedProgress(userData);
   if(!data) return "";
 
-  const attPercent =
-    (data.attendance.value / data.attendance.max) * 100;
+  // ✅ SAFE + CLAMP (ANTI NaN & >100)
+  const attPercent = Math.min(
+    data.attendance.max > 0
+      ? (data.attendance.value / data.attendance.max) * 100
+      : 0,
+    100
+  );
 
-  const finPercent =
-    (data.financial.value / data.financial.max) * 100;
+  const finPercent = Math.min(
+    data.financial.max > 0
+      ? (data.financial.value / data.financial.max) * 100
+      : 0,
+    100
+  );
 
   return `
     <div class="verified-progress-card">
@@ -222,7 +231,7 @@ function renderVerifiedProgress(userData){
         <div>Total kehadiran bulanan (tanpa voucher)</div>
         <div>
           ${data.attendance.value} / ${data.attendance.max}
-          ${data.attendance.value >= data.attendance.max ? ' <span class="verified-check">✔</span>' : ''}
+          ${data.attendance.value >= data.attendance.max ? '<span class="verified-check">✔</span>' : ''}
         </div>
       </div>
 
@@ -238,7 +247,7 @@ function renderVerifiedProgress(userData){
         <div>
           ${formatRupiah(data.financial.value)} /
           ${formatRupiah(data.financial.max)}
-          ${data.financial.value >= data.financial.max ? ' <span class="verified-check">✔</span>' : ''}
+          ${data.financial.value >= data.financial.max ? '<span class="verified-check">✔</span>' : ''}
         </div>
       </div>
 
@@ -251,7 +260,6 @@ function renderVerifiedProgress(userData){
     </div>
   `;
 }
-
 
 function formatRupiah(num){
   return "Rp " + (num || 0)
