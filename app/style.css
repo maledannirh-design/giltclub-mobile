@@ -2916,3 +2916,93 @@ body.scan-mode{
 .content {
   transition: opacity 0.2s ease;
 }
+
+
+/* =============================
+   VERIFIED PROGRESS
+============================= */
+
+.verified-progress-card{
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 16px;
+
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.verified-title{
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+/* ROW */
+.verified-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.verified-row:first-of-type{
+  margin-top: 0;
+}
+
+.verified-label{
+  opacity: 0.7;
+}
+
+.verified-value{
+  font-weight: 500;
+}
+
+/* BAR */
+.verified-bar{
+  height: 8px;
+  width: 100%;
+
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  overflow: hidden;
+
+  margin-top: 6px;
+}
+
+/* FILL BASE */
+.verified-fill{
+  height: 100%;
+  width: 0%;
+
+  border-radius: 10px;
+
+  background: linear-gradient(90deg, #00ffae, #00d4ff);
+
+  transition: width 0.4s ease;
+}
+
+/* FINANCIAL (GOLD STYLE) */
+.verified-fill.gold{
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+}
+
+/* =============================
+   STATE COLORS (OPTIONAL FUTURE)
+============================= */
+
+.verified-fill.low{
+  background: #ff4d4f;
+}
+
+.verified-fill.mid{
+  background: #faad14;
+}
+
+.verified-fill.full{
+  background: #52c41a;
+}
