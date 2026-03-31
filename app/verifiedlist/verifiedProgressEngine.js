@@ -14,16 +14,14 @@ export function getVerifiedProgress(user){
   const balance = user.walletBalance || 0;
   const financialMax = 250000;
 
-  let financialValue = 0;
-  let source = "payment";
+  // ✅ AMBIL NILAI TERBESAR (BIAR PROGRESS TIDAK TURUN)
+  const rawValue = Math.max(payment, balance);
 
-  if(payment >= financialMax){
-    financialValue = financialMax;
-    source = "payment";
-  }else{
-    financialValue = Math.min(balance, financialMax);
-    source = "balance";
-  }
+  // ✅ CLAMP KE MAX
+  const financialValue = Math.min(rawValue, financialMax);
+
+  // ✅ DETEKSI SOURCE (OPSIONAL, BUAT DEBUG / UI)
+  const source = payment >= balance ? "payment" : "balance";
 
   return {
     attendance: {
@@ -35,6 +33,7 @@ export function getVerifiedProgress(user){
       value: financialValue,
       max: financialMax,
       rawPayment: payment,
+      rawBalance: balance,
       source: source
     }
   };
