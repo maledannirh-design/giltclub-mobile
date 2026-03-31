@@ -231,7 +231,7 @@ function renderVerifiedProgress(userData){
 
       <!-- ATTENDANCE -->
       <div class="verified-row">
-        <div>Kehadiran bulan ini</div>
+        <div>Kehadiran bulan ini (tanpa voucher)</div>
         <div>
           ${data.attendance.value} / ${data.attendance.max}
           ${attendanceDone ? '<span class="verified-check">✔</span>' : ''}
