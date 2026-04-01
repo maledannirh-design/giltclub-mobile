@@ -2099,40 +2099,37 @@ body.scan-mode{
   to{ transform:translateY(110vh); }
 }
 
-/* ===== DAILY CHECK-IN CARD (MATCH WALLET) ===== */
+/* ===== DAILY CHECK-IN CARD (THEME FIXED) ===== */
 .daily-card{
   margin-top:24px;
   padding:20px;
   border-radius:22px;
 
-  background: linear-gradient(
-    145deg,
-    rgba(255, 170, 200, 0.15),
-    rgba(255, 140, 190, 0.08)
-  );
+  background:var(--color-card);
+  color:var(--color-text);
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border:1px solid var(--color-border);
 
   box-shadow:
-    0 10px 25px rgba(255, 120, 170, 0.15),
-    inset 0 1px 1px rgba(255,255,255,0.15);
+    0 8px 20px rgba(0,0,0,0.08);
 
-  border:1px solid rgba(255,255,255,0.08);
-  color:white;
   position:relative;
+  overflow:hidden;
 }
 
+/* subtle premium overlay */
 .daily-card::before{
   content:"";
   position:absolute;
   inset:0;
   border-radius:22px;
+
   background: radial-gradient(
     circle at top left,
-    rgba(255,255,255,0.25),
+    rgba(255,255,255,0.12),
     transparent 60%
   );
+
   pointer-events:none;
 }
 
@@ -2151,7 +2148,7 @@ body.scan-mode{
 
 .daily-info{
   font-size:13px;
-  opacity:.85;
+  opacity:.7;
   cursor:pointer;
 }
 
@@ -2168,7 +2165,7 @@ body.scan-mode{
 }
 
 .daily-days::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,0.25);
+  background:var(--color-border);
   border-radius:6px;
 }
 
@@ -2181,13 +2178,18 @@ body.scan-mode{
   cursor:pointer;
   transition:.2s ease;
 
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
+  background:var(--color-bg);
+  border:1px solid var(--color-border);
+  color:var(--color-text);
 }
 
 .daily-box:hover{
   transform:translateY(-2px);
-  background:rgba(255,255,255,0.15);
+  background:rgba(0,0,0,0.04);
+}
+
+[data-theme="dark"] .daily-box:hover{
+  background:rgba(255,255,255,0.06);
 }
 
 .daily-box.claimed{
@@ -2198,14 +2200,14 @@ body.scan-mode{
 /* TEXT */
 .daily-day{
   font-size:12px;
-  opacity:.8;
+  opacity:.7;
   margin-bottom:6px;
 }
 
 .daily-reward{
   font-size:14px;
   font-weight:600;
-  color:#FFD700;
+  color:var(--color-highlight);
 }
 
 /* STATUS BAR */
@@ -2216,8 +2218,9 @@ body.scan-mode{
   text-align:center;
   font-size:13px;
 
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
+  background:var(--color-bg);
+  border:1px solid var(--color-border);
+  color:var(--color-text);
 }
 
 .daily-status.done{
@@ -2226,43 +2229,13 @@ body.scan-mode{
   color:#2ecc71;
 }
 
-/* ===== DAILY CARD LIGHT MODE (MORE SOLID) ===== */
-[data-theme="light"] .daily-card{
-  background: linear-gradient(
-    145deg,
-    #f3e7ee,
-    #ead6e1
-  );
-
+/* ===== DARK MODE ENHANCEMENT ===== */
+[data-theme="dark"] .daily-card{
   box-shadow:
-    0 8px 18px rgba(0,0,0,0.12);
-
-  border:1px solid rgba(0,0,0,0.08);
-  color:#2b2b2b;
+    0 10px 25px rgba(0,0,0,0.5);
 }
 
-[data-theme="light"] .daily-box{
-  background:#ffffff;
-  border:1px solid rgba(0,0,0,0.08);
-  color:#333;
-}
-
-[data-theme="light"] .daily-box:hover{
-  background:#f7f7f7;
-}
-
-[data-theme="light"] .daily-status{
-  background:#ffffff;
-  border:1px solid rgba(0,0,0,0.08);
-  color:#333;
-}
-
-[data-theme="light"] .daily-box.claimed{
-  background: rgba(46, 204, 113, 0.15);
-  border:1px solid #2ecc71;
-  color:#1e7f47;
-}
-
+/* ===== QR READER ===== */
 #qrReader {
   position: relative;
   width: 100%;
@@ -2277,75 +2250,6 @@ body.scan-mode{
   object-fit: cover !important;
   border-radius: 16px;
 }
-
-/* ===== LEADERBOARD ===== */
-
-.leaderboard-fixed{
-  position: fixed;
-  top: 82px;
-  right: 16px;
-  z-index: 999;
-
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 6px 12px;
-  border-radius: 30px;
-
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(6px);
-
-  color: #E3C565;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-
-  box-shadow: 0 3px 12px rgba(0,0,0,.35);
-}
-
-.leaderboard-fixed i{
-  font-size: 20px;
-}
-
-.home-header{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.home-profile-right{
-  display: flex;
-  align-items: center;
-}
-
-.leaderboard-btn{
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 6px 12px;
-  border-radius: 20px;
-
-  background: rgba(0,0,0,.25);
-  backdrop-filter: blur(6px);
-
-  color: #E3C565;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-
-  transition: .2s ease;
-}
-
-.leaderboard-btn i{
-  font-size: 18px;
-}
-
-.leaderboard-btn:hover{
-  transform: translateY(-1px);
-}
-
 
 /* ===== HEADER CHAT AREA ===== */
 
@@ -2581,143 +2485,344 @@ body.scan-mode{
   height:42px;
 }
 
-/* =====================================================
-   LEADERBOARD WRAPPER
-===================================================== */
+/* ==============================
+   LEADERBOARD WRAPPER (OCEAN PREMIUM)
+============================== */
 
 .leaderboard-wrapper{
-  padding:20px;
+  position: relative;
   min-height:100vh;
-  background: linear-gradient(to bottom, #1ca7ec, #fceabb);
-  color:#222;
+  padding:20px;
+  overflow:hidden;
+  color:#fff;
+
+  background: linear-gradient(
+    to bottom,
+    #0a1f2c,
+    #0f3a4a,
+    #1c6d7c
+  );
+}
+
+/* 🌊 ANIMATED OCEAN */
+.leaderboard-wrapper::before,
+.leaderboard-wrapper::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+}
+
+.leaderboard-wrapper::before{
+  background: url("https://www.transparenttextures.com/patterns/waves.png");
+  opacity:0.15;
+  animation:waveMove 20s linear infinite;
+}
+
+.leaderboard-wrapper::after{
+  background: radial-gradient(
+    circle at 50% 120%,
+    rgba(255,255,255,0.15),
+    transparent 60%
+  );
+  animation:waterGlow 6s ease-in-out infinite alternate;
+}
+
+.leaderboard-wrapper > *{
+  position:relative;
+  z-index:1;
 }
 
 
-/* =====================================================
-   BASE CARD
-===================================================== */
+/* ==============================
+   HEADER
+============================== */
+
+.leaderboard-title{
+  font-size:22px;
+  font-weight:700;
+  margin-bottom:16px;
+}
+
+
+/* ==============================
+   RANK CARD
+============================== */
 
 .rank-item{
-  background:rgba(255,255,255,.85);
+  position:relative;
+
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+
   padding:14px;
   margin-bottom:12px;
-  border-radius:14px;
+  border-radius:16px;
+
   display:flex;
   justify-content:space-between;
   align-items:center;
-  font-size:14px;
-  position:relative;
+
+  transition:.25s ease;
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+.rank-item:hover{
+  transform:translateY(-3px) scale(1.01);
+  background: rgba(255,255,255,0.12);
+}
+
+
+/* LEFT SIDE */
+.rank-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.rank-avatar{
+  width:46px;
+  height:46px;
+  border-radius:50%;
   overflow:hidden;
+}
+
+.rank-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* TEXT */
+.rank-name{
+  font-weight:600;
+  font-size:14px;
+}
+
+.rank-sub{
+  font-size:12px;
+  opacity:0.7;
+}
+
+/* RIGHT */
+.rank-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+}
+
+.rank-score{
+  font-weight:700;
+  font-size:15px;
+}
+
+.rank-label{
+  font-size:11px;
+  opacity:0.7;
+}
+
+
+/* ==============================
+   BUTTON (PROFILE / ACTION)
+============================== */
+
+.rank-btn{
+  margin-top:6px;
+  padding:4px 10px;
+  font-size:11px;
+
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+
+  background:rgba(255,255,255,0.15);
+  color:#fff;
+
   transition:.2s;
 }
 
-
-/* =====================================================
-   SHINE LIGHT EFFECT
-===================================================== */
-
-.rank-item::before{
-  content:"";
-  position:absolute;
-  top:0;
-  left:-120%;
-  width:60%;
-  height:100%;
-  background:linear-gradient(
-    120deg,
-    transparent,
-    rgba(255,255,255,.9),
-    transparent
-  );
-  transform:skewX(-25deg);
+.rank-btn:hover{
+  background:rgba(255,255,255,0.25);
 }
 
 
-/* =====================================================
-   RANK 1 - CRIMSON METALLIC
-===================================================== */
+/* ==============================
+   🥇 RANK 1
+============================== */
 
 .rank-1{
-  background:linear-gradient(
+  background: linear-gradient(
     135deg,
-    #4d0000,
-    #b11226,
-    #ff4d6d,
-    #6a0000
+    #5a3b00,
+    #ffd700,
+    #fff3a0,
+    #ffd700
   );
-  color:#fff;
+
+  color:#000;
+  font-weight:600;
+
+  box-shadow:
+    0 0 20px rgba(255,215,0,0.6),
+    0 0 40px rgba(255,215,0,0.3);
+
   transform:scale(1.05);
-  box-shadow:0 8px 25px rgba(0,0,0,.25);
 }
 
 .rank-1::before{
-  animation:shineFast 1.2s infinite;
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.8),
+    transparent
+  );
+
+  transform:translateX(-100%);
+  animation:goldShine 2s infinite;
 }
 
 
-/* =====================================================
-   RANK 2 - EMERALD JADE
-===================================================== */
+/* ==============================
+   🥈 RANK 2
+============================== */
 
 .rank-2{
-  background:linear-gradient(
+  background: linear-gradient(
     135deg,
-    #014d40,
-    #1b9c85,
-    #2ecc71,
-    #00695c
+    #2f3b44,
+    #cfd8dc,
+    #ffffff,
+    #b0bec5
   );
-  color:#fff;
+
+  color:#111;
+  font-weight:600;
+
+  box-shadow:
+    0 0 12px rgba(200,200,200,0.4);
+
+  animation:silverPulse 3s infinite ease-in-out;
 }
 
-.rank-2::before{
-  animation:shineMedium 2s infinite;
-}
 
-
-/* =====================================================
-   RANK 3 - PINK GOLD
-===================================================== */
+/* ==============================
+   🥉 RANK 3
+============================== */
 
 .rank-3{
-  background:linear-gradient(
+  background: linear-gradient(
     135deg,
-    #ff8fa3,
-    #ffd6a5,
-    #fcd5ce,
-    #f8c291
+    #8c4a00,
+    #d68c45,
+    #f3c27a
   );
+
+  color:#000;
 }
 
-.rank-3::before{
-  animation:shineSlow 3s infinite;
+
+/* ==============================
+   LEADERBOARD RULES
+============================== */
+
+.leaderboard-rules{
+  margin-top:22px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.2);
+  font-size:12px;
+  line-height:1.5;
+  opacity:.9;
 }
 
-.leaderboard-title{
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:20px;
+.rules-title{
+  font-weight:600;
+  margin-bottom:6px;
+  font-size:13px;
+}
+
+.rules-text{
+  margin-bottom:6px;
+}
+
+
+/* ==============================
+   HEADER STATS
+============================== */
+
+.header-bottom-row{
   display:flex;
   align-items:center;
-  gap:8px;
-}
-/* =====================================================
-   SHINE ANIMATION
-===================================================== */
-
-@keyframes shineFast{
-  0%{ left:-120%; }
-  100%{ left:120%; }
+  justify-content:flex-end;
+  gap:10px;
 }
 
-@keyframes shineMedium{
-  0%{ left:-120%; }
-  100%{ left:120%; }
+.header-stats{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  font-size:12px;
+  line-height:1.2;
+  text-align:right;
 }
 
-@keyframes shineSlow{
-  0%{ left:-120%; }
-  100%{ left:120%; }
+.stat-online{
+  color:#7CFF8A;
+  font-weight:600;
+  animation:pulseOnline 2s infinite;
+}
+
+.stat-weekly{
+  color:#e0e0e0;
+}
+
+
+/* ==============================
+   ANIMATIONS
+============================== */
+
+@keyframes waveMove{
+  0%{background-position:0 0;}
+  100%{background-position:1000px 0;}
+}
+
+@keyframes waterGlow{
+  from{opacity:0.1;}
+  to{opacity:0.3;}
+}
+
+@keyframes goldShine{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(100%);}
+}
+
+@keyframes silverPulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.03);}
+}
+
+@keyframes pulseOnline{
+  0%{opacity:1;}
+  50%{opacity:0.5;}
+  100%{opacity:1;}
+}
+
+
+/* ==============================
+   LOADING
+============================== */
+
+.page-loading {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.content {
+  transition: opacity 0.2s ease;
 }
 /* =====================================================
    CHAT SEEN
@@ -2926,7 +3031,7 @@ body.scan-mode{
 }
 
 /* =============================
-   VERIFIED PROGRESS - OBSIDIAN PREMIUM
+   VERIFIED PROGRESS - THEME AWARE PREMIUM
 ============================= */
 
 .verified-progress-card{
@@ -2934,17 +3039,32 @@ body.scan-mode{
   padding: 16px;
   border-radius: 18px;
 
-  background:
-    radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 40%),
-    linear-gradient(145deg, #0f1115, #1a1d22);
+  background: var(--color-card);
+  color: var(--color-text);
 
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-border);
 
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.05),
-    0 8px 24px rgba(0,0,0,0.6);
+    0 8px 20px rgba(0,0,0,0.08);
 
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle premium overlay */
+.verified-progress-card::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.08), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,215,0,0.06), transparent 50%);
+
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 /* TITLE */
@@ -2953,7 +3073,7 @@ body.scan-mode{
   font-weight: 600;
   margin-bottom: 12px;
 
-  color: rgba(255,255,255,0.9);
+  color: var(--color-text);
   letter-spacing: 0.3px;
 }
 
@@ -2991,17 +3111,12 @@ body.scan-mode{
   height: 10px;
   width: 100%;
 
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.6));
+  background: var(--color-border);
 
   border-radius: 999px;
   overflow: hidden;
 
   margin-top: 6px;
-
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.8),
-    inset 0 -1px 2px rgba(255,255,255,0.05);
 }
 
 /* =============================
@@ -3069,19 +3184,8 @@ body.scan-mode{
   text-shadow: 0 0 6px rgba(82,196,26,0.6);
 }
 
-/* =============================
-   DISCO LIGHT EFFECT (SUBTLE)
-============================= */
-
-.verified-progress-card::after{
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background:
-    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,215,0,0.08), transparent 50%);
-
-  pointer-events: none;
-  border-radius: inherit;
+/* ===== DARK MODE ENHANCEMENT ===== */
+[data-theme="dark"] .verified-progress-card{
+  box-shadow:
+    0 10px 26px rgba(0,0,0,0.6);
 }
