@@ -1301,3 +1301,79 @@ body.dark .edit-session-btn{
   font-size:20px;
   opacity:.5;
 }
+
+.matches-title{
+  text-align:center;
+  margin-bottom:12px;
+}
+
+/* TAB */
+.matches-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.tab-btn{
+  flex:1;
+  padding:8px;
+  border:none;
+  border-radius:10px;
+  background:#eee;
+  font-size:13px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.tab-btn.active{
+  background:#00c853;
+  color:#fff;
+  font-weight:600;
+}
+
+/* CONTENT */
+.matches-tab-content{
+  display:none;
+}
+.matches-tab-content.active{
+  display:block;
+}
+
+/* RANKING */
+.ranking-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  margin-bottom:8px;
+  border-radius:10px;
+  background:#f5f5f5;
+}
+
+.rank{
+  width:24px;
+  font-weight:600;
+}
+
+.name{
+  flex:1;
+  margin-left:10px;
+}
+
+.point{
+  font-weight:600;
+}
+
+/* MATCH */
+.match-row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 12px;
+  margin-bottom:8px;
+  border-radius:10px;
+  background:#f5f5f5;
+}
+
+.score{
+  font-weight:600;
+}
