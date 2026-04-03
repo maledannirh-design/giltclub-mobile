@@ -2439,8 +2439,8 @@ async function openMatchesPage(scheduleId){
 
   }
 
- // ===============================
-// RANKING (FINAL FIX)
+// ===============================
+// RANKING (FINAL FIX - SAFE)
 // ===============================
 function renderRanking(){
 
@@ -2506,7 +2506,7 @@ function renderRanking(){
   if(currentGroup.length) groups.push(currentGroup);
 
   // ===============================
-  // ASSIGN RANK (MERGE)
+  // ASSIGN RANK
   // ===============================
   let rankCounter = 1;
 
@@ -2526,36 +2526,43 @@ function renderRanking(){
   const container = document.getElementById("rankingContainer");
   if(!container) return;
 
-  container.innerHTML = rankedGroups.map(g=>`
+  container.innerHTML = rankedGroups.map(g=>{
 
-    <div class="ranking-card rank-${g.rank}">
+    const playersHTML = g.players.map(p=>{
+      return `<div>${playerMap[p.id] || "User"}</div>`;
+    }).join("");
 
-      <div class="rank-badge">${g.rank}</div>
+    const wins = g.players[0].wins;
+    const diff = g.players[0].diff;
 
-      <div class="rank-names">
-        ${g.players.map(p=>`
-          <div>${playerMap[p.id] || "User"}</div>
-        `).join("")}
-      </div>
+    return `
+      <div class="ranking-card rank-${g.rank}">
 
-      <div class="rank-stats">
+        <div class="rank-badge">${g.rank}</div>
 
-        <div class="stat-block">
-          <div class="stat-value">${g.players[0].wins}</div>
-          <div class="stat-label">Win</div>
+        <div class="rank-names">
+          ${playersHTML}
         </div>
 
-        <div class="stat-block">
-          <div class="stat-value ${g.players[0].diff >= 0 ? "pos" : "neg"}">
-            ${g.players[0].diff > 0 ? "+"+g.players[0].diff : g.players[0].diff}
+        <div class="rank-stats">
+
+          <div class="stat-block">
+            <div class="stat-value">${wins}</div>
+            <div class="stat-label">Win</div>
           </div>
-          <div class="stat-label">Diff</div>
+
+          <div class="stat-block">
+            <div class="stat-value ${diff >= 0 ? "pos" : "neg"}">
+              ${diff > 0 ? "+" + diff : diff}
+            </div>
+            <div class="stat-label">Diff</div>
+          </div>
+
         </div>
 
       </div>
+    `;
 
-    </div>
-
-  `).join("");
+  }).join("");
 
 }
