@@ -303,6 +303,7 @@ async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
   if (!popup) return;
+  const matches = await loadMatchesBySchedule(s.id);
 
   const currentUser = auth.currentUser;
   let currentUserRole = "MEMBER";
@@ -666,7 +667,9 @@ if((s.sportType || "tennis") !== "tennis"){
           <div class="session-members">
             ${slotHtml}
           </div>
-
+          <div class="session-matches">
+  ${renderMatchesUI(matches, members)}
+</div>
         </div>
       `;
     }
@@ -2159,3 +2162,77 @@ function getSportIcon(type){
   return map[type] || "🎯";
 }
 
+
+async function loadMatchesBySchedule(scheduleId){
+
+  try{
+
+    const q = query(
+      collection(db,"matches"),
+      where("scheduleId","==",scheduleId)
+    );
+
+    const snap = await getDocs(q);
+
+    return snap.docs.map(doc=>({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+  }catch(err){
+    console.error("Load matches error:", err);
+    return [];
+  }
+
+}
+
+function renderMatchesUI(matches, members){
+
+  if(!matches || matches.length === 0){
+    return `
+      <div class="matches-empty">
+        Belum ada match
+      </div>
+    `;
+  }
+
+  // mapping uid → username
+  const userMap = {};
+  members.forEach(m=>{
+    userMap[m.userId] = m.username;
+  });
+
+  let html = "";
+
+  matches.forEach((match,i)=>{
+
+    const teamA = (match.teamA || [])
+      .map(uid => userMap[uid] || "Player")
+      .join(" / ");
+
+    const teamB = (match.teamB || [])
+      .map(uid => userMap[uid] || "Player")
+      .join(" / ");
+
+    const scoreA = match.scoreA ?? "-";
+    const scoreB = match.scoreB ?? "-";
+
+    html += `
+      <div class="match-card">
+
+        <div class="match-row">
+          <div class="team">${teamA}</div>
+          <div class="score">${scoreA}</div>
+        </div>
+
+        <div class="match-row">
+          <div class="team">${teamB}</div>
+          <div class="score">${scoreB}</div>
+        </div>
+
+      </div>
+    `;
+  });
+
+  return html;
+}
