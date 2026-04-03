@@ -295,6 +295,7 @@ function renderCalendarMonth() {
   html += `</div></div>`;
   return html;
 }
+
 /* ===============================
    CALENDAR POPUP COMPLETE VERSION (FINAL FIX CLEAN)
 ================================= */
@@ -763,6 +764,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
 }
 
 bookingLock = false;
+    } // 🔥 INI PENUTUP openSessionPopup (WAJIB ADA)
 
 async function attachSlotInteraction(currentUserRole) {
 
