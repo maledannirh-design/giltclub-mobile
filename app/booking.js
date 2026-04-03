@@ -477,6 +477,9 @@ async function openSessionPopup(dateStr) {
           <div class="session-matches">
             ${renderMatchesUI(matches, members)}
           </div>
+          <div class="session-ranking">
+  ${renderRankingUI(matches, members)}
+</div>
 
           ${
             isPrivileged
@@ -2537,4 +2540,112 @@ function openAddMatchModal(scheduleId, members){
     modal.remove();
   };
 
+}
+
+function calculateRanking(matches, members){
+
+  const table = {};
+
+  // mapping user
+  members.forEach(m=>{
+    table[m.userId] = {
+      uid: m.userId,
+      name: m.username,
+      played: 0,
+      win: 0,
+      lose: 0,
+      point: 0,
+      conceded: 0
+    };
+  });
+
+  matches.forEach(match=>{
+
+    const { teamA, teamB, scoreA, scoreB } = match;
+
+    if(scoreA == null || scoreB == null) return;
+
+    // team A
+    teamA.forEach(uid=>{
+      const p = table[uid];
+      if(!p) return;
+
+      p.played++;
+      p.point += scoreA;
+      p.conceded += scoreB;
+
+      if(scoreA > scoreB){
+        p.win++;
+      }else{
+        p.lose++;
+      }
+    });
+
+    // team B
+    teamB.forEach(uid=>{
+      const p = table[uid];
+      if(!p) return;
+
+      p.played++;
+      p.point += scoreB;
+      p.conceded += scoreA;
+
+      if(scoreB > scoreA){
+        p.win++;
+      }else{
+        p.lose++;
+      }
+    });
+
+  });
+
+  const ranking = Object.values(table);
+
+  ranking.sort((a,b)=>{
+
+    if(b.win !== a.win){
+      return b.win - a.win;
+    }
+
+    const diffA = a.point - a.conceded;
+    const diffB = b.point - b.conceded;
+
+    if(diffB !== diffA){
+      return diffB - diffA;
+    }
+
+    return b.point - a.point;
+
+  });
+
+  return ranking;
+}
+
+function renderRankingUI(matches, members){
+
+  const ranking = calculateRanking(matches, members);
+
+  if(!ranking.length){
+    return `<div class="ranking-empty">Belum ada data</div>`;
+  }
+
+  let html = `<div class="ranking-title">🏆 Ranking</div>`;
+
+  ranking.forEach((p, i)=>{
+
+    const diff = p.point - p.conceded;
+
+    html += `
+      <div class="ranking-row">
+        <div class="rank-pos">${i+1}</div>
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-stat">${p.win}W-${p.lose}L</div>
+        <div class="rank-diff ${diff>=0?'pos':'neg'}">
+          ${diff>=0?'+':''}${diff}
+        </div>
+      </div>
+    `;
+  });
+
+  return html;
 }
