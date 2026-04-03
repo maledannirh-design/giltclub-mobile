@@ -1180,7 +1180,7 @@ function attachGlobalEvents(){
 /* ===============================
    CREATE SESSION SUBMIT (FINAL CLEAN)
 ================================= */
-export async function setupCreateSessionSubmit(){
+async function setupCreateSessionSubmit(){
 
   const btn = document.getElementById("submitCreateSession");
   if(!btn) return;
