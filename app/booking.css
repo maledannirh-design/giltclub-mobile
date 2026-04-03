@@ -1474,3 +1474,44 @@ body.dark .edit-session-btn{
 .matches-tab-content.active{
   opacity:1;
 }
+
+#addMatchBtn{
+  width:100%;
+  padding:12px;
+
+  border:none;
+  border-radius:14px;
+
+  background: linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;
+
+  font-weight:600;
+  font-size:14px;
+
+  cursor:pointer;
+  transition: all .2s ease;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+
+  box-shadow: 0 6px 16px rgba(34,197,94,.25);
+}
+
+/* hover (desktop) */
+#addMatchBtn:hover{
+  transform: translateY(-1px);
+}
+
+/* klik effect */
+#addMatchBtn:active{
+  transform: scale(0.96);
+}
+
+/* dark mode tweak */
+@media (prefers-color-scheme: dark){
+  #addMatchBtn{
+    background: linear-gradient(135deg,#22c55e,#15803d);
+  }
+}
