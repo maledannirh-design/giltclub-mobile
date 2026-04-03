@@ -662,7 +662,23 @@ if((s.sportType || "tennis") !== "tennis"){
               ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
               : ""
           }
+/* ===============================
+   MATCH RESULT LAYER
+================================= */
+<div class="match-result-layer">
+  <div class="match-result-header">🏆 Hasil Pertandingan</div>
+  <div class="match-result-body">Belum ada hasil</div>
+</div>
 
+/* ===============================
+   RANKING LAYER
+================================= */
+<div class="ranking-layer">
+  <div class="ranking-header">📊 Ranking Sesi</div>
+  <div class="ranking-body">Belum ada ranking</div>
+</div>
+
+/* =============================== */
           <div class="session-members">
             ${slotHtml}
           </div>
