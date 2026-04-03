@@ -2305,7 +2305,7 @@ async function openMatchesPage(scheduleId){
     });
   };
 
- // ===============================
+// ===============================
 // RENDER MATCH LIST
 // ===============================
 function renderMatches(){
@@ -2322,22 +2322,28 @@ function renderMatches(){
         <button class="delete-match-btn" data-id="${m.id}">✕</button>
       </div>
 
-      <div class="team">
-        ${renderSelect(m.id,"a1",m.a1)}
-        ${renderSelect(m.id,"a2",m.a2)}
+      <!-- TEAM A -->
+      <div class="team-row">
+        <div class="team-players">
+          ${renderSelect(m.id,"a1",m.a1)}
+          ${renderSelect(m.id,"a2",m.a2)}
+        </div>
 
-        <div class="score-box">
+        <div class="score-box-inline">
           <input type="number" value="${m.scoreA ?? 0}" data-id="${m.id}" data-side="A">
         </div>
       </div>
 
       <div class="vs">VS</div>
 
-      <div class="team">
-        ${renderSelect(m.id,"b1",m.b1)}
-        ${renderSelect(m.id,"b2",m.b2)}
+      <!-- TEAM B -->
+      <div class="team-row">
+        <div class="team-players">
+          ${renderSelect(m.id,"b1",m.b1)}
+          ${renderSelect(m.id,"b2",m.b2)}
+        </div>
 
-        <div class="score-box">
+        <div class="score-box-inline">
           <input type="number" value="${m.scoreB ?? 0}" data-id="${m.id}" data-side="B">
         </div>
       </div>
@@ -2348,18 +2354,11 @@ function renderMatches(){
 
   attachEvents();
 
-  // ===============================
-  // DELETE MATCH
-  // ===============================
+  // DELETE
   document.querySelectorAll(".delete-match-btn").forEach(btn=>{
     btn.onclick = async ()=>{
       const id = btn.dataset.id;
-
-      try{
-        await deleteDoc(doc(db,"matches",id));
-      }catch(err){
-        console.error(err);
-      }
+      await deleteDoc(doc(db,"matches",id));
     };
   });
 
