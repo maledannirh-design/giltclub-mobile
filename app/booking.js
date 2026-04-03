@@ -488,8 +488,6 @@ async function openSessionPopup(dateStr) {
   });
 
   attachSlotInteraction(currentUserRole);
-}
-
   /* ===============================
      WA BUTTON HANDLER (SAFE)
   =============================== */
