@@ -295,9 +295,8 @@ function renderCalendarMonth() {
   html += `</div></div>`;
   return html;
 }
-
 /* ===============================
-   CALENDAR POPUP COMPLETE VERSION (FINAL MERGED)
+   CALENDAR POPUP COMPLETE VERSION (FINAL CLEAN FIX)
 ================================= */
 async function openSessionPopup(dateStr) {
 
@@ -392,7 +391,6 @@ async function openSessionPopup(dateStr) {
         s.hostId === currentUser?.uid;
 
       const now = new Date();
-      const sessionStart = new Date(s.date + "T" + (s.startTime || "00:00"));
       const sessionEnd = new Date(s.date + "T" + (s.endTime || "00:00"));
 
       const isFinished = now > sessionEnd;
@@ -427,15 +425,13 @@ async function openSessionPopup(dateStr) {
                       <div class="member-wrapper slot filled-slot">
                         <div class="avatar-initial">U</div>
                         <div class="member-name">Member</div>
-                      </div>
-                    `;
+                      </div>`;
                   }
                   return `
-                    <div class="member-wrapper slot empty-slot">
-                      <div class="avatar-initial">+</div>
-                      <div class="member-name">Kosong</div>
-                    </div>
-                  `;
+                      <div class="member-wrapper slot empty-slot">
+                        <div class="avatar-initial">+</div>
+                        <div class="member-name">Kosong</div>
+                      </div>`;
                 }).join("")
               }
             </div>
@@ -479,20 +475,14 @@ async function openSessionPopup(dateStr) {
           const locked = lockedSlots.find(l => l.index === i);
 
           if (locked) {
-            slotHtml += `
-              <div class="member-wrapper slot locked-slot">
-                🔒 ${locked.label || "Locked"}
-              </div>`;
+            slotHtml += `<div class="member-wrapper slot locked-slot">🔒 ${locked.label || "Locked"}</div>`;
             continue;
           }
 
           const member = members[memberPointer];
 
           if (member) {
-            slotHtml += `
-              <div class="member-wrapper slot filled-slot">
-                ${member.username}
-              </div>`;
+            slotHtml += `<div class="member-wrapper slot filled-slot">${member.username}</div>`;
             memberPointer++;
             continue;
           }
@@ -551,13 +541,48 @@ async function openSessionPopup(dateStr) {
       const id = btn.dataset.id;
       const members = userBookings
         .filter(b=>b.scheduleId===id)
+        .map(b=>({
+          userId:b.userId,
+          username:b.displayName||b.username||b.fullName||"Member"
+        }));
+
+      openAddMatchModal(id,members);
+    };
+  });
+
+  attachSlotInteraction(currentUserRole);
+}
+
+  /* SCORE CLICK */
+  document.querySelectorAll(".editable-score").forEach(el=>{
+    el.onclick = async ()=>{
+      const matchCard = el.closest(".match-card");
+      const matchId = matchCard.dataset.id;
+      const side = el.dataset.side;
+
+      const value = Number(prompt("Masukkan score:"));
+      if(isNaN(value)) return;
+
+      const ref = doc(db,"matches",matchId);
+      await updateDoc(ref, side==="A"?{scoreA:value}:{scoreB:value});
+
+      renderBooking();
+    };
+  });
+
+  /* ADD MATCH */
+  document.querySelectorAll(".add-match-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.id;
+      const members = userBookings
+        .filter(b=>b.scheduleId===id)
         .map(b=>({userId:b.userId,username:b.displayName||"Member"}));
       openAddMatchModal(id,members);
     };
   });
 
   attachSlotInteraction(currentUserRole);
-
+}
       // 🔥 WA PARSER
       const phone = extractWhatsAppNumber(s.notes);
 
