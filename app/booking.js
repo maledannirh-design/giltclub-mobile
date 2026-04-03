@@ -2489,34 +2489,94 @@ function renderRankingUI(matches, members){
 function openMatchesPage(scheduleId){
 
   const popup = document.getElementById("popupContainer");
+  if(!popup) return;
 
   popup.innerHTML = `
     <div class="popup-overlay">
-      <div class="popup-card">
+      <div class="popup-card matches-popup">
 
-        <h2>Matches</h2>
+        <div class="matches-header">
+          <h2>Matches</h2>
+        </div>
 
         <div class="matches-tabs">
-          <button class="active">Standings</button>
-          <button>Matches</button>
-          <button>Your Matches</button>
+          <button class="tab-btn active" data-tab="standings">Standings</button>
+          <button class="tab-btn" data-tab="matches">Matches</button>
+          <button class="tab-btn" data-tab="your">Your Matches</button>
         </div>
 
-        <div class="matches-content">
-          <div class="match-card">
-            <div>Hila / Jack</div>
-            <div>4</div>
+        <div class="matches-body">
+
+          <!-- STANDINGS -->
+          <div class="matches-tab-content active" id="tab-standings">
+
+            <div class="match-group">
+              <div class="round-title">NO ROUND</div>
+
+              <div class="match-row">
+                <div class="team">Jasmine / Iis</div>
+                <div class="score">4</div>
+              </div>
+
+              <div class="match-row">
+                <div class="team">Endah / Wawa</div>
+                <div class="score">2</div>
+              </div>
+
+            </div>
+
           </div>
 
-          <div class="match-card">
-            <div>Herman / Eben</div>
-            <div>3</div>
+          <!-- MATCHES -->
+          <div class="matches-tab-content" id="tab-matches">
+            <div class="empty-state">Belum ada match</div>
           </div>
+
+          <!-- YOUR MATCHES -->
+          <div class="matches-tab-content" id="tab-your">
+            <div class="empty-state">Belum ada match pribadi</div>
+          </div>
+
         </div>
 
-        <button id="closePopup">Tutup</button>
+        <button id="closePopup" class="close-popup-btn">Tutup</button>
 
       </div>
     </div>
   `;
+
+  /* ===============================
+     CLOSE HANDLER
+  =============================== */
+  const closeBtn = document.getElementById("closePopup");
+  if(closeBtn){
+    closeBtn.onclick = ()=>{
+      popup.innerHTML = "";
+    };
+  }
+
+  /* ===============================
+     TAB SWITCH
+  =============================== */
+  const tabs = document.querySelectorAll(".tab-btn");
+  const contents = document.querySelectorAll(".matches-tab-content");
+
+  tabs.forEach(btn=>{
+    btn.onclick = ()=>{
+
+      tabs.forEach(t=>t.classList.remove("active"));
+      contents.forEach(c=>c.classList.remove("active"));
+
+      btn.classList.add("active");
+
+      const target = btn.dataset.tab;
+      const activeContent = document.getElementById(`tab-${target}`);
+
+      if(activeContent){
+        activeContent.classList.add("active");
+      }
+
+    };
+  });
+
 }
