@@ -1206,3 +1206,13 @@ body.dark .edit-session-btn{
   margin:10px 0;
   font-size:13px;
 }
+
+.editable-score{
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.editable-score:hover{
+  color:#22c55e;
+  transform:scale(1.1);
+}
