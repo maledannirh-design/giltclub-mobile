@@ -303,7 +303,6 @@ async function openSessionPopup(dateStr) {
 
   const popup = document.getElementById("popupContainer");
   if (!popup) return;
-  const matches = await loadMatchesBySchedule(s.id);
 
   const currentUser = auth.currentUser;
   let currentUserRole = "MEMBER";
@@ -337,6 +336,9 @@ async function openSessionPopup(dateStr) {
   } else {
 
     for (const s of sessions) {
+
+      // 🔥 FIX: matches HARUS di dalam loop
+      const matches = await loadMatchesBySchedule(s.id);
 
       const bookingSnap = await getDocs(
         query(
@@ -400,6 +402,137 @@ async function openSessionPopup(dateStr) {
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
+
+      /* ===============================
+         🔥 SLOT RENDER (TETAP)
+      =============================== */
+      let slotHtml = "";
+      let memberPointer = 0;
+
+      for (let i = 0; i < maxPlayers; i++) {
+
+        const locked = lockedSlots.find(l => l.index === i);
+
+        if (locked) {
+          slotHtml += `
+            <div class="member-wrapper slot locked-slot"
+              data-schedule="${s.id}"
+              data-index="${i}">
+              <div class="member-avatar">
+                <div class="avatar-initial">🔒</div>
+              </div>
+              <div class="member-name">${locked.label || "Locked"}</div>
+            </div>
+          `;
+          continue;
+        }
+
+        const member = members[memberPointer];
+
+        if (member) {
+          slotHtml += `
+            <div class="member-wrapper slot filled-slot"
+              data-schedule="${s.id}"
+              data-index="${i}">
+              <div class="member-avatar">
+                ${
+                  member.photoURL
+                    ? `<img src="${member.photoURL}">`
+                    : `<div class="avatar-initial">${member.avatarInitial}</div>`
+                }
+              </div>
+              <div class="member-name">${member.username}</div>
+            </div>
+          `;
+          memberPointer++;
+          continue;
+        }
+
+        slotHtml += `
+          <div class="member-wrapper slot empty-slot"
+            data-schedule="${s.id}"
+            data-index="${i}">
+            <div class="member-avatar">
+              <div class="avatar-initial">+</div>
+            </div>
+            <div class="member-name">Kosong</div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="popup-session-card ${isClosed ? "session-closed" : ""}">
+
+          ${isClosed ? `<div class="session-closed-label">SESSION CLOSED</div>` : ""}
+
+          <div><strong>Jam:</strong> ${s.startTime || "-"} - ${s.endTime || "-"}</div>
+          <div><strong>Lapangan:</strong> ${s.court || "-"}</div>
+          <div><strong>Sisa Slot:</strong> ${sisaSlot}</div>
+
+          <div class="session-members">
+            ${slotHtml}
+          </div>
+
+          <!-- 🔥 MATCHES RENDER -->
+          <div class="session-matches">
+            ${renderMatchesUI(matches, members)}
+          </div>
+
+          ${
+            isPrivileged
+              ? `
+              <button class="add-match-btn" data-id="${s.id}">
+                + Tambah Match
+              </button>
+              `
+              : ""
+          }
+
+        </div>
+      `;
+    }
+  }
+
+  html += `
+        <button id="closePopup" class="close-popup-btn">Tutup</button>
+      </div>
+    </div>
+  `;
+
+  popup.innerHTML = html;
+
+  attachSlotInteraction(currentUserRole);
+
+  /* ===============================
+     🔥 FIX: EVENT HARUS SETELAH RENDER
+  =============================== */
+  document.querySelectorAll(".add-match-btn").forEach(btn=>{
+
+    btn.onclick = ()=>{
+
+      const scheduleId = btn.dataset.id;
+
+      const s = sessions.find(x=>x.id === scheduleId);
+      if(!s) return;
+
+      // 🔥 rebuild members aman
+      const booking = userBookings.filter(b=>b.scheduleId === scheduleId);
+
+      const members = booking.map(b=>({
+        userId: b.userId,
+        username:
+          b.displayName ||
+          b.username ||
+          b.fullName ||
+          "Member"
+      }));
+
+      openAddMatchModal(scheduleId, members);
+
+    };
+
+  });
+
       
  /* ===============================
    🔥 SPLIT RENDER NON TENNIS
@@ -2235,4 +2368,131 @@ function renderMatchesUI(matches, members){
   });
 
   return html;
+}
+
+function openAddMatchModal(scheduleId, members){
+
+  const existing = document.getElementById("matchModal");
+  if(existing) existing.remove();
+
+  if(!members || members.length < 4){
+    showToast("Minimal 4 player untuk match","error");
+    return;
+  }
+
+  const modal = document.createElement("div");
+  modal.id = "matchModal";
+  modal.className = "match-modal-overlay";
+
+  modal.innerHTML = `
+    <div class="match-modal">
+
+      <h3>Buat Match</h3>
+
+      <div class="match-player-list">
+        ${members.map(m=>`
+          <div class="player-item" data-uid="${m.userId}">
+            ${m.username}
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="match-selected">
+        <div id="teamA">Team A: -</div>
+        <div id="teamB">Team B: -</div>
+      </div>
+
+      <button id="saveMatchBtn">Simpan Match</button>
+      <button id="closeMatchModal">Batal</button>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  let selected = [];
+
+  const playerItems = modal.querySelectorAll(".player-item");
+
+  playerItems.forEach(el=>{
+
+    el.onclick = ()=>{
+
+      const uid = el.dataset.uid;
+
+      if(selected.includes(uid)){
+        selected = selected.filter(x=>x !== uid);
+        el.classList.remove("selected");
+      }else{
+
+        if(selected.length >= 4){
+          showToast("Maksimal 4 player","warning");
+          return;
+        }
+
+        selected.push(uid);
+        el.classList.add("selected");
+      }
+
+      updateTeamsPreview();
+    };
+
+  });
+
+  function updateTeamsPreview(){
+
+    const teamA = selected.slice(0,2);
+    const teamB = selected.slice(2,4);
+
+    const nameMap = {};
+    members.forEach(m=>{
+      nameMap[m.userId] = m.username;
+    });
+
+    document.getElementById("teamA").innerText =
+      "Team A: " + teamA.map(id=>nameMap[id]).join(" / ");
+
+    document.getElementById("teamB").innerText =
+      "Team B: " + teamB.map(id=>nameMap[id]).join(" / ");
+  }
+
+  document.getElementById("saveMatchBtn").onclick = async ()=>{
+
+    if(selected.length !== 4){
+      showToast("Pilih 4 player","error");
+      return;
+    }
+
+    const teamA = selected.slice(0,2);
+    const teamB = selected.slice(2,4);
+
+    try{
+
+      await addDoc(collection(db,"matches"),{
+        scheduleId,
+        teamA,
+        teamB,
+        scoreA: 0,
+        scoreB: 0,
+        status: "ongoing",
+        createdAt: serverTimestamp(),
+        createdBy: auth.currentUser.uid
+      });
+
+      showToast("Match berhasil dibuat","success");
+
+      modal.remove();
+      renderBooking(); // refresh
+
+    }catch(err){
+      console.error(err);
+      showToast("Gagal membuat match","error");
+    }
+
+  };
+
+  document.getElementById("closeMatchModal").onclick = ()=>{
+    modal.remove();
+  };
+
 }
