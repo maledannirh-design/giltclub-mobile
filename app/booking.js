@@ -764,7 +764,12 @@ document.querySelectorAll(".join-btn").forEach(btn => {
 }
 
 bookingLock = false;
-    } // 🔥 INI PENUTUP openSessionPopup (WAJIB ADA)
+
+} // ✅ TUTUP openSessionPopup DULU
+
+/* ===============================
+   SLOT INTERACTION
+================================= */
 
 async function attachSlotInteraction(currentUserRole) {
 
