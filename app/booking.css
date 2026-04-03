@@ -1266,3 +1266,38 @@ body.dark .edit-session-btn{
 .rank-diff.neg{
   color:#ef4444;
 }
+
+.session-insight-entry{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 16px;
+  margin-top:12px;
+  border-radius:14px;
+
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+
+  cursor:pointer;
+  transition: all .2s ease;
+}
+
+.session-insight-entry:hover{
+  transform: scale(1.02);
+  background: rgba(255,255,255,0.12);
+}
+
+.insight-title{
+  font-weight:600;
+  font-size:14px;
+}
+
+.insight-sub{
+  font-size:12px;
+  opacity:.6;
+}
+
+.insight-arrow{
+  font-size:20px;
+  opacity:.5;
+}
