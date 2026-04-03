@@ -1626,3 +1626,8 @@ body.dark .edit-session-btn{
     color:#fff;
   }
 }
+
+.close-popup-btn{
+  position: sticky;
+  bottom: 0;
+}
