@@ -647,6 +647,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
         }
 
         penaltyAmount = Math.floor(penaltyAmount);
+
         const refundAmount =
           Math.floor(originalPrice - penaltyAmount);
 
@@ -681,6 +682,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
 
         showToast("Booking dibatalkan","success");
         renderBooking();
+
         bookingLock = false;
         return;
       }
@@ -714,6 +716,7 @@ document.querySelectorAll(".join-btn").forEach(btn => {
       const totalMinutes = endMinutes - startMinutes;
 
       const billedHours = Math.ceil(totalMinutes / 60);
+
       const sessionTotal =
         billedHours * (s.pricePerHour || 0);
 
@@ -756,15 +759,16 @@ document.querySelectorAll(".join-btn").forEach(btn => {
       showToast("Berhasil join sesi","success");
       renderBooking();
 
-   } catch (err) {
-  console.error(err);
-  showToast(err.message || "Gagal", "error");
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Gagal", "error");
+    }
+
+    bookingLock = false;
+  };
+
+});
 }
-
-bookingLock = false;
-
-} // ✅ TUTUP openSessionPopup DULU
-
 /* ===============================
    SLOT INTERACTION
 ================================= */
@@ -1417,6 +1421,7 @@ async function setupCoachSelector(){
 
   updateCoachDropdownLabel();
 }
+  
 function updateCoachDropdownLabel(){
 
   const label = document.getElementById("coachDropdownLabel");
@@ -1476,7 +1481,6 @@ function formatDate(d){
 function formatDisplayDate(d){
   return new Date(d).toLocaleDateString("id-ID",{weekday:"short",month:"short",day:"numeric"});
 }
-
 
 async function openEditSessionSheet(scheduleId){
 
@@ -1674,7 +1678,6 @@ async function autoCloseFinishedSessions() {
   }
 }
 
-
 /* ===============================
    OPEN SCAN FOR CHECK IN
 ================================= */
@@ -1854,7 +1857,6 @@ function openSportForm(sportType){
 
   const map = {
     tennis: () => import("./sports/tennisForm.js"),
-    dukun: () => import("./sports/dukunForm.js"),
     golf: () => import("./sports/golfForm.js"),
     run: () => import("./sports/runForm.js"),
     dance: () => import("./sports/danceForm.js"),
