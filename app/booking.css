@@ -1453,3 +1453,99 @@ body.dark .edit-session-btn{
   margin:8px 0;
   opacity:.6;
 }
+
+/* ===============================
+   MATCH CARD
+================================= */
+.match-card{
+  background: rgba(255,255,255,0.08);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  backdrop-filter: blur(6px);
+}
+
+/* HEADER */
+.match-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.match-title{
+  font-size:13px;
+  font-weight:600;
+  opacity:.7;
+}
+
+.delete-match-btn{
+  background:#ef4444;
+  border:none;
+  color:#fff;
+  border-radius:8px;
+  width:26px;
+  height:26px;
+  cursor:pointer;
+}
+
+/* ===============================
+   TEAM ROW
+================================= */
+.team-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+
+/* PLAYER LIST */
+.team-players{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:1;
+}
+
+/* 🔥 SELECT FIX (INI YANG BIKIN JELEK TADI) */
+.team-players select{
+  padding:8px 10px;
+  border-radius:10px;
+  border:none;
+  background:#1f1f1f;
+  color:#fff;
+  font-size:13px;
+  appearance:none;
+}
+
+/* ===============================
+   SCORE BOX (PINK MODERN)
+================================= */
+.score-box-inline{
+  min-width:70px;
+}
+
+.score-box-inline input{
+  width:70px;
+  height:60px;
+  border-radius:14px;
+  border:none;
+
+  background: linear-gradient(135deg,#ec4899,#db2777);
+  color:#fff;
+
+  font-size:24px;
+  font-weight:700;
+  text-align:center;
+}
+
+/* ===============================
+   VS
+================================= */
+.vs{
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+  margin:10px 0;
+  opacity:.5;
+}
