@@ -766,7 +766,6 @@ document.querySelectorAll(".join-btn").forEach(btn => {
 
     bookingLock = false;
 
-  };
 
 });
 }
