@@ -2216,13 +2216,13 @@ async function openMatchesPage(scheduleId){
             userData.fullName ||
             "";
 
-          if(username && fullName){
-            name = `${username} - ${fullName}`;
-          }else if(username){
-            name = username;
-          }else if(fullName){
-            name = fullName;
-          }
+          if(username){
+  name = username; // 🔥 pakai ini saja
+}else if(fullName){
+  name = fullName;
+}else{
+  name = "Member";
+}
         }
 
       }catch(e){}
