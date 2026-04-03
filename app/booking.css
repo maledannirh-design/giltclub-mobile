@@ -1126,3 +1126,38 @@ body.dark .edit-session-btn{
 }.simple-slot .filled .avatar-initial{
   background:linear-gradient(135deg,#ec4899,#f472b6);
 }
+
+.session-matches{
+  margin-top:12px;
+}
+
+.match-card{
+  background: rgba(255,255,255,0.05);
+  border-radius:12px;
+  padding:10px;
+  margin-bottom:8px;
+}
+
+.match-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:13px;
+  margin-bottom:4px;
+}
+
+.team{
+  opacity:0.9;
+}
+
+.score{
+  font-weight:700;
+  font-size:14px;
+}
+
+.matches-empty{
+  opacity:0.5;
+  font-size:12px;
+  text-align:center;
+  padding:6px;
+}
