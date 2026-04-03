@@ -1169,13 +1169,21 @@ body.dark .edit-session-btn{
 .matches-popup{
   max-height:85vh;
   overflow-y:auto;
-  color:#fff;
+  color: inherit; /* 🔥 ikut theme */
 }
 
 .matches-title{
   text-align:center;
   margin-bottom:14px;
   font-weight:700;
+}
+
+.team select{
+  color: inherit;
+}
+
+.score-box input{
+  color: inherit;
 }
 
 /* ===============================
@@ -1351,4 +1359,29 @@ body.dark .edit-session-btn{
 .session-matches,
 .session-ranking{
   all: unset;
+}
+
+.stat-block{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:50px;
+}
+
+.stat-value{
+  font-weight:700;
+  font-size:14px;
+}
+
+.stat-label{
+  font-size:10px;
+  opacity:.6;
+}
+
+.stat-value.pos{
+  color:#22c55e;
+}
+
+.stat-value.neg{
+  color:#ef4444;
 }
