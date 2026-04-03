@@ -557,7 +557,7 @@ async function openSessionPopup(dateStr) {
   });
 
   attachSlotInteraction(currentUserRole);
-}
+
       // 🔥 WA PARSER
       const phone = extractWhatsAppNumber(s.notes);
 
