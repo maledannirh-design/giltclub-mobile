@@ -2439,61 +2439,123 @@ async function openMatchesPage(scheduleId){
 
   }
 
+ // ===============================
+// RANKING (FINAL FIX)
+// ===============================
+function renderRanking(){
+
+  const stats = {};
+
   // ===============================
-  // RANKING
+  // HITUNG WIN & DIFF
   // ===============================
-  function renderRanking(){
+  matches.forEach(m=>{
 
-    const stats = {};
+    const teamA = [m.a1,m.a2].filter(Boolean);
+    const teamB = [m.b1,m.b2].filter(Boolean);
 
-    matches.forEach(m=>{
+    if(!teamA.length || !teamB.length) return;
 
-      const teamA = [m.a1,m.a2].filter(Boolean);
-      const teamB = [m.b1,m.b2].filter(Boolean);
+    const diff = (m.scoreA || 0) - (m.scoreB || 0);
 
-      if(!teamA.length || !teamB.length) return;
-
-      const diff = (m.scoreA || 0) - (m.scoreB || 0);
-
-      teamA.forEach(id=>{
-        if(!stats[id]) stats[id]={id,wins:0,diff:0};
-        stats[id].diff += diff;
-        if(diff>0) stats[id].wins++;
-      });
-
-      teamB.forEach(id=>{
-        if(!stats[id]) stats[id]={id,wins:0,diff:0};
-        stats[id].diff -= diff;
-        if(diff<0) stats[id].wins++;
-      });
-
+    teamA.forEach(id=>{
+      if(!stats[id]) stats[id] = {id, wins:0, diff:0};
+      stats[id].diff += diff;
+      if(diff > 0) stats[id].wins++;
     });
 
-    const ranking = Object.values(stats).sort((a,b)=>{
-      if(b.wins!==a.wins) return b.wins-a.wins;
-      return b.diff-a.diff;
+    teamB.forEach(id=>{
+      if(!stats[id]) stats[id] = {id, wins:0, diff:0};
+      stats[id].diff -= diff;
+      if(diff < 0) stats[id].wins++;
     });
 
-    document.getElementById("rankingContainer").innerHTML =
-      ranking.map((p,i)=>`
-       <div class="ranking-row">
-  <div class="rank">${i+1}</div>
+  });
 
-  <div class="name">${playerMap[p.id] || "User"}</div>
+  // ===============================
+  // SORTING
+  // ===============================
+  const rankingRaw = Object.values(stats).sort((a,b)=>{
+    if(b.wins !== a.wins) return b.wins - a.wins;
+    return b.diff - a.diff;
+  });
 
-  <div class="stat-block">
-    <div class="stat-value">${p.wins}</div>
-    <div class="stat-label">Win</div>
-  </div>
+  // ===============================
+  // GROUPING (TIE)
+  // ===============================
+  let groups = [];
+  let currentGroup = [];
 
-  <div class="stat-block">
-    <div class="stat-value ${p.diff >= 0 ? "pos" : "neg"}">
-      ${p.diff > 0 ? "+"+p.diff : p.diff}
+  rankingRaw.forEach((p,i)=>{
+
+    if(i === 0){
+      currentGroup.push(p);
+    }else{
+      const prev = rankingRaw[i-1];
+
+      if(p.wins === prev.wins && p.diff === prev.diff){
+        currentGroup.push(p);
+      }else{
+        groups.push(currentGroup);
+        currentGroup = [p];
+      }
+    }
+
+  });
+
+  if(currentGroup.length) groups.push(currentGroup);
+
+  // ===============================
+  // ASSIGN RANK (MERGE)
+  // ===============================
+  let rankCounter = 1;
+
+  const rankedGroups = groups.map(group=>{
+    const rank = rankCounter;
+    rankCounter += group.length;
+
+    return {
+      rank,
+      players: group
+    };
+  });
+
+  // ===============================
+  // RENDER
+  // ===============================
+  const container = document.getElementById("rankingContainer");
+  if(!container) return;
+
+  container.innerHTML = rankedGroups.map(g=>`
+
+    <div class="ranking-card rank-${g.rank}">
+
+      <div class="rank-badge">${g.rank}</div>
+
+      <div class="rank-names">
+        ${g.players.map(p=>`
+          <div>${playerMap[p.id] || "User"}</div>
+        `).join("")}
+      </div>
+
+      <div class="rank-stats">
+
+        <div class="stat-block">
+          <div class="stat-value">${g.players[0].wins}</div>
+          <div class="stat-label">Win</div>
+        </div>
+
+        <div class="stat-block">
+          <div class="stat-value ${g.players[0].diff >= 0 ? "pos" : "neg"}">
+            ${g.players[0].diff > 0 ? "+"+g.players[0].diff : g.players[0].diff}
+          </div>
+          <div class="stat-label">Diff</div>
+        </div>
+
+      </div>
+
     </div>
-    <div class="stat-label">Diff</div>
-  </div>
-</div>
-      `).join("");
-  }
+
+  `).join("");
 
 }
