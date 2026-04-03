@@ -1385,3 +1385,31 @@ body.dark .edit-session-btn{
 .stat-value.neg{
   color:#ef4444;
 }
+
+.match-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+
+.match-title{
+  font-weight:600;
+  font-size:13px;
+  opacity:.8;
+}
+
+.delete-match-btn{
+  background:#ef4444;
+  border:none;
+  color:#fff;
+  border-radius:8px;
+  width:26px;
+  height:26px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.delete-match-btn:hover{
+  transform:scale(1.1);
+}
