@@ -1515,3 +1515,147 @@ body.dark .edit-session-btn{
     background: linear-gradient(135deg,#22c55e,#15803d);
   }
 }
+
+
+/* ===============================
+   BASE RANKING CARD
+================================= */
+.ranking-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:14px;
+  border-radius:16px;
+  margin-bottom:12px;
+
+  background: rgba(255,255,255,0.06);
+  overflow:hidden;
+}
+
+/* NAME */
+.rank-names{
+  flex:1;
+  margin-left:10px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+/* BADGE */
+.rank-badge{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+}
+
+/* ===============================
+   🥇 RANK 1 (LOVE + DISCO)
+================================= */
+.rank-1{
+  background: linear-gradient(135deg,#FFD70022,#FFD70011);
+  animation: discoGlow 0.6s infinite alternate;
+}
+
+/* badge */
+.rank-1 .rank-badge{
+  background:#FFD700;
+  color:#000;
+}
+
+/* DISCO GLOW */
+@keyframes discoGlow{
+  0%{ box-shadow:0 0 10px #FFD700; }
+  25%{ box-shadow:0 0 20px #ff00ff; }
+  50%{ box-shadow:0 0 25px #00ffff; }
+  75%{ box-shadow:0 0 20px #ff0000; }
+  100%{ box-shadow:0 0 15px #00ff00; }
+}
+
+/* LOVE RAIN */
+.rank-1::before{
+  content:"❤️ ❤️ ❤️ ❤️ ❤️ ❤️ ❤️ ❤️";
+  position:absolute;
+  top:-20px;
+  left:0;
+  width:100%;
+  font-size:14px;
+  text-align:center;
+  opacity:.8;
+
+  animation: loveRain 2s linear infinite;
+}
+
+@keyframes loveRain{
+  0%{
+    transform: translateY(-20px);
+    opacity:0;
+  }
+  30%{
+    opacity:1;
+  }
+  100%{
+    transform: translateY(120%);
+    opacity:0;
+  }
+}
+
+/* ===============================
+   🥈 RANK 2
+================================= */
+.rank-2{
+  background: linear-gradient(135deg,#C0C0C022,#C0C0C011);
+}
+
+.rank-2 .rank-badge{
+  background:#C0C0C0;
+  color:#000;
+}
+
+/* ===============================
+   🥉 RANK 3
+================================= */
+.rank-3{
+  background: linear-gradient(135deg,#CD7F3222,#CD7F3211);
+}
+
+.rank-3 .rank-badge{
+  background:#CD7F32;
+  color:#000;
+}
+
+/* ===============================
+   STATS
+================================= */
+.rank-stats{
+  display:flex;
+  gap:12px;
+}
+
+.stat-block{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.stat-value{
+  font-weight:700;
+}
+
+.stat-label{
+  font-size:10px;
+  opacity:.6;
+}
+
+.stat-value.pos{
+  color:#22c55e;
+}
+
+.stat-value.neg{
+  color:#ef4444;
+}
