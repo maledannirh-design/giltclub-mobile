@@ -2194,9 +2194,18 @@ async function openMatchesPage(scheduleId){
   );
 
   const players = snap.docs.map(d=>{
-    const data = d.data();
-    return data.usernameID || data.username || "Member";
-  });
+  const data = d.data();
+
+  console.log("BOOKING DATA:", data);
+
+  return (
+    data.displayName ||
+    data.username ||
+    data.usernameID ||
+    data.fullName ||
+    "Unknown"
+  );
+});
 
   // ===============================
   // STATE (LOCAL CACHE)
@@ -2424,11 +2433,22 @@ async function openMatchesPage(scheduleId){
 
     container.innerHTML = ranking.map((p,i)=>`
       <div class="ranking-row">
-        <div class="rank">${i+1}</div>
-        <div class="name">${p.name}</div>
-        <div class="point">${p.wins}</div>
-        <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
-      </div>
+  <div class="rank">${i+1}</div>
+
+  <div class="name">${p.name}</div>
+
+  <div class="stat-block">
+    <div class="stat-value">${p.wins}</div>
+    <div class="stat-label">Win</div>
+  </div>
+
+  <div class="stat-block">
+    <div class="stat-value ${p.diff >= 0 ? "pos" : "neg"}">
+      ${p.diff > 0 ? "+"+p.diff : p.diff}
+    </div>
+    <div class="stat-label">Diff</div>
+  </div>
+</div>
     `).join("");
   }
 
