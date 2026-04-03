@@ -500,6 +500,47 @@ async function openSessionPopup(dateStr) {
   `;
 
   popup.innerHTML = html;
+  document.querySelectorAll(".editable-score").forEach(el=>{
+
+  el.onclick = async ()=>{
+
+    const matchCard = el.closest(".match-card");
+    const matchId = matchCard.dataset.id;
+    const side = el.dataset.side;
+
+    const input = prompt("Masukkan score:");
+
+    if(input === null) return;
+
+    const value = Number(input);
+
+    if(isNaN(value) || value < 0){
+      showToast("Score tidak valid","error");
+      return;
+    }
+
+    try{
+
+      const matchRef = doc(db,"matches",matchId);
+
+      if(side === "A"){
+        await updateDoc(matchRef,{ scoreA: value });
+      }else{
+        await updateDoc(matchRef,{ scoreB: value });
+      }
+
+      showToast("Score berhasil diupdate","success");
+
+      renderBooking(); // refresh UI
+
+    }catch(err){
+      console.error(err);
+      showToast("Gagal update score","error");
+    }
+
+  };
+
+});
 
   attachSlotInteraction(currentUserRole);
 
@@ -815,6 +856,7 @@ if((s.sportType || "tennis") !== "tennis"){
   `;
 
   popup.innerHTML = html;
+
 
   attachSlotInteraction(currentUserRole);
 
@@ -2329,7 +2371,6 @@ function renderMatchesUI(matches, members){
     `;
   }
 
-  // mapping uid → username
   const userMap = {};
   members.forEach(m=>{
     userMap[m.userId] = m.username;
@@ -2337,7 +2378,7 @@ function renderMatchesUI(matches, members){
 
   let html = "";
 
-  matches.forEach((match,i)=>{
+  matches.forEach(match=>{
 
     const teamA = (match.teamA || [])
       .map(uid => userMap[uid] || "Player")
@@ -2347,20 +2388,21 @@ function renderMatchesUI(matches, members){
       .map(uid => userMap[uid] || "Player")
       .join(" / ");
 
-    const scoreA = match.scoreA ?? "-";
-    const scoreB = match.scoreB ?? "-";
-
     html += `
-      <div class="match-card">
+      <div class="match-card" data-id="${match.id}">
 
         <div class="match-row">
           <div class="team">${teamA}</div>
-          <div class="score">${scoreA}</div>
+          <div class="score editable-score" data-side="A">
+            ${match.scoreA ?? "-"}
+          </div>
         </div>
 
         <div class="match-row">
           <div class="team">${teamB}</div>
-          <div class="score">${scoreB}</div>
+          <div class="score editable-score" data-side="B">
+            ${match.scoreB ?? "-"}
+          </div>
         </div>
 
       </div>
