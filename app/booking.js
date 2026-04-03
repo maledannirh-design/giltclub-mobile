@@ -2177,14 +2177,13 @@ function getSportIcon(type){
 }
 
 
-
 async function openMatchesPage(scheduleId){
 
   const popup = document.getElementById("popupContainer");
   if(!popup) return;
 
   // ===============================
-  // 🔥 LOAD MEMBERS
+  // 🔥 LOAD MEMBERS (VIA USERS)
   // ===============================
   const snap = await getDocs(
     query(
@@ -2194,16 +2193,51 @@ async function openMatchesPage(scheduleId){
     )
   );
 
-  const players = snap.docs.map(d=>{
-    const data = d.data();
+  const players = await Promise.all(
+    snap.docs.map(async d=>{
 
-    return {
-      id: data.userId, // 🔥 KEY UTAMA
-      name: data.usernameID || data.displayName || "Member"
-    };
-  });
+      const data = d.data();
+      const userId = data.userId;
 
-  // 🔥 MAP USERID → NAME
+      let name = "Member";
+
+      try{
+        const userSnap = await getDoc(doc(db,"users",userId));
+
+        if(userSnap.exists()){
+          const userData = userSnap.data();
+
+          const username =
+            userData.usernameID ||
+            userData.username ||
+            "";
+
+          const fullName =
+            userData.fullName ||
+            "";
+
+          if(username && fullName){
+            name = `${username} - ${fullName}`;
+          }else if(username){
+            name = username;
+          }else if(fullName){
+            name = fullName;
+          }
+        }
+
+      }catch(e){}
+
+      return {
+        id: userId,
+        name
+      };
+
+    })
+  );
+
+  // ===============================
+  // MAP USERID → NAME
+  // ===============================
   const playerMap = {};
   players.forEach(p=>{
     playerMap[p.id] = p.name;
@@ -2239,7 +2273,7 @@ async function openMatchesPage(scheduleId){
 
         </div>
 
-        <button id="closePopup">Tutup</button>
+        <button id="closePopup" class="close-popup-btn">Tutup</button>
 
       </div>
     </div>
@@ -2269,7 +2303,7 @@ async function openMatchesPage(scheduleId){
   });
 
   // ===============================
-  // 🔥 REALTIME
+  // REALTIME MATCHES
   // ===============================
   const qMatches = query(
     collection(db,"matches"),
@@ -2354,7 +2388,7 @@ async function openMatchesPage(scheduleId){
   }
 
   // ===============================
-  // SELECT
+  // SELECT PLAYER
   // ===============================
   function renderSelect(docId,key,value){
 
@@ -2375,7 +2409,6 @@ async function openMatchesPage(scheduleId){
   // ===============================
   function attachEvents(){
 
-    // SELECT
     document.querySelectorAll("select").forEach(el=>{
       el.onchange = async ()=>{
         const id = el.dataset.id;
@@ -2387,7 +2420,6 @@ async function openMatchesPage(scheduleId){
       };
     });
 
-    // SCORE
     document.querySelectorAll(".score-box-inline input").forEach(el=>{
       el.oninput = async ()=>{
         const id = el.dataset.id;
@@ -2399,7 +2431,6 @@ async function openMatchesPage(scheduleId){
       };
     });
 
-    // DELETE
     document.querySelectorAll(".delete-match-btn").forEach(btn=>{
       btn.onclick = async ()=>{
         await deleteDoc(doc(db,"matches",btn.dataset.id));
@@ -2409,7 +2440,7 @@ async function openMatchesPage(scheduleId){
   }
 
   // ===============================
-  // RANKING ENGINE
+  // RANKING
   // ===============================
   function renderRanking(){
 
@@ -2452,7 +2483,6 @@ async function openMatchesPage(scheduleId){
           <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
         </div>
       `).join("");
-
   }
 
 }
