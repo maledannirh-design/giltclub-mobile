@@ -2506,64 +2506,77 @@ function renderRanking(){
   if(currentGroup.length) groups.push(currentGroup);
 
   // ===============================
-  // ASSIGN RANK
-  // ===============================
-  let rankCounter = 1;
+// ASSIGN RANK (FIX NO SKIP)
+// ===============================
+let currentRank = 1;
 
-  const rankedGroups = groups.map(group=>{
-    const rank = rankCounter;
-    rankCounter += group.length;
+const rankedGroups = groups.map((group, index)=>{
 
-    return {
-      rank,
-      players: group
-    };
-  });
+  if(index === 0){
+    currentRank = 1;
+  }else{
+    const prev = groups[index - 1][0];
+    const curr = group[0];
 
-  // ===============================
-  // RENDER
-  // ===============================
-  const container = document.getElementById("rankingContainer");
-  if(!container) return;
+    if(curr.wins !== prev.wins || curr.diff !== prev.diff){
+      currentRank++; // 🔥 naik 1 aja (tidak lompat)
+    }
+  }
 
-  container.innerHTML = rankedGroups.map(g=>{
+  return {
+    rank: currentRank,
+    players: group
+  };
+});
 
-    const playersHTML = g.players.map(p=>{
-      return `<div>${playerMap[p.id] || "User"}</div>`;
-    }).join("");
+ // ===============================
+// RENDER (FINAL CLEAN)
+// ===============================
+const container = document.getElementById("rankingContainer");
+if(!container) return;
 
-    const wins = g.players[0].wins;
-    const diff = g.players[0].diff;
+container.innerHTML = rankedGroups.map(g=>{
 
-    return `
-      <div class="ranking-card rank-${g.rank}">
+  const playersHTML = g.players.map(p=>{
+    return `<div>${playerMap[p.id] || "User"}</div>`;
+  }).join("");
 
-        <div class="rank-badge">${g.rank}</div>
+  const wins = g.players[0].wins;
+  const diff = g.players[0].diff;
 
-        <div class="rank-names">
-          ${playersHTML}
+  return `
+    <div class="ranking-card rank-${g.rank} ${g.rank === 1 ? "champion" : ""}">
+
+      ${g.rank === 1 ? `
+        <div class="champion-label">👑 CHAMPION</div>
+      ` : ""}
+
+      <div class="rank-badge">${g.rank}</div>
+
+      <div class="rank-names">
+        ${playersHTML}
+      </div>
+
+      <div class="rank-stats">
+
+        <div class="stat-block">
+          <div class="stat-value">${wins}</div>
+          <div class="stat-label">Win</div>
         </div>
 
-        <div class="rank-stats">
-
-          <div class="stat-block">
-            <div class="stat-value">${wins}</div>
-            <div class="stat-label">Win</div>
+        <div class="stat-block">
+          <div class="stat-value ${diff >= 0 ? "pos" : "neg"}">
+            ${diff > 0 ? "+" + diff : diff}
           </div>
-
-          <div class="stat-block">
-            <div class="stat-value ${diff >= 0 ? "pos" : "neg"}">
-              ${diff > 0 ? "+" + diff : diff}
-            </div>
-            <div class="stat-label">Diff</div>
-          </div>
-
+          <div class="stat-label">Diff</div>
         </div>
 
       </div>
-    `;
 
-  }).join("");
+    </div>
+  `;
+
+}).join("");
 
 }
 }
