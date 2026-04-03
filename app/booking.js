@@ -674,8 +674,7 @@ if((s.sportType || "tennis") !== "tennis"){
     </div>
   `;
 
-  continue;
-}
+} else {
 
       /* SLOT RENDER */
       let slotHtml = "";
