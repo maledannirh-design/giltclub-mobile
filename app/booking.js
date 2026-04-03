@@ -662,18 +662,12 @@ if((s.sportType || "tennis") !== "tennis"){
               ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
               : ""
           }
-<div class="session-insight-layer">
-
-  <div class="match-result-layer">
-    <div class="match-result-header">Hasil Pertandingan</div>
-    <div class="match-result-body">Belum ada hasil</div>
+<div class="session-insight-entry" data-id="${s.id}">
+  <div class="insight-left">
+    <div class="insight-title">Matches</div>
+    <div class="insight-sub">Lihat hasil & ranking</div>
   </div>
-
-  <div class="ranking-layer">
-    <div class="ranking-header">Ranking Sesi</div>
-    <div class="ranking-body">Belum ada ranking</div>
-  </div>
-
+  <div class="insight-arrow">›</div>
 </div>
           <div class="session-members">
             ${slotHtml}
@@ -693,6 +687,15 @@ if((s.sportType || "tennis") !== "tennis"){
   popup.innerHTML = html;
 
   attachSlotInteraction(currentUserRole);
+/* ===============================
+     OPEN PAGE MACHH
+  =============================== */
+  document.querySelectorAll(".session-insight-entry").forEach(el=>{
+  el.onclick = ()=>{
+    const scheduleId = el.dataset.id;
+    openMatchesPage(scheduleId);
+  };
+});
 
   /* ===============================
      WA BUTTON HANDLER (SAFE)
@@ -2481,4 +2484,39 @@ function renderRankingUI(matches, members){
   });
 
   return html;
+}
+
+function openMatchesPage(scheduleId){
+
+  const popup = document.getElementById("popupContainer");
+
+  popup.innerHTML = `
+    <div class="popup-overlay">
+      <div class="popup-card">
+
+        <h2>Matches</h2>
+
+        <div class="matches-tabs">
+          <button class="active">Standings</button>
+          <button>Matches</button>
+          <button>Your Matches</button>
+        </div>
+
+        <div class="matches-content">
+          <div class="match-card">
+            <div>Hila / Jack</div>
+            <div>4</div>
+          </div>
+
+          <div class="match-card">
+            <div>Herman / Eben</div>
+            <div>3</div>
+          </div>
+        </div>
+
+        <button id="closePopup">Tutup</button>
+
+      </div>
+    </div>
+  `;
 }
