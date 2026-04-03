@@ -532,7 +532,7 @@ async function openSessionPopup(dateStr) {
     };
 
   });
-
+}
       
  /* ===============================
    🔥 SPLIT RENDER NON TENNIS
