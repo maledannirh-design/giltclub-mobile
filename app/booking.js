@@ -2275,3 +2275,4 @@ function renderRankingUI(matches, members){
 
   return html;
 }
+}
