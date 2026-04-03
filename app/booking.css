@@ -1216,3 +1216,53 @@ body.dark .edit-session-btn{
   color:#22c55e;
   transform:scale(1.1);
 }
+
+
+.session-ranking{
+  margin-top:12px;
+  padding:10px;
+  background:rgba(255,255,255,0.04);
+  border-radius:12px;
+}
+
+.ranking-title{
+  font-weight:700;
+  margin-bottom:8px;
+  font-size:14px;
+}
+
+.ranking-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:13px;
+  margin-bottom:6px;
+}
+
+.rank-pos{
+  width:20px;
+  font-weight:bold;
+}
+
+.rank-name{
+  flex:1;
+  margin-left:6px;
+}
+
+.rank-stat{
+  width:60px;
+  text-align:center;
+}
+
+.rank-diff{
+  width:40px;
+  text-align:right;
+}
+
+.rank-diff.pos{
+  color:#22c55e;
+}
+
+.rank-diff.neg{
+  color:#ef4444;
+}
