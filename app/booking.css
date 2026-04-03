@@ -1413,3 +1413,43 @@ body.dark .edit-session-btn{
 .delete-match-btn:hover{
   transform:scale(1.1);
 }
+
+
+/* TEAM ROW HORIZONTAL */
+.team-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+/* PLAYER COLUMN */
+.team-players{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:1;
+}
+
+/* SCORE BOX INLINE (🔥 PINK) */
+.score-box-inline input{
+  width:70px;
+  height:60px;
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  border-radius:12px;
+  border:none;
+
+  background:#ec4899; /* 🔥 PINK */
+  color:#fff;
+}
+
+/* VS */
+.vs{
+  text-align:center;
+  font-weight:700;
+  margin:8px 0;
+  opacity:.6;
+}
