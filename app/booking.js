@@ -2305,108 +2305,231 @@ async function openMatchesPage(scheduleId){
     });
   };
 
-// ===============================
-// RENDER MATCH LIST
-// ===============================
-function renderMatches(){
+async function openMatchesPage(scheduleId){
 
-  const list = document.getElementById("matchList");
-  if(!list) return;
+  const popup = document.getElementById("popupContainer");
+  if(!popup) return;
 
-  list.innerHTML = matches.map((m,i)=>`
+  // ===============================
+  // 🔥 LOAD MEMBERS
+  // ===============================
+  const snap = await getDocs(
+    query(
+      collection(db,"bookings"),
+      where("scheduleId","==",scheduleId),
+      where("status","==","active")
+    )
+  );
 
-    <div class="match-card">
+  const players = snap.docs.map(d=>{
+    const data = d.data();
 
-      <div class="match-header">
-        <div class="match-title">Pertandingan ${i+1}</div>
-        <button class="delete-match-btn" data-id="${m.id}">✕</button>
-      </div>
-
-      <!-- TEAM A -->
-      <div class="team-row">
-        <div class="team-players">
-          ${renderSelect(m.id,"a1",m.a1)}
-          ${renderSelect(m.id,"a2",m.a2)}
-        </div>
-
-        <div class="score-box-inline">
-          <input type="number" value="${m.scoreA ?? 0}" data-id="${m.id}" data-side="A">
-        </div>
-      </div>
-
-      <div class="vs">VS</div>
-
-      <!-- TEAM B -->
-      <div class="team-row">
-        <div class="team-players">
-          ${renderSelect(m.id,"b1",m.b1)}
-          ${renderSelect(m.id,"b2",m.b2)}
-        </div>
-
-        <div class="score-box-inline">
-          <input type="number" value="${m.scoreB ?? 0}" data-id="${m.id}" data-side="B">
-        </div>
-      </div>
-
-    </div>
-
-  `).join("");
-
-  attachEvents();
-
-  // DELETE
-  document.querySelectorAll(".delete-match-btn").forEach(btn=>{
-    btn.onclick = async ()=>{
-      const id = btn.dataset.id;
-      await deleteDoc(doc(db,"matches",id));
+    return {
+      id: data.userId, // 🔥 KEY UTAMA
+      name: data.usernameID || data.displayName || "Member"
     };
   });
 
-}
+  // 🔥 MAP USERID → NAME
+  const playerMap = {};
+  players.forEach(p=>{
+    playerMap[p.id] = p.name;
+  });
+
+  let matches = [];
+  let unsubscribe = null;
+
   // ===============================
-  // SELECT PLAYER
+  // UI
+  // ===============================
+  popup.innerHTML = `
+    <div class="popup-overlay">
+      <div class="popup-card matches-popup">
+
+        <h2 class="matches-title">Matches</h2>
+
+        <div class="matches-tabs">
+          <button class="tab-btn active" data-tab="ranking">Score Ranking</button>
+          <button class="tab-btn" data-tab="matches">Pertandingan</button>
+        </div>
+
+        <div class="matches-body">
+
+          <div class="matches-tab-content active" id="tab-ranking">
+            <div id="rankingContainer"></div>
+          </div>
+
+          <div class="matches-tab-content" id="tab-matches">
+            <button id="addMatchBtn">+ Pertandingan</button>
+            <div id="matchList"></div>
+          </div>
+
+        </div>
+
+        <button id="closePopup">Tutup</button>
+
+      </div>
+    </div>
+  `;
+
+  // ===============================
+  // CLOSE
+  // ===============================
+  document.getElementById("closePopup").onclick = ()=>{
+    if(unsubscribe) unsubscribe();
+    popup.innerHTML = "";
+  };
+
+  // ===============================
+  // TAB
+  // ===============================
+  const tabs = document.querySelectorAll(".tab-btn");
+  const contents = document.querySelectorAll(".matches-tab-content");
+
+  tabs.forEach(btn=>{
+    btn.onclick = ()=>{
+      tabs.forEach(t=>t.classList.remove("active"));
+      contents.forEach(c=>c.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+    };
+  });
+
+  // ===============================
+  // 🔥 REALTIME
+  // ===============================
+  const qMatches = query(
+    collection(db,"matches"),
+    where("scheduleId","==",scheduleId)
+  );
+
+  unsubscribe = onSnapshot(qMatches,(snap)=>{
+    matches = snap.docs.map(d=>({
+      id:d.id,
+      ...d.data()
+    }));
+
+    renderMatches();
+    renderRanking();
+  });
+
+  // ===============================
+  // ADD MATCH
+  // ===============================
+  document.getElementById("addMatchBtn").onclick = async ()=>{
+    await addDoc(collection(db,"matches"),{
+      scheduleId,
+      a1:null,
+      a2:null,
+      b1:null,
+      b2:null,
+      scoreA:0,
+      scoreB:0,
+      createdAt: serverTimestamp()
+    });
+  };
+
+  // ===============================
+  // RENDER MATCH
+  // ===============================
+  function renderMatches(){
+
+    const list = document.getElementById("matchList");
+
+    list.innerHTML = matches.map((m,i)=>`
+
+      <div class="match-card">
+
+        <div class="match-header">
+          <div class="match-title">Pertandingan ${i+1}</div>
+          <button class="delete-match-btn" data-id="${m.id}">✕</button>
+        </div>
+
+        <div class="team-row">
+
+          <div class="team-players">
+            ${renderSelect(m.id,"a1",m.a1)}
+            ${renderSelect(m.id,"a2",m.a2)}
+          </div>
+
+          <div class="score-box-inline">
+            <input type="number" value="${m.scoreA || 0}" data-id="${m.id}" data-side="A">
+          </div>
+
+        </div>
+
+        <div class="vs">VS</div>
+
+        <div class="team-row">
+
+          <div class="team-players">
+            ${renderSelect(m.id,"b1",m.b1)}
+            ${renderSelect(m.id,"b2",m.b2)}
+          </div>
+
+          <div class="score-box-inline">
+            <input type="number" value="${m.scoreB || 0}" data-id="${m.id}" data-side="B">
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+    attachEvents();
+  }
+
+  // ===============================
+  // SELECT
   // ===============================
   function renderSelect(docId,key,value){
+
     return `
       <select data-id="${docId}" data-key="${key}">
         <option value="">Pilih</option>
         ${players.map(p=>`
-          <option value="${p}" ${p===value?"selected":""}>${p}</option>
+          <option value="${p.id}" ${p.id===value?"selected":""}>
+            ${p.name}
+          </option>
         `).join("")}
       </select>
     `;
   }
 
   // ===============================
-  // EVENTS → UPDATE FIRESTORE
+  // EVENTS
   // ===============================
   function attachEvents(){
 
-    // SELECT PLAYER
+    // SELECT
     document.querySelectorAll("select").forEach(el=>{
       el.onchange = async ()=>{
         const id = el.dataset.id;
         const key = el.dataset.key;
 
         await updateDoc(doc(db,"matches",id),{
-          [key]: el.value,
-          updatedAt: serverTimestamp()
+          [key]: el.value
         });
       };
     });
 
-    // SCORE INPUT (live update)
-    document.querySelectorAll(".score-box input").forEach(el=>{
+    // SCORE
+    document.querySelectorAll(".score-box-inline input").forEach(el=>{
       el.oninput = async ()=>{
         const id = el.dataset.id;
         const side = el.dataset.side;
 
-        const field = side==="A" ? "scoreA" : "scoreB";
-
         await updateDoc(doc(db,"matches",id),{
-          [field]: Number(el.value),
-          updatedAt: serverTimestamp()
+          [side==="A" ? "scoreA" : "scoreB"]: Number(el.value)
         });
+      };
+    });
+
+    // DELETE
+    document.querySelectorAll(".delete-match-btn").forEach(btn=>{
+      btn.onclick = async ()=>{
+        await deleteDoc(doc(db,"matches",btn.dataset.id));
       };
     });
 
@@ -2428,16 +2551,16 @@ function renderMatches(){
 
       const diff = (m.scoreA || 0) - (m.scoreB || 0);
 
-      teamA.forEach(p=>{
-        if(!stats[p]) stats[p]={name:p,wins:0,diff:0};
-        stats[p].diff += diff;
-        if(diff>0) stats[p].wins++;
+      teamA.forEach(id=>{
+        if(!stats[id]) stats[id]={id,wins:0,diff:0};
+        stats[id].diff += diff;
+        if(diff>0) stats[id].wins++;
       });
 
-      teamB.forEach(p=>{
-        if(!stats[p]) stats[p]={name:p,wins:0,diff:0};
-        stats[p].diff -= diff;
-        if(diff<0) stats[p].wins++;
+      teamB.forEach(id=>{
+        if(!stats[id]) stats[id]={id,wins:0,diff:0};
+        stats[id].diff -= diff;
+        if(diff<0) stats[id].wins++;
       });
 
     });
@@ -2447,28 +2570,16 @@ function renderMatches(){
       return b.diff-a.diff;
     });
 
-    const container = document.getElementById("rankingContainer");
-    if(!container) return;
+    document.getElementById("rankingContainer").innerHTML =
+      ranking.map((p,i)=>`
+        <div class="ranking-row">
+          <div class="rank">${i+1}</div>
+          <div class="name">${playerMap[p.id] || "User"}</div>
+          <div class="point">${p.wins}</div>
+          <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
+        </div>
+      `).join("");
 
-    container.innerHTML = ranking.map((p,i)=>`
-      <div class="ranking-row">
-  <div class="rank">${i+1}</div>
-
-  <div class="name">${p.name}</div>
-
-  <div class="stat-block">
-    <div class="stat-value">${p.wins}</div>
-    <div class="stat-label">Win</div>
-  </div>
-
-  <div class="stat-block">
-    <div class="stat-value ${p.diff >= 0 ? "pos" : "neg"}">
-      ${p.diff > 0 ? "+"+p.diff : p.diff}
-    </div>
-    <div class="stat-label">Diff</div>
-  </div>
-</div>
-    `).join("");
   }
 
 }
