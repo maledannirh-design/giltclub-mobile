@@ -2495,46 +2495,45 @@ function openMatchesPage(scheduleId){
     <div class="popup-overlay">
       <div class="popup-card matches-popup">
 
-        <div class="matches-header">
-          <h2>Matches</h2>
-        </div>
+        <h2 class="matches-title">Matches</h2>
 
         <div class="matches-tabs">
-          <button class="tab-btn active" data-tab="standings">Standings</button>
-          <button class="tab-btn" data-tab="matches">Matches</button>
-          <button class="tab-btn" data-tab="your">Your Matches</button>
+          <button class="tab-btn active" data-tab="ranking">Score Ranking</button>
+          <button class="tab-btn" data-tab="matches">Pertandingan</button>
         </div>
 
         <div class="matches-body">
 
-          <!-- STANDINGS -->
-          <div class="matches-tab-content active" id="tab-standings">
+          <!-- SCORE RANKING -->
+          <div class="matches-tab-content active" id="tab-ranking">
 
-            <div class="match-group">
-              <div class="round-title">NO ROUND</div>
+            <div class="ranking-row">
+              <div class="rank">1</div>
+              <div class="name">Jasmine / Iis</div>
+              <div class="point">4</div>
+            </div>
 
-              <div class="match-row">
-                <div class="team">Jasmine / Iis</div>
-                <div class="score">4</div>
-              </div>
-
-              <div class="match-row">
-                <div class="team">Endah / Wawa</div>
-                <div class="score">2</div>
-              </div>
-
+            <div class="ranking-row">
+              <div class="rank">2</div>
+              <div class="name">Endah / Wawa</div>
+              <div class="point">2</div>
             </div>
 
           </div>
 
-          <!-- MATCHES -->
+          <!-- PERTANDINGAN -->
           <div class="matches-tab-content" id="tab-matches">
-            <div class="empty-state">Belum ada match</div>
-          </div>
 
-          <!-- YOUR MATCHES -->
-          <div class="matches-tab-content" id="tab-your">
-            <div class="empty-state">Belum ada match pribadi</div>
+            <div class="match-row">
+              <div class="team">Jasmine / Iis</div>
+              <div class="score">4</div>
+            </div>
+
+            <div class="match-row">
+              <div class="team">Endah / Wawa</div>
+              <div class="score">2</div>
+            </div>
+
           </div>
 
         </div>
@@ -2545,19 +2544,12 @@ function openMatchesPage(scheduleId){
     </div>
   `;
 
-  /* ===============================
-     CLOSE HANDLER
-  =============================== */
-  const closeBtn = document.getElementById("closePopup");
-  if(closeBtn){
-    closeBtn.onclick = ()=>{
-      popup.innerHTML = "";
-    };
-  }
+  // CLOSE
+  document.getElementById("closePopup").onclick = ()=>{
+    popup.innerHTML = "";
+  };
 
-  /* ===============================
-     TAB SWITCH
-  =============================== */
+  // TAB SWITCH
   const tabs = document.querySelectorAll(".tab-btn");
   const contents = document.querySelectorAll(".matches-tab-content");
 
@@ -2570,11 +2562,7 @@ function openMatchesPage(scheduleId){
       btn.classList.add("active");
 
       const target = btn.dataset.tab;
-      const activeContent = document.getElementById(`tab-${target}`);
-
-      if(activeContent){
-        activeContent.classList.add("active");
-      }
+      document.getElementById(`tab-${target}`).classList.add("active");
 
     };
   });
