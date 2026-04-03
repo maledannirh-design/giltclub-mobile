@@ -1781,3 +1781,46 @@ body.dark .edit-session-btn{
   pointer-events:none;
   mix-blend-mode:screen; /* 🔥 biar gak nutup text */
 }
+
+/* ===============================
+   FIX TEXT RANK 2 & 3
+================================= */
+
+.rank-2,
+.rank-3{
+  color:#fff; /* 🔥 paksa putih */
+}
+
+/* nama player */
+.rank-2 .rank-names div,
+.rank-3 .rank-names div{
+  color:#fff;
+  font-weight:500;
+}
+
+/* stats */
+.rank-2 .stat-value,
+.rank-3 .stat-value{
+  color:#fff;
+}
+
+.rank-2 .stat-label,
+.rank-3 .stat-label{
+  color:rgba(255,255,255,0.7);
+}
+
+/* diff tetap warna */
+.rank-2 .stat-value.pos,
+.rank-3 .stat-value.pos{
+  color:#22c55e;
+}
+
+.rank-2 .stat-value.neg,
+.rank-3 .stat-value.neg{
+  color:#ef4444;
+}
+
+.rank-2 .rank-names div,
+.rank-3 .rank-names div{
+  text-shadow: 0 0 4px rgba(255,255,255,0.4);
+}
