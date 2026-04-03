@@ -2305,45 +2305,65 @@ async function openMatchesPage(scheduleId){
     });
   };
 
-  // ===============================
-  // RENDER MATCH LIST
-  // ===============================
-  function renderMatches(){
+ // ===============================
+// RENDER MATCH LIST
+// ===============================
+function renderMatches(){
 
-    const list = document.getElementById("matchList");
-    if(!list) return;
+  const list = document.getElementById("matchList");
+  if(!list) return;
 
-    list.innerHTML = matches.map((m,i)=>`
+  list.innerHTML = matches.map((m,i)=>`
 
-      <div class="match-card">
+    <div class="match-card">
 
-        <div class="team">
-          ${renderSelect(m.id,"a1",m.a1)}
-          ${renderSelect(m.id,"a2",m.a2)}
-
-          <div class="score-box">
-            <input type="number" value="${m.scoreA ?? 0}" data-id="${m.id}" data-side="A">
-          </div>
-        </div>
-
-        <div class="vs">VS</div>
-
-        <div class="team">
-          ${renderSelect(m.id,"b1",m.b1)}
-          ${renderSelect(m.id,"b2",m.b2)}
-
-          <div class="score-box">
-            <input type="number" value="${m.scoreB ?? 0}" data-id="${m.id}" data-side="B">
-          </div>
-        </div>
-
+      <div class="match-header">
+        <div class="match-title">Pertandingan ${i+1}</div>
+        <button class="delete-match-btn" data-id="${m.id}">✕</button>
       </div>
 
-    `).join("");
+      <div class="team">
+        ${renderSelect(m.id,"a1",m.a1)}
+        ${renderSelect(m.id,"a2",m.a2)}
 
-    attachEvents();
-  }
+        <div class="score-box">
+          <input type="number" value="${m.scoreA ?? 0}" data-id="${m.id}" data-side="A">
+        </div>
+      </div>
 
+      <div class="vs">VS</div>
+
+      <div class="team">
+        ${renderSelect(m.id,"b1",m.b1)}
+        ${renderSelect(m.id,"b2",m.b2)}
+
+        <div class="score-box">
+          <input type="number" value="${m.scoreB ?? 0}" data-id="${m.id}" data-side="B">
+        </div>
+      </div>
+
+    </div>
+
+  `).join("");
+
+  attachEvents();
+
+  // ===============================
+  // DELETE MATCH
+  // ===============================
+  document.querySelectorAll(".delete-match-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = btn.dataset.id;
+
+      try{
+        await deleteDoc(doc(db,"matches",id));
+      }catch(err){
+        console.error(err);
+      }
+    };
+  });
+
+}
   // ===============================
   // SELECT PLAYER
   // ===============================
