@@ -757,18 +757,12 @@ document.querySelectorAll(".join-btn").forEach(btn => {
       showToast("Berhasil join sesi","success");
       renderBooking();
 
-    } catch (err) {
-
-      console.error(err);
-      showToast(err.message || "Gagal","error");
-
-    }
-
-    bookingLock = false;
-
-
-});
+   } catch (err) {
+  console.error(err);
+  showToast(err.message || "Gagal", "error");
 }
+
+bookingLock = false;
 
 async function attachSlotInteraction(currentUserRole) {
 
