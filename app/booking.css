@@ -222,203 +222,223 @@ body.dark .month-header-row button {
   color: #10b981;
 }
 
-/* Calendar Grid */
+/* ===============================
+   CALENDAR GRID (FIX MOBILE SHIFT)
+================================= */
 
-.month-grid {
-  display: grid;
+.month-wrapper{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden; /* 🔥 stop geser kanan */
+}
+
+.month-grid{
+  display:grid;
   grid-template-columns: repeat(7,1fr);
-  gap: 10px;
+  gap:8px;
+
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
 }
 
-.month-day {
-  position: relative;
-  aspect-ratio: 1/1;
-  display: grid;
-  place-items: center;
+.month-day{
+  position:relative;
+  aspect-ratio:1/1;
 
-  background: transparent !important; /* 🔥 no background */
-  border: none !important;
-  border-radius: 0 !important; /* 🔥 hapus bentuk lingkaran lama */
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-  cursor: pointer;
-  transition: var(--transition);
-  font-size: 14px;
+  min-width:0; /* 🔥 penting fix overflow */
+
+  background:transparent !important;
+  border:none !important;
+  border-radius:0 !important;
+
+  cursor:pointer;
+  font-size:14px;
+  transition: all .2s ease;
 }
 
-/* 🔥 MATIKAN BACKGROUND THEME */
-body.light .month-day {
-  background: transparent !important;
-}
-
-body.dark .month-day {
-  background: transparent !important;
-}
-
-.month-day:hover {
+.month-day:hover{
   transform: translateY(-2px);
 }
 
-.month-day.weekend {
-  color: #10b981;
+.month-day.weekend{
+  color:#10b981;
 }
 
-.month-day.empty {
-  background: transparent;
-  cursor: default;
+.month-day.empty{
+  background:transparent;
+  cursor:default;
 }
 
-/* Slide Animation */
+/* ===============================
+   SLIDE ANIMATION
+================================= */
 
-.slide-next { animation: slideRight .3s ease; }
-.slide-prev { animation: slideLeft .3s ease; }
+.slide-next{ animation: slideRight .3s ease; }
+.slide-prev{ animation: slideLeft .3s ease; }
 
-@keyframes slideRight {
-  from { opacity: 0; transform: translateX(40px); }
-  to { opacity: 1; transform: translateX(0); }
+@keyframes slideRight{
+  from{ opacity:0; transform:translateX(40px); }
+  to{ opacity:1; transform:translateX(0); }
 }
 
-@keyframes slideLeft {
-  from { opacity: 0; transform: translateX(-40px); }
-  to { opacity: 1; transform: translateX(0); }
+@keyframes slideLeft{
+  from{ opacity:0; transform:translateX(-40px); }
+  to{ opacity:1; transform:translateX(0); }
 }
-/* Optional subtle pulse animation */
+
+/* subtle pulse */
 @keyframes ringPulse{
   0% { box-shadow: 0 0 0 rgba(227,197,101,0); }
   50% { box-shadow: 0 0 12px rgba(227,197,101,.45); }
   100% { box-shadow: 0 0 0 rgba(227,197,101,0); }
 }
 
-/* =====================================
-   POPUP SESI DITANGGAL KALENDAR
-===================================== */
+/* ===============================
+   POPUP (MOBILE + IPHONE SAFE)
+================================= */
 
-.popup-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  backdrop-filter: blur(6px);
+.popup-overlay{
+  position:fixed;
+  inset:0;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:16px; /* 🔥 biar gak mepet layar */
+
+  z-index:999;
+  backdrop-filter:blur(6px);
 }
 
-.popup-card {
-  width: 88%;
-  max-width: 420px;
+.popup-card{
+  width:100%;
+  max-width:420px;
 
-  max-height: 85vh;      /* 🔥 batas tinggi popup */
-  overflow-y: auto;      /* 🔥 aktifkan scroll vertikal */
+  max-height:85vh;
+  overflow-y:auto;
 
-  padding: 28px 24px;
-  border-radius: 24px;
-  box-shadow: 0 25px 60px rgba(0,0,0,.15);
-  text-align: left;
+  padding:20px;
+  border-radius:20px;
 
-  -webkit-overflow-scrolling: touch; /* smooth scroll mobile */
+  box-shadow:0 20px 50px rgba(0,0,0,.2);
+
+  -webkit-overflow-scrolling: touch;
 }
-.close-popup-btn{
-  position: sticky;
-  bottom: 0;
-  margin-top: 18px;
-}
-body.light .popup-overlay {
+
+/* ===============================
+   LIGHT MODE
+================================= */
+
+body.light .popup-overlay{
   background: rgba(242,232,213,.85);
 }
 
-body.light .popup-card {
-  background: #ffffff;
-  color: #2E5D3A;
+body.light .popup-card{
+  background:#ffffff;
+  color:#2E5D3A;
 }
 
-body.dark .popup-overlay {
-  background: rgba(46,93,58,.85);
+/* ===============================
+   DARK MODE (FIX BERANTAKAN)
+================================= */
+
+body.dark .popup-overlay{
+  background: rgba(0,0,0,.6);
 }
 
-body.dark .popup-card {
-  background: #254A32;
-  color: #F2E8D5;
+body.dark .popup-card{
+  background:#121212;
+  color:#F2E8D5;
 }
 
-body.light .empty-session {
-  color: #2E5D3A;
+/* ===============================
+   SESSION CARD
+================================= */
+
+.popup-session-card{
+  padding:14px;
+  border-radius:16px;
+  margin-bottom:12px;
+  font-size:14px;
 }
 
-/* DARK MODE */
-
-body.dark .popup-overlay {
-  background: rgba(46,93,58,.85);
+body.dark .popup-session-card{
+  background: rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
 }
 
-body.dark .popup-card {
-  background: #254A32;
-  color: #F2E8D5;
+.popup-card h3{
+  margin-bottom:16px;
+  font-size:18px;
+  font-weight:700;
 }
 
-body.dark .popup-session-card {
-  background: linear-gradient(
-    160deg,
-    rgba(46,93,58,0.85),
-    rgba(30,60,40,0.92)
-  );
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  color: #F2E8D5;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.05);
+/* ===============================
+   EMPTY STATE
+================================= */
+
+body.light .empty-session{
+  color:#2E5D3A;
 }
 
-body.dark .popup-session-card strong {
-  color: #E3C565;
+body.dark .empty-session{
+  color:#F2E8D5;
 }
 
-body.dark .empty-session {
-  color: #F2E8D5;
+/* ===============================
+   CLOSE BUTTON (FIX TOTAL)
+================================= */
+
+#closePopup{
+  width:100%;
+  margin-top:16px;
+
+  padding:14px;
+  border:none;
+  border-radius:16px;
+
+  font-weight:600;
+  font-size:14px;
+
+  cursor:pointer;
+  transition:all .2s ease;
+
+  position:sticky;
+  bottom:0;
 }
 
-.popup-card h3 {
-  margin-bottom: 18px;
-  font-size: 20px;
-  font-weight: 700;
+/* light */
+body.light #closePopup{
+  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
+  color:#111;
 }
 
-.popup-session-card {
-  padding: 16px;
-  border-radius: 18px;
-  margin-bottom: 14px;
-  font-size: 14px;
+/* dark */
+body.dark #closePopup{
+  background: linear-gradient(135deg,#2a2a2a,#1a1a1a);
+  color:#fff;
 }
 
-/* Button */
-.close-popup-btn {
-  margin-top: 18px;
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 20px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: .2s ease;
+#closePopup:active{
+  transform: scale(0.96);
 }
 
-body.light .close-popup-btn,
-body.dark .close-popup-btn {
-  background: #E5A9A9;
-  color: #2E5D3A;
-}
-
-.close-popup-btn:hover {
-  transform: translateY(-2px);
-}
+/* ===============================
+   META TEXT
+================================= */
 
 .session-meta strong{
-  color: #10b981; /* hijau brand */
+  color:#10b981;
 }
 
-/* Dark mode */
 body.dark .session-meta strong{
-  color: #E3C565; /* gold */
+  color:#E3C565;
 }
 
 
@@ -1128,7 +1148,7 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   MATCH ENTRY (SESSION CARD)
+   MATCH ENTRY
 ================================= */
 .session-insight-entry{
   display:flex;
@@ -1140,55 +1160,49 @@ body.dark .edit-session-btn{
   background: rgba(255,255,255,0.08);
   backdrop-filter: blur(8px);
   cursor:pointer;
-  transition: all .2s ease;
+  transition:.2s;
 }
 
 .session-insight-entry:hover{
   transform: scale(1.02);
-  background: rgba(255,255,255,0.12);
-}
-
-.insight-title{
-  font-weight:600;
-  font-size:14px;
-}
-
-.insight-sub{
-  font-size:12px;
-  opacity:.6;
-}
-
-.insight-arrow{
-  font-size:20px;
-  opacity:.5;
 }
 
 /* ===============================
-   MATCHES POPUP
+   POPUP (IPHONE SAFE)
 ================================= */
-.matches-popup{
-  max-height:85vh;
-  overflow-y:auto;
-  color: inherit; /* 🔥 ikut theme */
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  backdrop-filter:blur(6px);
+  z-index:999;
 }
 
+.popup-card.matches-popup{
+  width:100%;
+  max-width:420px;
+  max-height:85vh;
+  overflow-y:auto;
+
+  padding:16px;
+  border-radius:18px;
+
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+/* ===============================
+   TITLE + TAB
+================================= */
 .matches-title{
   text-align:center;
   margin-bottom:14px;
   font-weight:700;
 }
 
-.team select{
-  color: inherit;
-}
-
-.score-box input{
-  color: inherit;
-}
-
-/* ===============================
-   TABS
-================================= */
 .matches-tabs{
   display:flex;
   gap:8px;
@@ -1203,266 +1217,22 @@ body.dark .edit-session-btn{
   background:#2a2a2a;
   color:#aaa;
   font-size:13px;
-  cursor:pointer;
-  transition:.2s;
 }
 
 .tab-btn.active{
   background:#22c55e;
   color:#fff;
-  font-weight:600;
-}
-
-/* ===============================
-   TAB CONTENT
-================================= */
-.matches-tab-content{
-  display:none;
-}
-
-.matches-tab-content.active{
-  display:block;
-}
-
-/* ===============================
-   ADD MATCH BUTTON
-================================= */
-#addMatchBtn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:#22c55e;
-  color:#fff;
-  font-weight:600;
-  margin-bottom:14px;
-  cursor:pointer;
-}
-
-/* ===============================
-   MATCH CARD (CORE)
-================================= */
-.match-card{
-  background: rgba(255,255,255,0.06);
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:12px;
-}
-
-/* ===============================
-   TEAM BLOCK
-================================= */
-.team{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-/* SELECT PLAYER */
-.team select{
-  padding:8px;
-  border-radius:10px;
-  border:none;
-  background:#1e1e1e;
-  color:#fff;
-  font-size:13px;
-}
-
-/* ===============================
-   VS
-================================= */
-.vs{
-  text-align:center;
-  font-weight:700;
-  margin:10px 0;
-  opacity:.6;
-}
-
-/* ===============================
-   SCORE BOX (🔥 BIG UI)
-================================= */
-.score-box{
-  margin-top:8px;
-}
-
-.score-box input{
-  width:100%;
-  height:64px;
-  text-align:center;
-  font-size:26px;
-  font-weight:700;
-  border-radius:12px;
-  border:none;
-  background:#111;
-  color:#fff;
-}
-
-/* ===============================
-   RANKING
-================================= */
-.ranking-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background: rgba(255,255,255,0.06);
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:8px;
-}
-
-.rank{
-  width:24px;
-  font-weight:700;
-}
-
-.name{
-  flex:1;
-  margin-left:10px;
-}
-
-.point{
-  font-weight:700;
-  margin-right:10px;
-}
-
-.diff{
-  width:50px;
-  text-align:right;
-  font-weight:600;
-}
-
-.diff.pos{
-  color:#22c55e;
-}
-
-.diff.neg{
-  color:#ef4444;
-}
-
-/* ===============================
-   EMPTY STATE
-================================= */
-#rankingContainer:empty::after{
-  content:"Belum ada data";
-  display:block;
-  text-align:center;
-  opacity:.5;
-  padding:20px;
-}
-
-/* ===============================
-   LEGACY CLEAN (REMOVE OLD STYLE EFFECT)
-================================= */
-.match-row,
-.score,
-.team,
-.session-matches,
-.session-ranking{
-  all: unset;
-}
-
-.stat-block{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  width:50px;
-}
-
-.stat-value{
-  font-weight:700;
-  font-size:14px;
-}
-
-.stat-label{
-  font-size:10px;
-  opacity:.6;
-}
-
-.stat-value.pos{
-  color:#22c55e;
-}
-
-.stat-value.neg{
-  color:#ef4444;
-}
-
-.match-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:8px;
-}
-
-.match-title{
-  font-weight:600;
-  font-size:13px;
-  opacity:.8;
-}
-
-.delete-match-btn{
-  background:#ef4444;
-  border:none;
-  color:#fff;
-  border-radius:8px;
-  width:26px;
-  height:26px;
-  cursor:pointer;
-  font-size:14px;
-}
-
-.delete-match-btn:hover{
-  transform:scale(1.1);
-}
-
-
-/* TEAM ROW HORIZONTAL */
-.team-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  margin-bottom:8px;
-}
-
-/* PLAYER COLUMN */
-.team-players{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  flex:1;
-}
-
-/* SCORE BOX INLINE (🔥 PINK) */
-.score-box-inline input{
-  width:70px;
-  height:60px;
-  text-align:center;
-  font-size:22px;
-  font-weight:700;
-  border-radius:12px;
-  border:none;
-
-  background:#ec4899; /* 🔥 PINK */
-  color:#fff;
-}
-
-/* VS */
-.vs{
-  text-align:center;
-  font-weight:700;
-  margin:8px 0;
-  opacity:.6;
 }
 
 /* ===============================
    MATCH CARD
 ================================= */
 .match-card{
-  background: rgba(255,255,255,0.08);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:14px;
-  backdrop-filter: blur(6px);
+  width:100%;
+  background: rgba(255,255,255,0.06);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
 }
 
 /* HEADER */
@@ -1470,7 +1240,7 @@ body.dark .edit-session-btn{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
 
 .match-title{
@@ -1486,57 +1256,68 @@ body.dark .edit-session-btn{
   border-radius:8px;
   width:26px;
   height:26px;
-  cursor:pointer;
 }
 
 /* ===============================
-   TEAM ROW
+   TEAM ROW (🔥 FIX IPHONE)
 ================================= */
 .team-row{
   display:flex;
-  justify-content:space-between;
+  flex-direction:row;
   align-items:center;
-  gap:12px;
+  justify-content:space-between;
+
+  gap:8px;
+  flex-wrap:nowrap; /* 🔥 KUNCI */
 }
 
-/* PLAYER LIST */
+/* PLAYER COLUMN */
 .team-players{
   display:flex;
   flex-direction:column;
   gap:6px;
   flex:1;
+  min-width:0; /* 🔥 fix iPhone */
 }
 
-/* 🔥 SELECT FIX (INI YANG BIKIN JELEK TADI) */
+/* SELECT */
 .team-players select{
-  padding:8px 10px;
-  border-radius:10px;
+  width:100%;
+  min-width:0;
+
+  padding:6px 8px;
+  font-size:12px;
+
   border:none;
+  border-radius:8px;
+
   background:#1f1f1f;
   color:#fff;
-  font-size:13px;
+
   appearance:none;
 }
 
 /* ===============================
-   SCORE BOX (PINK MODERN)
+   SCORE BOX (INLINE RIGHT)
 ================================= */
 .score-box-inline{
-  min-width:70px;
+  flex:0 0 60px; /* 🔥 fixed width */
 }
 
 .score-box-inline input{
-  width:70px;
-  height:60px;
-  border-radius:14px;
-  border:none;
+  width:60px;
+  height:54px;
 
-  background: linear-gradient(135deg,#ec4899,#db2777);
-  color:#fff;
-
-  font-size:24px;
+  font-size:20px;
   font-weight:700;
+
+  border:none;
+  border-radius:12px;
+
   text-align:center;
+
+  background:linear-gradient(135deg,#ec4899,#db2777);
+  color:#fff;
 }
 
 /* ===============================
@@ -1546,58 +1327,55 @@ body.dark .edit-session-btn{
   text-align:center;
   font-size:12px;
   font-weight:700;
-  margin:10px 0;
+  margin:8px 0;
   opacity:.5;
 }
 
 /* ===============================
-   POPUP FIX (iPHONE FRIENDLY)
+   RANKING
 ================================= */
-.popup-overlay{
-  padding:16px;
+.ranking-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-radius:10px;
+  margin-bottom:8px;
+  background: rgba(255,255,255,0.05);
 }
 
-.popup-card.matches-popup{
-  width:100%;
-  max-width:420px;
-  margin:auto;
-
-  border-radius:18px;
-  padding:16px;
-
-  /* 🔥 iPhone safe area */
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+.rank{
+  width:24px;
+  font-weight:700;
 }
 
-.matches-popup{
-  max-height:85vh;
-  overflow-y:auto;
-
-  /* smooth iOS scroll */
-  -webkit-overflow-scrolling: touch;
+.name{
+  flex:1;
+  margin-left:10px;
 }
 
-.match-card{
-  padding:12px;
+.stat-block{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:50px;
 }
 
-.team-row{
-  gap:8px;
+.stat-value{
+  font-weight:700;
 }
 
-/* biar select gak terlalu panjang */
-.team-players select{
-  font-size:12px;
-  padding:6px 8px;
+.stat-label{
+  font-size:10px;
+  opacity:.6;
 }
 
-.score-box-inline input{
-  width:60px;
-  height:54px;
-  font-size:20px;
-}
+.stat-value.pos{ color:#22c55e; }
+.stat-value.neg{ color:#ef4444; }
 
-/* FORCE FIX tombol tutup */
+/* ===============================
+   CLOSE BUTTON
+================================= */
 #closePopup{
   width:100%;
   margin-top:16px;
@@ -1606,19 +1384,53 @@ body.dark .edit-session-btn{
   border:none;
   border-radius:14px;
 
-  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
-  color:#111;
-
   font-weight:600;
   font-size:14px;
 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
+  color:#111;
 
-  transition: all .2s ease;
-
-  display:block;
+  position:sticky;
+  bottom:0;
 }
 
-#closePopup:active{
-  transform: scale(0.96);
+/* ===============================
+   DARK MODE FIX
+================================= */
+@media (prefers-color-scheme: dark){
+
+  .popup-card{
+    background:#121212;
+    color:#fff;
+  }
+
+  .match-card{
+    background: rgba(255,255,255,0.05);
+  }
+
+  .team-players select{
+    background:#1a1a1a;
+    color:#fff;
+  }
+
+  #closePopup{
+    background: linear-gradient(135deg,#2a2a2a,#1a1a1a);
+    color:#fff;
+  }
+}
+
+/* ===============================
+   SAFARI / IPHONE HARD FIX
+================================= */
+@supports (-webkit-touch-callout: none){
+
+  .team-row{
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+  }
+
+  .score-box-inline{
+    flex:0 0 60px !important;
+  }
+
 }
