@@ -297,7 +297,7 @@ function renderCalendarMonth() {
 }
 
 /* ===============================
-   CALENDAR POPUP COMPLETE VERSION
+   CALENDAR POPUP COMPLETE VERSION (FINAL FIX)
 ================================= */
 async function openSessionPopup(dateStr) {
 
@@ -337,7 +337,6 @@ async function openSessionPopup(dateStr) {
 
     for (const s of sessions) {
 
-      // 🔥 FIX: matches HARUS di dalam loop
       const matches = await loadMatchesBySchedule(s.id);
 
       const bookingSnap = await getDocs(
@@ -401,11 +400,7 @@ async function openSessionPopup(dateStr) {
       const isClosed = s.status === "closed";
 
       const sisaSlot = s.slots ?? 0;
-      const isFull = sisaSlot <= 0;
 
-      /* ===============================
-         🔥 SLOT RENDER (TETAP)
-      =============================== */
       let slotHtml = "";
       let memberPointer = 0;
 
@@ -473,21 +468,17 @@ async function openSessionPopup(dateStr) {
             ${slotHtml}
           </div>
 
-          <!-- 🔥 MATCHES RENDER -->
           <div class="session-matches">
             ${renderMatchesUI(matches, members)}
           </div>
+
           <div class="session-ranking">
-  ${renderRankingUI(matches, members)}
-</div>
+            ${renderRankingUI(matches, members)}
+          </div>
 
           ${
             isPrivileged
-              ? `
-              <button class="add-match-btn" data-id="${s.id}">
-                + Tambah Match
-              </button>
-              `
+              ? `<button class="add-match-btn" data-id="${s.id}">+ Tambah Match</button>`
               : ""
           }
 
@@ -503,49 +494,67 @@ async function openSessionPopup(dateStr) {
   `;
 
   popup.innerHTML = html;
+
+  /* ===============================
+     SCORE CLICK HANDLER
+  =============================== */
   document.querySelectorAll(".editable-score").forEach(el=>{
+    el.onclick = async ()=>{
+      const matchCard = el.closest(".match-card");
+      const matchId = matchCard.dataset.id;
+      const side = el.dataset.side;
 
-  el.onclick = async ()=>{
+      const input = prompt("Masukkan score:");
+      if(input === null) return;
 
-    const matchCard = el.closest(".match-card");
-    const matchId = matchCard.dataset.id;
-    const side = el.dataset.side;
-
-    const input = prompt("Masukkan score:");
-
-    if(input === null) return;
-
-    const value = Number(input);
-
-    if(isNaN(value) || value < 0){
-      showToast("Score tidak valid","error");
-      return;
-    }
-
-    try{
-
-      const matchRef = doc(db,"matches",matchId);
-
-      if(side === "A"){
-        await updateDoc(matchRef,{ scoreA: value });
-      }else{
-        await updateDoc(matchRef,{ scoreB: value });
+      const value = Number(input);
+      if(isNaN(value) || value < 0){
+        showToast("Score tidak valid","error");
+        return;
       }
 
-      showToast("Score berhasil diupdate","success");
+      try{
+        const matchRef = doc(db,"matches",matchId);
+        if(side === "A"){
+          await updateDoc(matchRef,{ scoreA: value });
+        }else{
+          await updateDoc(matchRef,{ scoreB: value });
+        }
 
-      renderBooking(); // refresh UI
+        showToast("Score berhasil diupdate","success");
+        renderBooking();
 
-    }catch(err){
-      console.error(err);
-      showToast("Gagal update score","error");
-    }
+      }catch(err){
+        console.error(err);
+        showToast("Gagal update score","error");
+      }
+    };
+  });
 
-  };
+  /* ===============================
+     ADD MATCH HANDLER
+  =============================== */
+  document.querySelectorAll(".add-match-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const scheduleId = btn.dataset.id;
 
-});
+      const booking = userBookings.filter(b=>b.scheduleId === scheduleId);
+
+      const members = booking.map(b=>({
+        userId: b.userId,
+        username:
+          b.displayName ||
+          b.username ||
+          b.fullName ||
+          "Member"
+      }));
+
+      openAddMatchModal(scheduleId, members);
+    };
+  });
 
   attachSlotInteraction(currentUserRole);
+}
 
  /* ===============================
    CALENDAR POPUP COMPLETE VERSION
