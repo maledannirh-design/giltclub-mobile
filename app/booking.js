@@ -2175,6 +2175,8 @@ function getSportIcon(type){
 
   return map[type] || "🎯";
 }
+
+
 async function openMatchesPage(scheduleId){
 
   const popup = document.getElementById("popupContainer");
@@ -2197,9 +2199,10 @@ async function openMatchesPage(scheduleId){
   });
 
   // ===============================
-  // STATE
+  // STATE (LOCAL CACHE)
   // ===============================
   let matches = [];
+  let unsubscribe = null;
 
   // ===============================
   // UI
@@ -2240,9 +2243,10 @@ async function openMatchesPage(scheduleId){
   `;
 
   // ===============================
-  // CLOSE
+  // CLOSE (cleanup listener)
   // ===============================
   document.getElementById("closePopup").onclick = ()=>{
+    if(unsubscribe) unsubscribe();
     popup.innerHTML = "";
   };
 
@@ -2262,51 +2266,66 @@ async function openMatchesPage(scheduleId){
   });
 
   // ===============================
-  // ADD MATCH
+  // 🔥 REALTIME LISTENER
   // ===============================
-  document.getElementById("addMatchBtn").onclick = ()=>{
-    matches.push({
+  const qMatches = query(
+    collection(db,"matches"),
+    where("scheduleId","==",scheduleId)
+  );
+
+  unsubscribe = onSnapshot(qMatches,(snap)=>{
+    matches = snap.docs.map(d=>({
+      id:d.id,
+      ...d.data()
+    }));
+    renderMatches();
+    renderRanking();
+  });
+
+  // ===============================
+  // ADD MATCH (CREATE DOC)
+  // ===============================
+  document.getElementById("addMatchBtn").onclick = async ()=>{
+    await addDoc(collection(db,"matches"),{
+      scheduleId,
       a1:"", a2:"",
       b1:"", b2:"",
       scoreA:0,
-      scoreB:0
+      scoreB:0,
+      updatedAt: serverTimestamp()
     });
-    renderMatches();
   };
 
   // ===============================
-  // RENDER MATCH
+  // RENDER MATCH LIST
   // ===============================
   function renderMatches(){
 
     const list = document.getElementById("matchList");
+    if(!list) return;
 
     list.innerHTML = matches.map((m,i)=>`
 
       <div class="match-card">
 
         <div class="team">
-
-          ${renderSelect(i,"a1",m.a1)}
-          ${renderSelect(i,"a2",m.a2)}
+          ${renderSelect(m.id,"a1",m.a1)}
+          ${renderSelect(m.id,"a2",m.a2)}
 
           <div class="score-box">
-            <input type="number" value="${m.scoreA}" data-i="${i}" data-side="A">
+            <input type="number" value="${m.scoreA ?? 0}" data-id="${m.id}" data-side="A">
           </div>
-
         </div>
 
         <div class="vs">VS</div>
 
         <div class="team">
-
-          ${renderSelect(i,"b1",m.b1)}
-          ${renderSelect(i,"b2",m.b2)}
+          ${renderSelect(m.id,"b1",m.b1)}
+          ${renderSelect(m.id,"b2",m.b2)}
 
           <div class="score-box">
-            <input type="number" value="${m.scoreB}" data-i="${i}" data-side="B">
+            <input type="number" value="${m.scoreB ?? 0}" data-id="${m.id}" data-side="B">
           </div>
-
         </div>
 
       </div>
@@ -2319,10 +2338,9 @@ async function openMatchesPage(scheduleId){
   // ===============================
   // SELECT PLAYER
   // ===============================
-  function renderSelect(index,key,value){
-
+  function renderSelect(docId,key,value){
     return `
-      <select data-i="${index}" data-key="${key}">
+      <select data-id="${docId}" data-key="${key}">
         <option value="">Pilih</option>
         ${players.map(p=>`
           <option value="${p}" ${p===value?"selected":""}>${p}</option>
@@ -2332,33 +2350,35 @@ async function openMatchesPage(scheduleId){
   }
 
   // ===============================
-  // EVENTS
+  // EVENTS → UPDATE FIRESTORE
   // ===============================
   function attachEvents(){
 
     // SELECT PLAYER
     document.querySelectorAll("select").forEach(el=>{
-      el.onchange = ()=>{
-        const i = el.dataset.i;
+      el.onchange = async ()=>{
+        const id = el.dataset.id;
         const key = el.dataset.key;
-        matches[i][key] = el.value;
-        renderRanking();
+
+        await updateDoc(doc(db,"matches",id),{
+          [key]: el.value,
+          updatedAt: serverTimestamp()
+        });
       };
     });
 
-    // SCORE INPUT
+    // SCORE INPUT (live update)
     document.querySelectorAll(".score-box input").forEach(el=>{
-      el.oninput = ()=>{
-        const i = el.dataset.i;
+      el.oninput = async ()=>{
+        const id = el.dataset.id;
         const side = el.dataset.side;
 
-        if(side==="A"){
-          matches[i].scoreA = Number(el.value);
-        }else{
-          matches[i].scoreB = Number(el.value);
-        }
+        const field = side==="A" ? "scoreA" : "scoreB";
 
-        renderRanking();
+        await updateDoc(doc(db,"matches",id),{
+          [field]: Number(el.value),
+          updatedAt: serverTimestamp()
+        });
       };
     });
 
@@ -2378,7 +2398,7 @@ async function openMatchesPage(scheduleId){
 
       if(!teamA.length || !teamB.length) return;
 
-      const diff = m.scoreA - m.scoreB;
+      const diff = (m.scoreA || 0) - (m.scoreB || 0);
 
       teamA.forEach(p=>{
         if(!stats[p]) stats[p]={name:p,wins:0,diff:0};
@@ -2399,16 +2419,17 @@ async function openMatchesPage(scheduleId){
       return b.diff-a.diff;
     });
 
-    document.getElementById("rankingContainer").innerHTML =
-      ranking.map((p,i)=>`
-        <div class="ranking-row">
-          <div class="rank">${i+1}</div>
-          <div class="name">${p.name}</div>
-          <div class="point">${p.wins}</div>
-          <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
-        </div>
-      `).join("");
+    const container = document.getElementById("rankingContainer");
+    if(!container) return;
 
+    container.innerHTML = ranking.map((p,i)=>`
+      <div class="ranking-row">
+        <div class="rank">${i+1}</div>
+        <div class="name">${p.name}</div>
+        <div class="point">${p.wins}</div>
+        <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
+      </div>
+    `).join("");
   }
 
 }
