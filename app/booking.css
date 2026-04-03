@@ -1127,146 +1127,9 @@ body.dark .edit-session-btn{
   background:linear-gradient(135deg,#ec4899,#f472b6);
 }
 
-.session-matches{
-  margin-top:12px;
-}
-
-.match-card{
-  background: rgba(255,255,255,0.05);
-  border-radius:12px;
-  padding:10px;
-  margin-bottom:8px;
-}
-
-.match-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  font-size:13px;
-  margin-bottom:4px;
-}
-
-.team{
-  opacity:0.9;
-}
-
-.score{
-  font-weight:700;
-  font-size:14px;
-}
-
-.matches-empty{
-  opacity:0.5;
-  font-size:12px;
-  text-align:center;
-  padding:6px;
-}
-
-.match-modal-overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.7);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-}
-
-.match-modal{
-  background:#111;
-  padding:20px;
-  border-radius:14px;
-  width:90%;
-  max-width:400px;
-  color:#fff;
-}
-
-.match-player-list{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:10px 0;
-}
-
-.player-item{
-  background:#222;
-  padding:6px 10px;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.player-item.selected{
-  background:#22c55e;
-}
-
-.match-selected{
-  margin:10px 0;
-  font-size:13px;
-}
-
-.editable-score{
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.editable-score:hover{
-  color:#22c55e;
-  transform:scale(1.1);
-}
-
-
-.session-ranking{
-  margin-top:12px;
-  padding:10px;
-  background:rgba(255,255,255,0.04);
-  border-radius:12px;
-}
-
-.ranking-title{
-  font-weight:700;
-  margin-bottom:8px;
-  font-size:14px;
-}
-
-.ranking-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:13px;
-  margin-bottom:6px;
-}
-
-.rank-pos{
-  width:20px;
-  font-weight:bold;
-}
-
-.rank-name{
-  flex:1;
-  margin-left:6px;
-}
-
-.rank-stat{
-  width:60px;
-  text-align:center;
-}
-
-.rank-diff{
-  width:40px;
-  text-align:right;
-}
-
-.rank-diff.pos{
-  color:#22c55e;
-}
-
-.rank-diff.neg{
-  color:#ef4444;
-}
-
+/* ===============================
+   MATCH ENTRY (SESSION CARD)
+================================= */
 .session-insight-entry{
   display:flex;
   justify-content:space-between;
@@ -1274,10 +1137,8 @@ body.dark .edit-session-btn{
   padding:14px 16px;
   margin-top:12px;
   border-radius:14px;
-
   background: rgba(255,255,255,0.08);
   backdrop-filter: blur(8px);
-
   cursor:pointer;
   transition: all .2s ease;
 }
@@ -1302,12 +1163,24 @@ body.dark .edit-session-btn{
   opacity:.5;
 }
 
-.matches-title{
-  text-align:center;
-  margin-bottom:12px;
+/* ===============================
+   MATCHES POPUP
+================================= */
+.matches-popup{
+  max-height:85vh;
+  overflow-y:auto;
+  color:#fff;
 }
 
-/* TAB */
+.matches-title{
+  text-align:center;
+  margin-bottom:14px;
+  font-weight:700;
+}
+
+/* ===============================
+   TABS
+================================= */
 .matches-tabs{
   display:flex;
   gap:8px;
@@ -1316,43 +1189,122 @@ body.dark .edit-session-btn{
 
 .tab-btn{
   flex:1;
-  padding:8px;
+  padding:10px;
   border:none;
-  border-radius:10px;
-  background:#eee;
+  border-radius:12px;
+  background:#2a2a2a;
+  color:#aaa;
   font-size:13px;
   cursor:pointer;
   transition:.2s;
 }
 
 .tab-btn.active{
-  background:#00c853;
+  background:#22c55e;
   color:#fff;
   font-weight:600;
 }
 
-/* CONTENT */
+/* ===============================
+   TAB CONTENT
+================================= */
 .matches-tab-content{
   display:none;
 }
+
 .matches-tab-content.active{
   display:block;
 }
 
-/* RANKING */
+/* ===============================
+   ADD MATCH BUTTON
+================================= */
+#addMatchBtn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#22c55e;
+  color:#fff;
+  font-weight:600;
+  margin-bottom:14px;
+  cursor:pointer;
+}
+
+/* ===============================
+   MATCH CARD (CORE)
+================================= */
+.match-card{
+  background: rgba(255,255,255,0.06);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+}
+
+/* ===============================
+   TEAM BLOCK
+================================= */
+.team{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+/* SELECT PLAYER */
+.team select{
+  padding:8px;
+  border-radius:10px;
+  border:none;
+  background:#1e1e1e;
+  color:#fff;
+  font-size:13px;
+}
+
+/* ===============================
+   VS
+================================= */
+.vs{
+  text-align:center;
+  font-weight:700;
+  margin:10px 0;
+  opacity:.6;
+}
+
+/* ===============================
+   SCORE BOX (🔥 BIG UI)
+================================= */
+.score-box{
+  margin-top:8px;
+}
+
+.score-box input{
+  width:100%;
+  height:64px;
+  text-align:center;
+  font-size:26px;
+  font-weight:700;
+  border-radius:12px;
+  border:none;
+  background:#111;
+  color:#fff;
+}
+
+/* ===============================
+   RANKING
+================================= */
 .ranking-row{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:10px 12px;
+  background: rgba(255,255,255,0.06);
+  padding:12px;
+  border-radius:12px;
   margin-bottom:8px;
-  border-radius:10px;
-  background:#f5f5f5;
 }
 
 .rank{
   width:24px;
-  font-weight:600;
+  font-weight:700;
 }
 
 .name{
@@ -1361,19 +1313,42 @@ body.dark .edit-session-btn{
 }
 
 .point{
+  font-weight:700;
+  margin-right:10px;
+}
+
+.diff{
+  width:50px;
+  text-align:right;
   font-weight:600;
 }
 
-/* MATCH */
-.match-row{
-  display:flex;
-  justify-content:space-between;
-  padding:10px 12px;
-  margin-bottom:8px;
-  border-radius:10px;
-  background:#f5f5f5;
+.diff.pos{
+  color:#22c55e;
 }
 
-.score{
-  font-weight:600;
+.diff.neg{
+  color:#ef4444;
+}
+
+/* ===============================
+   EMPTY STATE
+================================= */
+#rankingContainer:empty::after{
+  content:"Belum ada data";
+  display:block;
+  text-align:center;
+  opacity:.5;
+  padding:20px;
+}
+
+/* ===============================
+   LEGACY CLEAN (REMOVE OLD STYLE EFFECT)
+================================= */
+.match-row,
+.score,
+.team,
+.session-matches,
+.session-ranking{
+  all: unset;
 }
