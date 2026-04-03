@@ -2476,12 +2476,23 @@ async function openMatchesPage(scheduleId){
 
     document.getElementById("rankingContainer").innerHTML =
       ranking.map((p,i)=>`
-        <div class="ranking-row">
-          <div class="rank">${i+1}</div>
-          <div class="name">${playerMap[p.id] || "User"}</div>
-          <div class="point">${p.wins}</div>
-          <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
-        </div>
+       <div class="ranking-row">
+  <div class="rank">${i+1}</div>
+
+  <div class="name">${playerMap[p.id] || "User"}</div>
+
+  <div class="stat-block">
+    <div class="stat-value">${p.wins}</div>
+    <div class="stat-label">Win</div>
+  </div>
+
+  <div class="stat-block">
+    <div class="stat-value ${p.diff >= 0 ? "pos" : "neg"}">
+      ${p.diff > 0 ? "+"+p.diff : p.diff}
+    </div>
+    <div class="stat-label">Diff</div>
+  </div>
+</div>
       `).join("");
   }
 
