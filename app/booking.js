@@ -2175,322 +2175,35 @@ function getSportIcon(type){
 
   return map[type] || "🎯";
 }
-
-
-async function loadMatchesBySchedule(scheduleId){
-
-  try{
-
-    const q = query(
-      collection(db,"matches"),
-      where("scheduleId","==",scheduleId)
-    );
-
-    const snap = await getDocs(q);
-
-    return snap.docs.map(doc=>({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-  }catch(err){
-    console.error("Load matches error:", err);
-    return [];
-  }
-
-}
-
-function renderMatchesUI(matches, members){
-
-  if(!matches || matches.length === 0){
-    return `
-      <div class="matches-empty">
-        Belum ada match
-      </div>
-    `;
-  }
-
-  const userMap = {};
-  members.forEach(m=>{
-    userMap[m.userId] = m.username;
-  });
-
-  let html = "";
-
-  matches.forEach(match=>{
-
-    const teamA = (match.teamA || [])
-      .map(uid => userMap[uid] || "Player")
-      .join(" / ");
-
-    const teamB = (match.teamB || [])
-      .map(uid => userMap[uid] || "Player")
-      .join(" / ");
-
-    html += `
-      <div class="match-card" data-id="${match.id}">
-
-        <div class="match-row">
-          <div class="team">${teamA}</div>
-          <div class="score editable-score" data-side="A">
-            ${match.scoreA ?? "-"}
-          </div>
-        </div>
-
-        <div class="match-row">
-          <div class="team">${teamB}</div>
-          <div class="score editable-score" data-side="B">
-            ${match.scoreB ?? "-"}
-          </div>
-        </div>
-
-      </div>
-    `;
-  });
-
-  return html;
-}
-
-function openAddMatchModal(scheduleId, members){
-
-  const existing = document.getElementById("matchModal");
-  if(existing) existing.remove();
-
-  if(!members || members.length < 4){
-    showToast("Minimal 4 player untuk match","error");
-    return;
-  }
-
-  const modal = document.createElement("div");
-  modal.id = "matchModal";
-  modal.className = "match-modal-overlay";
-
-  modal.innerHTML = `
-    <div class="match-modal">
-
-      <h3>Buat Match</h3>
-
-      <div class="match-player-list">
-        ${members.map(m=>`
-          <div class="player-item" data-uid="${m.userId}">
-            ${m.username}
-          </div>
-        `).join("")}
-      </div>
-
-      <div class="match-selected">
-        <div id="teamA">Team A: -</div>
-        <div id="teamB">Team B: -</div>
-      </div>
-
-      <button id="saveMatchBtn">Simpan Match</button>
-      <button id="closeMatchModal">Batal</button>
-
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  let selected = [];
-
-  const playerItems = modal.querySelectorAll(".player-item");
-
-  playerItems.forEach(el=>{
-
-    el.onclick = ()=>{
-
-      const uid = el.dataset.uid;
-
-      if(selected.includes(uid)){
-        selected = selected.filter(x=>x !== uid);
-        el.classList.remove("selected");
-      }else{
-
-        if(selected.length >= 4){
-          showToast("Maksimal 4 player","warning");
-          return;
-        }
-
-        selected.push(uid);
-        el.classList.add("selected");
-      }
-
-      updateTeamsPreview();
-    };
-
-  });
-
-  function updateTeamsPreview(){
-
-    const teamA = selected.slice(0,2);
-    const teamB = selected.slice(2,4);
-
-    const nameMap = {};
-    members.forEach(m=>{
-      nameMap[m.userId] = m.username;
-    });
-
-    document.getElementById("teamA").innerText =
-      "Team A: " + teamA.map(id=>nameMap[id]).join(" / ");
-
-    document.getElementById("teamB").innerText =
-      "Team B: " + teamB.map(id=>nameMap[id]).join(" / ");
-  }
-
-  document.getElementById("saveMatchBtn").onclick = async ()=>{
-
-    if(selected.length !== 4){
-      showToast("Pilih 4 player","error");
-      return;
-    }
-
-    const teamA = selected.slice(0,2);
-    const teamB = selected.slice(2,4);
-
-    try{
-
-      await addDoc(collection(db,"matches"),{
-        scheduleId,
-        teamA,
-        teamB,
-        scoreA: 0,
-        scoreB: 0,
-        status: "ongoing",
-        createdAt: serverTimestamp(),
-        createdBy: auth.currentUser.uid
-      });
-
-      showToast("Match berhasil dibuat","success");
-
-      modal.remove();
-      renderBooking(); // refresh
-
-    }catch(err){
-      console.error(err);
-      showToast("Gagal membuat match","error");
-    }
-
-  };
-
-  document.getElementById("closeMatchModal").onclick = ()=>{
-    modal.remove();
-  };
-
-}
-
-function calculateRanking(matches, members){
-
-  const table = {};
-
-  // mapping user
-  members.forEach(m=>{
-    table[m.userId] = {
-      uid: m.userId,
-      name: m.username,
-      played: 0,
-      win: 0,
-      lose: 0,
-      point: 0,
-      conceded: 0
-    };
-  });
-
-  matches.forEach(match=>{
-
-    const { teamA, teamB, scoreA, scoreB } = match;
-
-    if(scoreA == null || scoreB == null) return;
-
-    // team A
-    teamA.forEach(uid=>{
-      const p = table[uid];
-      if(!p) return;
-
-      p.played++;
-      p.point += scoreA;
-      p.conceded += scoreB;
-
-      if(scoreA > scoreB){
-        p.win++;
-      }else{
-        p.lose++;
-      }
-    });
-
-    // team B
-    teamB.forEach(uid=>{
-      const p = table[uid];
-      if(!p) return;
-
-      p.played++;
-      p.point += scoreB;
-      p.conceded += scoreA;
-
-      if(scoreB > scoreA){
-        p.win++;
-      }else{
-        p.lose++;
-      }
-    });
-
-  });
-
-  const ranking = Object.values(table);
-
-  ranking.sort((a,b)=>{
-
-    if(b.win !== a.win){
-      return b.win - a.win;
-    }
-
-    const diffA = a.point - a.conceded;
-    const diffB = b.point - b.conceded;
-
-    if(diffB !== diffA){
-      return diffB - diffA;
-    }
-
-    return b.point - a.point;
-
-  });
-
-  return ranking;
-}
-
-function renderRankingUI(matches, members){
-
-  const ranking = calculateRanking(matches, members);
-
-  if(!ranking.length){
-    return `<div class="ranking-empty">Belum ada data</div>`;
-  }
-
-  let html = `<div class="ranking-title">🏆 Ranking</div>`;
-
-  ranking.forEach((p, i)=>{
-
-    const diff = p.point - p.conceded;
-
-    html += `
-      <div class="ranking-row">
-        <div class="rank-pos">${i+1}</div>
-        <div class="rank-name">${p.name}</div>
-        <div class="rank-stat">${p.win}W-${p.lose}L</div>
-        <div class="rank-diff ${diff>=0?'pos':'neg'}">
-          ${diff>=0?'+':''}${diff}
-        </div>
-      </div>
-    `;
-  });
-
-  return html;
-}
-
-function openMatchesPage(scheduleId){
+async function openMatchesPage(scheduleId){
 
   const popup = document.getElementById("popupContainer");
   if(!popup) return;
 
+  // ===============================
+  // 🔥 LOAD MEMBERS (USERNAME)
+  // ===============================
+  const snap = await getDocs(
+    query(
+      collection(db,"bookings"),
+      where("scheduleId","==",scheduleId),
+      where("status","==","active")
+    )
+  );
+
+  const players = snap.docs.map(d=>{
+    const data = d.data();
+    return data.usernameID || data.username || "Member";
+  });
+
+  // ===============================
+  // STATE
+  // ===============================
+  let matches = [];
+
+  // ===============================
+  // UI
+  // ===============================
   popup.innerHTML = `
     <div class="popup-overlay">
       <div class="popup-card matches-popup">
@@ -2504,35 +2217,17 @@ function openMatchesPage(scheduleId){
 
         <div class="matches-body">
 
-          <!-- SCORE RANKING -->
+          <!-- RANKING -->
           <div class="matches-tab-content active" id="tab-ranking">
-
-            <div class="ranking-row">
-              <div class="rank">1</div>
-              <div class="name">Jasmine / Iis</div>
-              <div class="point">4</div>
-            </div>
-
-            <div class="ranking-row">
-              <div class="rank">2</div>
-              <div class="name">Endah / Wawa</div>
-              <div class="point">2</div>
-            </div>
-
+            <div id="rankingContainer"></div>
           </div>
 
-          <!-- PERTANDINGAN -->
+          <!-- MATCHES -->
           <div class="matches-tab-content" id="tab-matches">
 
-            <div class="match-row">
-              <div class="team">Jasmine / Iis</div>
-              <div class="score">4</div>
-            </div>
+            <button id="addMatchBtn">+ Pertandingan</button>
 
-            <div class="match-row">
-              <div class="team">Endah / Wawa</div>
-              <div class="score">2</div>
-            </div>
+            <div id="matchList"></div>
 
           </div>
 
@@ -2544,27 +2239,176 @@ function openMatchesPage(scheduleId){
     </div>
   `;
 
+  // ===============================
   // CLOSE
+  // ===============================
   document.getElementById("closePopup").onclick = ()=>{
     popup.innerHTML = "";
   };
 
+  // ===============================
   // TAB SWITCH
+  // ===============================
   const tabs = document.querySelectorAll(".tab-btn");
   const contents = document.querySelectorAll(".matches-tab-content");
 
   tabs.forEach(btn=>{
     btn.onclick = ()=>{
-
       tabs.forEach(t=>t.classList.remove("active"));
       contents.forEach(c=>c.classList.remove("active"));
-
       btn.classList.add("active");
-
-      const target = btn.dataset.tab;
-      document.getElementById(`tab-${target}`).classList.add("active");
-
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
     };
   });
+
+  // ===============================
+  // ADD MATCH
+  // ===============================
+  document.getElementById("addMatchBtn").onclick = ()=>{
+    matches.push({
+      a1:"", a2:"",
+      b1:"", b2:"",
+      scoreA:0,
+      scoreB:0
+    });
+    renderMatches();
+  };
+
+  // ===============================
+  // RENDER MATCH
+  // ===============================
+  function renderMatches(){
+
+    const list = document.getElementById("matchList");
+
+    list.innerHTML = matches.map((m,i)=>`
+
+      <div class="match-card">
+
+        <div class="team">
+
+          ${renderSelect(i,"a1",m.a1)}
+          ${renderSelect(i,"a2",m.a2)}
+
+          <div class="score-box">
+            <input type="number" value="${m.scoreA}" data-i="${i}" data-side="A">
+          </div>
+
+        </div>
+
+        <div class="vs">VS</div>
+
+        <div class="team">
+
+          ${renderSelect(i,"b1",m.b1)}
+          ${renderSelect(i,"b2",m.b2)}
+
+          <div class="score-box">
+            <input type="number" value="${m.scoreB}" data-i="${i}" data-side="B">
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+    attachEvents();
+  }
+
+  // ===============================
+  // SELECT PLAYER
+  // ===============================
+  function renderSelect(index,key,value){
+
+    return `
+      <select data-i="${index}" data-key="${key}">
+        <option value="">Pilih</option>
+        ${players.map(p=>`
+          <option value="${p}" ${p===value?"selected":""}>${p}</option>
+        `).join("")}
+      </select>
+    `;
+  }
+
+  // ===============================
+  // EVENTS
+  // ===============================
+  function attachEvents(){
+
+    // SELECT PLAYER
+    document.querySelectorAll("select").forEach(el=>{
+      el.onchange = ()=>{
+        const i = el.dataset.i;
+        const key = el.dataset.key;
+        matches[i][key] = el.value;
+        renderRanking();
+      };
+    });
+
+    // SCORE INPUT
+    document.querySelectorAll(".score-box input").forEach(el=>{
+      el.oninput = ()=>{
+        const i = el.dataset.i;
+        const side = el.dataset.side;
+
+        if(side==="A"){
+          matches[i].scoreA = Number(el.value);
+        }else{
+          matches[i].scoreB = Number(el.value);
+        }
+
+        renderRanking();
+      };
+    });
+
+  }
+
+  // ===============================
+  // RANKING ENGINE
+  // ===============================
+  function renderRanking(){
+
+    const stats = {};
+
+    matches.forEach(m=>{
+
+      const teamA = [m.a1,m.a2].filter(Boolean);
+      const teamB = [m.b1,m.b2].filter(Boolean);
+
+      if(!teamA.length || !teamB.length) return;
+
+      const diff = m.scoreA - m.scoreB;
+
+      teamA.forEach(p=>{
+        if(!stats[p]) stats[p]={name:p,wins:0,diff:0};
+        stats[p].diff += diff;
+        if(diff>0) stats[p].wins++;
+      });
+
+      teamB.forEach(p=>{
+        if(!stats[p]) stats[p]={name:p,wins:0,diff:0};
+        stats[p].diff -= diff;
+        if(diff<0) stats[p].wins++;
+      });
+
+    });
+
+    const ranking = Object.values(stats).sort((a,b)=>{
+      if(b.wins!==a.wins) return b.wins-a.wins;
+      return b.diff-a.diff;
+    });
+
+    document.getElementById("rankingContainer").innerHTML =
+      ranking.map((p,i)=>`
+        <div class="ranking-row">
+          <div class="rank">${i+1}</div>
+          <div class="name">${p.name}</div>
+          <div class="point">${p.wins}</div>
+          <div class="diff">${p.diff>0? "+"+p.diff : p.diff}</div>
+        </div>
+      `).join("");
+
+  }
 
 }
