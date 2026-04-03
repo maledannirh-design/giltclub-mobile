@@ -1555,11 +1555,15 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   🥇 RANK 1 (LOVE + DISCO)
+   🥇 RANK 1 (LOVE + PREMIUM DISCO)
 ================================= */
 .rank-1{
+  position:relative;
+  overflow:hidden;
+
   background: linear-gradient(135deg,#FFD70022,#FFD70011);
-  animation: discoGlow 0.6s infinite alternate;
+
+  animation: discoSoft 1.2s infinite alternate;
 }
 
 /* badge */
@@ -1568,45 +1572,102 @@ body.dark .edit-session-btn{
   color:#000;
 }
 
-/* DISCO GLOW */
-@keyframes discoGlow{
-  0%{ box-shadow:0 0 10px #FFD700; }
-  25%{ box-shadow:0 0 20px #ff00ff; }
-  50%{ box-shadow:0 0 25px #00ffff; }
-  75%{ box-shadow:0 0 20px #ff0000; }
-  100%{ box-shadow:0 0 15px #00ff00; }
+/* ===============================
+   DISCO (HALUS & PREMIUM)
+================================= */
+@keyframes discoSoft{
+  0%{ box-shadow:0 0 8px #FFD700; }
+  50%{ box-shadow:0 0 18px #22c55e; }
+  100%{ box-shadow:0 0 12px #ec4899; }
 }
 
-/* LOVE RAIN */
+/* ===============================
+   PARTICLE RAIN (LOVE + DIAMOND + SPARK)
+================================= */
+
+/* layer 1 */
 .rank-1::before{
-  content:"❤️ ❤️ ❤️ ❤️ ❤️ ❤️ ❤️ ❤️";
+  content:"❤️ 💎 ✨ 💚 ❤️ ✨ 💎 💚";
   position:absolute;
-  top:-20px;
+  top:-30px;
   left:0;
   width:100%;
-  font-size:14px;
-  text-align:center;
-  opacity:.8;
 
-  animation: loveRain 2s linear infinite;
+  font-size:13px;
+  opacity:.85;
+
+  animation: rainA 3s linear infinite;
 }
 
-@keyframes loveRain{
+/* layer 2 */
+.rank-1::after{
+  content:"💎 ✨ ❤️ 💚 ✨ 💎 ❤️";
+  position:absolute;
+  top:-40px;
+  left:0;
+  width:100%;
+
+  font-size:12px;
+  opacity:.7;
+
+  animation: rainB 4s linear infinite;
+}
+
+/* layer 3 (extra random feel) */
+.rank-1 .rank-names::after{
+  content:"✨ 💚 ❤️ 💎 ✨";
+  position:absolute;
+  top:-20px;
+  left:20%;
+  width:60%;
+
+  font-size:11px;
+  opacity:.6;
+
+  animation: rainC 3.5s linear infinite;
+}
+
+/* ===============================
+   ANIMATIONS (ACAK & NATURAL)
+================================= */
+@keyframes rainA{
   0%{
-    transform: translateY(-20px);
+    transform: translateY(-40px) translateX(0);
     opacity:0;
   }
-  30%{
-    opacity:1;
-  }
+  30%{ opacity:1; }
   100%{
-    transform: translateY(120%);
+    transform: translateY(140%) translateX(20px);
+    opacity:0;
+  }
+}
+
+@keyframes rainB{
+  0%{
+    transform: translateY(-50px) translateX(30px);
+    opacity:0;
+  }
+  40%{ opacity:1; }
+  100%{
+    transform: translateY(140%) translateX(-20px);
+    opacity:0;
+  }
+}
+
+@keyframes rainC{
+  0%{
+    transform: translateY(-30px) translateX(-10px);
+    opacity:0;
+  }
+  50%{ opacity:1; }
+  100%{
+    transform: translateY(140%) translateX(10px);
     opacity:0;
   }
 }
 
 /* ===============================
-   🥈 RANK 2
+   🥈 RANK 2 (SILVER CLEAN)
 ================================= */
 .rank-2{
   background: linear-gradient(135deg,#C0C0C022,#C0C0C011);
@@ -1618,7 +1679,7 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   🥉 RANK 3
+   🥉 RANK 3 (BRONZE CLEAN)
 ================================= */
 .rank-3{
   background: linear-gradient(135deg,#CD7F3222,#CD7F3211);
@@ -1658,4 +1719,15 @@ body.dark .edit-session-btn{
 
 .stat-value.neg{
   color:#ef4444;
+}
+
+.champion-label{
+  position:absolute;
+  top:-6px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:#FFD700;
 }
