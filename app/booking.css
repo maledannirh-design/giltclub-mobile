@@ -1434,3 +1434,43 @@ body.dark .edit-session-btn{
   }
 
 }
+
+/* ===============================
+   TAB CONTENT (ANTI TABRAKAN)
+================================= */
+
+.matches-tab-content{
+  display:none !important; /* 🔥 paksa hide */
+  width:100%;
+}
+
+.matches-tab-content.active{
+  display:block !important; /* 🔥 paksa show */
+}
+
+/* extra safety iOS */
+.matches-tab-content{
+  visibility:hidden;
+  height:0;
+  overflow:hidden;
+}
+
+.matches-tab-content.active{
+  visibility:visible;
+  height:auto;
+  overflow:visible;
+}
+.matches-body{
+  position:relative;
+  width:100%;
+}
+
+/* optional smooth */
+.matches-tab-content{
+  opacity:0;
+  transition:.2s;
+}
+
+.matches-tab-content.active{
+  opacity:1;
+}
