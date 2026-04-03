@@ -1731,3 +1731,53 @@ body.dark .edit-session-btn{
   letter-spacing:1px;
   color:#FFD700;
 }
+
+/* ===============================
+   FIX TEXT VISIBILITY
+================================= */
+
+/* semua text di rank 1 */
+.rank-1{
+  color:#fff; /* 🔥 paksa putih */
+}
+
+/* nama player */
+.rank-1 .rank-names div{
+  color:#ffffff;
+  font-weight:600;
+}
+
+/* stats */
+.rank-1 .stat-value{
+  color:#ffffff;
+}
+
+.rank-1 .stat-label{
+  color:rgba(255,255,255,0.7);
+}
+
+/* diff tetap warna */
+.rank-1 .stat-value.pos{
+  color:#22c55e;
+}
+
+.rank-1 .stat-value.neg{
+  color:#ef4444;
+}
+
+.rank-1 .rank-names div{
+  text-shadow: 0 0 6px rgba(255,255,255,0.6);
+}
+
+.champion-label{
+  z-index:2;
+  color:#FFD700;
+  text-shadow: 0 0 8px rgba(255,215,0,.8);
+}
+
+.rank-1::before,
+.rank-1::after,
+.rank-1 .rank-names::after{
+  pointer-events:none;
+  mix-blend-mode:screen; /* 🔥 biar gak nutup text */
+}
