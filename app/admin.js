@@ -5,6 +5,7 @@ import {
   where,
   getDocs,
   getDoc,
+  increment,
   doc,
   runTransaction,
   updateDoc,
