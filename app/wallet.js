@@ -308,7 +308,7 @@ async function renderLedger(filterAsset = "ALL"){
 
 
 /* =========================================
-   TOP UP SHEET
+   TOP UP SHEET (FIXED - WITH USERNAME)
 ========================================= */
 
 export async function renderTopUpSheet(){
@@ -383,16 +383,28 @@ export async function renderTopUpSheet(){
       return;
     }
 
-    await addDoc(collection(db,"walletTransactions"),{
-      userId: auth.currentUser.uid,
-      type: "TOPUP",
-      amount: amount,
-      status: "PENDING",
-      createdAt: serverTimestamp()
-    });
+    try{
 
-    alert("Top Up diajukan. Silakan kirim bukti transfer ke admin.");
-    renderWallet();
+      // 🔥 AMBIL DATA USER SEKALI (AMAN)
+      const userSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
+      const userData = userSnap.exists() ? userSnap.data() : {};
+
+      await addDoc(collection(db,"walletTransactions"),{
+        userId: auth.currentUser.uid,
+        userName: userData.username || userData.fullName || "User", // ✅ FIX UTAMA
+        type: "TOPUP",
+        amount: amount,
+        status: "PENDING",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Top Up diajukan. Silakan kirim bukti transfer ke admin.");
+      renderWallet();
+
+    }catch(err){
+      console.error(err);
+      alert("Gagal ajukan top up");
+    }
   };
 }
 
