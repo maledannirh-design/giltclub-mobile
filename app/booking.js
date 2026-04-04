@@ -2303,24 +2303,6 @@ async function openMatchesPage(scheduleId){
   });
 
   // ===============================
-  // REALTIME MATCHES
-  // ===============================
-  const qMatches = query(
-    collection(db,"matches"),
-    where("scheduleId","==",scheduleId)
-  );
-
-  unsubscribe = onSnapshot(qMatches,(snap)=>{
-    matches = snap.docs.map(d=>({
-      id:d.id,
-      ...d.data()
-    }));
-
-    renderMatches();
-    renderRanking();
-  });
-
-  // ===============================
   // ADD MATCH
   // ===============================
   document.getElementById("addMatchBtn").onclick = async ()=>{
@@ -2386,7 +2368,51 @@ async function openMatchesPage(scheduleId){
 
     attachEvents();
   }
+// ===============================
+// LOAD MATCHES (MANUAL - NO REALTIME)
+// ===============================
+async function loadMatches(){
 
+  try{
+
+    const qMatches = query(
+      collection(db,"matches"),
+      where("scheduleId","==",scheduleId)
+    );
+
+    const snap = await getDocs(qMatches);
+
+    matches = snap.docs.map(d=>({
+      id:d.id,
+      ...d.data()
+    }));
+
+    renderMatches();
+    renderRanking();
+
+  }catch(err){
+    console.error("Load matches error:", err);
+  }
+}
+async function saveScore(matchId, newScore){
+
+  try{
+
+    await updateDoc(doc(db,"matches",matchId),{
+      score: newScore,
+      updatedAt: serverTimestamp()
+    });
+
+    // 🔥 reload manual (bukan realtime)
+    await loadMatches();
+    
+
+  }catch(err){
+    console.error(err);
+    alert("Gagal save score");
+  }
+}
+  
   // ===============================
   // SELECT PLAYER
   // ===============================
