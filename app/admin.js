@@ -17,7 +17,7 @@ import { applyMutation } from "./services/mutationService.js";
 
 
 /* =====================================================
-   RENDER ADMIN PANEL
+   RENDER ADMIN PANEL (OPTIMIZED - NO QUOTA SPAM)
 ===================================================== */
 export async function renderAdmin() {
 
@@ -26,6 +26,7 @@ export async function renderAdmin() {
   
   if (!user) return;
 
+  // 🔹 VALIDASI ROLE (1x read aman)
   const userSnap = await getDoc(doc(db, "users", user.uid));
   if (!userSnap.exists()) {
     content.innerHTML = "User tidak ditemukan";
@@ -39,6 +40,8 @@ export async function renderAdmin() {
       `<div style="padding:20px;">Akses ditolak.</div>`;
     return;
   }
+
+  // 🔹 AMBIL TOPUP PENDING (1x query)
   const snap = await getDocs(
     query(
       collection(db, "walletTransactions"),
@@ -52,23 +55,24 @@ export async function renderAdmin() {
   `;
 
   if (snap.empty) {
-    html +=
-      `<div style="opacity:.6;margin-bottom:20px;">
+
+    html += `
+      <div style="opacity:.6;margin-bottom:20px;">
         Tidak ada top up pending
-      </div>`;
+      </div>
+    `;
+
   } else {
 
     for (const docSnap of snap.docs) {
 
       const d = docSnap.data();
-      const uSnap = await getDoc(doc(db, "users", d.userId));
-      const username =
-        uSnap.exists()
-          ? uSnap.data().username || "User"
-          : "User";
+
+      // 🔥 NO QUERY USER (ANTI QUOTA)
+      const username = d.userName || "User";
 
       html += `
-        <div class="admin-trx">
+        <div class="admin-trx" id="trx-${docSnap.id}">
           <div>
             <div>${username}</div>
             <div>
@@ -89,81 +93,78 @@ export async function renderAdmin() {
     }
   }
 
-html += `
-<div class="admin-card">
-  <h3>Admin Broadcast</h3>
+  html += `
+  <div class="admin-card">
+    <h3>Admin Broadcast</h3>
 
-  <select id="broadcastMode" style="
-    width:100%;
-    padding:10px;
-    border-radius:10px;
-    margin-top:10px;
-  ">
-    <option value="all">All Members</option>
-    <option value="manual">Select Members</option>
-  </select>
-
-  <div id="memberSelectList" style="
-    margin-top:10px;
-    max-height:180px;
-    overflow-y:auto;
-    display:none;
-    border:1px solid var(--color-border);
-    border-radius:10px;
-    padding:8px;
-  "></div>
-
-  <textarea 
-    id="broadcastMessage" 
-    placeholder="Type broadcast message..."
-    style="
+    <select id="broadcastMode" style="
       width:100%;
-      min-height:80px;
-      padding:12px;
-      border-radius:12px;
+      padding:10px;
+      border-radius:10px;
+      margin-top:10px;
+    ">
+      <option value="all">All Members</option>
+      <option value="manual">Select Members</option>
+    </select>
+
+    <div id="memberSelectList" style="
+      margin-top:10px;
+      max-height:180px;
+      overflow-y:auto;
+      display:none;
       border:1px solid var(--color-border);
-      margin-top:12px;
-      resize:none;
-    "
-  ></textarea>
+      border-radius:10px;
+      padding:8px;
+    "></div>
 
-  <button 
-    id="sendBroadcastBtn"
-    style="
-      margin-top:12px;
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:12px;
-      font-weight:600;
-      background:var(--color-primary);
-      cursor:pointer;
-    "
-  >
-    Send Broadcast
-  </button>
-</div>
- <hr style="margin:30px 0;">
+    <textarea 
+      id="broadcastMessage" 
+      placeholder="Type broadcast message..."
+      style="
+        width:100%;
+        min-height:80px;
+        padding:12px;
+        border-radius:12px;
+        border:1px solid var(--color-border);
+        margin-top:12px;
+        resize:none;
+      "
+    ></textarea>
 
-<button id="openFlashAdmin" class="admin-btn">
-Flash Drop
-</button>
-<button id="openRewardAdmin" class="admin-btn">
-  Reward GP
-</button>
-<button id="openProductAdmin" class="admin-btn">
-Store Products
-</button>
-<hr style="margin:30px 0;">
-<div class="admin-card">
-  <h3>Store Applications</h3>
+    <button 
+      id="sendBroadcastBtn"
+      style="
+        margin-top:12px;
+        width:100%;
+        padding:12px;
+        border:none;
+        border-radius:12px;
+        font-weight:600;
+        background:var(--color-primary);
+        cursor:pointer;
+      "
+    >
+      Send Broadcast
+    </button>
+  </div>
 
-  <button onclick="exportStoreApplications()" class="admin-btn">
-    Export Store Applications
-  </button>
+  <hr style="margin:30px 0;">
 
-  <div id="adminStoreApps" style="margin-top:15px;"></div>
-</div>
+  <button id="openFlashAdmin" class="admin-btn">Flash Drop</button>
+  <button id="openRewardAdmin" class="admin-btn">Reward GP</button>
+  <button id="openProductAdmin" class="admin-btn">Store Products</button>
+
+  <hr style="margin:30px 0;">
+
+  <div class="admin-card">
+    <h3>Store Applications</h3>
+
+    <button onclick="exportStoreApplications()" class="admin-btn">
+      Export Store Applications
+    </button>
+
+    <div id="adminStoreApps" style="margin-top:15px;"></div>
+  </div>
 
   <hr style="margin:30px 0;">
 
@@ -185,11 +186,11 @@ Store Products
     <button onclick="exportBookingHistory()" class="admin-btn" style="margin-top:10px;">
       Export Booking History
     </button>
-<button onclick="exportOnlineLogs()" 
-        class="admin-btn" 
-        style="margin-top:10px;">
-  Export Online Logs
-</button>
+
+    <button onclick="exportOnlineLogs()" class="admin-btn" style="margin-top:10px;">
+      Export Online Logs
+    </button>
+
     <button onclick="exportAdjustmentHistory()" class="admin-btn" style="margin-top:10px;">
       Export Adjustment History
     </button>
@@ -197,9 +198,10 @@ Store Products
     <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
       Export Members
     </button>
+
     <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
-  Export Full Wallet Mutations
-</button>
+      Export Full Wallet Mutations
+    </button>
 
     <button onclick="auditOldSystemReconciliation()" class="admin-btn" style="margin-top:10px;">
       Audit Old System
@@ -217,30 +219,25 @@ Store Products
 
   <hr style="margin:30px 0;">
   <div id="adminBalanceAdjustment"></div>
-`;
+  `;
 
+  content.innerHTML = html;
 
-content.innerHTML = html;
+  // 🔹 EVENT BINDING (AMAN)
+  const flashBtn = document.getElementById("openFlashAdmin");
+  if (flashBtn) flashBtn.onclick = openFlashAdmin;
 
-const flashBtn = document.getElementById("openFlashAdmin");
-if (flashBtn) {
-  flashBtn.onclick = openFlashAdmin;
+  const rewardBtn = document.getElementById("openRewardAdmin");
+  if (rewardBtn) rewardBtn.onclick = openRewardAdmin;
+
+  const productBtn = document.getElementById("openProductAdmin");
+  if(productBtn) productBtn.onclick = openProductAdmin;
+
+  // 🔥 INI MASIH BERAT → next optimization layer
+  await renderBalanceAdjustmentPanel();
+  await initBroadcastUI();
+  await loadStoreApplications();
 }
-
-const rewardBtn = document.getElementById("openRewardAdmin");
-if (rewardBtn) {
-  rewardBtn.onclick = openRewardAdmin;
-}
-const productBtn = document.getElementById("openProductAdmin");
-if(productBtn){
-  productBtn.onclick = openProductAdmin;
-}
-
-await renderBalanceAdjustmentPanel();
-await initBroadcastUI();
-await loadStoreApplications();
-}
-
 /* =====================================================
    BALANCE ADJUSTMENT (NEW ENGINE)
 ===================================================== */
