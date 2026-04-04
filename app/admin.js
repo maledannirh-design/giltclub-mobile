@@ -336,18 +336,14 @@ async function handleBalanceAdjustment() {
 }
 
 /* =====================================================
-   APPROVE TOPUP (NEW LEDGER ENGINE)
+   APPROVE TOPUP (OPTIMIZED - NO QUOTA SPAM)
 ===================================================== */
-window.approveTopup =
-async function(trxId, userId){
+window.approveTopup = async function(trxId, userId){
 
   try {
 
-    const trxRef =
-      doc(db,"walletTransactions", trxId);
-
-    const trxSnap =
-      await getDoc(trxRef);
+    const trxRef = doc(db,"walletTransactions", trxId);
+    const trxSnap = await getDoc(trxRef);
 
     if(!trxSnap.exists())
       throw new Error("Transaksi tidak ditemukan");
@@ -360,9 +356,8 @@ async function(trxId, userId){
     const amount = trxData.amount;
 
     /* =========================================
-       APPLY MUTATION (FINAL LEDGER WRITE)
+       APPLY MUTATION
     ========================================= */
-
     await applyMutation({
       userId,
       asset: "RUPIAH",
@@ -374,9 +369,8 @@ async function(trxId, userId){
     });
 
     /* =========================================
-       UPDATE REQUEST STATUS
+       UPDATE STATUS
     ========================================= */
-
     await updateDoc(trxRef,{
       status: "SUCCESS",
       processedAt: serverTimestamp(),
@@ -384,22 +378,24 @@ async function(trxId, userId){
     });
 
     /* =========================================
-       OPTIONAL: UPDATE totalTopup SNAPSHOT
+       UPDATE USER (NO READ - USE INCREMENT)
     ========================================= */
-
     const userRef = doc(db,"users", userId);
-    const userSnap = await getDoc(userRef);
 
-    if(userSnap.exists()){
-      const userData = userSnap.data();
-      await updateDoc(userRef,{
-        totalTopup:
-          (userData.totalTopup || 0) + amount
-      });
-    }
+    await updateDoc(userRef,{
+      totalTopup: increment(amount)
+    });
 
     alert("Top up berhasil di-approve");
-    renderAdmin();
+
+    /* =========================================
+       ⚠️ JANGAN RELOAD SEMUA
+       UPDATE UI SAJA
+    ========================================= */
+
+    // contoh: hapus row langsung
+    const row = document.getElementById("trx-"+trxId);
+    if(row) row.remove();
 
   } catch(error){
     alert(error.message || "Gagal approve");
@@ -407,32 +403,36 @@ async function(trxId, userId){
 };
 
 /* =====================================================
-   REJECT TOPUP
+   REJECT TOPUP (OPTIMIZED)
 ===================================================== */
-window.rejectTopup =
-async function(trxId){
+window.rejectTopup = async function(trxId){
 
-  const trxRef =
-    doc(db,"walletTransactions",trxId);
+  try {
 
-  const trxSnap =
-    await getDoc(trxRef);
+    const trxRef = doc(db,"walletTransactions",trxId);
+    const trxSnap = await getDoc(trxRef);
 
-  if(!trxSnap.exists() ||
-     trxSnap.data().status !== "PENDING"){
-    alert("Sudah diproses");
-    return;
+    if(!trxSnap.exists() ||
+       trxSnap.data().status !== "PENDING"){
+      alert("Sudah diproses");
+      return;
+    }
+
+    await updateDoc(trxRef,{
+      status: "REJECTED",
+      rejectedAt: serverTimestamp()
+    });
+
+    alert("Top up ditolak");
+
+    // hapus row langsung (NO renderAdmin)
+    const row = document.getElementById("trx-"+trxId);
+    if(row) row.remove();
+
+  } catch(err){
+    alert("Gagal reject");
   }
-
-  await updateDoc(trxRef,{
-    status: "REJECTED",
-    rejectedAt: serverTimestamp()
-  });
-
-  alert("Top up ditolak");
-  renderAdmin();
 };
-
 
 async function initBroadcastUI(){
 
