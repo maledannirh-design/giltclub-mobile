@@ -234,9 +234,27 @@ export async function renderAdmin() {
   if(productBtn) productBtn.onclick = openProductAdmin;
 
   // 🔥 INI MASIH BERAT → next optimization layer
+  // JANGAN AUTO LOAD
+// await renderBalanceAdjustmentPanel();
+// await initBroadcastUI();
+  document.getElementById("adminBalanceAdjustment").innerHTML = `
+  <div class="admin-card">
+    <h3>Manual Adjustment</h3>
+
+    <button id="loadUsersBtn" class="admin-btn">
+      Load Users
+    </button>
+
+    <div id="adjustForm" style="display:none;"></div>
+  </div>
+`;
+
+document.getElementById("loadUsersBtn").onclick = async () => {
   await renderBalanceAdjustmentPanel();
-  await initBroadcastUI();
+  document.getElementById("adjustForm").style.display = "block";
+};
   await loadStoreApplications();
+  
 }
 /* =====================================================
    BALANCE ADJUSTMENT (NEW ENGINE)
@@ -438,32 +456,58 @@ async function initBroadcastUI(){
   const btn = document.getElementById("sendBroadcastBtn");
   const textarea = document.getElementById("broadcastMessage");
 
-  // Load members for manual select
-  const usersSnap = await getDocs(collection(db,"users"));
+  // 🔥 CACHE (ANTI RE-FETCH)
+  let usersSnap = null;
+  let usersLoaded = false;
 
-  let memberHTML = "";
+  // 🔧 HANDLE MODE CHANGE (LAZY LOAD)
+  modeSelect.onchange = async ()=>{
 
-  usersSnap.forEach(docSnap=>{
-    const data = docSnap.data();
-    const uid = docSnap.id;
+    if(modeSelect.value === "manual"){
 
-    memberHTML += `
-      <div style="margin-bottom:6px;">
-        <label style="cursor:pointer;">
-          <input type="checkbox" value="${uid}" class="broadcast-user-checkbox" />
-          ${data.fullName || data.username || "User"}
-        </label>
-      </div>
-    `;
-  });
+      memberListDiv.style.display = "block";
 
-  memberListDiv.innerHTML = memberHTML;
+      // 🔥 LOAD SEKALI SAJA
+      if(!usersLoaded){
 
-  modeSelect.onchange = ()=>{
-    memberListDiv.style.display =
-      modeSelect.value === "manual" ? "block" : "none";
+        memberListDiv.innerHTML = "Loading members...";
+
+        try{
+
+          usersSnap = await getDocs(collection(db,"users"));
+
+          let memberHTML = "";
+
+          usersSnap.forEach(docSnap=>{
+            const data = docSnap.data();
+            const uid = docSnap.id;
+
+            memberHTML += `
+              <div style="margin-bottom:6px;">
+                <label style="cursor:pointer;">
+                  <input type="checkbox" value="${uid}" class="broadcast-user-checkbox" />
+                  ${data.fullName || data.username || "User"}
+                </label>
+              </div>
+            `;
+          });
+
+          memberListDiv.innerHTML = memberHTML;
+          usersLoaded = true;
+
+        }catch(err){
+          console.error(err);
+          memberListDiv.innerHTML = "Gagal load users";
+        }
+      }
+
+    } else {
+
+      memberListDiv.style.display = "none";
+    }
   };
 
+  // 🔧 HANDLE SEND
   btn.onclick = async ()=>{
 
     const message = textarea.value.trim();
@@ -474,33 +518,44 @@ async function initBroadcastUI(){
 
     let targetUids = [];
 
-    if(modeSelect.value === "all"){
+    try{
 
-      usersSnap.forEach(docSnap=>{
-        targetUids.push(docSnap.id);
-      });
+      if(modeSelect.value === "all"){
 
-    }else{
+        // 🔥 LOAD SEKALI JIKA BELUM ADA
+        if(!usersSnap){
+          usersSnap = await getDocs(collection(db,"users"));
+        }
 
-      document
-        .querySelectorAll(".broadcast-user-checkbox:checked")
-        .forEach(cb=>{
-          targetUids.push(cb.value);
+        usersSnap.forEach(docSnap=>{
+          targetUids.push(docSnap.id);
         });
 
-      if(targetUids.length === 0){
-        alert("Select at least one member.");
-        btn.disabled = false;
-        btn.textContent = "Send Broadcast";
-        return;
-      }
-    }
+      }else{
 
-    try{
+        document
+          .querySelectorAll(".broadcast-user-checkbox:checked")
+          .forEach(cb=>{
+            targetUids.push(cb.value);
+          });
+
+        if(targetUids.length === 0){
+          alert("Select at least one member.");
+          btn.disabled = false;
+          btn.textContent = "Send Broadcast";
+          return;
+        }
+      }
+
       await sendAdminBroadcast(message, targetUids);
+
       textarea.value = "";
       btn.textContent = "Sent ✔";
-      setTimeout(()=> btn.textContent = "Send Broadcast",1500);
+
+      setTimeout(()=>{
+        btn.textContent = "Send Broadcast";
+      },1500);
+
     }catch(err){
       console.error(err);
       btn.textContent = "Error";
@@ -508,7 +563,6 @@ async function initBroadcastUI(){
 
     btn.disabled = false;
   };
-
 }
 
 export async function loadStoreApplications(){
