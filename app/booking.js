@@ -2776,7 +2776,7 @@ window.openScanForCheckIn = function(scheduleId) {
     overlay.remove();
   };
 };
-
+}
 window.openRacketSelector = function(scheduleData){
 
   return new Promise((resolve)=>{
@@ -2857,3 +2857,4 @@ window.openRacketSelector = function(scheduleData){
   });
 
 };
+}
