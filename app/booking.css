@@ -1148,7 +1148,7 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   MATCH SYSTEM — FINAL CLEAN PREMIUM
+   MATCH SYSTEM — FINAL CLEAN PREMIUM (FIXED)
 ================================= */
 
 .matches-popup{
@@ -1163,7 +1163,6 @@ body.dark .edit-session-btn{
 
   border-radius:20px;
   padding:16px;
-  color:#ffffff;
 
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -1175,8 +1174,10 @@ body.dark .edit-session-btn{
   text-align:center;
   font-size:20px;
   font-weight:700;
-  margin-bottom:14px;
 }
+
+body.dark .matches-title{ color:#fff; }
+body.light .matches-title{ color:#14532d; }
 
 /* ===============================
    TABS
@@ -1190,16 +1191,16 @@ body.dark .edit-session-btn{
 .tab-btn{
   flex:1;
   padding:10px;
-
   border:none;
   border-radius:14px;
 
   background: rgba(255,255,255,0.12);
-  color:#ddd;
-
   font-size:13px;
   font-weight:600;
 }
+
+body.dark .tab-btn{ color:#ddd; }
+body.light .tab-btn{ color:#14532d; }
 
 .tab-btn.active{
   background: linear-gradient(135deg,#22c55e,#16a34a);
@@ -1209,21 +1210,15 @@ body.dark .edit-session-btn{
 /* ===============================
    TAB CONTENT
 ================================= */
-.matches-tab-content{
-  display:none;
-}
-
-.matches-tab-content.active{
-  display:block;
-}
+.matches-tab-content{ display:none; }
+.matches-tab-content.active{ display:block; }
 
 /* ===============================
-   ADD MATCH BUTTON
+   ADD MATCH
 ================================= */
 #addMatchBtn{
   width:100%;
   padding:12px;
-
   border:none;
   border-radius:14px;
 
@@ -1238,21 +1233,19 @@ body.dark .edit-session-btn{
    MATCH CARD
 ================================= */
 .match-card{
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.12),
-    rgba(255,255,255,0.04)
-  );
-
   border-radius:18px;
   padding:14px;
   margin-bottom:14px;
+}
 
-  border:1px solid rgba(255,255,255,0.08);
+body.dark .match-card{
+  background: rgba(255,255,255,0.08);
+  color:#f5e9d7;
+}
 
-  box-shadow:
-    0 8px 20px rgba(0,0,0,.15),
-    inset 0 1px 0 rgba(255,255,255,.05);
+body.light .match-card{
+  background: rgba(0,0,0,0.05);
+  color:#111;
 }
 
 /* ===============================
@@ -1268,78 +1261,61 @@ body.dark .edit-session-btn{
 .match-title{
   font-size:14px;
   font-weight:600;
-  color:#f5f5f5;
 }
 
-/* DELETE BUTTON */
-.delete-match-btn{
-  width:30px;
-  height:30px;
-
-  border:none;
-  border-radius:10px;
-
-  background: rgba(239,68,68,0.15);
-  color:#ef4444;
-
-  font-weight:700;
-}
+body.dark .match-title{ color:#fff; }
+body.light .match-title{ color:#111; }
 
 /* ===============================
-   TEAM ROW (PERFECT PROPORTION)
+   TEAM ROW
 ================================= */
 .team-row{
   display:flex;
   gap:10px;
-  align-items:stretch; /* 🔥 penting */
+  align-items:stretch;
 }
 
-/* ===============================
-   PLAYER (DOMINANT AREA)
-================================= */
+/* PLAYER */
 .team-players{
-  flex:3.2; /* 🔥 lebih panjang */
+  flex:3.2;
   display:flex;
   flex-direction:column;
   gap:8px;
 }
 
-
-/* SELECT PLAYER */
+/* SELECT */
 .team-players select{
   padding:10px 12px;
-
   font-size:14px;
-  font-weight:500;
-
   border-radius:12px;
   border:none;
+}
 
+body.dark .team-players select{
   background: rgba(255,255,255,0.12);
   color:#fff;
 }
 
+body.light .team-players select{
+  background:#f1f5f9;
+  color:#111;
+}
+
 /* ===============================
-   SCORE BOX (COMPACT & CLEAN)
-================================= */
-/* ===============================
-   SCORE FINAL FIX
+   SCORE (FIX SHORT + BIG FONT)
 ================================= */
 .score-box-inline{
-  flex:0.6; /* 🔥 dipotong (lebih kecil dari sebelumnya) */
-  max-width:60px; /* 🔥 limit lebar */
+  flex:0.5;              /* 🔥 lebih kecil */
+  max-width:55px;        /* 🔥 potong lebar */
   display:flex;
 }
 
-/* INPUT */
 .score-box-inline input{
   width:100%;
   height:100%;
+  min-height:72px;
 
-  min-height:70px;
-
-  /* 🔥 INI KUNCI UTAMA */
-  font-size:clamp(28px, 6vw, 40px); 
+  font-size:clamp(30px, 6vw, 42px); /* 🔥 dominan */
   font-weight:800;
 
   border-radius:14px;
@@ -1347,36 +1323,26 @@ body.dark .edit-session-btn{
 
   text-align:center;
 
-  background: linear-gradient(
-    135deg,
-    #22c55e,
-    #16a34a
-  );
-
+  background: linear-gradient(135deg,#22c55e,#16a34a);
   color:#fff;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  /* 🔥 biar angka dominan (80%) */
   line-height:1;
 }
 
 /* ===============================
-   VS TEXT
+   VS
 ================================= */
 .vs{
   text-align:center;
   margin:10px 0;
-
   font-size:12px;
-  font-weight:600;
-  color:#bbb;
 }
 
+body.dark .vs{ color:#bbb; }
+body.light .vs{ color:#555; }
+
 /* ===============================
-   ACTION BUTTONS
+   ACTION BUTTON
 ================================= */
 .match-actions{
   display:flex;
@@ -1387,89 +1353,25 @@ body.dark .edit-session-btn{
 .match-actions button{
   flex:1;
   padding:12px;
-
   border:none;
   border-radius:12px;
-
-  font-size:13px;
   font-weight:600;
 }
 
-/* SAVE */
 .save-btn{
   background: linear-gradient(135deg,#22c55e,#16a34a);
   color:#fff;
 }
 
-/* CANCEL */
 .cancel-btn{
   background: rgba(255,255,255,0.12);
-  color:#bbb;
 }
+
+body.dark .cancel-btn{ color:#bbb; }
+body.light .cancel-btn{ color:#333; }
 
 /* ===============================
-   RANKING LIST
-================================= */
-.ranking-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:10px;
-
-  background: rgba(255,255,255,0.08);
-}
-
-.rank{
-  width:30px;
-  font-weight:700;
-  color:#fff;
-}
-
-.name{
-  flex:1;
-  margin-left:10px;
-  font-weight:500;
-  color:#fff;
-}
-
-.stat-block{
-  width:60px;
-  text-align:center;
-}
-
-.stat-value{
-  font-weight:700;
-  color:#fff;
-}
-
-.stat-label{
-  font-size:10px;
-  color:#bbb;
-}
-
-/* ===============================
-   CLOSE BUTTON
-================================= */
-#closePopup{
-  width:100%;
-  margin-top:16px;
-
-  padding:14px;
-  border:none;
-  border-radius:16px;
-
-  font-size:14px;
-  font-weight:600;
-
-  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
-  color:#111;
-}
-
-/* ===============================
-   RANKING CARD (FINAL PRO)
+   RANKING CARD
 ================================= */
 .ranking-group{
   display:flex;
@@ -1479,172 +1381,81 @@ body.dark .edit-session-btn{
   padding:16px;
   border-radius:18px;
   margin-bottom:12px;
-
-  backdrop-filter: blur(10px);
-
-  /* default */
-  background: rgba(255,255,255,0.08);
 }
 
-/* ===============================
-   DARK / LIGHT TEXT AUTO
-================================= */
 body.dark .ranking-group{
-  color:#f5e9d7; /* cream */
+  background: rgba(255,255,255,0.08);
+  color:#f5e9d7;
 }
 
 body.light .ranking-group{
-  color:#14532d; /* hijau tua */
+  background: rgba(0,0,0,0.05);
+  color:#111;
 }
 
 /* ===============================
-   RANK NUMBER
+   RANK STRUCTURE
 ================================= */
 .rank-title{
   font-size:18px;
   font-weight:800;
-  margin-bottom:4px;
 }
 
-/* ===============================
-   LEFT (NAME)
-================================= */
 .rank-left{
   flex:1;
-  display:flex;
-  flex-direction:column;
 }
 
 .rank-names{
   font-size:15px;
   font-weight:600;
-  line-height:1.4;
 }
 
-/* ===============================
-   CENTER (CHAMPION)
-================================= */
 .rank-center{
   flex:1;
   text-align:center;
-  font-size:13px;
   font-weight:700;
-  opacity:.9;
 }
 
-/* ===============================
-   RIGHT (STATS)
-================================= */
 .rank-right{
   flex:1;
   text-align:right;
-  display:flex;
-  flex-direction:column;
-  gap:2px;
 }
 
 .rank-right div{
-  font-size:14px;
+  font-size:15px;
   font-weight:700;
 }
 
 /* ===============================
-   TOP 3 GRADIENT
+   TOP 3
 ================================= */
 .rank-1{
   background: linear-gradient(135deg,#22c55e,#4ade80);
+  color:#fff;
 }
-.rank-1{
-  box-shadow: 0 0 25px rgba(34,197,94,.4);
-}
+
 .rank-2{
   background: linear-gradient(135deg,#9ca3af,#d1d5db);
+  color:#111;
 }
 
 .rank-3{
   background: linear-gradient(135deg,#f59e0b,#fcd34d);
-}
-
-/* ===============================
-   CHAMPION LABEL
-================================= */
-.champion{
-  font-size:14px;
-  font-weight:800;
-  letter-spacing:1px;
-}
-
-/* ===============================
-   LIGHT MODE FIX (CRITICAL)
-================================= */
-body.light .match-card{
-  background: rgba(255,255,255,0.85);
-  color:#111;
-}
-
-body.light .team-players select{
-  background:#f1f5f9;
-  color:#111;
-}
-
-body.light .match-title{
-  color:#111;
-}
-
-body.light .vs{
-  color:#555;
-}
-
-/* score tetap hijau biar kontras */
-body.light .score-box-inline input{
-  color:#fff;
-}
-
-.matches-title{
-  font-size:20px;
-  font-weight:700;
-  color:#111;
-}
-
-body.dark .matches-title{
-  color:#fff;
-}
-
-/* ===============================
-   LIGHT MODE - RANK 4+ FIX
-================================= */
-body.light .ranking-group{
-  background: rgba(0,0,0,0.05); /* 🔥 ganti dari putih ke abu tipis */
-  color:#111;
-}
-
-/* TEXT */
-body.light .rank-title{
-  color:#111;
-}
-
-body.light .rank-names{
-  color:#111;
-}
-
-body.light .rank-right{
   color:#111;
 }
 
 /* ===============================
-   RANK 1–3 (BIAR TETAP KONTRAS)
+   CLOSE
 ================================= */
-body.light .rank-1{
-  background: linear-gradient(135deg,#22c55e,#4ade80);
-  color:#fff;
-}
+#closePopup{
+  width:100%;
+  margin-top:16px;
+  padding:14px;
+  border:none;
+  border-radius:16px;
 
-body.light .rank-2{
-  background: linear-gradient(135deg,#9ca3af,#d1d5db);
-  color:#111;
-}
+  font-weight:600;
 
-body.light .rank-3{
-  background: linear-gradient(135deg,#f59e0b,#fcd34d);
+  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
   color:#111;
 }
