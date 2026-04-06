@@ -1148,12 +1148,13 @@ body.dark .edit-session-btn{
 
 
 /* ===============================
-   MATCH SYSTEM — FINAL CLEAN (NO ANIMATION, NO FLICKER)
+   RESET KHUSUS MATCH SYSTEM
 ================================= */
-
-/* 🔥 MATIKAN SEMUA EFEK GLOBAL */
 .matches-popup,
 .matches-popup *{
+  box-sizing:border-box;
+  font-family: system-ui, sans-serif;
+  color:#111;
   transition:none !important;
   animation:none !important;
 }
@@ -1162,19 +1163,84 @@ body.dark .edit-session-btn{
    CONTAINER
 ================================= */
 .matches-popup{
-  background:#f5e7e4; /* dusty pink */
+  background:#f5e7e4;
   padding:16px;
-  border-radius:16px;
-  font-family: system-ui, sans-serif;
-  color:#111;
+  border-radius:18px;
+}
+
+/* ===============================
+   TITLE
+================================= */
+.matches-title{
+  text-align:center;
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:12px;
+}
+
+/* ===============================
+   TABS
+================================= */
+.matches-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.m-tab{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  background:#e5e7eb;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.m-tab.active{
+  background:#22c55e;
+  color:#fff;
+}
+
+/* CONTENT */
+.m-tab-content{
+  display:none;
+}
+
+.m-tab-content.active{
+  display:block;
+}
+
+/* ===============================
+   BUTTONS
+================================= */
+.m-btn-add{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#22c55e;
+  color:#fff;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+.m-btn-close{
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:#e5e7eb;
+  font-weight:600;
 }
 
 /* ===============================
    MATCH CARD
 ================================= */
 .match-card{
-  background:#ffffff;
-  border-radius:14px;
+  background:#fff;
+  border-radius:16px;
   padding:12px;
   margin-bottom:12px;
 }
@@ -1189,99 +1255,106 @@ body.dark .edit-session-btn{
 
 .match-title{
   font-weight:600;
+}
+
+/* ACTION ICONS */
+.match-actions-top{
+  display:flex;
+  gap:6px;
+}
+
+.edit-btn,
+.delete-match-btn{
+  border:none;
+  border-radius:10px;
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
   font-size:14px;
+}
+
+/* EDIT */
+.edit-btn{
+  background:#e5e7eb;
+}
+
+/* DELETE */
+.delete-match-btn{
+  background:#ef4444;
+  color:#fff;
+}
+
+/* EDIT ACTIVE */
+.match-card.editing .edit-btn{
+  background:#fde68a;
 }
 
 /* ===============================
-   ROW (NAME 80% - SCORE 20%)
+   TEAM ROW
 ================================= */
 .team-row{
   display:flex;
-  align-items:center;
   justify-content:space-between;
-  gap:10px;
+  align-items:center;
+  margin-bottom:6px;
 }
 
-/* NAME SIDE */
+/* NAME */
 .team-players{
   flex:4;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
   font-size:14px;
   font-weight:500;
+  line-height:1.4;
 }
 
 /* SELECT */
 .team-players select{
+  width:100%;
   padding:8px;
   border-radius:10px;
   border:none;
   background:#f3f4f6;
-  font-size:14px;
 }
 
 /* ===============================
-   SCORE SIDE (FIX PROPER SIZE)
+   SCORE (MATCH REFERENCE STYLE)
 ================================= */
-.score-box-inline{
-  flex:1;
-  display:flex;
-  justify-content:flex-end;
-}
-
-/* SCORE VIEW */
-.score-view{
+.score-box{
   width:44px;
   height:44px;
 
   background:#e5e7eb;
-  border-radius:10px;
+  border-radius:12px;
 
   display:flex;
   align-items:center;
   justify-content:center;
 
-  font-size:16px;
   font-weight:700;
-
-  cursor:pointer;
+  font-size:16px;
 }
 
-/* SCORE INPUT (EDIT MODE) */
-.score-box-inline input{
+/* INPUT */
+.score-input{
   width:44px;
   height:44px;
 
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid #d1d5db;
 
   text-align:center;
-  font-size:16px;
   font-weight:700;
-
-  background:#ffffff;
-  outline:none;
 }
 
-/* ===============================
-   VS
-================================= */
-.vs{
-  text-align:center;
-  margin:6px 0;
-  font-size:12px;
-  color:#555;
-}
-
-/* ===============================
-   EDIT MODE
-================================= */
+/* EDIT MODE */
 .match-card .score-input{
   display:none;
 }
 
-.match-card.editing .score-view{
+.match-card.editing .score-box{
   display:none;
 }
 
@@ -1290,7 +1363,17 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   SAVE BUTTON (ONLY EDIT MODE)
+   VS
+================================= */
+.vs{
+  text-align:center;
+  font-size:12px;
+  color:#666;
+  margin:4px 0;
+}
+
+/* ===============================
+   SAVE BUTTON
 ================================= */
 .match-actions{
   display:none;
@@ -1299,78 +1382,95 @@ body.dark .edit-session-btn{
 
 .match-card.editing .match-actions{
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
-.match-actions button{
+.save-btn{
   flex:1;
-  padding:10px;
+  background:#22c55e;
+  color:#fff;
   border:none;
   border-radius:10px;
+  padding:10px;
   font-weight:600;
 }
 
-/* SAVE */
-.save-btn{
-  background:#22c55e;
-  color:#fff;
-}
-
-/* CANCEL */
 .cancel-btn{
+  flex:1;
   background:#e5e7eb;
-  color:#111;
+  border:none;
+  border-radius:10px;
 }
 
 /* ===============================
-   RANKING
+   RANKING (M-RANK SYSTEM)
 ================================= */
-.ranking-group{
+.m-ranking-group{
   display:flex;
   justify-content:space-between;
   align-items:center;
 
+  background:#fff;
   padding:12px;
-  border-radius:12px;
-  background:#ffffff;
-
+  border-radius:14px;
   margin-bottom:10px;
 }
 
 /* LEFT */
-.rank-left{
+.m-rank-left{
   flex:3;
 }
 
-.rank-title{
+.m-rank-title{
   font-weight:700;
-  margin-bottom:2px;
 }
 
-.rank-names{
+.m-rank-names{
   font-size:14px;
 }
 
+/* CENTER */
+.m-rank-center{
+  flex:2;
+  text-align:center;
+  font-weight:700;
+}
+
 /* RIGHT */
-.rank-right{
+.m-rank-right{
   flex:1;
   text-align:right;
-  font-weight:600;
   font-size:13px;
+  font-weight:600;
 }
 
 /* ===============================
-   DIFF COLOR (FIXED)
+   TOP 3
 ================================= */
-.diff-pos{
-  color:#2563eb !important; /* biru */
+.m-rank-1{
+  background:#22c55e;
+  color:#fff;
 }
 
-.diff-neg{
-  color:#dc2626 !important; /* merah */
+.m-rank-2{
+  background:#e5e7eb;
 }
 
-*{
-  transition:none !important;
-  animation:none !important;
+.m-rank-3{
+  background:#fbbf24;
+}
+
+.m-rank-default{
+  background:#fff;
+}
+
+/* ===============================
+   DIFF COLOR
+================================= */
+.m-diff-pos{
+  color:#2563eb;
+}
+
+.m-diff-neg{
+  color:#dc2626;
 }
