@@ -1467,51 +1467,107 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   RANKING (VISIBILITY FIX TOTAL)
+   RANKING CARD (FINAL PRO)
 ================================= */
 .ranking-group{
-  background: rgba(255,255,255,0.15); /* 🔥 naikkan kontras */
-  border-radius:16px;
-  padding:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:16px;
+  border-radius:18px;
   margin-bottom:12px;
 
   backdrop-filter: blur(10px);
+
+  /* default */
+  background: rgba(255,255,255,0.08);
+}
+
+/* ===============================
+   DARK / LIGHT TEXT AUTO
+================================= */
+body.dark .ranking-group{
+  color:#f5e9d7; /* cream */
+}
+
+body.light .ranking-group{
+  color:#14532d; /* hijau tua */
 }
 
 /* ===============================
    RANK NUMBER
 ================================= */
 .rank-title{
-  font-size:18px; /* 🔥 lebih besar */
+  font-size:18px;
   font-weight:800;
-  color:#111; /* 🔥 gelap biar kontras */
-  margin-bottom:6px;
+  margin-bottom:4px;
 }
 
 /* ===============================
-   PLAYER NAMES
+   LEFT (NAME)
 ================================= */
-.rank-names div{
-  font-size:15px; /* 🔥 lebih jelas */
-  font-weight:600;
-  color:#111; /* 🔥 bukan putih lagi */
-}
-
-/* ===============================
-   STATS (WIN / DIFF)
-================================= */
-.rank-stats{
+.rank-left{
+  flex:1;
   display:flex;
-  justify-content:space-between;
-  margin-top:6px;
-
-  font-size:13px;
-  font-weight:600;
-
-  color:#333; /* 🔥 lebih kontras */
+  flex-direction:column;
 }
 
+.rank-names{
+  font-size:15px;
+  font-weight:600;
+  line-height:1.4;
+}
 
-.rank-title{
-  color:#16a34a; /* hijau utama */
+/* ===============================
+   CENTER (CHAMPION)
+================================= */
+.rank-center{
+  flex:1;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  opacity:.9;
+}
+
+/* ===============================
+   RIGHT (STATS)
+================================= */
+.rank-right{
+  flex:1;
+  text-align:right;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.rank-right div{
+  font-size:14px;
+  font-weight:700;
+}
+
+/* ===============================
+   TOP 3 GRADIENT
+================================= */
+.rank-1{
+  background: linear-gradient(135deg,#22c55e,#4ade80);
+}
+.rank-1{
+  box-shadow: 0 0 25px rgba(34,197,94,.4);
+}
+.rank-2{
+  background: linear-gradient(135deg,#9ca3af,#d1d5db);
+}
+
+.rank-3{
+  background: linear-gradient(135deg,#f59e0b,#fcd34d);
+}
+
+/* ===============================
+   CHAMPION LABEL
+================================= */
+.champion{
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:1px;
 }
