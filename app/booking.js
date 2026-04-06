@@ -2119,18 +2119,6 @@ async function openMatchesPage(scheduleId){
   };
 
 }
-  // ===============================
-  // LOAD MATCHES
-  // ===============================
-  async function loadMatches(){
-    const snap = await getDocs(
-      query(collection(db,"matches"), where("scheduleId","==",scheduleId))
-    );
-
-    matches = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderMatches();
-    renderRanking();
-  }
 
   // ===============================
   // RENDER MATCH
@@ -2504,7 +2492,7 @@ function renderMatches(){
 
   attachEvents();
 }
-  
+
 // ===============================
 // LOAD MATCHES (MANUAL - NO REALTIME)
 // ===============================
@@ -2531,6 +2519,10 @@ async function loadMatches(){
     console.error("Load matches error:", err);
   }
 }
+
+// ===============================
+// SAVE SCORE
+// ===============================
 async function saveScore(matchId, newScore){
 
   try{
@@ -2801,8 +2793,6 @@ container.innerHTML = rankedGroups.map(g=>{
 }).join("");
 
 }
-
-
 
 /* ===============================
    OPEN SCAN FOR CHECK IN
