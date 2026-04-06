@@ -527,7 +527,6 @@ body.dark .join-btn{
   padding: 30px 24px 36px;
 
   z-index: 9999;
-  animation: modalFade .25s ease;
 
   -webkit-overflow-scrolling: touch;
 }
@@ -1149,9 +1148,19 @@ body.dark .edit-session-btn{
 
 
 /* ===============================
-   MATCH SYSTEM — FINAL CLEAN (NO ANIMATION)
+   MATCH SYSTEM — FINAL CLEAN (NO ANIMATION, NO FLICKER)
 ================================= */
 
+/* 🔥 MATIKAN SEMUA EFEK GLOBAL */
+.matches-popup,
+.matches-popup *{
+  transition:none !important;
+  animation:none !important;
+}
+
+/* ===============================
+   CONTAINER
+================================= */
 .matches-popup{
   background:#f5e7e4; /* dusty pink */
   padding:16px;
@@ -1164,7 +1173,7 @@ body.dark .edit-session-btn{
    MATCH CARD
 ================================= */
 .match-card{
-  background:#ffffffcc;
+  background:#ffffff;
   border-radius:14px;
   padding:12px;
   margin-bottom:12px;
@@ -1189,17 +1198,21 @@ body.dark .edit-session-btn{
 .team-row{
   display:flex;
   align-items:center;
+  justify-content:space-between;
   gap:10px;
 }
 
 /* NAME SIDE */
 .team-players{
-  flex:4; /* 🔥 80% */
+  flex:4;
   display:flex;
   flex-direction:column;
   gap:6px;
+  font-size:14px;
+  font-weight:500;
 }
 
+/* SELECT */
 .team-players select{
   padding:8px;
   border-radius:10px;
@@ -1208,32 +1221,47 @@ body.dark .edit-session-btn{
   font-size:14px;
 }
 
-/* SCORE SIDE */
+/* ===============================
+   SCORE SIDE (FIX PROPER SIZE)
+================================= */
 .score-box-inline{
-  flex:1; /* 🔥 20% */
+  flex:1;
+  display:flex;
+  justify-content:flex-end;
 }
 
-/* SCORE VIEW MODE */
+/* SCORE VIEW */
 .score-view{
+  width:44px;
+  height:44px;
+
   background:#e5e7eb;
   border-radius:10px;
-  text-align:center;
-  padding:10px 0;
-  font-size:18px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:16px;
   font-weight:700;
+
   cursor:pointer;
 }
 
-/* SCORE EDIT MODE */
+/* SCORE INPUT (EDIT MODE) */
 .score-box-inline input{
-  width:100%;
-  border:none;
+  width:44px;
+  height:44px;
+
   border-radius:10px;
+  border:1px solid #d1d5db;
+
   text-align:center;
-  font-size:20px;
+  font-size:16px;
   font-weight:700;
-  padding:8px;
-  background:#d1fae5;
+
+  background:#ffffff;
+  outline:none;
 }
 
 /* ===============================
@@ -1243,10 +1271,26 @@ body.dark .edit-session-btn{
   text-align:center;
   margin:6px 0;
   font-size:12px;
+  color:#555;
 }
 
 /* ===============================
-   SAVE BUTTON (HIDDEN BY DEFAULT)
+   EDIT MODE
+================================= */
+.match-card .score-input{
+  display:none;
+}
+
+.match-card.editing .score-view{
+  display:none;
+}
+
+.match-card.editing .score-input{
+  display:block;
+}
+
+/* ===============================
+   SAVE BUTTON (ONLY EDIT MODE)
 ================================= */
 .match-actions{
   display:none;
@@ -1266,13 +1310,16 @@ body.dark .edit-session-btn{
   font-weight:600;
 }
 
+/* SAVE */
 .save-btn{
   background:#22c55e;
   color:#fff;
 }
 
+/* CANCEL */
 .cancel-btn{
   background:#e5e7eb;
+  color:#111;
 }
 
 /* ===============================
@@ -1281,9 +1328,12 @@ body.dark .edit-session-btn{
 .ranking-group{
   display:flex;
   justify-content:space-between;
+  align-items:center;
+
   padding:12px;
   border-radius:12px;
-  background:#ffffffcc;
+  background:#ffffff;
+
   margin-bottom:10px;
 }
 
@@ -1294,6 +1344,7 @@ body.dark .edit-session-btn{
 
 .rank-title{
   font-weight:700;
+  margin-bottom:2px;
 }
 
 .rank-names{
@@ -1305,13 +1356,21 @@ body.dark .edit-session-btn{
   flex:1;
   text-align:right;
   font-weight:600;
+  font-size:13px;
 }
 
-/* DIFF COLOR */
+/* ===============================
+   DIFF COLOR (FIXED)
+================================= */
 .diff-pos{
-  color:#2563eb; /* biru */
+  color:#2563eb !important; /* biru */
 }
 
 .diff-neg{
-  color:#dc2626; /* merah */
+  color:#dc2626 !important; /* merah */
+}
+
+*{
+  transition:none !important;
+  animation:none !important;
 }
