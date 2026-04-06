@@ -2119,50 +2119,65 @@ async function openMatchesPage(scheduleId){
   // ===============================
   // RENDER MATCH
   // ===============================
-  function renderMatches(){
+ function renderMatches(){
 
-    const list = document.getElementById("matchList");
+  const list = document.getElementById("matchList");
 
-    list.innerHTML = matches.map((m,i)=>{
+  list.innerHTML = matches.map((m,i)=>`
 
-      const edit = editedMatches[m.id] || {};
+    <div class="match-card" id="match-${m.id}">
 
-      return `
-      <div class="match-card">
+      <div class="match-header">
+        <div class="match-title">Pertandingan ${i+1}</div>
 
-        <div class="match-header">
-          <div class="match-title">Pertandingan ${i+1}</div>
-          <button class="delete-match-btn" data-id="${m.id}">✕</button>
+        <div style="display:flex; gap:6px;">
+          <button class="edit-btn" data-id="${m.id}">✏️</button>
+          <button class="delete-match-btn" data-id="${m.id}">🗑</button>
+        </div>
+      </div>
+
+      <div class="team-row">
+        <div class="team-players">
+          ${playerMap[m.a1] || "-"} <br>
+          ${playerMap[m.a2] || "-"}
         </div>
 
-        <div class="team-row">
-          <div class="team-players">
-            ${renderSelect(m.id,"a1",edit.a1 ?? m.a1)}
-            ${renderSelect(m.id,"a2",edit.a2 ?? m.a2)}
-          </div>
-          <input type="number" value="${edit.scoreA ?? m.scoreA}" data-id="${m.id}" data-side="A">
+        <div class="score-box" data-id="${m.id}" data-side="A">
+          ${m.scoreA || 0}
         </div>
 
-        <div class="vs">VS</div>
+        <input class="score-input"
+          data-id="${m.id}" data-side="A"
+          value="${m.scoreA || 0}"
+          style="display:none;">
+      </div>
 
-        <div class="team-row">
-          <div class="team-players">
-            ${renderSelect(m.id,"b1",edit.b1 ?? m.b1)}
-            ${renderSelect(m.id,"b2",edit.b2 ?? m.b2)}
-          </div>
-          <input type="number" value="${edit.scoreB ?? m.scoreB}" data-id="${m.id}" data-side="B">
+      <div class="team-row">
+        <div class="team-players">
+          ${playerMap[m.b1] || "-"} <br>
+          ${playerMap[m.b2] || "-"}
         </div>
 
-        <div class="match-actions">
-          <button class="save-btn" data-id="${m.id}">Save</button>
-          <button class="cancel-btn" data-id="${m.id}">Cancel</button>
+        <div class="score-box" data-id="${m.id}" data-side="B">
+          ${m.scoreB || 0}
         </div>
 
-      </div>`;
-    }).join("");
+        <input class="score-input"
+          data-id="${m.id}" data-side="B"
+          value="${m.scoreB || 0}"
+          style="display:none;">
+      </div>
 
-    attachEvents();
-  }
+      <div class="match-actions">
+        <button class="save-btn" data-id="${m.id}">Save</button>
+      </div>
+
+    </div>
+
+  `).join("");
+
+  attachEvents();
+}
 
   // ===============================
   // SELECT
@@ -2180,34 +2195,75 @@ async function openMatchesPage(scheduleId){
     `;
   }
 
+ // ===============================
+// EVENTS (FINAL CLEAN - NO DUPLICATE)
+// ===============================
+function attachEvents(){
+
   // ===============================
-  // EVENTS (NO AUTO SAVE)
+  // SELECT PLAYER (LOCAL STATE)
   // ===============================
-  function attachEvents(){
+  document.querySelectorAll("select").forEach(el=>{
+    el.onchange = ()=>{
+      const id = el.dataset.id;
+      const key = el.dataset.key;
 
-    document.querySelectorAll("select").forEach(el=>{
-      el.onchange = ()=>{
-        const id = el.dataset.id;
-        const key = el.dataset.key;
-        if(!editedMatches[id]) editedMatches[id] = {};
-        editedMatches[id][key] = el.value;
-      };
-    });
+      if(!editedMatches[id]) editedMatches[id] = {};
+      editedMatches[id][key] = el.value;
+    };
+  });
 
-    document.querySelectorAll("input").forEach(el=>{
-      el.oninput = ()=>{
-        const id = el.dataset.id;
-        const side = el.dataset.side;
-        if(!editedMatches[id]) editedMatches[id] = {};
-        editedMatches[id][side==="A"?"scoreA":"scoreB"] = Number(el.value);
-      };
-    });
+  // ===============================
+  // INPUT SCORE (LOCAL STATE)
+  // ===============================
+  document.querySelectorAll(".score-input").forEach(el=>{
+    el.oninput = ()=>{
+      const id = el.dataset.id;
+      const side = el.dataset.side;
 
-    document.querySelectorAll(".save-btn").forEach(btn=>{
-      btn.onclick = async ()=>{
-        const id = btn.dataset.id;
-        const data = editedMatches[id];
-        if(!data) return;
+      if(!editedMatches[id]) editedMatches[id] = {};
+      editedMatches[id][side==="A" ? "scoreA" : "scoreB"] = Number(el.value);
+    };
+  });
+
+  // ===============================
+  // EDIT MODE (✏️ BUTTON)
+  // ===============================
+  document.querySelectorAll(".edit-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.id;
+      const card = document.getElementById("match-"+id);
+
+      if(!card) return;
+
+      card.classList.add("editing");
+
+      // hide view
+      card.querySelectorAll(".score-box").forEach(el=>{
+        el.style.display = "none";
+      });
+
+      // show input
+      card.querySelectorAll(".score-input").forEach(el=>{
+        el.style.display = "block";
+      });
+    };
+  });
+
+  // ===============================
+  // SAVE
+  // ===============================
+  document.querySelectorAll(".save-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = btn.dataset.id;
+      const data = editedMatches[id];
+
+      if(!data){
+        alert("Tidak ada perubahan");
+        return;
+      }
+
+      try{
 
         await updateDoc(doc(db,"matches",id),{
           ...data,
@@ -2215,49 +2271,34 @@ async function openMatchesPage(scheduleId){
         });
 
         delete editedMatches[id];
-        await loadMatches();
-      };
-    });
 
-    document.querySelectorAll(".cancel-btn").forEach(btn=>{
-      btn.onclick = async ()=>{
-        delete editedMatches[btn.dataset.id];
         await loadMatches();
-      };
-    });
 
-    document.querySelectorAll(".delete-match-btn").forEach(btn=>{
-      btn.onclick = async ()=>{
+      }catch(err){
+        console.error(err);
+        alert("Gagal save");
+      }
+    };
+  });
+
+  // ===============================
+  // DELETE MATCH
+  // ===============================
+  document.querySelectorAll(".delete-match-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(!confirm("Hapus pertandingan ini?")) return;
+
+      try{
         await deleteDoc(doc(db,"matches",btn.dataset.id));
         await loadMatches();
-      };
-    });
+      }catch(err){
+        console.error(err);
+        alert("Gagal hapus");
+      }
+    };
+  });
 
-    // ===============================
-// CLICK SCORE → EDIT MODE
-// ===============================
-document.querySelectorAll(".score-view").forEach(el=>{
-  el.onclick = ()=>{
-    const card = el.closest(".match-card");
-    card.classList.add("editing");
-
-    const input = card.querySelector("input");
-    if(input) input.focus();
-  };
-});
-
-// ===============================
-// CANCEL
-// ===============================
-document.querySelectorAll(".cancel-btn").forEach(btn=>{
-  btn.onclick = ()=>{
-    const card = btn.closest(".match-card");
-    card.classList.remove("editing");
-    loadMatches(); // reset data
-  };
-});
-
-  }
+}
 
 // ===============================
 // RANKING (FINAL CLEAN VERSION)
