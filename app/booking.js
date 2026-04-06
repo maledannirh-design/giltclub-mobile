@@ -2262,54 +2262,58 @@ function renderRanking(){
     });
   });
 
-  // SORT
-  const ranking = Object.values(stats).sort((a,b)=>{
-    if(b.wins !== a.wins) return b.wins - a.wins;
-    return b.diff - a.diff;
+  const sorted = Object.values(stats).sort((a,b)=>{
+    if(b.wins!==a.wins) return b.wins-a.wins;
+    return b.diff-a.diff;
   });
 
   // ===============================
-  // 🔥 DENSE RANKING (TIE SYSTEM)
+  // GROUPING (🔥 CORE FIX)
   // ===============================
-  let currentRank = 0;
-  let lastWins = null;
-  let lastDiff = null;
+  const groups = [];
 
-  ranking.forEach((p,i)=>{
+  sorted.forEach(p=>{
+    const key = `${p.wins}_${p.diff}`;
 
-    if(p.wins !== lastWins || p.diff !== lastDiff){
-      currentRank++;
-      lastWins = p.wins;
-      lastDiff = p.diff;
+    let group = groups.find(g=>g.key === key);
+
+    if(!group){
+      group = {
+        key,
+        players: [],
+        wins: p.wins,
+        diff: p.diff
+      };
+      groups.push(group);
     }
 
-    p.rank = currentRank;
+    group.players.push(p);
+  });
+
+  // assign rank (dense)
+  groups.forEach((g,i)=>{
+    g.rank = i + 1;
   });
 
   // ===============================
   // RENDER
   // ===============================
-  const container=document.getElementById("rankingContainer");
+  const container = document.getElementById("rankingContainer");
 
-  container.innerHTML = ranking.map(p=>`
-    <div class="ranking-row">
+  container.innerHTML = groups.map(g=>`
+    <div class="ranking-group">
 
-      <div class="rank">#${p.rank}</div>
+      <div class="rank-title">#${g.rank}</div>
 
-      <div class="name">
-        ${playerMap[p.id]||"User"}
+      <div class="rank-names">
+        ${g.players.map(p=>`
+          <div>${playerMap[p.id] || "User"}</div>
+        `).join("")}
       </div>
 
-      <div class="stat-block">
-        <div class="stat-value">${p.wins}</div>
-        <div class="stat-label">Win</div>
-      </div>
-
-      <div class="stat-block">
-        <div class="stat-value ${p.diff>=0?'pos':'neg'}">
-          ${p.diff}
-        </div>
-        <div class="stat-label">Diff</div>
+      <div class="rank-stats">
+        <div>Win: ${g.wins}</div>
+        <div>Diff: ${g.diff}</div>
       </div>
 
     </div>
