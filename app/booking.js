@@ -2058,14 +2058,18 @@ async function openMatchesPage(scheduleId){
         </div>
 
         <div class="matches-body">
+
+          <!-- RANKING -->
           <div class="matches-tab-content active" id="tab-ranking">
             <div id="rankingContainer"></div>
           </div>
 
+          <!-- MATCHES -->
           <div class="matches-tab-content" id="tab-matches">
             <button id="addMatchBtn">+ Pertandingan</button>
             <div id="matchList"></div>
           </div>
+
         </div>
 
         <button id="closePopup" class="close-popup-btn">Tutup</button>
@@ -2074,19 +2078,25 @@ async function openMatchesPage(scheduleId){
     </div>
   `;
 
+  // ===============================
+  // CLOSE
+  // ===============================
   document.getElementById("closePopup").onclick = ()=>{
     popup.innerHTML = "";
   };
 
   // ===============================
-  // TAB
+  // TAB (FIXED)
   // ===============================
   document.querySelectorAll(".tab-btn").forEach(btn=>{
     btn.onclick = ()=>{
       document.querySelectorAll(".tab-btn").forEach(t=>t.classList.remove("active"));
       document.querySelectorAll(".matches-tab-content").forEach(c=>c.classList.remove("active"));
+
       btn.classList.add("active");
-      document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+
+      const target = document.getElementById("tab-"+btn.dataset.tab);
+      if(target) target.classList.add("active");
     };
   });
 
@@ -2096,13 +2106,19 @@ async function openMatchesPage(scheduleId){
   document.getElementById("addMatchBtn").onclick = async ()=>{
     await addDoc(collection(db,"matches"),{
       scheduleId,
-      a1:null,a2:null,b1:null,b2:null,
-      scoreA:0,scoreB:0,
+      a1:null,
+      a2:null,
+      b1:null,
+      b2:null,
+      scoreA:0,
+      scoreB:0,
       createdAt: serverTimestamp()
     });
+
     await loadMatches();
   };
 
+}
   // ===============================
   // LOAD MATCHES
   // ===============================
@@ -2376,40 +2392,36 @@ function renderRanking(){
 
   container.innerHTML = groups.map(g=>{
 
-    const rankClass =
-      g.rank === 1 ? "rank-1" :
-      g.rank === 2 ? "rank-2" :
-      g.rank === 3 ? "rank-3" : "";
+  const cls =
+    g.rank === 1 ? "m-rank-1" :
+    g.rank === 2 ? "m-rank-2" :
+    g.rank === 3 ? "m-rank-3" :
+    "m-rank-default";
 
-    const championText = g.rank === 1 ? "🏆 CHAMPION" : "";
+  return `
+    <div class="m-ranking-group ${cls}">
 
-    return `
-      <div class="ranking-group ${rankClass}">
-
-        <!-- LEFT -->
-        <div class="rank-left">
-          <div class="rank-title">#${g.rank}</div>
-          <div class="rank-names">
-            ${g.players.map(p=>playerMap[p.id] || "User").join("<br>")}
-          </div>
+      <div class="m-rank-left">
+        <div class="m-rank-title">#${g.rank}</div>
+        <div class="m-rank-names">
+          ${g.players.map(p=>playerMap[p.id] || "User").join("<br>")}
         </div>
-
-        <!-- CENTER -->
-        <div class="rank-center">
-          ${championText ? `<div class="champion">${championText}</div>` : ""}
-        </div>
-
-        <!-- RIGHT -->
-        <div class="rank-right">
-          <div>Win: ${g.wins}</div>
-          <div>Diff: ${g.diff}</div>
-        </div>
-
       </div>
-    `;
-  }).join("");
 
-}
+      <div class="m-rank-center">
+        ${g.rank === 1 ? "🏆 CHAMPION" : ""}
+      </div>
+
+      <div class="m-rank-right">
+        <div>Win: ${g.wins}</div>
+        <div class="${g.diff>=0?'m-diff-pos':'m-diff-neg'}">
+          Diff: ${g.diff}
+        </div>
+      </div>
+
+    </div>
+  `;
+}).join("");
 
   await loadMatches();
 }
