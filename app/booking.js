@@ -2682,6 +2682,8 @@ container.innerHTML = rankedGroups.map(g=>{
 
 }
 }
+}
+
 
 /* ===============================
    OPEN SCAN FOR CHECK IN
