@@ -1148,29 +1148,57 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   MATCH POPUP (CLEAN BASE)
+   MATCH SYSTEM — FINAL CLEAN PREMIUM
 ================================= */
-.popup-card.matches-popup{
+
+.matches-popup{
   background: linear-gradient(
     135deg,
-    rgba(255,255,255,0.12),
+    rgba(255,255,255,0.15),
     rgba(255,255,255,0.05)
   );
 
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 
   border-radius:20px;
-  border:1px solid rgba(255,255,255,0.1);
-  color:#fff;
+  padding:16px;
+  color:#ffffff;
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
 /* ===============================
-   TAB BUTTON (CLEAN)
+   TITLE
 ================================= */
+.matches-title{
+  text-align:center;
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:14px;
+}
+
+/* ===============================
+   TABS
+================================= */
+.matches-tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
+}
+
 .tab-btn{
-  background: rgba(255,255,255,0.08);
-  color:#bbb;
+  flex:1;
+  padding:10px;
+
+  border:none;
+  border-radius:14px;
+
+  background: rgba(255,255,255,0.12);
+  color:#ddd;
+
+  font-size:13px;
+  font-weight:600;
 }
 
 .tab-btn.active{
@@ -1179,16 +1207,42 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   MATCH CARD (FINAL)
+   TAB CONTENT
+================================= */
+.matches-tab-content{
+  display:none;
+}
+
+.matches-tab-content.active{
+  display:block;
+}
+
+/* ===============================
+   ADD MATCH BUTTON
+================================= */
+#addMatchBtn{
+  width:100%;
+  padding:12px;
+
+  border:none;
+  border-radius:14px;
+
+  background: linear-gradient(135deg,#22c55e,#15803d);
+  color:#fff;
+
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+/* ===============================
+   MATCH CARD
 ================================= */
 .match-card{
   background: linear-gradient(
     135deg,
-    rgba(255,255,255,0.10),
+    rgba(255,255,255,0.12),
     rgba(255,255,255,0.04)
   );
-
-  backdrop-filter: blur(12px);
 
   border-radius:18px;
   padding:14px;
@@ -1197,7 +1251,7 @@ body.dark .edit-session-btn{
   border:1px solid rgba(255,255,255,0.08);
 
   box-shadow:
-    0 10px 20px rgba(0,0,0,.2),
+    0 8px 20px rgba(0,0,0,.15),
     inset 0 1px 0 rgba(255,255,255,.05);
 }
 
@@ -1214,27 +1268,21 @@ body.dark .edit-session-btn{
 .match-title{
   font-size:14px;
   font-weight:600;
-  color:#e5e5e5;
+  color:#f5f5f5;
 }
 
-/* ===============================
-   DELETE BUTTON
-================================= */
+/* DELETE BUTTON */
 .delete-match-btn{
-  background: rgba(239,68,68,0.15);
-  border:none;
-  color:#ef4444;
-
-  border-radius:10px;
   width:30px;
   height:30px;
 
-  font-weight:700;
-}
+  border:none;
+  border-radius:10px;
 
-.delete-match-btn:hover{
-  background:#ef4444;
-  color:#fff;
+  background: rgba(239,68,68,0.15);
+  color:#ef4444;
+
+  font-weight:700;
 }
 
 /* ===============================
@@ -1243,13 +1291,10 @@ body.dark .edit-session-btn{
 .team-row{
   display:flex;
   align-items:center;
-  justify-content:space-between;
   gap:10px;
 }
 
-/* ===============================
-   PLAYER SELECT (FIX FONT)
-================================= */
+/* PLAYER COLUMN */
 .team-players{
   flex:1;
   display:flex;
@@ -1257,31 +1302,31 @@ body.dark .edit-session-btn{
   gap:6px;
 }
 
+/* SELECT PLAYER */
 .team-players select{
-  width:100%;
-  padding:8px 10px;
+  padding:9px 10px;
+
+  border:none;
+  border-radius:10px;
 
   font-size:13px;
   font-weight:500;
 
-  border-radius:10px;
-  border:none;
-
-  background: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.12);
   color:#fff;
 
-  backdrop-filter: blur(6px);
+  outline:none;
 }
 
 /* ===============================
-   SCORE BOX (FINAL FIX)
+   SCORE BOX (CLEAR & BOLD)
 ================================= */
 .score-box-inline{
-  flex:0 0 70px;
+  width:72px;
 }
 
 .score-box-inline input{
-  width:70px;
+  width:72px;
   height:60px;
 
   font-size:24px;
@@ -1300,23 +1345,23 @@ body.dark .edit-session-btn{
 
   color:#fff;
 
-  box-shadow:
-    0 8px 18px rgba(34,197,94,.3);
+  box-shadow: 0 6px 16px rgba(34,197,94,.3);
 }
 
 /* ===============================
-   VS
+   VS TEXT
 ================================= */
 .vs{
   text-align:center;
+  margin:10px 0;
+
   font-size:12px;
   font-weight:600;
-  margin:10px 0;
-  opacity:.5;
+  color:#bbb;
 }
 
 /* ===============================
-   MATCH ACTIONS
+   ACTION BUTTONS
 ================================= */
 .match-actions{
   display:flex;
@@ -1343,23 +1388,67 @@ body.dark .edit-session-btn{
 
 /* CANCEL */
 .cancel-btn{
-  background: rgba(255,255,255,0.08);
-  color:#aaa;
+  background: rgba(255,255,255,0.12);
+  color:#bbb;
 }
 
 /* ===============================
-   ADD MATCH BUTTON
+   RANKING LIST
 ================================= */
-#addMatchBtn{
-  width:100%;
+.ranking-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
   padding:12px;
-
   border-radius:14px;
-  border:none;
+  margin-bottom:10px;
 
-  background: linear-gradient(135deg,#22c55e,#15803d);
+  background: rgba(255,255,255,0.08);
+}
+
+.rank{
+  width:30px;
+  font-weight:700;
   color:#fff;
+}
 
+.name{
+  flex:1;
+  margin-left:10px;
+  font-weight:500;
+  color:#fff;
+}
+
+.stat-block{
+  width:60px;
+  text-align:center;
+}
+
+.stat-value{
+  font-weight:700;
+  color:#fff;
+}
+
+.stat-label{
+  font-size:10px;
+  color:#bbb;
+}
+
+/* ===============================
+   CLOSE BUTTON
+================================= */
+#closePopup{
+  width:100%;
+  margin-top:16px;
+
+  padding:14px;
+  border:none;
+  border-radius:16px;
+
+  font-size:14px;
   font-weight:600;
-  margin-bottom:12px;
+
+  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
+  color:#111;
 }
