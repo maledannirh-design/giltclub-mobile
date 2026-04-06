@@ -1163,7 +1163,7 @@ body.dark .edit-session-btn{
    CONTAINER
 ================================= */
 .matches-popup{
-  background:#f5e7e4; /* dusty pink */
+  background:#f5e7e4;
   padding:16px;
   border-radius:18px;
 }
@@ -1179,7 +1179,7 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   TAB
+   TAB (FIXED)
 ================================= */
 .matches-tabs{
   display:flex;
@@ -1202,7 +1202,7 @@ body.dark .edit-session-btn{
   color:#fff;
 }
 
-/* CONTENT */
+/* CONTENT SWITCH */
 .matches-tab-content{
   display:none;
 }
@@ -1239,10 +1239,11 @@ body.dark .edit-session-btn{
    MATCH CARD
 ================================= */
 .match-card{
-  background:#fff;
-  border-radius:16px;
-  padding:12px;
+  background:#ffffff;
+  border-radius:14px;
+  padding:14px;
   margin-bottom:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
 
 /* HEADER */
@@ -1250,16 +1251,16 @@ body.dark .edit-session-btn{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:8px;
+  margin-bottom:10px;
 }
 
 .match-title{
   font-weight:600;
+  font-size:14px;
 }
 
-/* ICON BUTTON */
-.edit-btn,
-.delete-match-btn{
+/* ACTION BUTTON */
+.match-header button{
   border:none;
   border-radius:10px;
   width:34px;
@@ -1288,18 +1289,19 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   TEAM ROW
+   TEAM ROW (FIX ALIGN)
 ================================= */
 .team-row{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  margin-bottom:6px;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
 }
 
-/* NAME */
+/* NAME AREA (🔥 LEBIH BESAR) */
 .team-players{
-  flex:4;
+  flex:1;
   font-size:14px;
   font-weight:500;
   line-height:1.4;
@@ -1315,28 +1317,31 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   SCORE (KOTAK KECIL KANAN)
+   SCORE (FIX — TIDAK MELEBAR)
 ================================= */
 .score-box{
-  width:44px;
-  height:44px;
+  width:48px;
+  height:48px;
   background:#e5e7eb;
   border-radius:12px;
   display:flex;
   align-items:center;
   justify-content:center;
   font-weight:700;
-  font-size:16px;
+  font-size:18px;
+  flex-shrink:0; /* 🔥 penting */
 }
 
 /* INPUT */
 .score-input{
-  width:44px;
-  height:44px;
+  width:48px;
+  height:48px;
   border-radius:12px;
   border:1px solid #d1d5db;
   text-align:center;
   font-weight:700;
+  font-size:18px;
+  flex-shrink:0;
 }
 
 /* EDIT MODE */
@@ -1393,34 +1398,36 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   RANKING (AMAN — TIDAK BENTROK)
+   RANKING (FIX TOTAL)
 ================================= */
 .m-ranking-group{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  background:#fff;
-  padding:12px;
+  padding:14px;
   border-radius:14px;
   margin-bottom:10px;
+  background:#fff;
 }
 
 /* LEFT */
 .m-rank-left{
-  flex:3;
+  flex:2;
 }
 
 .m-rank-title{
   font-weight:700;
+  font-size:16px;
 }
 
 .m-rank-names{
   font-size:14px;
+  font-weight:600;
 }
 
 /* CENTER */
 .m-rank-center{
-  flex:2;
+  flex:1;
   text-align:center;
   font-weight:700;
 }
@@ -1433,9 +1440,9 @@ body.dark .edit-session-btn{
   font-weight:600;
 }
 
-/* TOP 3 */
+/* TOP 3 (CLEAN) */
 .m-rank-1{
-  background:#22c55e;
+  background:linear-gradient(135deg,#22c55e,#4ade80);
   color:#fff;
 }
 
@@ -1451,7 +1458,7 @@ body.dark .edit-session-btn{
   background:#fff;
 }
 
-/* DIFF */
+/* DIFF COLOR */
 .m-diff-pos{
   color:#2563eb;
 }
