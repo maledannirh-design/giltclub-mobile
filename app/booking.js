@@ -2516,7 +2516,7 @@ async function loadMatches(){
     console.error("Load matches error:", err);
   }
 }
-}
+
 
 // ===============================
 // SAVE SCORE
