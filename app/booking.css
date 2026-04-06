@@ -1298,11 +1298,12 @@ body.dark .edit-session-btn{
    PLAYER (DOMINANT AREA)
 ================================= */
 .team-players{
-  flex:2.4; /* 🔥 lebih panjang */
+  flex:3.2; /* 🔥 lebih panjang */
   display:flex;
   flex-direction:column;
   gap:8px;
 }
+
 
 /* SELECT PLAYER */
 .team-players select{
@@ -1321,20 +1322,24 @@ body.dark .edit-session-btn{
 /* ===============================
    SCORE BOX (COMPACT & CLEAN)
 ================================= */
+/* ===============================
+   SCORE FINAL FIX
+================================= */
 .score-box-inline{
-  flex:0.8; /* 🔥 kecilkan width */
+  flex:0.6; /* 🔥 dipotong (lebih kecil dari sebelumnya) */
+  max-width:60px; /* 🔥 limit lebar */
   display:flex;
 }
 
-/* SCORE INPUT */
+/* INPUT */
 .score-box-inline input{
   width:100%;
   height:100%;
 
-  /* 🔥 SIZE FIX */
-  min-height:74px;
+  min-height:70px;
 
-  font-size:28px; /* 🔥 BESAR */
+  /* 🔥 INI KUNCI UTAMA */
+  font-size:clamp(28px, 6vw, 40px); 
   font-weight:800;
 
   border-radius:14px;
@@ -1354,11 +1359,8 @@ body.dark .edit-session-btn{
   align-items:center;
   justify-content:center;
 
-  /* 🔥 biar gak gepeng */
-  aspect-ratio: 1 / 1;
-
-  box-shadow:
-    0 8px 20px rgba(34,197,94,.35);
+  /* 🔥 biar angka dominan (80%) */
+  line-height:1;
 }
 
 /* ===============================
@@ -1570,4 +1572,79 @@ body.light .ranking-group{
   font-size:14px;
   font-weight:800;
   letter-spacing:1px;
+}
+
+/* ===============================
+   LIGHT MODE FIX (CRITICAL)
+================================= */
+body.light .match-card{
+  background: rgba(255,255,255,0.85);
+  color:#111;
+}
+
+body.light .team-players select{
+  background:#f1f5f9;
+  color:#111;
+}
+
+body.light .match-title{
+  color:#111;
+}
+
+body.light .vs{
+  color:#555;
+}
+
+/* score tetap hijau biar kontras */
+body.light .score-box-inline input{
+  color:#fff;
+}
+
+.matches-title{
+  font-size:20px;
+  font-weight:700;
+  color:#111;
+}
+
+body.dark .matches-title{
+  color:#fff;
+}
+
+/* ===============================
+   LIGHT MODE - RANK 4+ FIX
+================================= */
+body.light .ranking-group{
+  background: rgba(0,0,0,0.05); /* 🔥 ganti dari putih ke abu tipis */
+  color:#111;
+}
+
+/* TEXT */
+body.light .rank-title{
+  color:#111;
+}
+
+body.light .rank-names{
+  color:#111;
+}
+
+body.light .rank-right{
+  color:#111;
+}
+
+/* ===============================
+   RANK 1–3 (BIAR TETAP KONTRAS)
+================================= */
+body.light .rank-1{
+  background: linear-gradient(135deg,#22c55e,#4ade80);
+  color:#fff;
+}
+
+body.light .rank-2{
+  background: linear-gradient(135deg,#9ca3af,#d1d5db);
+  color:#111;
+}
+
+body.light .rank-3{
+  background: linear-gradient(135deg,#f59e0b,#fcd34d);
+  color:#111;
 }
