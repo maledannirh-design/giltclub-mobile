@@ -1888,180 +1888,6 @@ async function autoCloseFinishedSessions() {
   }
 }
 
-/* ===============================
-   OPEN SCAN FOR CHECK IN
-================================= */
-window.openScanForCheckIn = function(scheduleId) {
-
-  const existing = document.getElementById("scanOverlay");
-  if (existing) existing.remove();
-
-  const overlay = document.createElement("div");
-  overlay.id = "scanOverlay";
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100vw";
-  overlay.style.height = "100vh";
-  overlay.style.background = "#000";
-  overlay.style.zIndex = "9999";
-  overlay.innerHTML = `
-    <div style="position:absolute;top:20px;left:20px;z-index:10001;">
-      <button id="closeScanBtn" style="
-        background:#fff;
-        border:none;
-        padding:10px 15px;
-        border-radius:8px;
-        font-weight:bold;
-      ">Tutup</button>
-    </div>
-    <div id="qr-reader" style="width:100%;height:100%;"></div>
-  `;
-
-  document.body.appendChild(overlay);
-
-  const html5QrCode = new Html5Qrcode("qr-reader");
-
-  const config = {
-    fps: 10,
-    qrbox: { width: 250, height: 250 }
-  };
-
-  html5QrCode.start(
-    { facingMode: "environment" },
-    config,
-    async (decodedText) => {
-
-      try {
-
-        const url = new URL(decodedText);
-        const memberCode = url.searchParams.get("c");
-        const issue = url.searchParams.get("i");
-        const signature = url.searchParams.get("s");
-
-        const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (!userSnap.exists()) {
-          showToast("User tidak ditemukan","error");
-          return;
-        }
-
-        const currentUserData = {
-          uid: auth.currentUser.uid,
-          ...userSnap.data()
-        };
-
-        const result = await window.processCheckIn(
-          memberCode,
-          issue,
-          signature,
-          scheduleId,
-          currentUserData
-        );
-
-        if (result.valid) {
-          showToast("Check-in berhasil","success");
-        } else {
-          showToast(result.reason || "Check-in gagal","error");
-        }
-
-      } catch (err) {
-        showToast("QR tidak valid","error");
-      }
-
-      await html5QrCode.stop();
-      overlay.remove();
-      renderBooking();
-
-    },
-    () => {}
-  );
-
-  document.getElementById("closeScanBtn").onclick = async () => {
-    await html5QrCode.stop();
-    overlay.remove();
-  };
-};
-
-window.openRacketSelector = function(scheduleData){
-
-  return new Promise((resolve)=>{
-
-    const existing = document.getElementById("racketModalOverlay");
-    if(existing) existing.remove();
-
-    const overlay = document.createElement("div");
-    overlay.id = "racketModalOverlay";
-    overlay.className = "racket-modal-overlay";
-
-    const maxStock = scheduleData.racketStock || 0;
-    const racketPrice = scheduleData.racketPrice || 0;
-
-    // 🔥 HITUNG DURASI SAMA PERSIS SEPERTI ENGINE
-    let basePrice = 0;
-
-    if(scheduleData.startTime && scheduleData.endTime){
-
-      const [startH,startM] = scheduleData.startTime.split(":").map(Number);
-      const [endH,endM] = scheduleData.endTime.split(":").map(Number);
-
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-      const totalMinutes = endMinutes - startMinutes;
-
-      const billedHours = Math.ceil(totalMinutes / 60);
-      basePrice = billedHours * (scheduleData.pricePerHour || 0);
-    }
-
-    overlay.innerHTML = `
-      <div class="racket-modal">
-        <h3>Jumlah Raket Disewa</h3>
-
-        <select id="racketQtySelect" class="racket-select">
-          ${Array.from({length:maxStock+1},(_,i)=>{
-            return `<option value="${i}" ${i===0?"selected":""}>${i} Raket</option>`
-          }).join("")}
-        </select>
-
-        <div id="racketTotalPreview" class="racket-total-preview">
-          Total: Rp ${basePrice.toLocaleString("id-ID")}
-        </div>
-
-        <button class="racket-confirm-btn">Lanjutkan</button>
-        <button class="racket-cancel-btn">Batal</button>
-      </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    const select = overlay.querySelector("#racketQtySelect");
-    const preview = overlay.querySelector("#racketTotalPreview");
-
-    function updateTotal(){
-      const qty = parseInt(select.value,10) || 0;
-      const total = basePrice + (qty * racketPrice);
-      preview.innerText = `Total: Rp ${total.toLocaleString("id-ID")}`;
-    }
-
-    select.onchange = updateTotal;
-
-    // 🔥 FORCE INITIAL ZERO
-    select.value = "0";
-    updateTotal();
-
-    overlay.querySelector(".racket-confirm-btn").onclick = ()=>{
-      const qty = parseInt(select.value,10) || 0;
-      overlay.remove();
-      resolve(qty);
-    };
-
-    overlay.querySelector(".racket-cancel-btn").onclick = ()=>{
-      overlay.remove();
-      resolve(null);
-    };
-
-  });
-
-};
 
 function openSportForm(sportType){
 
@@ -2802,4 +2628,180 @@ container.innerHTML = rankedGroups.map(g=>{
 }).join("");
 
 }
-}
+
+
+
+/* ===============================
+   OPEN SCAN FOR CHECK IN
+================================= */
+window.openScanForCheckIn = function(scheduleId) {
+
+  const existing = document.getElementById("scanOverlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "scanOverlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100vw";
+  overlay.style.height = "100vh";
+  overlay.style.background = "#000";
+  overlay.style.zIndex = "9999";
+  overlay.innerHTML = `
+    <div style="position:absolute;top:20px;left:20px;z-index:10001;">
+      <button id="closeScanBtn" style="
+        background:#fff;
+        border:none;
+        padding:10px 15px;
+        border-radius:8px;
+        font-weight:bold;
+      ">Tutup</button>
+    </div>
+    <div id="qr-reader" style="width:100%;height:100%;"></div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const html5QrCode = new Html5Qrcode("qr-reader");
+
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 }
+  };
+
+  html5QrCode.start(
+    { facingMode: "environment" },
+    config,
+    async (decodedText) => {
+
+      try {
+
+        const url = new URL(decodedText);
+        const memberCode = url.searchParams.get("c");
+        const issue = url.searchParams.get("i");
+        const signature = url.searchParams.get("s");
+
+        const userSnap = await getDoc(doc(db, "users", auth.currentUser.uid));
+        if (!userSnap.exists()) {
+          showToast("User tidak ditemukan","error");
+          return;
+        }
+
+        const currentUserData = {
+          uid: auth.currentUser.uid,
+          ...userSnap.data()
+        };
+
+        const result = await window.processCheckIn(
+          memberCode,
+          issue,
+          signature,
+          scheduleId,
+          currentUserData
+        );
+
+        if (result.valid) {
+          showToast("Check-in berhasil","success");
+        } else {
+          showToast(result.reason || "Check-in gagal","error");
+        }
+
+      } catch (err) {
+        showToast("QR tidak valid","error");
+      }
+
+      await html5QrCode.stop();
+      overlay.remove();
+      renderBooking();
+
+    },
+    () => {}
+  );
+
+  document.getElementById("closeScanBtn").onclick = async () => {
+    await html5QrCode.stop();
+    overlay.remove();
+  };
+};
+
+window.openRacketSelector = function(scheduleData){
+
+  return new Promise((resolve)=>{
+
+    const existing = document.getElementById("racketModalOverlay");
+    if(existing) existing.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "racketModalOverlay";
+    overlay.className = "racket-modal-overlay";
+
+    const maxStock = scheduleData.racketStock || 0;
+    const racketPrice = scheduleData.racketPrice || 0;
+
+    // 🔥 HITUNG DURASI SAMA PERSIS SEPERTI ENGINE
+    let basePrice = 0;
+
+    if(scheduleData.startTime && scheduleData.endTime){
+
+      const [startH,startM] = scheduleData.startTime.split(":").map(Number);
+      const [endH,endM] = scheduleData.endTime.split(":").map(Number);
+
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      const totalMinutes = endMinutes - startMinutes;
+
+      const billedHours = Math.ceil(totalMinutes / 60);
+      basePrice = billedHours * (scheduleData.pricePerHour || 0);
+    }
+
+    overlay.innerHTML = `
+      <div class="racket-modal">
+        <h3>Jumlah Raket Disewa</h3>
+
+        <select id="racketQtySelect" class="racket-select">
+          ${Array.from({length:maxStock+1},(_,i)=>{
+            return `<option value="${i}" ${i===0?"selected":""}>${i} Raket</option>`
+          }).join("")}
+        </select>
+
+        <div id="racketTotalPreview" class="racket-total-preview">
+          Total: Rp ${basePrice.toLocaleString("id-ID")}
+        </div>
+
+        <button class="racket-confirm-btn">Lanjutkan</button>
+        <button class="racket-cancel-btn">Batal</button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const select = overlay.querySelector("#racketQtySelect");
+    const preview = overlay.querySelector("#racketTotalPreview");
+
+    function updateTotal(){
+      const qty = parseInt(select.value,10) || 0;
+      const total = basePrice + (qty * racketPrice);
+      preview.innerText = `Total: Rp ${total.toLocaleString("id-ID")}`;
+    }
+
+    select.onchange = updateTotal;
+
+    // 🔥 FORCE INITIAL ZERO
+    select.value = "0";
+    updateTotal();
+
+    overlay.querySelector(".racket-confirm-btn").onclick = ()=>{
+      const qty = parseInt(select.value,10) || 0;
+      overlay.remove();
+      resolve(qty);
+    };
+
+    overlay.querySelector(".racket-cancel-btn").onclick = ()=>{
+      overlay.remove();
+      resolve(null);
+    };
+
+  });
+
+};
