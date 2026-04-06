@@ -2301,115 +2301,6 @@ function attachEvents(){
   });
 
 }
-// ===============================
-// RANKING (FINAL CLEAN VERSION)
-// ===============================
-function renderRanking(){
-
-  const stats = {};
-
-  // ===============================
-  // CALCULATE STATS
-  // ===============================
-  matches.forEach(m=>{
-    const teamA = [m.a1,m.a2].filter(Boolean);
-    const teamB = [m.b1,m.b2].filter(Boolean);
-
-    if(!teamA.length || !teamB.length) return;
-
-    const diff = (m.scoreA||0) - (m.scoreB||0);
-
-    teamA.forEach(id=>{
-      if(!stats[id]) stats[id] = {id, wins:0, diff:0};
-      stats[id].diff += diff;
-      if(diff > 0) stats[id].wins++;
-    });
-
-    teamB.forEach(id=>{
-      if(!stats[id]) stats[id] = {id, wins:0, diff:0};
-      stats[id].diff -= diff;
-      if(diff < 0) stats[id].wins++;
-    });
-  });
-
-  // ===============================
-  // SORT
-  // ===============================
-  const sorted = Object.values(stats).sort((a,b)=>{
-    if(b.wins !== a.wins) return b.wins - a.wins;
-    return b.diff - a.diff;
-  });
-
-  // ===============================
-  // GROUPING (TIE SYSTEM)
-  // ===============================
-  const groups = [];
-
-  sorted.forEach(p=>{
-    const key = `${p.wins}_${p.diff}`;
-
-    let group = groups.find(g => g.key === key);
-
-    if(!group){
-      group = {
-        key,
-        players: [],
-        wins: p.wins,
-        diff: p.diff
-      };
-      groups.push(group);
-    }
-
-    group.players.push(p);
-  });
-
-  // ===============================
-  // ASSIGN RANK (DENSE)
-  // ===============================
-  groups.forEach((g,i)=>{
-    g.rank = i + 1;
-  });
-
-  // ===============================
-  // RENDER
-  // ===============================
-  const container = document.getElementById("rankingContainer");
-
-  container.innerHTML = groups.map(g=>{
-
-  const cls =
-    g.rank === 1 ? "m-rank-1" :
-    g.rank === 2 ? "m-rank-2" :
-    g.rank === 3 ? "m-rank-3" :
-    "m-rank-default";
-
-  return `
-    <div class="m-ranking-group ${cls}">
-
-      <div class="m-rank-left">
-        <div class="m-rank-title">#${g.rank}</div>
-        <div class="m-rank-names">
-          ${g.players.map(p=>playerMap[p.id] || "User").join("<br>")}
-        </div>
-      </div>
-
-      <div class="m-rank-center">
-        ${g.rank === 1 ? "🏆 CHAMPION" : ""}
-      </div>
-
-      <div class="m-rank-right">
-        <div>Win: ${g.wins}</div>
-        <div class="${g.diff>=0?'m-diff-pos':'m-diff-neg'}">
-          Diff: ${g.diff}
-        </div>
-      </div>
-
-    </div>
-  `;
-}).join("");
-
-  await loadMatches();
-}
 
 // ===============================
 // RENDER MATCH (FINAL FIXED)
@@ -2648,7 +2539,6 @@ function attachEvents(){
       await loadMatches();
     };
   });
-
 }
 
 // ===============================
