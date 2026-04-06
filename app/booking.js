@@ -2118,8 +2118,6 @@ async function openMatchesPage(scheduleId){
     await loadMatches();
   };
 
-}
-
   // ===============================
   // RENDER MATCH
   // ===============================
@@ -2199,7 +2197,7 @@ async function openMatchesPage(scheduleId){
     `;
   }
 
- // ===============================
+// ===============================
 // EVENTS (FINAL CLEAN - NO DUPLICATE)
 // ===============================
 function attachEvents(){
@@ -2301,9 +2299,8 @@ function attachEvents(){
       }
     };
   });
-}
-}
 
+}
 // ===============================
 // RANKING (FINAL CLEAN VERSION)
 // ===============================
@@ -2519,6 +2516,7 @@ async function loadMatches(){
     console.error("Load matches error:", err);
   }
 }
+}
 
 // ===============================
 // SAVE SCORE
@@ -2540,7 +2538,7 @@ async function saveScore(matchId, newScore){
     console.error(err);
     alert("Gagal save score");
   }
-}
+
   
   // ===============================
   // SELECT PLAYER
@@ -2792,6 +2790,7 @@ container.innerHTML = rankedGroups.map(g=>{
 
 }).join("");
 
+}
 }
 
 /* ===============================
