@@ -2179,7 +2179,7 @@ async function openMatchesPage(scheduleId){
   `).join("");
 
   attachEvents();
-}
+
 
   // ===============================
   // SELECT
@@ -2299,7 +2299,6 @@ function attachEvents(){
       }
     };
   });
-
 }
 
 // ===============================
@@ -2379,8 +2378,6 @@ function renderMatches(){
   `).join("");
 
   attachEvents();
-}
-
 // ===============================
 // LOAD MATCHES (MANUAL - NO REALTIME)
 // ===============================
@@ -2429,7 +2426,7 @@ async function saveScore(matchId, newScore){
     console.error(err);
     alert("Gagal save score");
   }
-
+}
   
   // ===============================
   // SELECT PLAYER
@@ -2681,7 +2678,7 @@ container.innerHTML = rankedGroups.map(g=>{
 }).join("");
 
 }
-}
+
 }
 
 
