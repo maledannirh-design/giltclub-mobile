@@ -2235,49 +2235,86 @@ async function openMatchesPage(scheduleId){
 
   }
 
-  // ===============================
-  // RANKING
-  // ===============================
-  function renderRanking(){
+ // ===============================
+// RANKING (WITH TIE LOGIC)
+// ===============================
+function renderRanking(){
 
-    const stats = {};
+  const stats = {};
 
-    matches.forEach(m=>{
-      const teamA=[m.a1,m.a2].filter(Boolean);
-      const teamB=[m.b1,m.b2].filter(Boolean);
-      if(!teamA.length||!teamB.length) return;
+  matches.forEach(m=>{
+    const teamA=[m.a1,m.a2].filter(Boolean);
+    const teamB=[m.b1,m.b2].filter(Boolean);
+    if(!teamA.length||!teamB.length) return;
 
-      const diff=(m.scoreA||0)-(m.scoreB||0);
+    const diff=(m.scoreA||0)-(m.scoreB||0);
 
-      teamA.forEach(id=>{
-        if(!stats[id]) stats[id]={id,wins:0,diff:0};
-        stats[id].diff+=diff;
-        if(diff>0) stats[id].wins++;
-      });
-
-      teamB.forEach(id=>{
-        if(!stats[id]) stats[id]={id,wins:0,diff:0};
-        stats[id].diff-=diff;
-        if(diff<0) stats[id].wins++;
-      });
+    teamA.forEach(id=>{
+      if(!stats[id]) stats[id]={id,wins:0,diff:0};
+      stats[id].diff+=diff;
+      if(diff>0) stats[id].wins++;
     });
 
-    const ranking = Object.values(stats).sort((a,b)=>{
-      if(b.wins!==a.wins) return b.wins-a.wins;
-      return b.diff-a.diff;
+    teamB.forEach(id=>{
+      if(!stats[id]) stats[id]={id,wins:0,diff:0};
+      stats[id].diff-=diff;
+      if(diff<0) stats[id].wins++;
     });
+  });
 
-    const container=document.getElementById("rankingContainer");
+  // SORT
+  const ranking = Object.values(stats).sort((a,b)=>{
+    if(b.wins !== a.wins) return b.wins - a.wins;
+    return b.diff - a.diff;
+  });
 
-    container.innerHTML = ranking.map((p,i)=>`
-      <div class="ranking-card">
-        <div>#${i+1}</div>
-        <div>${playerMap[p.id]||"User"}</div>
-        <div>Win: ${p.wins}</div>
-        <div>Diff: ${p.diff}</div>
+  // ===============================
+  // 🔥 DENSE RANKING (TIE SYSTEM)
+  // ===============================
+  let currentRank = 0;
+  let lastWins = null;
+  let lastDiff = null;
+
+  ranking.forEach((p,i)=>{
+
+    if(p.wins !== lastWins || p.diff !== lastDiff){
+      currentRank++;
+      lastWins = p.wins;
+      lastDiff = p.diff;
+    }
+
+    p.rank = currentRank;
+  });
+
+  // ===============================
+  // RENDER
+  // ===============================
+  const container=document.getElementById("rankingContainer");
+
+  container.innerHTML = ranking.map(p=>`
+    <div class="ranking-row">
+
+      <div class="rank">#${p.rank}</div>
+
+      <div class="name">
+        ${playerMap[p.id]||"User"}
       </div>
-    `).join("");
-  }
+
+      <div class="stat-block">
+        <div class="stat-value">${p.wins}</div>
+        <div class="stat-label">Win</div>
+      </div>
+
+      <div class="stat-block">
+        <div class="stat-value ${p.diff>=0?'pos':'neg'}">
+          ${p.diff}
+        </div>
+        <div class="stat-label">Diff</div>
+      </div>
+
+    </div>
+  `).join("");
+}
 
   await loadMatches();
 }
