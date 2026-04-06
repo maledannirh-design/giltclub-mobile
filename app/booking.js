@@ -2118,69 +2118,7 @@ async function openMatchesPage(scheduleId){
     await loadMatches();
   };
 
-  // ===============================
-  // RENDER MATCH
-  // ===============================
- function renderMatches(){
-
-  const list = document.getElementById("matchList");
-
-  list.innerHTML = matches.map((m,i)=>`
-
-    <div class="match-card" id="match-${m.id}">
-
-      <div class="match-header">
-        <div class="match-title">Pertandingan ${i+1}</div>
-
-        <div style="display:flex; gap:6px;">
-          <button class="edit-btn" data-id="${m.id}">✏️</button>
-          <button class="delete-match-btn" data-id="${m.id}">🗑</button>
-        </div>
-      </div>
-
-      <div class="team-row">
-        <div class="team-players">
-          ${playerMap[m.a1] || "-"} <br>
-          ${playerMap[m.a2] || "-"}
-        </div>
-
-        <div class="score-box" data-id="${m.id}" data-side="A">
-          ${m.scoreA || 0}
-        </div>
-
-        <input class="score-input"
-          data-id="${m.id}" data-side="A"
-          value="${m.scoreA || 0}"
-          style="display:none;">
-      </div>
-
-      <div class="team-row">
-        <div class="team-players">
-          ${playerMap[m.b1] || "-"} <br>
-          ${playerMap[m.b2] || "-"}
-        </div>
-
-        <div class="score-box" data-id="${m.id}" data-side="B">
-          ${m.scoreB || 0}
-        </div>
-
-        <input class="score-input"
-          data-id="${m.id}" data-side="B"
-          value="${m.scoreB || 0}"
-          style="display:none;">
-      </div>
-
-      <div class="match-actions">
-        <button class="save-btn" data-id="${m.id}">Save</button>
-      </div>
-
-    </div>
-
-  `).join("");
-
-  attachEvents();
-
-
+ 
   // ===============================
   // SELECT
   // ===============================
@@ -2378,6 +2316,7 @@ function renderMatches(){
   `).join("");
 
   attachEvents();
+  } // ✅ WAJIB ADA INI
 // ===============================
 // LOAD MATCHES (MANUAL - NO REALTIME)
 // ===============================
