@@ -2300,25 +2300,40 @@ function renderRanking(){
   // ===============================
   const container = document.getElementById("rankingContainer");
 
-  container.innerHTML = groups.map(g=>`
-    <div class="ranking-group">
+  container.innerHTML = groups.map(g=>{
 
-      <div class="rank-title">#${g.rank}</div>
+  const rankClass =
+    g.rank === 1 ? "rank-1" :
+    g.rank === 2 ? "rank-2" :
+    g.rank === 3 ? "rank-3" : "";
 
-      <div class="rank-names">
-        ${g.players.map(p=>`
-          <div>${playerMap[p.id] || "User"}</div>
-        `).join("")}
+  const championText = g.rank === 1 ? "🏆 CHAMPION" : "";
+
+  return `
+    <div class="ranking-group ${rankClass}">
+
+      <!-- LEFT -->
+      <div class="rank-left">
+        <div class="rank-title">#${g.rank}</div>
+        <div class="rank-names">
+          ${g.players.map(p=>playerMap[p.id] || "User").join("<br>")}
+        </div>
       </div>
 
-      <div class="rank-stats">
+      <!-- CENTER -->
+      <div class="rank-center">
+        ${championText ? `<div class="champion">${championText}</div>` : ""}
+      </div>
+
+      <!-- RIGHT -->
+      <div class="rank-right">
         <div>Win: ${g.wins}</div>
         <div>Diff: ${g.diff}</div>
       </div>
 
     </div>
-  `).join("");
-}
+  `;
+}).join("");
 
   await loadMatches();
 }
