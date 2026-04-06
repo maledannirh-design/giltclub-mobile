@@ -2235,47 +2235,54 @@ async function openMatchesPage(scheduleId){
 
   }
 
- // ===============================
-// RANKING (WITH TIE LOGIC)
+// ===============================
+// RANKING (FINAL CLEAN VERSION)
 // ===============================
 function renderRanking(){
 
   const stats = {};
 
+  // ===============================
+  // CALCULATE STATS
+  // ===============================
   matches.forEach(m=>{
-    const teamA=[m.a1,m.a2].filter(Boolean);
-    const teamB=[m.b1,m.b2].filter(Boolean);
-    if(!teamA.length||!teamB.length) return;
+    const teamA = [m.a1,m.a2].filter(Boolean);
+    const teamB = [m.b1,m.b2].filter(Boolean);
 
-    const diff=(m.scoreA||0)-(m.scoreB||0);
+    if(!teamA.length || !teamB.length) return;
+
+    const diff = (m.scoreA||0) - (m.scoreB||0);
 
     teamA.forEach(id=>{
-      if(!stats[id]) stats[id]={id,wins:0,diff:0};
-      stats[id].diff+=diff;
-      if(diff>0) stats[id].wins++;
+      if(!stats[id]) stats[id] = {id, wins:0, diff:0};
+      stats[id].diff += diff;
+      if(diff > 0) stats[id].wins++;
     });
 
     teamB.forEach(id=>{
-      if(!stats[id]) stats[id]={id,wins:0,diff:0};
-      stats[id].diff-=diff;
-      if(diff<0) stats[id].wins++;
+      if(!stats[id]) stats[id] = {id, wins:0, diff:0};
+      stats[id].diff -= diff;
+      if(diff < 0) stats[id].wins++;
     });
   });
 
+  // ===============================
+  // SORT
+  // ===============================
   const sorted = Object.values(stats).sort((a,b)=>{
-    if(b.wins!==a.wins) return b.wins-a.wins;
-    return b.diff-a.diff;
+    if(b.wins !== a.wins) return b.wins - a.wins;
+    return b.diff - a.diff;
   });
 
   // ===============================
-  // GROUPING (🔥 CORE FIX)
+  // GROUPING (TIE SYSTEM)
   // ===============================
   const groups = [];
 
   sorted.forEach(p=>{
     const key = `${p.wins}_${p.diff}`;
 
-    let group = groups.find(g=>g.key === key);
+    let group = groups.find(g => g.key === key);
 
     if(!group){
       group = {
@@ -2290,7 +2297,9 @@ function renderRanking(){
     group.players.push(p);
   });
 
-  // assign rank (dense)
+  // ===============================
+  // ASSIGN RANK (DENSE)
+  // ===============================
   groups.forEach((g,i)=>{
     g.rank = i + 1;
   });
@@ -2302,38 +2311,40 @@ function renderRanking(){
 
   container.innerHTML = groups.map(g=>{
 
-  const rankClass =
-    g.rank === 1 ? "rank-1" :
-    g.rank === 2 ? "rank-2" :
-    g.rank === 3 ? "rank-3" : "";
+    const rankClass =
+      g.rank === 1 ? "rank-1" :
+      g.rank === 2 ? "rank-2" :
+      g.rank === 3 ? "rank-3" : "";
 
-  const championText = g.rank === 1 ? "🏆 CHAMPION" : "";
+    const championText = g.rank === 1 ? "🏆 CHAMPION" : "";
 
-  return `
-    <div class="ranking-group ${rankClass}">
+    return `
+      <div class="ranking-group ${rankClass}">
 
-      <!-- LEFT -->
-      <div class="rank-left">
-        <div class="rank-title">#${g.rank}</div>
-        <div class="rank-names">
-          ${g.players.map(p=>playerMap[p.id] || "User").join("<br>")}
+        <!-- LEFT -->
+        <div class="rank-left">
+          <div class="rank-title">#${g.rank}</div>
+          <div class="rank-names">
+            ${g.players.map(p=>playerMap[p.id] || "User").join("<br>")}
+          </div>
         </div>
-      </div>
 
-      <!-- CENTER -->
-      <div class="rank-center">
-        ${championText ? `<div class="champion">${championText}</div>` : ""}
-      </div>
+        <!-- CENTER -->
+        <div class="rank-center">
+          ${championText ? `<div class="champion">${championText}</div>` : ""}
+        </div>
 
-      <!-- RIGHT -->
-      <div class="rank-right">
-        <div>Win: ${g.wins}</div>
-        <div>Diff: ${g.diff}</div>
-      </div>
+        <!-- RIGHT -->
+        <div class="rank-right">
+          <div>Win: ${g.wins}</div>
+          <div>Diff: ${g.diff}</div>
+        </div>
 
-    </div>
-  `;
-}).join("");
+      </div>
+    `;
+  }).join("");
+
+}
 
   await loadMatches();
 }
