@@ -2233,6 +2233,30 @@ async function openMatchesPage(scheduleId){
       };
     });
 
+    // ===============================
+// CLICK SCORE → EDIT MODE
+// ===============================
+document.querySelectorAll(".score-view").forEach(el=>{
+  el.onclick = ()=>{
+    const card = el.closest(".match-card");
+    card.classList.add("editing");
+
+    const input = card.querySelector("input");
+    if(input) input.focus();
+  };
+});
+
+// ===============================
+// CANCEL
+// ===============================
+document.querySelectorAll(".cancel-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    const card = btn.closest(".match-card");
+    card.classList.remove("editing");
+    loadMatches(); // reset data
+  };
+});
+
   }
 
 // ===============================
@@ -2348,56 +2372,85 @@ function renderRanking(){
 
   await loadMatches();
 }
-  // ===============================
-  // RENDER MATCH
-  // ===============================
-  function renderMatches(){
 
-    const list = document.getElementById("matchList");
+// ===============================
+// RENDER MATCH (FINAL FIXED)
+// ===============================
+function renderMatches(){
 
-    list.innerHTML = matches.map((m,i)=>`
+  const list = document.getElementById("matchList");
 
-      <div class="match-card">
+  list.innerHTML = matches.map((m,i)=>`
 
-        <div class="match-header">
-          <div class="match-title">Pertandingan ${i+1}</div>
-          <button class="delete-match-btn" data-id="${m.id}">✕</button>
+    <div class="match-card" id="match-${m.id}">
+
+      <div class="match-header">
+        <div class="match-title">Pertandingan ${i+1}</div>
+        <button class="delete-match-btn" data-id="${m.id}">✕</button>
+      </div>
+
+      <!-- TEAM A -->
+      <div class="team-row">
+
+        <div class="team-players">
+          ${renderSelect(m.id,"a1",m.a1)}
+          ${renderSelect(m.id,"a2",m.a2)}
         </div>
 
-        <div class="team-row">
-
-          <div class="team-players">
-            ${renderSelect(m.id,"a1",m.a1)}
-            ${renderSelect(m.id,"a2",m.a2)}
+        <div class="score-box-inline">
+          <div class="score-view" data-id="${m.id}" data-side="A">
+            ${m.scoreA || 0}
           </div>
-
-          <div class="score-box-inline">
-            <input type="number" value="${m.scoreA || 0}" data-id="${m.id}" data-side="A">
-          </div>
-
-        </div>
-
-        <div class="vs">VS</div>
-
-        <div class="team-row">
-
-          <div class="team-players">
-            ${renderSelect(m.id,"b1",m.b1)}
-            ${renderSelect(m.id,"b2",m.b2)}
-          </div>
-
-          <div class="score-box-inline">
-            <input type="number" value="${m.scoreB || 0}" data-id="${m.id}" data-side="B">
-          </div>
-
+          <input 
+            type="number" 
+            value="${m.scoreA || 0}" 
+            data-id="${m.id}" 
+            data-side="A"
+            class="score-input"
+            style="display:none;"
+          >
         </div>
 
       </div>
 
-    `).join("");
+      <div class="vs">VS</div>
 
-    attachEvents();
-  }
+      <!-- TEAM B -->
+      <div class="team-row">
+
+        <div class="team-players">
+          ${renderSelect(m.id,"b1",m.b1)}
+          ${renderSelect(m.id,"b2",m.b2)}
+        </div>
+
+        <div class="score-box-inline">
+          <div class="score-view" data-id="${m.id}" data-side="B">
+            ${m.scoreB || 0}
+          </div>
+          <input 
+            type="number" 
+            value="${m.scoreB || 0}" 
+            data-id="${m.id}" 
+            data-side="B"
+            class="score-input"
+            style="display:none;"
+          >
+        </div>
+
+      </div>
+
+      <!-- ACTION -->
+      <div class="match-actions">
+        <button class="save-btn" data-id="${m.id}">Save</button>
+        <button class="cancel-btn" data-id="${m.id}">Cancel</button>
+      </div>
+
+    </div>
+
+  `).join("");
+
+  attachEvents();
+}
   
 // ===============================
 // LOAD MATCHES (MANUAL - NO REALTIME)
