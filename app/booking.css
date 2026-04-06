@@ -1147,180 +1147,93 @@ body.dark .edit-session-btn{
   background:linear-gradient(135deg,#ec4899,#f472b6);
 }
 
+
 /* ===============================
-   MATCH SYSTEM — SIMPLE PREMIUM
+   MATCH SYSTEM — FINAL CLEAN (NO ANIMATION)
 ================================= */
 
 .matches-popup{
-  background: linear-gradient(
-    135deg,
-    #e9d5d0,
-    #f3e4e0
-  );
-
-  border-radius:20px;
+  background:#f5e7e4; /* dusty pink */
   padding:16px;
-
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  color:#fdf6f2; /* putih mutiara */
-}
-
-/* ===============================
-   TITLE
-================================= */
-.matches-title{
-  text-align:center;
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:14px;
-}
-
-/* ===============================
-   TAB
-================================= */
-.matches-tabs{
-  display:flex;
-  gap:10px;
-  margin-bottom:16px;
-}
-
-.tab-btn{
-  flex:1;
-  padding:10px;
-  border:none;
-  border-radius:14px;
-
-  background: rgba(255,255,255,0.25);
-  color:#fff;
-
-  font-size:13px;
-  font-weight:600;
-}
-
-.tab-btn.active{
-  background:#22c55e;
-  color:#fff;
-}
-
-/* ===============================
-   ADD MATCH
-================================= */
-#addMatchBtn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:14px;
-
-  background:#22c55e;
-  color:#fff;
-
-  font-weight:600;
-  margin-bottom:14px;
+  border-radius:16px;
+  font-family: system-ui, sans-serif;
+  color:#111;
 }
 
 /* ===============================
    MATCH CARD
 ================================= */
 .match-card{
-  background: rgba(255,255,255,0.18);
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:14px;
+  background:#ffffffcc;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
 }
 
-/* ===============================
-   HEADER
-================================= */
+/* HEADER */
 .match-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
 
 .match-title{
-  font-size:14px;
   font-weight:600;
-}
-
-/* DELETE */
-.delete-match-btn{
-  width:30px;
-  height:30px;
-
-  border:none;
-  border-radius:10px;
-
-  background:#ef4444;
-  color:#fff;
+  font-size:14px;
 }
 
 /* ===============================
-   TEAM ROW
+   ROW (NAME 80% - SCORE 20%)
 ================================= */
 .team-row{
   display:flex;
+  align-items:center;
   gap:10px;
-  align-items:stretch;
 }
 
-/* PLAYER SIDE */
+/* NAME SIDE */
 .team-players{
-  flex:3;
+  flex:4; /* 🔥 80% */
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:6px;
 }
 
-/* SELECT */
 .team-players select{
-  padding:10px;
-
+  padding:8px;
+  border-radius:10px;
   border:none;
-  border-radius:12px;
-
+  background:#f3f4f6;
   font-size:14px;
-
-  background: rgba(255,255,255,0.35);
-  color:#fff;
 }
 
-/* ===============================
-   SCORE (MODERN CLEAN)
-================================= */
+/* SCORE SIDE */
 .score-box-inline{
-  flex:0.5;
-  max-width:60px;
-  display:flex;
+  flex:1; /* 🔥 20% */
 }
 
-/* 🔥 MODERN INPUT (NO DOS STYLE) */
+/* SCORE VIEW MODE */
+.score-view{
+  background:#e5e7eb;
+  border-radius:10px;
+  text-align:center;
+  padding:10px 0;
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* SCORE EDIT MODE */
 .score-box-inline input{
   width:100%;
-  height:100%;
-
-  min-height:72px;
-
-  border-radius:16px;
   border:none;
-
-  font-size:34px;
-  font-weight:800;
-
+  border-radius:10px;
   text-align:center;
-
-  background: rgba(255,255,255,0.25);
-  color:#fff;
-
-  outline:none;
-
-  box-shadow:
-    inset 0 2px 6px rgba(0,0,0,.1);
-}
-
-/* FOCUS EFFECT */
-.score-box-inline input:focus{
-  background: rgba(255,255,255,0.35);
+  font-size:20px;
+  font-weight:700;
+  padding:8px;
+  background:#d1fae5;
 }
 
 /* ===============================
@@ -1328,27 +1241,28 @@ body.dark .edit-session-btn{
 ================================= */
 .vs{
   text-align:center;
-  margin:10px 0;
+  margin:6px 0;
   font-size:12px;
-  opacity:.8;
 }
 
 /* ===============================
-   ACTION BUTTON
+   SAVE BUTTON (HIDDEN BY DEFAULT)
 ================================= */
 .match-actions{
+  display:none;
+  margin-top:10px;
+}
+
+.match-card.editing .match-actions{
   display:flex;
   gap:10px;
-  margin-top:12px;
 }
 
 .match-actions button{
   flex:1;
-  padding:12px;
-
+  padding:10px;
   border:none;
-  border-radius:12px;
-
+  border-radius:10px;
   font-weight:600;
 }
 
@@ -1358,8 +1272,7 @@ body.dark .edit-session-btn{
 }
 
 .cancel-btn{
-  background: rgba(255,255,255,0.2);
-  color:#fff;
+  background:#e5e7eb;
 }
 
 /* ===============================
@@ -1368,77 +1281,37 @@ body.dark .edit-session-btn{
 .ranking-group{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-
-  background: rgba(255,255,255,0.2);
-  border-radius:16px;
-  padding:14px;
-  margin-bottom:12px;
+  padding:12px;
+  border-radius:12px;
+  background:#ffffffcc;
+  margin-bottom:10px;
 }
 
+/* LEFT */
 .rank-left{
-  flex:1;
+  flex:3;
 }
 
 .rank-title{
-  font-size:16px;
-  font-weight:800;
+  font-weight:700;
 }
 
 .rank-names{
   font-size:14px;
-  font-weight:600;
 }
 
-.rank-center{
-  flex:1;
-  text-align:center;
-  font-weight:700;
-}
-
+/* RIGHT */
 .rank-right{
   flex:1;
   text-align:right;
-  font-weight:700;
-}
-
-/* TOP 3 */
-.rank-1{
-  background:#22c55e;
-}
-
-.rank-2{
-  background:#cbd5f5;
-  color:#111;
-}
-
-.rank-3{
-  background:#fbbf24;
-  color:#111;
-}
-
-/* ===============================
-   CLOSE
-================================= */
-#closePopup{
-  width:100%;
-  margin-top:16px;
-  padding:14px;
-
-  border:none;
-  border-radius:16px;
-
   font-weight:600;
-
-  background:#e5e5e5;
-  color:#111;
 }
 
+/* DIFF COLOR */
+.diff-pos{
+  color:#2563eb; /* biru */
+}
 
-/* ===============================
-   FORCE TEXT COLOR (FINAL)
-================================= */
-.matches-popup,
-.matches-popup *{
-  color:#111 !important;
+.diff-neg{
+  color:#dc2626; /* merah */
 }
