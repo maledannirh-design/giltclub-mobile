@@ -1433,3 +1433,12 @@ body.dark .edit-session-btn{
   background:#e5e5e5;
   color:#111;
 }
+
+
+/* ===============================
+   FORCE TEXT COLOR (FINAL)
+================================= */
+.matches-popup,
+.matches-popup *{
+  color:#111 !important;
+}
