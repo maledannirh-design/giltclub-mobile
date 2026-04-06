@@ -2176,14 +2176,13 @@ function getSportIcon(type){
   return map[type] || "🎯";
 }
 
-
 async function openMatchesPage(scheduleId){
 
   const popup = document.getElementById("popupContainer");
   if(!popup) return;
 
   // ===============================
-  // 🔥 LOAD MEMBERS (VIA USERS)
+  // LOAD MEMBERS
   // ===============================
   const snap = await getDocs(
     query(
@@ -2195,7 +2194,6 @@ async function openMatchesPage(scheduleId){
 
   const players = await Promise.all(
     snap.docs.map(async d=>{
-
       const data = d.data();
       const userId = data.userId;
 
@@ -2203,48 +2201,21 @@ async function openMatchesPage(scheduleId){
 
       try{
         const userSnap = await getDoc(doc(db,"users",userId));
-
         if(userSnap.exists()){
-          const userData = userSnap.data();
-
-          const username =
-            userData.usernameID ||
-            userData.username ||
-            "";
-
-          const fullName =
-            userData.fullName ||
-            "";
-
-          if(username){
-  name = username; // 🔥 pakai ini saja
-}else if(fullName){
-  name = fullName;
-}else{
-  name = "Member";
-}
+          const u = userSnap.data();
+          name = u.usernameID || u.username || u.fullName || "Member";
         }
-
       }catch(e){}
 
-      return {
-        id: userId,
-        name
-      };
-
+      return { id:userId, name };
     })
   );
 
-  // ===============================
-  // MAP USERID → NAME
-  // ===============================
   const playerMap = {};
-  players.forEach(p=>{
-    playerMap[p.id] = p.name;
-  });
+  players.forEach(p=> playerMap[p.id] = p.name);
 
   let matches = [];
-  let unsubscribe = null;
+  let editedMatches = {};
 
   // ===============================
   // UI
@@ -2261,7 +2232,6 @@ async function openMatchesPage(scheduleId){
         </div>
 
         <div class="matches-body">
-
           <div class="matches-tab-content active" id="tab-ranking">
             <div id="rankingContainer"></div>
           </div>
@@ -2270,7 +2240,6 @@ async function openMatchesPage(scheduleId){
             <button id="addMatchBtn">+ Pertandingan</button>
             <div id="matchList"></div>
           </div>
-
         </div>
 
         <button id="closePopup" class="close-popup-btn">Tutup</button>
@@ -2279,24 +2248,17 @@ async function openMatchesPage(scheduleId){
     </div>
   `;
 
-  // ===============================
-  // CLOSE
-  // ===============================
   document.getElementById("closePopup").onclick = ()=>{
-    if(unsubscribe) unsubscribe();
     popup.innerHTML = "";
   };
 
   // ===============================
   // TAB
   // ===============================
-  const tabs = document.querySelectorAll(".tab-btn");
-  const contents = document.querySelectorAll(".matches-tab-content");
-
-  tabs.forEach(btn=>{
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
     btn.onclick = ()=>{
-      tabs.forEach(t=>t.classList.remove("active"));
-      contents.forEach(c=>c.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(t=>t.classList.remove("active"));
+      document.querySelectorAll(".matches-tab-content").forEach(c=>c.classList.remove("active"));
       btn.classList.add("active");
       document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
     };
@@ -2308,16 +2270,191 @@ async function openMatchesPage(scheduleId){
   document.getElementById("addMatchBtn").onclick = async ()=>{
     await addDoc(collection(db,"matches"),{
       scheduleId,
-      a1:null,
-      a2:null,
-      b1:null,
-      b2:null,
-      scoreA:0,
-      scoreB:0,
+      a1:null,a2:null,b1:null,b2:null,
+      scoreA:0,scoreB:0,
       createdAt: serverTimestamp()
     });
+    await loadMatches();
   };
 
+  // ===============================
+  // LOAD MATCHES
+  // ===============================
+  async function loadMatches(){
+    const snap = await getDocs(
+      query(collection(db,"matches"), where("scheduleId","==",scheduleId))
+    );
+
+    matches = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderMatches();
+    renderRanking();
+  }
+
+  // ===============================
+  // RENDER MATCH
+  // ===============================
+  function renderMatches(){
+
+    const list = document.getElementById("matchList");
+
+    list.innerHTML = matches.map((m,i)=>{
+
+      const edit = editedMatches[m.id] || {};
+
+      return `
+      <div class="match-card">
+
+        <div class="match-header">
+          <div class="match-title">Pertandingan ${i+1}</div>
+          <button class="delete-match-btn" data-id="${m.id}">✕</button>
+        </div>
+
+        <div class="team-row">
+          <div class="team-players">
+            ${renderSelect(m.id,"a1",edit.a1 ?? m.a1)}
+            ${renderSelect(m.id,"a2",edit.a2 ?? m.a2)}
+          </div>
+          <input type="number" value="${edit.scoreA ?? m.scoreA}" data-id="${m.id}" data-side="A">
+        </div>
+
+        <div class="vs">VS</div>
+
+        <div class="team-row">
+          <div class="team-players">
+            ${renderSelect(m.id,"b1",edit.b1 ?? m.b1)}
+            ${renderSelect(m.id,"b2",edit.b2 ?? m.b2)}
+          </div>
+          <input type="number" value="${edit.scoreB ?? m.scoreB}" data-id="${m.id}" data-side="B">
+        </div>
+
+        <div class="match-actions">
+          <button class="save-btn" data-id="${m.id}">Save</button>
+          <button class="cancel-btn" data-id="${m.id}">Cancel</button>
+        </div>
+
+      </div>`;
+    }).join("");
+
+    attachEvents();
+  }
+
+  // ===============================
+  // SELECT
+  // ===============================
+  function renderSelect(id,key,value){
+    return `
+      <select data-id="${id}" data-key="${key}">
+        <option value="">Pilih</option>
+        ${players.map(p=>`
+          <option value="${p.id}" ${p.id===value?"selected":""}>
+            ${p.name}
+          </option>
+        `).join("")}
+      </select>
+    `;
+  }
+
+  // ===============================
+  // EVENTS (NO AUTO SAVE)
+  // ===============================
+  function attachEvents(){
+
+    document.querySelectorAll("select").forEach(el=>{
+      el.onchange = ()=>{
+        const id = el.dataset.id;
+        const key = el.dataset.key;
+        if(!editedMatches[id]) editedMatches[id] = {};
+        editedMatches[id][key] = el.value;
+      };
+    });
+
+    document.querySelectorAll("input").forEach(el=>{
+      el.oninput = ()=>{
+        const id = el.dataset.id;
+        const side = el.dataset.side;
+        if(!editedMatches[id]) editedMatches[id] = {};
+        editedMatches[id][side==="A"?"scoreA":"scoreB"] = Number(el.value);
+      };
+    });
+
+    document.querySelectorAll(".save-btn").forEach(btn=>{
+      btn.onclick = async ()=>{
+        const id = btn.dataset.id;
+        const data = editedMatches[id];
+        if(!data) return;
+
+        await updateDoc(doc(db,"matches",id),{
+          ...data,
+          updatedAt: serverTimestamp()
+        });
+
+        delete editedMatches[id];
+        await loadMatches();
+      };
+    });
+
+    document.querySelectorAll(".cancel-btn").forEach(btn=>{
+      btn.onclick = async ()=>{
+        delete editedMatches[btn.dataset.id];
+        await loadMatches();
+      };
+    });
+
+    document.querySelectorAll(".delete-match-btn").forEach(btn=>{
+      btn.onclick = async ()=>{
+        await deleteDoc(doc(db,"matches",btn.dataset.id));
+        await loadMatches();
+      };
+    });
+
+  }
+
+  // ===============================
+  // RANKING
+  // ===============================
+  function renderRanking(){
+
+    const stats = {};
+
+    matches.forEach(m=>{
+      const teamA=[m.a1,m.a2].filter(Boolean);
+      const teamB=[m.b1,m.b2].filter(Boolean);
+      if(!teamA.length||!teamB.length) return;
+
+      const diff=(m.scoreA||0)-(m.scoreB||0);
+
+      teamA.forEach(id=>{
+        if(!stats[id]) stats[id]={id,wins:0,diff:0};
+        stats[id].diff+=diff;
+        if(diff>0) stats[id].wins++;
+      });
+
+      teamB.forEach(id=>{
+        if(!stats[id]) stats[id]={id,wins:0,diff:0};
+        stats[id].diff-=diff;
+        if(diff<0) stats[id].wins++;
+      });
+    });
+
+    const ranking = Object.values(stats).sort((a,b)=>{
+      if(b.wins!==a.wins) return b.wins-a.wins;
+      return b.diff-a.diff;
+    });
+
+    const container=document.getElementById("rankingContainer");
+
+    container.innerHTML = ranking.map((p,i)=>`
+      <div class="ranking-card">
+        <div>#${i+1}</div>
+        <div>${playerMap[p.id]||"User"}</div>
+        <div>Win: ${p.wins}</div>
+        <div>Diff: ${p.diff}</div>
+      </div>
+    `).join("");
+  }
+
+  await loadMatches();
+}
   // ===============================
   // RENDER MATCH
   // ===============================
@@ -2368,6 +2505,7 @@ async function openMatchesPage(scheduleId){
 
     attachEvents();
   }
+  
 // ===============================
 // LOAD MATCHES (MANUAL - NO REALTIME)
 // ===============================
@@ -2430,40 +2568,99 @@ async function saveScore(matchId, newScore){
     `;
   }
 
-  // ===============================
-  // EVENTS
-  // ===============================
-  function attachEvents(){
+// ===============================
+// EVENTS (FIXED - NO AUTO SAVE)
+// ===============================
+function attachEvents(){
 
-    document.querySelectorAll("select").forEach(el=>{
-      el.onchange = async ()=>{
-        const id = el.dataset.id;
-        const key = el.dataset.key;
+  // =========================
+  // SELECT (PLAYER)
+  // =========================
+  document.querySelectorAll("select").forEach(el=>{
+    el.onchange = ()=>{
+      const id = el.dataset.id;
+      const key = el.dataset.key;
+
+      if(!editedMatches[id]) editedMatches[id] = {};
+
+      editedMatches[id][key] = el.value;
+    };
+  });
+
+  // =========================
+  // SCORE INPUT
+  // =========================
+  document.querySelectorAll(".score-box-inline input").forEach(el=>{
+    el.oninput = ()=>{
+      const id = el.dataset.id;
+      const side = el.dataset.side;
+
+      if(!editedMatches[id]) editedMatches[id] = {};
+
+      editedMatches[id][side==="A" ? "scoreA" : "scoreB"] = Number(el.value);
+    };
+  });
+
+  // =========================
+  // SAVE BUTTON
+  // =========================
+  document.querySelectorAll(".save-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+
+      const id = btn.dataset.id;
+      const data = editedMatches[id];
+
+      if(!data){
+        alert("Tidak ada perubahan");
+        return;
+      }
+
+      try{
 
         await updateDoc(doc(db,"matches",id),{
-          [key]: el.value
+          ...data,
+          updatedAt: serverTimestamp()
         });
-      };
-    });
 
-    document.querySelectorAll(".score-box-inline input").forEach(el=>{
-      el.oninput = async ()=>{
-        const id = el.dataset.id;
-        const side = el.dataset.side;
+        delete editedMatches[id];
 
-        await updateDoc(doc(db,"matches",id),{
-          [side==="A" ? "scoreA" : "scoreB"]: Number(el.value)
-        });
-      };
-    });
+        await loadMatches();
 
-    document.querySelectorAll(".delete-match-btn").forEach(btn=>{
-      btn.onclick = async ()=>{
-        await deleteDoc(doc(db,"matches",btn.dataset.id));
-      };
-    });
+      }catch(err){
+        console.error(err);
+        alert("Gagal save");
+      }
 
-  }
+    };
+  });
+
+  // =========================
+  // CANCEL BUTTON
+  // =========================
+  document.querySelectorAll(".cancel-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = btn.dataset.id;
+
+      delete editedMatches[id];
+
+      await loadMatches();
+    };
+  });
+
+  // =========================
+  // DELETE MATCH
+  // =========================
+  document.querySelectorAll(".delete-match-btn").forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(!confirm("Hapus pertandingan ini?")) return;
+
+      await deleteDoc(doc(db,"matches",btn.dataset.id));
+
+      await loadMatches();
+    };
+  });
+
+}
 
 // ===============================
 // RANKING (FINAL FIX - SAFE)
