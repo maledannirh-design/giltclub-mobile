@@ -1148,23 +1148,21 @@ body.dark .edit-session-btn{
 }
 
 /* ===============================
-   MATCH SYSTEM — FINAL CLEAN PREMIUM (FIXED)
+   MATCH SYSTEM — SIMPLE PREMIUM
 ================================= */
 
 .matches-popup{
   background: linear-gradient(
     135deg,
-    rgba(255,255,255,0.15),
-    rgba(255,255,255,0.05)
+    #e9d5d0,
+    #f3e4e0
   );
-
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 
   border-radius:20px;
   padding:16px;
 
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color:#fdf6f2; /* putih mutiara */
 }
 
 /* ===============================
@@ -1174,13 +1172,11 @@ body.dark .edit-session-btn{
   text-align:center;
   font-size:20px;
   font-weight:700;
+  margin-bottom:14px;
 }
 
-body.dark .matches-title{ color:#fff; }
-body.light .matches-title{ color:#14532d; }
-
 /* ===============================
-   TABS
+   TAB
 ================================= */
 .matches-tabs{
   display:flex;
@@ -1194,24 +1190,17 @@ body.light .matches-title{ color:#14532d; }
   border:none;
   border-radius:14px;
 
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.25);
+  color:#fff;
+
   font-size:13px;
   font-weight:600;
 }
 
-body.dark .tab-btn{ color:#ddd; }
-body.light .tab-btn{ color:#14532d; }
-
 .tab-btn.active{
-  background: linear-gradient(135deg,#22c55e,#16a34a);
+  background:#22c55e;
   color:#fff;
 }
-
-/* ===============================
-   TAB CONTENT
-================================= */
-.matches-tab-content{ display:none; }
-.matches-tab-content.active{ display:block; }
 
 /* ===============================
    ADD MATCH
@@ -1222,7 +1211,7 @@ body.light .tab-btn{ color:#14532d; }
   border:none;
   border-radius:14px;
 
-  background: linear-gradient(135deg,#22c55e,#15803d);
+  background:#22c55e;
   color:#fff;
 
   font-weight:600;
@@ -1233,19 +1222,10 @@ body.light .tab-btn{ color:#14532d; }
    MATCH CARD
 ================================= */
 .match-card{
+  background: rgba(255,255,255,0.18);
   border-radius:18px;
   padding:14px;
   margin-bottom:14px;
-}
-
-body.dark .match-card{
-  background: rgba(255,255,255,0.08);
-  color:#f5e9d7;
-}
-
-body.light .match-card{
-  background: rgba(0,0,0,0.05);
-  color:#111;
 }
 
 /* ===============================
@@ -1263,8 +1243,17 @@ body.light .match-card{
   font-weight:600;
 }
 
-body.dark .match-title{ color:#fff; }
-body.light .match-title{ color:#111; }
+/* DELETE */
+.delete-match-btn{
+  width:30px;
+  height:30px;
+
+  border:none;
+  border-radius:10px;
+
+  background:#ef4444;
+  color:#fff;
+}
 
 /* ===============================
    TEAM ROW
@@ -1275,9 +1264,9 @@ body.light .match-title{ color:#111; }
   align-items:stretch;
 }
 
-/* PLAYER */
+/* PLAYER SIDE */
 .team-players{
-  flex:3.2;
+  flex:3;
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -1285,48 +1274,53 @@ body.light .match-title{ color:#111; }
 
 /* SELECT */
 .team-players select{
-  padding:10px 12px;
-  font-size:14px;
-  border-radius:12px;
+  padding:10px;
+
   border:none;
-}
+  border-radius:12px;
 
-body.dark .team-players select{
-  background: rgba(255,255,255,0.12);
+  font-size:14px;
+
+  background: rgba(255,255,255,0.35);
   color:#fff;
-}
-
-body.light .team-players select{
-  background:#f1f5f9;
-  color:#111;
 }
 
 /* ===============================
-   SCORE (FIX SHORT + BIG FONT)
+   SCORE (MODERN CLEAN)
 ================================= */
 .score-box-inline{
-  flex:0.5;              /* 🔥 lebih kecil */
-  max-width:55px;        /* 🔥 potong lebar */
+  flex:0.5;
+  max-width:60px;
   display:flex;
 }
 
+/* 🔥 MODERN INPUT (NO DOS STYLE) */
 .score-box-inline input{
   width:100%;
   height:100%;
+
   min-height:72px;
 
-  font-size:clamp(30px, 6vw, 42px); /* 🔥 dominan */
-  font-weight:800;
-
-  border-radius:14px;
+  border-radius:16px;
   border:none;
+
+  font-size:34px;
+  font-weight:800;
 
   text-align:center;
 
-  background: linear-gradient(135deg,#22c55e,#16a34a);
+  background: rgba(255,255,255,0.25);
   color:#fff;
 
-  line-height:1;
+  outline:none;
+
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,.1);
+}
+
+/* FOCUS EFFECT */
+.score-box-inline input:focus{
+  background: rgba(255,255,255,0.35);
 }
 
 /* ===============================
@@ -1336,10 +1330,8 @@ body.light .team-players select{
   text-align:center;
   margin:10px 0;
   font-size:12px;
+  opacity:.8;
 }
-
-body.dark .vs{ color:#bbb; }
-body.light .vs{ color:#555; }
 
 /* ===============================
    ACTION BUTTON
@@ -1353,60 +1345,48 @@ body.light .vs{ color:#555; }
 .match-actions button{
   flex:1;
   padding:12px;
+
   border:none;
   border-radius:12px;
+
   font-weight:600;
 }
 
 .save-btn{
-  background: linear-gradient(135deg,#22c55e,#16a34a);
+  background:#22c55e;
   color:#fff;
 }
 
 .cancel-btn{
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.2);
+  color:#fff;
 }
 
-body.dark .cancel-btn{ color:#bbb; }
-body.light .cancel-btn{ color:#333; }
-
 /* ===============================
-   RANKING CARD
+   RANKING
 ================================= */
 .ranking-group{
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
 
-  padding:16px;
-  border-radius:18px;
+  background: rgba(255,255,255,0.2);
+  border-radius:16px;
+  padding:14px;
   margin-bottom:12px;
-}
-
-body.dark .ranking-group{
-  background: rgba(255,255,255,0.08);
-  color:#f5e9d7;
-}
-
-body.light .ranking-group{
-  background: rgba(0,0,0,0.05);
-  color:#111;
-}
-
-/* ===============================
-   RANK STRUCTURE
-================================= */
-.rank-title{
-  font-size:18px;
-  font-weight:800;
 }
 
 .rank-left{
   flex:1;
 }
 
+.rank-title{
+  font-size:16px;
+  font-weight:800;
+}
+
 .rank-names{
-  font-size:15px;
+  font-size:14px;
   font-weight:600;
 }
 
@@ -1419,28 +1399,21 @@ body.light .ranking-group{
 .rank-right{
   flex:1;
   text-align:right;
-}
-
-.rank-right div{
-  font-size:15px;
   font-weight:700;
 }
 
-/* ===============================
-   TOP 3
-================================= */
+/* TOP 3 */
 .rank-1{
-  background: linear-gradient(135deg,#22c55e,#4ade80);
-  color:#fff;
+  background:#22c55e;
 }
 
 .rank-2{
-  background: linear-gradient(135deg,#9ca3af,#d1d5db);
+  background:#cbd5f5;
   color:#111;
 }
 
 .rank-3{
-  background: linear-gradient(135deg,#f59e0b,#fcd34d);
+  background:#fbbf24;
   color:#111;
 }
 
@@ -1451,11 +1424,12 @@ body.light .ranking-group{
   width:100%;
   margin-top:16px;
   padding:14px;
+
   border:none;
   border-radius:16px;
 
   font-weight:600;
 
-  background: linear-gradient(135deg,#e5e5e5,#d4d4d4);
+  background:#e5e5e5;
   color:#111;
 }
