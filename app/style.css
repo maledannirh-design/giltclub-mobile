@@ -3379,3 +3379,54 @@ body.scan-mode{
   border:1px solid #00e5ff;
   box-shadow:0 0 10px rgba(0,229,255,0.3);
 }
+
+
+/* ===============================
+   CHAMPION CLUB - LIGHT MODE FIX
+=============================== */
+
+.light-mode .champion-entry{
+  color:#1b4332; /* forest green */
+}
+
+.light-mode .champion-entry .rank{
+  color:#2d6a4f;
+}
+
+.light-mode .champion-entry .name{
+  color:#1b4332;
+}
+
+.light-mode .champion-entry .stat{
+  color:#40916c;
+}
+
+.light-mode .champion-entry .diff{
+  color:#2d6a4f;
+}
+
+/* PODIUM TEXT */
+.light-mode .podium-item{
+  color:#1b4332;
+}
+
+.light-mode .podium-name{
+  color:#1b4332;
+}
+
+.light-mode .podium-diff{
+  color:#2d6a4f;
+}
+
+/* MOVEMENT */
+.light-mode .movement.up{
+  color:#2d6a4f;
+}
+
+.light-mode .movement.down{
+  color:#d00000;
+}
+
+.light-mode .movement.same{
+  color:#6c757d;
+}
