@@ -1468,3 +1468,77 @@ body.dark .edit-session-btn{
 .m-diff-neg{
   color:#dc2626;
 }
+
+/* ===============================
+   RANKING SYSTEM (M PREFIX SAFE)
+================================= */
+.m-ranking-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  background:#fff;
+  padding:14px;
+  border-radius:16px;
+  margin-bottom:12px;
+}
+
+/* BADGE */
+.m-rank-badge{
+  font-weight:700;
+  width:40px;
+}
+
+/* NAMES */
+.m-rank-names{
+  flex:2;
+  font-weight:600;
+  font-size:14px;
+}
+
+/* CHAMPION */
+.m-champion{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  font-weight:700;
+}
+
+/* STATS */
+.m-rank-stats{
+  display:flex;
+  gap:12px;
+}
+
+.m-stat{
+  text-align:right;
+}
+
+.m-stat-value{
+  font-size:16px;
+  font-weight:700;
+}
+
+.m-stat-label{
+  font-size:11px;
+  color:#666;
+}
+
+/* DIFF */
+.m-pos{ color:#2563eb; }
+.m-neg{ color:#dc2626; }
+
+/* ===============================
+   TOP RANK COLOR
+================================= */
+.m-rank-1{
+  background:linear-gradient(135deg,#facc15,#fde68a);
+}
+
+.m-rank-2{
+  background:#e5e7eb;
+}
+
+.m-rank-3{
+  background:#fbbf24;
+}
