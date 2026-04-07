@@ -662,6 +662,9 @@ if((s.sportType || "tennis") !== "tennis"){
               ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
               : ""
           }
+          <div class="session-members">
+            ${slotHtml}
+          </div>
 <div class="matches-entry" data-id="${s.id}">
   <div>
     <div style="font-weight:600;">Pertandingan</div>
@@ -669,9 +672,7 @@ if((s.sportType || "tennis") !== "tennis"){
   </div>
   <div class="matches-arrow">›</div>
 </div>
-          <div class="session-members">
-            ${slotHtml}
-          </div>
+          
 
         </div>
       `;
@@ -711,16 +712,6 @@ if(closeBtn){
 // SLOT INTERACTION
 // ===============================
 attachSlotInteraction(currentUserRole);
-/* ===============================
-     OPEN PAGE MACHH
-  =============================== */
-  document.querySelectorAll(".session-insight-entry").forEach(el=>{
-  el.onclick = ()=>{
-    const scheduleId = el.dataset.id;
-    openMatchesPage(scheduleId);
-  };
-});
-
   /* ===============================
      WA BUTTON HANDLER (SAFE)
   =============================== */
