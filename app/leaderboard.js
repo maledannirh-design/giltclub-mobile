@@ -279,7 +279,7 @@ const usersSnap = await getDocs(collection(db,"users"));
     if(!table[uid]){
       table[uid] = {
         uid,
-        name: usersMap[uid]?.name || "Unknown",
+        name: usersMap[uid]?.fullName || usersMap[uid]?.username || "Unknown",
         matchPlayed: 0,
         win: 0,
         lose: 0,
