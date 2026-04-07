@@ -3375,3 +3375,8 @@ body.scan-mode{
 .movement.same{
   color:#aaa;
 }
+
+.champion-entry.me{
+  border:1px solid #00e5ff;
+  box-shadow:0 0 10px rgba(0,229,255,0.3);
+}
