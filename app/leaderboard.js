@@ -5,6 +5,8 @@ import {
   query,
   where,
   orderBy,
+  setDoc,
+  getDocs,
   limit,
   onSnapshot,
   doc,
@@ -33,15 +35,6 @@ function getRankReward(rank){
 
   return "";
 
-}
-
-
-/* ======================================================
-   DATE UTIL
-====================================================== */
-
-function getCurrentMonthKey(){
-  return new Date().toISOString().slice(0,7);
 }
 
 /* ======================================================
@@ -225,16 +218,18 @@ export function getCurrentMonthKey(){
 
 export function listenChampionClub(monthKey, callback){
 
-  return db.collection("matches")
-    .onSnapshot(async(snapshot)=>{
+  const q = collection(db,"matches");
 
-      // rebuild tiap ada perubahan
-      const data = await buildChampionClub(monthKey);
+  return onSnapshot(q, async (snapshot)=>{
 
-      callback(data);
+    const data = await buildChampionClub(monthKey);
 
-    });
+    callback(data);
+
+  });
+
 }
+
 export function renderChampionClub(data){
 
   const container = document.getElementById("championClub");
@@ -268,9 +263,9 @@ export function renderChampionClub(data){
 
 export async function buildChampionClub(monthKey){
 
-  const matchesSnap = await db.collection("matches").get();
-
   const usersSnap = await db.collection("users").get();
+  const matchesSnap = await getDocs(collection(db,"matches"));
+const usersSnap = await getDocs(collection(db,"users"));
 
   // mapping user biar cepat
   const usersMap = {};
@@ -389,23 +384,24 @@ export function attachRankMovement(current, previous){
 
 export async function saveChampionClub(monthKey, data){
 
-  await db.collection("championClubMonthly")
-    .doc(monthKey)
-    .set({
-      monthKey,
-      createdAt: new Date(),
-      rankings: data
-    });
+  await setDoc(
+  doc(db,"championClubMonthly",monthKey),
+  {
+    monthKey,
+    createdAt: new Date(),
+    rankings: data
+  }
+);
 
 }
 
 export async function loadChampionHistory(monthKey){
 
-  const doc = await db.collection("championClubMonthly")
-    .doc(monthKey)
-    .get();
+  const snap = await getDoc(
+  doc(db,"championClubMonthly",monthKey)
+);
 
-  if(!doc.exists) return null;
+if(!snap.exists()) return null;
 
-  return doc.data().rankings;
+return snap.data().rankings;
 }
