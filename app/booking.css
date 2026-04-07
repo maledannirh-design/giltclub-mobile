@@ -1530,43 +1530,6 @@ body.dark .edit-session-btn{
   background:#e5e7eb;
 }
 
-.matches-entry{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-
-  padding:10px 12px;
-  border-radius:12px;
-
-  cursor:pointer;
-  background:rgba(255,255,255,0.05);
-}
-
-/* HOVER (desktop) */
-.matches-entry:hover{
-  background:rgba(255,255,255,0.1);
-}
-
-/* ACTIVE (mobile tap) */
-.matches-entry:active{
-  transform:scale(0.98);
-}
-
-/* TEXT */
-.matches-text{
-  font-size:14px;
-  font-weight:500;
-}
-
-/* ARROW */
-.matches-arrow{
-  font-size:16px;
-  opacity:0.6;
-}
-
-.matches-entry{
-  backdrop-filter:blur(6px);
-}
 
 .popup-overlay{
   position:fixed;
@@ -1591,6 +1554,39 @@ body.dark .edit-session-btn{
 }
 
 .matches-entry{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:10px 12px;
+  border-radius:12px;
+
+  cursor:pointer;
+  background:rgba(255,255,255,0.05);
+
+  backdrop-filter:blur(6px);
   position:relative;
   z-index:10;
+}
+
+/* HOVER */
+.matches-entry:hover{
+  background:rgba(255,255,255,0.1);
+}
+
+/* CLICK */
+.matches-entry:active{
+  transform:scale(0.98);
+}
+
+/* TEXT */
+.matches-text{
+  font-size:13px;
+  opacity:0.7;
+}
+
+/* ARROW */
+.matches-arrow{
+  font-size:16px;
+  opacity:0.5;
 }
