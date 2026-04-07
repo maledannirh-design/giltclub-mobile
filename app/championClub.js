@@ -17,7 +17,6 @@ import { renderChampionClub } from "./leaderboard-ui.js";
 let unsubscribeChampion = null;
 let lastSnapshot = [];
 
-
 // ================= MAIN PAGE =================
 export function renderChampionClubPage(){
 
