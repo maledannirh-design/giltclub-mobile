@@ -381,3 +381,27 @@ export function attachRankMovement(current, previous){
   });
 
 }
+
+
+export async function saveChampionClub(monthKey, data){
+
+  await db.collection("championClubMonthly")
+    .doc(monthKey)
+    .set({
+      monthKey,
+      createdAt: new Date(),
+      rankings: data
+    });
+
+}
+
+export async function loadChampionHistory(monthKey){
+
+  const doc = await db.collection("championClubMonthly")
+    .doc(monthKey)
+    .get();
+
+  if(!doc.exists) return null;
+
+  return doc.data().rankings;
+}
