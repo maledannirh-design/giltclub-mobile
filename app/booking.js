@@ -2385,7 +2385,7 @@ async function saveScore(matchId, newScore){
   }
 
 // ===============================
-// EVENTS (FIXED - NO AUTO SAVE)
+// EVENTS (FINAL CLEAN - FIXED)
 // ===============================
 function attachEvents(){
 
@@ -2404,16 +2404,35 @@ function attachEvents(){
   });
 
   // =========================
-  // SCORE INPUT
+  // SCORE INPUT (FIXED CLASS)
   // =========================
-  document.querySelectorAll(".score-box-inline input").forEach(el=>{
+  document.querySelectorAll(".score-input").forEach(el=>{
     el.oninput = ()=>{
       const id = el.dataset.id;
       const side = el.dataset.side;
 
       if(!editedMatches[id]) editedMatches[id] = {};
 
-      editedMatches[id][side==="A" ? "scoreA" : "scoreB"] = Number(el.value);
+      editedMatches[id][side === "A" ? "scoreA" : "scoreB"] = Number(el.value);
+    };
+  });
+
+  // =========================
+  // EDIT BUTTON (FIXED)
+  // =========================
+  document.querySelectorAll(".edit-btn").forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.id;
+      const card = document.getElementById("match-" + id);
+
+      if(!card) return;
+
+      // masuk edit mode
+      card.classList.add("editing");
+
+      // auto focus ke input pertama
+      const input = card.querySelector(".score-input");
+      if(input) input.focus();
     };
   });
 
@@ -2451,15 +2470,18 @@ function attachEvents(){
   });
 
   // =========================
-  // CANCEL BUTTON
+  // CANCEL BUTTON (IMPROVED)
   // =========================
   document.querySelectorAll(".cancel-btn").forEach(btn=>{
-    btn.onclick = async ()=>{
+    btn.onclick = ()=>{
       const id = btn.dataset.id;
+      const card = document.getElementById("match-" + id);
 
       delete editedMatches[id];
 
-      await loadMatches();
+      if(card){
+        card.classList.remove("editing");
+      }
     };
   });
 
@@ -2470,11 +2492,16 @@ function attachEvents(){
     btn.onclick = async ()=>{
       if(!confirm("Hapus pertandingan ini?")) return;
 
-      await deleteDoc(doc(db,"matches",btn.dataset.id));
-
-      await loadMatches();
+      try{
+        await deleteDoc(doc(db,"matches",btn.dataset.id));
+        await loadMatches();
+      }catch(err){
+        console.error(err);
+        alert("Gagal hapus");
+      }
     };
   });
+
 }
 
 // ===============================
