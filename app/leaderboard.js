@@ -217,3 +217,167 @@ function formatMonthID(monthKey){
 
   return `${months[parseInt(month)-1]} ${year}`;
 }
+
+
+export function listenChampionClub(monthKey, callback){
+
+  return db.collection("matches")
+    .onSnapshot(async(snapshot)=>{
+
+      // rebuild tiap ada perubahan
+      const data = await buildChampionClub(monthKey);
+
+      callback(data);
+
+    });
+}
+export function renderChampionClub(data){
+
+  const container = document.getElementById("championClub");
+
+  if(!container) return;
+
+  container.innerHTML = "";
+
+  data.forEach((p, index)=>{
+
+    const rank = index + 1;
+
+    const el = document.createElement("div");
+    el.className = "champion-entry";
+
+    el.innerHTML = `
+      <div class="rank">#${rank}</div>
+      <div class="name">${p.name}</div>
+      <div class="stat">
+        W:${p.win} | L:${p.lose}
+      </div>
+      <div class="diff">
+        ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
+      </div>
+    `;
+
+    container.appendChild(el);
+  });
+
+}
+
+export async function buildChampionClub(monthKey){
+
+  const matchesSnap = await db.collection("matches").get();
+
+  const usersSnap = await db.collection("users").get();
+
+  // mapping user biar cepat
+  const usersMap = {};
+  usersSnap.forEach(doc=>{
+    usersMap[doc.id] = doc.data();
+  });
+
+  const table = {};
+
+  function initPlayer(uid){
+    if(!table[uid]){
+      table[uid] = {
+        uid,
+        name: usersMap[uid]?.name || "Unknown",
+        matchPlayed: 0,
+        win: 0,
+        lose: 0,
+        scoreDiff: 0,
+        points: 0
+      };
+    }
+  }
+
+  matchesSnap.forEach(doc=>{
+    const m = doc.data();
+
+    if(!m.updatedAt) return;
+
+    const date = m.updatedAt.toDate();
+    const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+
+    if(key !== monthKey) return;
+
+    const teamA = [m.a1, m.a2];
+    const teamB = [m.b1, m.b2];
+
+    const diff = m.scoreA - m.scoreB;
+
+    const teamAWin = m.scoreA > m.scoreB;
+
+    [...teamA, ...teamB].forEach(uid=>initPlayer(uid));
+
+    // update team A
+    teamA.forEach(uid=>{
+      table[uid].matchPlayed++;
+
+      if(teamAWin){
+        table[uid].win++;
+        table[uid].points += 3;
+        table[uid].scoreDiff += diff;
+      }else{
+        table[uid].lose++;
+        table[uid].scoreDiff -= diff;
+      }
+    });
+
+    // update team B
+    teamB.forEach(uid=>{
+      table[uid].matchPlayed++;
+
+      if(!teamAWin){
+        table[uid].win++;
+        table[uid].points += 3;
+        table[uid].scoreDiff -= diff;
+      }else{
+        table[uid].lose++;
+        table[uid].scoreDiff += diff;
+      }
+    });
+
+  });
+
+  // convert ke array
+  const result = Object.values(table);
+
+  // SORTING (INI KRUSIAL)
+  result.sort((a,b)=>{
+    if(b.win !== a.win) return b.win - a.win;
+    if(b.scoreDiff !== a.scoreDiff) return b.scoreDiff - a.scoreDiff;
+    return b.matchPlayed - a.matchPlayed;
+  });
+
+  return result;
+}
+
+export function attachRankMovement(current, previous){
+
+  const prevMap = {};
+
+  previous.forEach((p, index)=>{
+    prevMap[p.uid] = index + 1;
+  });
+
+  return current.map((p, index)=>{
+
+    const currentRank = index + 1;
+    const prevRank = prevMap[p.uid] || currentRank;
+
+    let movement = 0;
+
+    if(prevRank > currentRank){
+      movement = prevRank - currentRank; // naik
+    }else if(prevRank < currentRank){
+      movement = -(currentRank - prevRank); // turun
+    }
+
+    return {
+      ...p,
+      rank: currentRank,
+      movement
+    };
+  });
+
+}
