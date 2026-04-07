@@ -263,7 +263,6 @@ export function renderChampionClub(data){
 
 export async function buildChampionClub(monthKey){
 
-  const usersSnap = await db.collection("users").get();
   const matchesSnap = await getDocs(collection(db,"matches"));
 const usersSnap = await getDocs(collection(db,"users"));
 
