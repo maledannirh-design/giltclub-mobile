@@ -2271,8 +2271,8 @@ function renderMatches(){
 
       <div class="team-row">
         <div class="team-players">
-          ${playerMap[m.a1] || "-"} <br>
-          ${playerMap[m.a2] || "-"}
+          ${renderSelect(m.id,"a1",m.a1)}
+${renderSelect(m.id,"a2",m.a2)}
         </div>
 
         <div class="score-box">
@@ -2288,8 +2288,8 @@ function renderMatches(){
 
       <div class="team-row">
         <div class="team-players">
-          ${playerMap[m.b1] || "-"} <br>
-          ${playerMap[m.b2] || "-"}
+          ${renderSelect(m.id,"b1",m.b1)}
+${renderSelect(m.id,"b2",m.b2)}
         </div>
 
         <div class="score-box">
