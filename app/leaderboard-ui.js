@@ -32,6 +32,7 @@ export function renderChampionClub(data){
     podium.appendChild(el);
   });
 
+  
   container.appendChild(podium);
 
   // ===== LIST =====
