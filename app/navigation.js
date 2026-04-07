@@ -1,4 +1,5 @@
 import { toggleTheme } from "./theme.js";
+import { renderChampionClubPage } from "./championClub.js";
 
 let navLock = false;
 let currentPage = null;
