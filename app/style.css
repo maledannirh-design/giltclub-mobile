@@ -3189,3 +3189,42 @@ body.scan-mode{
   box-shadow:
     0 10px 26px rgba(0,0,0,0.6);
 }
+
+.championclub-btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  padding:6px 10px;
+  border-radius:10px;
+
+  background:rgba(255,215,0,0.15);
+  color:#FFD700;
+
+  cursor:pointer;
+  font-size:12px;
+}
+
+.championclub-btn i{
+  font-size:12px;
+}
+.champion-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.champion-header .title{
+  font-size:18px;
+  font-weight:700;
+  color:#fff;
+}
+
+.close-btn{
+  cursor:pointer;
+  padding:6px 10px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+}
