@@ -1,3 +1,5 @@
+import { auth } from "./firebase.js";
+
 export function renderChampionClub(data){
 
   const container = document.getElementById("championClub");
@@ -19,7 +21,9 @@ export function renderChampionClub(data){
     el.innerHTML = `
       <div class="podium-rank">#${p.rank}</div>
       <div class="podium-name">${p.name}</div>
-      <div class="podium-diff">${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}</div>
+      <div class="podium-diff">
+        ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
+      </div>
       <div class="movement ${getMoveClass(p.movement)}">
         ${getMoveSymbol(p.movement)}
       </div>
@@ -36,11 +40,19 @@ export function renderChampionClub(data){
     const el = document.createElement("div");
     el.className = "champion-entry fade-in";
 
+    // 🔥 AUTO HIGHLIGHT USER
+    const isMe = p.uid === auth.currentUser?.uid;
+    if(isMe){
+      el.classList.add("me");
+    }
+
     el.innerHTML = `
       <div class="rank">#${p.rank}</div>
       <div class="name">${p.name}</div>
       <div class="stat">W:${p.win} | L:${p.lose}</div>
-      <div class="diff">${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}</div>
+      <div class="diff">
+        ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
+      </div>
       <div class="movement ${getMoveClass(p.movement)}">
         ${getMoveSymbol(p.movement)}
       </div>
@@ -51,6 +63,8 @@ export function renderChampionClub(data){
 
 }
 
+
+// ================= HELPERS =================
 function getMoveSymbol(m){
   if(m > 0) return `⬆ ${m}`;
   if(m < 0) return `⬇ ${Math.abs(m)}`;
