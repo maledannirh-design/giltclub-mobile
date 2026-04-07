@@ -11,7 +11,6 @@ import {
   updateDoc
 } from "./firestore.js";
 
-
 function getRankReward(rank){
 
   if(rank === 1)
