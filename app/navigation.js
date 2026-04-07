@@ -75,6 +75,13 @@ case "skill":
         (await import("./profile.js")).renderAccountUI();
         break;
 
+/* ======================
+         CHAMPION BOARD
+      ====================== */
+        case "championClub":
+  renderChampionClubPage();
+  break;
+        
       /* ======================
          JADWAL (BOOKING)
       ====================== */
