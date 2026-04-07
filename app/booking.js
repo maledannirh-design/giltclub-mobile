@@ -680,16 +680,40 @@ if((s.sportType || "tennis") !== "tennis"){
       `;
     }
   }
+html += `
+  <button id="closePopup" class="close-popup-btn">Tutup</button>
+  </div>
+</div>
+`;
 
-  html += `
-        <button id="closePopup" class="close-popup-btn">Tutup</button>
-      </div>
-    </div>
-  `;
+popup.innerHTML = html;
 
-  popup.innerHTML = html;
+// ===============================
+// MATCHES CLICK (SAFE ATTACH)
+// ===============================
+document.querySelectorAll(".matches-entry").forEach(el=>{
+  el.onclick = ()=>{
+    const id = el.dataset.id;
+    if(!id) return;
 
-  attachSlotInteraction(currentUserRole);
+    openMatchesPage(id);
+  };
+});
+
+// ===============================
+// CLOSE BUTTON (WAJIB)
+// ===============================
+const closeBtn = document.getElementById("closePopup");
+if(closeBtn){
+  closeBtn.onclick = ()=>{
+    popup.innerHTML = "";
+  };
+}
+
+// ===============================
+// SLOT INTERACTION
+// ===============================
+attachSlotInteraction(currentUserRole);
 /* ===============================
      OPEN PAGE MACHH
   =============================== */
