@@ -15,7 +15,6 @@
 }
 
 /* DARK MODE */
-
 [data-theme="dark"]{
   --color-bg:#1F241F;
   --color-card:#2A302A;
