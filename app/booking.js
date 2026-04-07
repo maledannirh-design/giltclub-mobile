@@ -664,7 +664,7 @@ if((s.sportType || "tennis") !== "tennis"){
           }
 <div class="matches-entry" data-id="${s.id}">
   <div>
-    <div style="font-weight:600;">Matches</div>
+    <div style="font-weight:600;">Pertandingan</div>
     <div class="matches-text">Lihat hasil & ranking</div>
   </div>
   <div class="matches-arrow">›</div>
@@ -2080,7 +2080,7 @@ async function openMatchesPage(scheduleId){
       </div>
     </div>
   `;
-
+await loadMatches();
   // ===============================
   // CLOSE
   // ===============================
