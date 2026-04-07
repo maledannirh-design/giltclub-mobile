@@ -31,6 +31,7 @@ let slideDirection = "next";
 /* ===============================
    RENDER BOOKING PAGE
 ================================= */
+
 export async function renderBooking() {
 
   const content = document.getElementById("content");
