@@ -1442,19 +1442,6 @@ body.dark .edit-session-btn{
   font-weight:600;
 }
 
-/* TOP 3 (CLEAN) */
-.m-rank-1{
-  background:linear-gradient(135deg,#22c55e,#4ade80);
-  color:#fff;
-}
-
-.m-rank-2{
-  background:#e5e7eb;
-}
-
-.m-rank-3{
-  background:#fbbf24;
-}
 
 .m-rank-default{
   background:#fff;
@@ -1540,5 +1527,43 @@ body.dark .edit-session-btn{
 }
 
 .m-rank-3{
-  background:#fbbf24;
+  background:#e5e7eb;
+}
+
+.matches-entry{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:10px 12px;
+  border-radius:12px;
+
+  cursor:pointer;
+  background:rgba(255,255,255,0.05);
+}
+
+/* HOVER (desktop) */
+.matches-entry:hover{
+  background:rgba(255,255,255,0.1);
+}
+
+/* ACTIVE (mobile tap) */
+.matches-entry:active{
+  transform:scale(0.98);
+}
+
+/* TEXT */
+.matches-text{
+  font-size:14px;
+  font-weight:500;
+}
+
+/* ARROW */
+.matches-arrow{
+  font-size:16px;
+  opacity:0.6;
+}
+
+.matches-entry{
+  backdrop-filter:blur(6px);
 }
