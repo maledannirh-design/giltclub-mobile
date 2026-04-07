@@ -218,6 +218,11 @@ function formatMonthID(monthKey){
   return `${months[parseInt(month)-1]} ${year}`;
 }
 
+// ===== MONTH KEY HELPER =====
+export function getCurrentMonthKey(){
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+}
 
 export function listenChampionClub(monthKey, callback){
 
