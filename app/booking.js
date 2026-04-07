@@ -669,9 +669,6 @@ if((s.sportType || "tennis") !== "tennis"){
   </div>
   <div class="matches-arrow">›</div>
 </div>
-
-  <div class="matches-arrow">›</div>
-</div>
           <div class="session-members">
             ${slotHtml}
           </div>
