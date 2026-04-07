@@ -1295,16 +1295,14 @@ body.dark .edit-session-btn{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  margin-bottom:8px;
+  gap:12px;
 }
 
 /* NAME AREA (🔥 LEBIH BESAR) */
 .team-players{
-  flex:1;
+  flex:3;
   font-size:14px;
   font-weight:500;
-  line-height:1.4;
 }
 
 /* SELECT */
@@ -1314,34 +1312,38 @@ body.dark .edit-session-btn{
   border-radius:10px;
   border:none;
   background:#f3f4f6;
+  font-size:13px;
 }
 
 /* ===============================
    SCORE (FIX — TIDAK MELEBAR)
 ================================= */
-.score-box{
-  width:48px;
-  height:48px;
-  background:#e5e7eb;
-  border-radius:12px;
+/* 🔥 SCORE AREA (30%) */
+.score-box,
+.score-input{
+  flex:1;
+  max-width:70px;
+  height:60px;
+
   display:flex;
   align-items:center;
   justify-content:center;
+
+  border-radius:14px;
   font-weight:700;
-  font-size:18px;
-  flex-shrink:0; /* 🔥 penting */
+  font-size:22px;
+}
+
+/* VIEW */
+.score-box{
+  background:#e5e7eb;
 }
 
 /* INPUT */
 .score-input{
-  width:48px;
-  height:48px;
-  border-radius:12px;
-  border:1px solid #d1d5db;
+  background:#dbeafe;
+  border:none;
   text-align:center;
-  font-weight:700;
-  font-size:18px;
-  flex-shrink:0;
 }
 
 /* EDIT MODE */
@@ -1354,7 +1356,7 @@ body.dark .edit-session-btn{
 }
 
 .match-card.editing .score-input{
-  display:block;
+  display:flex;
 }
 
 /* ===============================
