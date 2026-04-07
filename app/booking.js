@@ -662,12 +662,13 @@ if((s.sportType || "tennis") !== "tennis"){
               ? `<button class="checkin-btn" data-id="${s.id}">Check In</button>`
               : ""
           }
-<div class="session-insight-entry" data-id="${s.id}">
-  <div class="insight-left">
-    <div class="insight-title">Matches</div>
-    <div class="insight-sub">Lihat hasil & ranking</div>
+<div class="matches-entry" onclick="openMatchesPage('${scheduleId}')">
+  <div>
+    <div style="font-weight:600;">Pertandingan</div>
+    <div class="matches-text">Lihat hasil & ranking</div>
   </div>
-  <div class="insight-arrow">›</div>
+
+  <div class="matches-arrow">›</div>
 </div>
           <div class="session-members">
             ${slotHtml}
