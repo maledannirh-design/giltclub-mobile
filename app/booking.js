@@ -2502,7 +2502,7 @@ function attachEvents(){
 }
 
 // ===============================
-// RANKING (FINAL FIX - SAFE & STABLE)
+// RANKING (FINAL FIX - M PREFIX SAFE)
 // ===============================
 function renderRanking(){
 
@@ -2512,9 +2512,6 @@ function renderRanking(){
     return;
   }
 
-  // ===============================
-  // VALIDATION DATA
-  // ===============================
   if(!matches || matches.length === 0){
     container.innerHTML = "<div style='padding:10px'>Belum ada pertandingan</div>";
     return;
@@ -2522,9 +2519,6 @@ function renderRanking(){
 
   const stats = {};
 
-  // ===============================
-  // HITUNG WIN & DIFF
-  // ===============================
   matches.forEach(m=>{
 
     const teamA = [m.a1, m.a2].filter(Boolean);
@@ -2552,30 +2546,20 @@ function renderRanking(){
 
   const rankingRaw = Object.values(stats);
 
-  // ===============================
-  // VALIDATION STATS
-  // ===============================
   if(rankingRaw.length === 0){
     container.innerHTML = "<div style='padding:10px'>Belum ada hasil</div>";
     return;
   }
 
-  // ===============================
-  // SORTING
-  // ===============================
   rankingRaw.sort((a,b)=>{
     if(b.wins !== a.wins) return b.wins - a.wins;
     return b.diff - a.diff;
   });
 
-  // ===============================
-  // GROUPING (TIE SYSTEM)
-  // ===============================
   const groups = [];
   let currentGroup = [];
 
   rankingRaw.forEach((p,i)=>{
-
     if(i === 0){
       currentGroup.push(p);
     }else{
@@ -2588,21 +2572,15 @@ function renderRanking(){
         currentGroup = [p];
       }
     }
-
   });
 
   if(currentGroup.length) groups.push(currentGroup);
 
-  // ===============================
-  // ASSIGN RANK (NO SKIP)
-  // ===============================
   let currentRank = 1;
 
   const rankedGroups = groups.map((group, index)=>{
 
-    if(index === 0){
-      currentRank = 1;
-    }else{
+    if(index !== 0){
       const prev = groups[index - 1][0];
       const curr = group[0];
 
@@ -2617,9 +2595,6 @@ function renderRanking(){
     };
   });
 
-  // ===============================
-  // RENDER
-  // ===============================
   container.innerHTML = rankedGroups.map(g=>{
 
     const playersHTML = g.players.map(p=>{
@@ -2630,30 +2605,30 @@ function renderRanking(){
     const diff = g.players[0].diff;
 
     return `
-      <div class="ranking-card rank-${g.rank} ${g.rank === 1 ? "champion" : ""}">
+      <div class="m-ranking-card m-rank-${g.rank}">
 
         ${g.rank === 1 ? `
-          <div class="champion-label">👑 CHAMPION</div>
+          <div class="m-champion">👑 CHAMPION</div>
         ` : ""}
 
-        <div class="rank-badge">#${g.rank}</div>
+        <div class="m-rank-badge">#${g.rank}</div>
 
-        <div class="rank-names">
+        <div class="m-rank-names">
           ${playersHTML}
         </div>
 
-        <div class="rank-stats">
+        <div class="m-rank-stats">
 
-          <div class="stat-block">
-            <div class="stat-value">${wins}</div>
-            <div class="stat-label">Win</div>
+          <div class="m-stat">
+            <div class="m-stat-value">${wins}</div>
+            <div class="m-stat-label">Win</div>
           </div>
 
-          <div class="stat-block">
-            <div class="stat-value ${diff >= 0 ? "pos" : "neg"}">
+          <div class="m-stat">
+            <div class="m-stat-value ${diff >= 0 ? "m-pos" : "m-neg"}">
               ${diff > 0 ? "+" + diff : diff}
             </div>
-            <div class="stat-label">Diff</div>
+            <div class="m-stat-label">Diff</div>
           </div>
 
         </div>
