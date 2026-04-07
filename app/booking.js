@@ -2246,66 +2246,61 @@ function renderMatches(){
 
   const list = document.getElementById("matchList");
 
+  if(!list){
+    console.error("matchList not found");
+    return;
+  }
+
+  if(!matches || matches.length === 0){
+    list.innerHTML = "<div>Tidak ada pertandingan</div>";
+    return;
+  }
+
   list.innerHTML = matches.map((m,i)=>`
 
     <div class="match-card" id="match-${m.id}">
 
       <div class="match-header">
         <div class="match-title">Pertandingan ${i+1}</div>
-        <button class="delete-match-btn" data-id="${m.id}">✕</button>
+
+        <div style="display:flex; gap:6px;">
+          <button class="edit-btn" data-id="${m.id}">✏️</button>
+          <button class="delete-match-btn" data-id="${m.id}">🗑</button>
+        </div>
       </div>
 
-      <!-- TEAM A -->
       <div class="team-row">
-
         <div class="team-players">
-          ${renderSelect(m.id,"a1",m.a1)}
-          ${renderSelect(m.id,"a2",m.a2)}
+          ${playerMap[m.a1] || "-"} <br>
+          ${playerMap[m.a2] || "-"}
         </div>
 
-        <div class="score-box-inline">
-          <div class="score-view" data-id="${m.id}" data-side="A">
-            ${m.scoreA || 0}
-          </div>
-          <input 
-            type="number" 
-            value="${m.scoreA || 0}" 
-            data-id="${m.id}" 
-            data-side="A"
-            class="score-input"
-            style="display:none;"
-          >
+        <div class="score-box">
+          ${m.scoreA || 0}
         </div>
 
+        <input class="score-input"
+          data-id="${m.id}" data-side="A"
+          value="${m.scoreA || 0}">
       </div>
 
       <div class="vs">VS</div>
 
-      <!-- TEAM B -->
       <div class="team-row">
-
         <div class="team-players">
-          ${renderSelect(m.id,"b1",m.b1)}
-          ${renderSelect(m.id,"b2",m.b2)}
+          ${playerMap[m.b1] || "-"} <br>
+          ${playerMap[m.b2] || "-"}
         </div>
 
-        <div class="score-box-inline">
-          <div class="score-view" data-id="${m.id}" data-side="B">
-            ${m.scoreB || 0}
-          </div>
-          <input 
-            type="number" 
-            value="${m.scoreB || 0}" 
-            data-id="${m.id}" 
-            data-side="B"
-            class="score-input"
-            style="display:none;"
-          >
+        <div class="score-box">
+          ${m.scoreB || 0}
         </div>
 
+        <input class="score-input"
+          data-id="${m.id}" data-side="B"
+          value="${m.scoreB || 0}">
       </div>
 
-      <!-- ACTION -->
       <div class="match-actions">
         <button class="save-btn" data-id="${m.id}">Save</button>
         <button class="cancel-btn" data-id="${m.id}">Cancel</button>
@@ -2316,7 +2311,9 @@ function renderMatches(){
   `).join("");
 
   attachEvents();
-  } // ✅ WAJIB ADA INI
+}
+
+  
 // ===============================
 // LOAD MATCHES (MANUAL - NO REALTIME)
 // ===============================
@@ -2505,9 +2502,23 @@ function attachEvents(){
 }
 
 // ===============================
-// RANKING (FINAL FIX - SAFE)
+// RANKING (FINAL FIX - SAFE & STABLE)
 // ===============================
 function renderRanking(){
+
+  const container = document.getElementById("rankingContainer");
+  if(!container){
+    console.error("rankingContainer not found");
+    return;
+  }
+
+  // ===============================
+  // VALIDATION DATA
+  // ===============================
+  if(!matches || matches.length === 0){
+    container.innerHTML = "<div style='padding:10px'>Belum ada pertandingan</div>";
+    return;
+  }
 
   const stats = {};
 
@@ -2516,12 +2527,14 @@ function renderRanking(){
   // ===============================
   matches.forEach(m=>{
 
-    const teamA = [m.a1,m.a2].filter(Boolean);
-    const teamB = [m.b1,m.b2].filter(Boolean);
+    const teamA = [m.a1, m.a2].filter(Boolean);
+    const teamB = [m.b1, m.b2].filter(Boolean);
 
     if(!teamA.length || !teamB.length) return;
 
-    const diff = (m.scoreA || 0) - (m.scoreB || 0);
+    const scoreA = Number(m.scoreA || 0);
+    const scoreB = Number(m.scoreB || 0);
+    const diff = scoreA - scoreB;
 
     teamA.forEach(id=>{
       if(!stats[id]) stats[id] = {id, wins:0, diff:0};
@@ -2537,18 +2550,28 @@ function renderRanking(){
 
   });
 
+  const rankingRaw = Object.values(stats);
+
+  // ===============================
+  // VALIDATION STATS
+  // ===============================
+  if(rankingRaw.length === 0){
+    container.innerHTML = "<div style='padding:10px'>Belum ada hasil</div>";
+    return;
+  }
+
   // ===============================
   // SORTING
   // ===============================
-  const rankingRaw = Object.values(stats).sort((a,b)=>{
+  rankingRaw.sort((a,b)=>{
     if(b.wins !== a.wins) return b.wins - a.wins;
     return b.diff - a.diff;
   });
 
   // ===============================
-  // GROUPING (TIE)
+  // GROUPING (TIE SYSTEM)
   // ===============================
-  let groups = [];
+  const groups = [];
   let currentGroup = [];
 
   rankingRaw.forEach((p,i)=>{
@@ -2571,77 +2594,74 @@ function renderRanking(){
   if(currentGroup.length) groups.push(currentGroup);
 
   // ===============================
-// ASSIGN RANK (FIX NO SKIP)
-// ===============================
-let currentRank = 1;
+  // ASSIGN RANK (NO SKIP)
+  // ===============================
+  let currentRank = 1;
 
-const rankedGroups = groups.map((group, index)=>{
+  const rankedGroups = groups.map((group, index)=>{
 
-  if(index === 0){
-    currentRank = 1;
-  }else{
-    const prev = groups[index - 1][0];
-    const curr = group[0];
+    if(index === 0){
+      currentRank = 1;
+    }else{
+      const prev = groups[index - 1][0];
+      const curr = group[0];
 
-    if(curr.wins !== prev.wins || curr.diff !== prev.diff){
-      currentRank++; // 🔥 naik 1 aja (tidak lompat)
+      if(curr.wins !== prev.wins || curr.diff !== prev.diff){
+        currentRank++;
+      }
     }
-  }
 
-  return {
-    rank: currentRank,
-    players: group
-  };
-});
+    return {
+      rank: currentRank,
+      players: group
+    };
+  });
 
- // ===============================
-// RENDER (FINAL CLEAN)
-// ===============================
-const container = document.getElementById("rankingContainer");
-if(!container) return;
+  // ===============================
+  // RENDER
+  // ===============================
+  container.innerHTML = rankedGroups.map(g=>{
 
-container.innerHTML = rankedGroups.map(g=>{
+    const playersHTML = g.players.map(p=>{
+      return `<div>${playerMap[p.id] || "User"}</div>`;
+    }).join("");
 
-  const playersHTML = g.players.map(p=>{
-    return `<div>${playerMap[p.id] || "User"}</div>`;
-  }).join("");
+    const wins = g.players[0].wins;
+    const diff = g.players[0].diff;
 
-  const wins = g.players[0].wins;
-  const diff = g.players[0].diff;
+    return `
+      <div class="ranking-card rank-${g.rank} ${g.rank === 1 ? "champion" : ""}">
 
-  return `
-    <div class="ranking-card rank-${g.rank} ${g.rank === 1 ? "champion" : ""}">
+        ${g.rank === 1 ? `
+          <div class="champion-label">👑 CHAMPION</div>
+        ` : ""}
 
-      ${g.rank === 1 ? `
-        <div class="champion-label">👑 CHAMPION</div>
-      ` : ""}
+        <div class="rank-badge">#${g.rank}</div>
 
-      <div class="rank-badge">${g.rank}</div>
-
-      <div class="rank-names">
-        ${playersHTML}
-      </div>
-
-      <div class="rank-stats">
-
-        <div class="stat-block">
-          <div class="stat-value">${wins}</div>
-          <div class="stat-label">Win</div>
+        <div class="rank-names">
+          ${playersHTML}
         </div>
 
-        <div class="stat-block">
-          <div class="stat-value ${diff >= 0 ? "pos" : "neg"}">
-            ${diff > 0 ? "+" + diff : diff}
+        <div class="rank-stats">
+
+          <div class="stat-block">
+            <div class="stat-value">${wins}</div>
+            <div class="stat-label">Win</div>
           </div>
-          <div class="stat-label">Diff</div>
+
+          <div class="stat-block">
+            <div class="stat-value ${diff >= 0 ? "pos" : "neg"}">
+              ${diff > 0 ? "+" + diff : diff}
+            </div>
+            <div class="stat-label">Diff</div>
+          </div>
+
         </div>
 
       </div>
+    `;
 
-    </div>
-  `;
-
-}).join("");
+  }).join("");
 
 }
 
