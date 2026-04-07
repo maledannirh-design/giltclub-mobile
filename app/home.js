@@ -72,6 +72,10 @@ content.innerHTML = `
           <i class="fa-solid fa-crown"></i>
           <span>Leaderboard</span>
         </div>
+        <div class="championclub-btn">
+    <i class="fa-solid fa-trophy"></i>
+    <span>Champion Club</span>
+  </div>
       </div>
 
     </div>
@@ -119,7 +123,12 @@ document.querySelector(".leaderboard-btn")
       window.navigate("leaderboard");
     }
   });
-
+document.querySelector(".championclub-btn")
+  ?.addEventListener("click", ()=>{
+    if (window.navigate) {
+      window.navigate("championClub");
+    }
+  });
     /* =============================
        REALTIME GPOINT LISTENER
     ============================= */
