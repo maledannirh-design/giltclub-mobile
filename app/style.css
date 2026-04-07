@@ -3228,3 +3228,150 @@ body.scan-mode{
   background:rgba(255,255,255,0.1);
   color:#fff;
 }
+
+.champion-entry{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:12px;
+  margin-bottom:8px;
+
+  border-radius:12px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255,215,0,0.15),
+    rgba(255,255,255,0.05)
+  );
+
+  color:#fff;
+}
+
+.champion-entry .rank{
+  font-weight:700;
+  color:#FFD700;
+}
+
+.champion-entry .name{
+  flex:1;
+  margin-left:10px;
+}
+
+.champion-entry .stat{
+  font-size:12px;
+  opacity:0.8;
+}
+
+.champion-entry .diff{
+  font-weight:600;
+}
+
+.champion-entry{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:12px;
+  margin-bottom:8px;
+
+  border-radius:12px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255,215,0,0.15),
+    rgba(255,255,255,0.05)
+  );
+
+  color:#fff;
+}
+
+.champion-entry .rank{
+  font-weight:700;
+  color:#FFD700;
+}
+
+.champion-entry .name{
+  flex:1;
+  margin-left:10px;
+}
+
+.champion-entry .stat{
+  font-size:12px;
+  opacity:0.8;
+}
+
+.champion-entry .diff{
+  font-weight:600;
+}
+
+/* ===== PODIUM ===== */
+.champion-podium{
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.podium-item{
+  flex:1;
+  text-align:center;
+  padding:12px;
+  border-radius:16px;
+  color:#fff;
+  position:relative;
+  animation:popUp 0.4s ease;
+}
+
+/* HEIGHT DIFFERENCE */
+.rank-1{ height:120px; background:linear-gradient(135deg,#FFD700,#ffb700); }
+.rank-2{ height:100px; background:linear-gradient(135deg,#C0C0C0,#9e9e9e); }
+.rank-3{ height:85px; background:linear-gradient(135deg,#cd7f32,#a05a2c); }
+
+/* TEXT */
+.podium-rank{
+  font-weight:700;
+}
+
+.podium-name{
+  margin-top:8px;
+  font-size:14px;
+}
+
+.podium-diff{
+  margin-top:6px;
+  font-weight:600;
+}
+
+/* ===== ENTRY ===== */
+.fade-in{
+  animation:fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(5px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+@keyframes popUp{
+  from{ transform:scale(0.8); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+
+.movement{
+  font-size:12px;
+  margin-top:4px;
+}
+
+.movement.up{
+  color:#00e676;
+}
+
+.movement.down{
+  color:#ff5252;
+}
+
+.movement.same{
+  color:#aaa;
+}
