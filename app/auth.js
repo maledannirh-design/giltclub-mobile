@@ -117,7 +117,6 @@ export async function register(
       coachLevel: null,
 
       verifiedApproved: false,
-      verifiedEligible: false,
 
       isPublic: true,
 
