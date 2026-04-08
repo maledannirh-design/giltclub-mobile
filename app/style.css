@@ -3266,3 +3266,9 @@ body.scan-mode{
   justify-content:flex-end;
   gap:10px;
 }
+
+.podium-stat{
+  font-size:11px;
+  opacity:.75;
+  margin-top:2px;
+}
