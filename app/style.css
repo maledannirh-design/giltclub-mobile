@@ -2484,269 +2484,7 @@ body.scan-mode{
   height:42px;
 }
 
-/* ==============================
-   LEADERBOARD WRAPPER (OCEAN PREMIUM)
-============================== */
 
-.leaderboard-wrapper{
-  position: relative;
-  min-height:100vh;
-  padding:20px;
-  overflow:hidden;
-  color:#fff;
-
-  background: linear-gradient(
-    to bottom,
-    #0a1f2c,
-    #0f3a4a,
-    #1c6d7c
-  );
-}
-
-/* 🌊 ANIMATED OCEAN */
-.leaderboard-wrapper::before,
-.leaderboard-wrapper::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:0;
-}
-
-.leaderboard-wrapper::before{
-  background: url("https://www.transparenttextures.com/patterns/waves.png");
-  opacity:0.15;
-  animation:waveMove 20s linear infinite;
-}
-
-.leaderboard-wrapper::after{
-  background: radial-gradient(
-    circle at 50% 120%,
-    rgba(255,255,255,0.15),
-    transparent 60%
-  );
-  animation:waterGlow 6s ease-in-out infinite alternate;
-}
-
-.leaderboard-wrapper > *{
-  position:relative;
-  z-index:1;
-}
-
-
-/* ==============================
-   HEADER
-============================== */
-
-.leaderboard-title{
-  font-size:22px;
-  font-weight:700;
-  margin-bottom:16px;
-}
-
-
-/* ==============================
-   RANK CARD
-============================== */
-
-.rank-item{
-  position:relative;
-
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(10px);
-
-  padding:14px;
-  margin-bottom:12px;
-  border-radius:16px;
-
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-
-  transition:.25s ease;
-  border:1px solid rgba(255,255,255,0.1);
-}
-
-.rank-item:hover{
-  transform:translateY(-3px) scale(1.01);
-  background: rgba(255,255,255,0.12);
-}
-
-
-/* LEFT SIDE */
-.rank-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.rank-avatar{
-  width:46px;
-  height:46px;
-  border-radius:50%;
-  overflow:hidden;
-}
-
-.rank-avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-/* TEXT */
-.rank-name{
-  font-weight:600;
-  font-size:14px;
-}
-
-.rank-sub{
-  font-size:12px;
-  opacity:0.7;
-}
-
-/* RIGHT */
-.rank-right{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-}
-
-.rank-score{
-  font-weight:700;
-  font-size:15px;
-}
-
-.rank-label{
-  font-size:11px;
-  opacity:0.7;
-}
-
-
-/* ==============================
-   BUTTON (PROFILE / ACTION)
-============================== */
-
-.rank-btn{
-  margin-top:6px;
-  padding:4px 10px;
-  font-size:11px;
-
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-
-  background:rgba(255,255,255,0.15);
-  color:#fff;
-
-  transition:.2s;
-}
-
-.rank-btn:hover{
-  background:rgba(255,255,255,0.25);
-}
-
-
-/* ==============================
-   🥇 RANK 1
-============================== */
-
-.rank-1{
-  background: linear-gradient(
-    135deg,
-    #5a3b00,
-    #ffd700,
-    #fff3a0,
-    #ffd700
-  );
-
-  color:#000;
-  font-weight:600;
-
-  box-shadow:
-    0 0 20px rgba(255,215,0,0.6),
-    0 0 40px rgba(255,215,0,0.3);
-
-  transform:scale(1.05);
-}
-
-.rank-1::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-
-  background: linear-gradient(
-    120deg,
-    transparent,
-    rgba(255,255,255,0.8),
-    transparent
-  );
-
-  transform:translateX(-100%);
-  animation:goldShine 2s infinite;
-}
-
-
-/* ==============================
-   🥈 RANK 2
-============================== */
-
-.rank-2{
-  background: linear-gradient(
-    135deg,
-    #2f3b44,
-    #cfd8dc,
-    #ffffff,
-    #b0bec5
-  );
-
-  color:#111;
-  font-weight:600;
-
-  box-shadow:
-    0 0 12px rgba(200,200,200,0.4);
-
-  animation:silverPulse 3s infinite ease-in-out;
-}
-
-
-/* ==============================
-   🥉 RANK 3
-============================== */
-
-.rank-3{
-  background: linear-gradient(
-    135deg,
-    #8c4a00,
-    #d68c45,
-    #f3c27a
-  );
-
-  color:#000;
-}
-
-
-/* ==============================
-   LEADERBOARD RULES
-============================== */
-
-.leaderboard-rules{
-  margin-top:22px;
-  padding-top:12px;
-  border-top:1px solid rgba(255,255,255,.2);
-  font-size:12px;
-  line-height:1.5;
-  opacity:.9;
-}
-
-.rules-title{
-  font-weight:600;
-  margin-bottom:6px;
-  font-size:13px;
-}
-
-.rules-text{
-  margin-bottom:6px;
-}
 
 
 /* ==============================
@@ -2838,196 +2576,7 @@ body.scan-mode{
 }
 
 
-/* ================================
-   VERIFY MODAL
-================================ */
-
-.verify-modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  backdrop-filter:blur(6px);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  opacity:0;
-  pointer-events:none;
-  transition:.25s;
-}
-
-.verify-modal.show{
-  opacity:1;
-  pointer-events:auto;
-}
-
-
-/* ================================
-   CARD
-================================ */
-
-.verify-modal-card{
-  width:85%;
-  max-width:360px;
-  background:white;
-  border-radius:18px;
-  padding:26px;
-  text-align:center;
-  box-shadow:0 20px 40px rgba(0,0,0,.25);
-  animation:verifyPop .35s ease;
-}
-
-@keyframes verifyPop{
-  from{
-    transform:scale(.85);
-    opacity:0;
-  }
-  to{
-    transform:scale(1);
-    opacity:1;
-  }
-}
-
-
-/* ================================
-   ICON
-================================ */
-
-.verify-icon{
-  font-size:38px;
-  margin-bottom:10px;
-}
-
-
-/* ================================
-   TITLE
-================================ */
-
-.verify-title{
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:8px;
-}
-
-
-/* ================================
-   TEXT
-================================ */
-
-.verify-text{
-  font-size:14px;
-  opacity:.7;
-  margin-bottom:18px;
-  line-height:1.4;
-}
-
-
-/* ================================
-   BUTTONS
-================================ */
-
-.verify-buttons{
-  display:flex;
-  gap:10px;
-}
-
-.verify-primary{
-  flex:1;
-  background:#1ca7ec;
-  border:none;
-  color:white;
-  padding:10px;
-  border-radius:10px;
-  font-weight:600;
-}
-
-.verify-secondary{
-  flex:1;
-  background:#eee;
-  border:none;
-  padding:10px;
-  border-radius:10px;
-}
-
-.rank-right{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-}
-
-.rank-session{
-  font-weight:600;
-}
-
-.rank-reward{
-  font-size:12px;
-  margin-top:4px;
-  opacity:.9;
-  color:#7a4b00;
-}
-/* ==============================
-   LEADERBOARD RULES
-============================== */
-
-.leaderboard-rules{
-  margin-top:22px;
-  padding-top:12px;
-  border-top:1px solid rgba(0,0,0,.15);
-  font-size:12px;
-  line-height:1.5;
-  opacity:.8;
-}
-
-.rules-title{
-  font-weight:600;
-  margin-bottom:6px;
-  font-size:13px;
-}
-
-.rules-text{
-  margin-bottom:6px;
-}
-
-.header-bottom-row{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:10px;
-}
-
-.header-stats{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  font-size:12px;
-  line-height:1.2;
-  text-align:right;
-}
-
-.stat-online{
-  color:#7CFF8A;
-  font-weight:600;
-  animation:pulseOnline 2s infinite;
-}
-
-.stat-weekly{
-  color:#cccccc;
-}
-
-@keyframes pulseOnline{
-  0%{opacity:1;}
-  50%{opacity:0.5;}
-  100%{opacity:1;}
-}
-
-.page-loading {
-  opacity: 0.3;
-  transition: opacity 0.2s ease;
-}
-
-.content {
-  transition: opacity 0.2s ease;
-}
+/
 
 /* =============================
    VERIFIED PROGRESS - THEME AWARE PREMIUM
@@ -3429,4 +2978,291 @@ body.scan-mode{
 
 .light-mode .movement.same{
   color:#6c757d;
+}
+
+
+/* ================================
+   VERIFY MODAL
+================================ */
+
+.verify-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  opacity:0;
+  pointer-events:none;
+  transition:.25s;
+}
+
+.verify-modal.show{
+  opacity:1;
+  pointer-events:auto;
+}
+
+
+/* ================================
+   CARD
+================================ */
+
+.verify-modal-card{
+  width:85%;
+  max-width:360px;
+  background:white;
+  border-radius:18px;
+  padding:26px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  animation:verifyPop .35s ease;
+}
+
+@keyframes verifyPop{
+  from{
+    transform:scale(.85);
+    opacity:0;
+  }
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+
+/* ================================
+   ICON
+================================ */
+
+.verify-icon{
+  font-size:38px;
+  margin-bottom:10px;
+}
+
+
+/* ================================
+   TITLE
+================================ */
+
+.verify-title{
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+
+/* ================================
+   TEXT
+================================ */
+
+.verify-text{
+  font-size:14px;
+  opacity:.7;
+  margin-bottom:18px;
+  line-height:1.4;
+}
+
+
+/* ================================
+   BUTTONS
+================================ */
+
+.verify-buttons{
+  display:flex;
+  gap:10px;
+}
+
+.verify-primary{
+  flex:1;
+  background:#1ca7ec;
+  border:none;
+  color:white;
+  padding:10px;
+  border-radius:10px;
+  font-weight:600;
+}
+
+.verify-secondary{
+  flex:1;
+  background:#eee;
+  border:none;
+  padding:10px;
+  border-radius:10px;
+}
+
+.header-stats{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  font-size:12px;
+  line-height:1.2;
+  text-align:right;
+}
+
+.stat-online{
+  color:#7CFF8A;
+  font-weight:600;
+  animation:pulseOnline 2s infinite;
+}
+
+.stat-weekly{
+  color:#cccccc;
+}
+
+@keyframes pulseOnline{
+  0%{opacity:1;}
+  50%{opacity:0.5;}
+  100%{opacity:1;}
+}
+
+.page-loading {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+.content {
+  transition: opacity 0.2s ease;
+}
+
+
+/* ===============================
+   LEADERBOARD CLEAN VERSION
+============================== */
+
+.leaderboard-wrapper{
+  min-height:100vh;
+  padding:16px;
+  background:linear-gradient(to bottom,#0f2a36,#1f4d5c);
+  color:#fff;
+  font-family:system-ui;
+}
+
+/* TITLE */
+.leaderboard-title{
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:14px;
+}
+
+/* CARD */
+.rank-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:12px 14px;
+  margin-bottom:10px;
+
+  border-radius:12px;
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.08);
+
+  transition:.2s;
+}
+
+.rank-item:hover{
+  background:rgba(255,255,255,0.12);
+}
+
+/* LEFT */
+.rank-left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+
+  max-width:65%;
+  overflow:hidden;
+}
+
+.rank-name{
+  font-size:14px;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.rank-sub{
+  font-size:11px;
+  opacity:.7;
+}
+
+/* RIGHT */
+.rank-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+
+  max-width:35%;
+  text-align:right;
+}
+
+.rank-session{
+  font-size:13px;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.rank-reward{
+  font-size:11px;
+  opacity:.8;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* ===============================
+   TOP 3 (SIMPLE, NO NORAK)
+============================== */
+
+.rank-1{
+  background:#FFD54F;
+  color:#000;
+}
+
+.rank-2{
+  background:#CFD8DC;
+  color:#000;
+}
+
+.rank-3{
+  background:#D7A86E;
+  color:#000;
+}
+
+/* FIX TEXT VISIBILITY */
+.rank-1 .rank-sub,
+.rank-2 .rank-sub,
+.rank-3 .rank-sub{
+  opacity:.8;
+}/* ==============================
+   LEADERBOARD RULES
+============================== */
+
+.leaderboard-rules{
+  margin-top:22px;
+  padding-top:12px;
+  border-top:1px solid rgba(0,0,0,.15);
+  font-size:12px;
+  line-height:1.5;
+  opacity:.8;
+}
+
+.rules-title{
+  font-weight:600;
+  margin-bottom:6px;
+  font-size:13px;
+}
+
+.rules-text{
+  margin-bottom:6px;
+}
+
+.header-bottom-row{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
 }
