@@ -3334,3 +3334,146 @@ body.scan-mode{
   justify-content:flex-end;
   gap:10px;
 }
+
+/* ===============================
+   LEADERBOARD - FLOWER PINK FIXED
+============================== */
+
+.leaderboard-wrapper{
+  min-height:100vh;
+  padding:16px;
+  font-family:system-ui;
+
+  background:
+    linear-gradient(to bottom,#f8d7da,#f1c6cc,#eab3bb),
+    url("https://www.transparenttextures.com/patterns/flowers.png");
+
+  color:#111;
+}
+
+
+/* ===============================
+   TITLE
+============================== */
+
+.leaderboard-title{
+  font-size:20px;
+  font-weight:700;
+  margin-bottom:14px;
+}
+
+
+/* ===============================
+   CARD (MAIN FIX)
+============================== */
+
+.rank-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:14px;
+  margin-bottom:10px;
+
+  border-radius:14px;
+  background:#ffffff;
+
+  box-shadow:0 3px 10px rgba(0,0,0,.06);
+}
+
+
+/* ===============================
+   LEFT SIDE
+============================== */
+
+.rank-item > div:first-child{
+  max-width:60%;
+}
+
+.rank-item > div:first-child div:first-child{
+  font-weight:600;
+  font-size:14px;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.rank-item > div:first-child div:last-child{
+  font-size:12px;
+  opacity:.6;
+}
+
+
+/* ===============================
+   RIGHT SIDE
+============================== */
+
+.rank-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+
+  max-width:40%;
+  text-align:right;
+}
+
+.rank-session{
+  font-size:13px;
+  font-weight:600;
+
+  white-space:nowrap;
+}
+
+.rank-reward{
+  font-size:12px;
+  margin-top:2px;
+  opacity:.75;
+
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+
+/* ===============================
+   TOP 3 COLORS
+============================== */
+
+.rank-1{
+  background:#FFD54F;
+  color:#000;
+}
+
+.rank-2{
+  background:#f1f1f1;
+}
+
+.rank-3{
+  background:#f6d2a2;
+}
+
+
+/* ===============================
+   RULES SECTION
+============================== */
+
+.leaderboard-rules{
+  margin-top:18px;
+  padding-top:12px;
+
+  border-top:1px solid rgba(0,0,0,.15);
+
+  font-size:12px;
+  line-height:1.5;
+  opacity:.85;
+}
+
+.rules-title{
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.rules-text{
+  margin-bottom:6px;
+}
