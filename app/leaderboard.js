@@ -20,22 +20,22 @@ function getRankReward(rank){
     return "🎟️ Voucher Semi Private GRATIS";
 
   if(rank === 2)
-    return "🎟️ Voucher Mabar GRATIS + 1250 GPoint";
+    return "🎟️ Voucher Mabar GRATIS + 750 GPoint";
 
   if(rank === 3)
     return "🎟️ Voucher Mabar GRATIS";
 
   if(rank >=4 && rank <=5)
-    return "⭐ Bonus Bulanan 1500 GPoint";
-  
-  if(rank >=6 && rank <=7)
     return "⭐ Bonus Bulanan 1250 GPoint";
   
-  if(rank >=8 && rank <=9)
+  if(rank >=6 && rank <=7)
     return "⭐ Bonus Bulanan 900 GPoint";
+  
+  if(rank >=8 && rank <=9)
+    return "⭐ Bonus Bulanan 750 GPoint";
 
   if(rank === 10)
-    return "⭐ Bonus Bulanan 750 GPoint";
+    return "⭐ Bonus Bulanan 450 GPoint";
 
   return "";
 
