@@ -1592,3 +1592,34 @@ body.dark .edit-session-btn{
   font-size:16px;
   opacity:0.5;
 }
+
+/* ===============================
+   FIX SPACING PROGRESS VERIFIED
+================================= */
+
+/* wrapper section progress */
+.progress-verified-wrapper{
+  margin-top: 28px; /* 🔥 turunin ke bawah */
+  padding: 0 16px;
+}
+
+/* card dalamnya */
+.progress-verified-card{
+  margin-top: 12px;
+  padding: 18px;
+  border-radius: 16px;
+
+  backdrop-filter: blur(10px);
+}
+
+/* LIGHT MODE */
+body.light .progress-verified-card{
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* DARK MODE */
+body.dark .progress-verified-card{
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
