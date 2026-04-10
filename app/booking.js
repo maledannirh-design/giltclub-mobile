@@ -2136,7 +2136,7 @@ if(globalPlayerMap){
   });
 
   globalPlayerMap = playerMap; // cache
-
+}
   // ===============================
   let matches = [];
   let editedMatches = {};
