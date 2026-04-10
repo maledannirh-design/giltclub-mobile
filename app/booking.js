@@ -2152,109 +2152,6 @@ await loadMatches();
     `;
   }
 
-// ===============================
-// EVENTS (FINAL CLEAN - NO DUPLICATE)
-// ===============================
-function attachEvents(){
-
-  // ===============================
-  // SELECT PLAYER (LOCAL STATE)
-  // ===============================
-  document.querySelectorAll("select").forEach(el=>{
-    el.onchange = ()=>{
-      const id = el.dataset.id;
-      const key = el.dataset.key;
-
-      if(!editedMatches[id]) editedMatches[id] = {};
-      editedMatches[id][key] = el.value;
-    };
-  });
-
-  // ===============================
-  // INPUT SCORE (LOCAL STATE)
-  // ===============================
-  document.querySelectorAll(".score-input").forEach(el=>{
-    el.oninput = ()=>{
-      const id = el.dataset.id;
-      const side = el.dataset.side;
-
-      if(!editedMatches[id]) editedMatches[id] = {};
-      editedMatches[id][side==="A" ? "scoreA" : "scoreB"] = Number(el.value);
-    };
-  });
-
-  // ===============================
-  // EDIT MODE (✏️ BUTTON)
-  // ===============================
-  document.querySelectorAll(".edit-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      const id = btn.dataset.id;
-      const card = document.getElementById("match-"+id);
-
-      if(!card) return;
-
-      card.classList.add("editing");
-
-      // hide view
-      card.querySelectorAll(".score-box").forEach(el=>{
-        el.style.display = "none";
-      });
-
-      // show input
-      card.querySelectorAll(".score-input").forEach(el=>{
-        el.style.display = "block";
-      });
-    };
-  });
-
-  // ===============================
-  // SAVE
-  // ===============================
-  document.querySelectorAll(".save-btn").forEach(btn=>{
-    btn.onclick = async ()=>{
-      const id = btn.dataset.id;
-      const data = editedMatches[id];
-
-      if(!data){
-        alert("Tidak ada perubahan");
-        return;
-      }
-
-      try{
-
-        await updateDoc(doc(db,"matches",id),{
-          ...data,
-          updatedAt: serverTimestamp()
-        });
-
-        delete editedMatches[id];
-
-        await loadMatches();
-
-      }catch(err){
-        console.error(err);
-        alert("Gagal save");
-      }
-    };
-  });
-
-  // ===============================
-  // DELETE MATCH
-  // ===============================
-  document.querySelectorAll(".delete-match-btn").forEach(btn=>{
-    btn.onclick = async ()=>{
-      if(!confirm("Hapus pertandingan ini?")) return;
-
-      try{
-        await deleteDoc(doc(db,"matches",btn.dataset.id));
-        await loadMatches();
-      }catch(err){
-        console.error(err);
-        alert("Gagal hapus");
-      }
-    };
-  });
-}
 
 // ===============================
 // RENDER MATCH (FINAL FIXED)
@@ -2384,41 +2281,69 @@ async function saveScore(matchId, newScore){
   // ===============================
   // SELECT PLAYER
   // ===============================
-  function renderSelect(docId,key,value){
+ function renderSelect(id,key,value){
 
-    return `
-      <select data-id="${docId}" data-key="${key}">
-        <option value="">Pilih</option>
-        ${players.map(p=>`
-          <option value="${p.id}" ${p.id===value?"selected":""}>
-            ${p.name}
-          </option>
-        `).join("")}
-      </select>
-    `;
-  }
+  const listId = `player-list-${id}-${key}`;
 
-// ===============================
-// EVENTS (FINAL CLEAN - FIXED)
-// ===============================
+  return `
+    <input 
+      list="${listId}"
+      data-id="${id}" 
+      data-key="${key}"
+      value="${value || ""}"
+      placeholder="Ketik atau pilih..."
+      class="player-input"
+    />
+
+    <datalist id="${listId}">
+      ${players.map(p=>`
+        <option value="${p.name}"></option>
+      `).join("")}
+    </datalist>
+  `;
+}
+
 function attachEvents(){
 
   // =========================
-  // SELECT (PLAYER)
+  // INPUT PLAYER (FINAL HYBRID)
   // =========================
-  document.querySelectorAll("select").forEach(el=>{
+  document.querySelectorAll(".player-input").forEach(el=>{
     el.onchange = ()=>{
       const id = el.dataset.id;
       const key = el.dataset.key;
 
       if(!editedMatches[id]) editedMatches[id] = {};
 
-      editedMatches[id][key] = el.value;
+      const inputValue = el.value.trim();
+
+      // 🔥 cari apakah ada di player list
+      const player = players.find(p => 
+        p.name.toLowerCase() === inputValue.toLowerCase()
+      );
+
+      if(player){
+
+  editedMatches[id][key] = {
+    id: player.id,
+    name: player.name,
+    isManual: false
+  };
+
+}else{
+
+  editedMatches[id][key] = {
+    id: "manual_" + Date.now(),
+    name: inputValue,
+    isManual: true
+  };
+
+}
     };
   });
 
   // =========================
-  // SCORE INPUT (FIXED CLASS)
+  // SCORE INPUT (TETAP)
   // =========================
   document.querySelectorAll(".score-input").forEach(el=>{
     el.oninput = ()=>{
@@ -2432,7 +2357,7 @@ function attachEvents(){
   });
 
   // =========================
-  // EDIT BUTTON (FIXED)
+  // EDIT BUTTON
   // =========================
   document.querySelectorAll(".edit-btn").forEach(btn=>{
     btn.onclick = ()=>{
@@ -2441,10 +2366,8 @@ function attachEvents(){
 
       if(!card) return;
 
-      // masuk edit mode
       card.classList.add("editing");
 
-      // auto focus ke input pertama
       const input = card.querySelector(".score-input");
       if(input) input.focus();
     };
@@ -2484,7 +2407,7 @@ function attachEvents(){
   });
 
   // =========================
-  // CANCEL BUTTON (IMPROVED)
+  // CANCEL BUTTON
   // =========================
   document.querySelectorAll(".cancel-btn").forEach(btn=>{
     btn.onclick = ()=>{
