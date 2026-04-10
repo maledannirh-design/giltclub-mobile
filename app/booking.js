@@ -2349,33 +2349,21 @@ async function saveScore(matchId, newScore){
   // ===============================
 function renderSelect(id,key,value){
 
-  const userOptions = players
-    .filter(p=>p.type === "user")
-    .map(p=>`
-      <option value="${p.id}" ${p.id===value?"selected":""}>
-        👤 ${p.name}
-      </option>
-    `).join("");
-
-  const guestOptions = players
-    .filter(p=>p.type === "guest")
-    .map(p=>`
-      <option value="${p.id}" ${p.id===value?"selected":""}>
-        🧑‍🤝‍🧑 ${p.name}
-      </option>
-    `).join("");
-
   return `
     <select data-id="${id}" data-key="${key}">
       <option value="">Pilih</option>
 
-      <optgroup label="Member">
-        ${userOptions}
-      </optgroup>
+      ${players.map(p=>`
+        <option value="${p.id}" ${p.id===value ? "selected" : ""}>
+          ${p.name}
+        </option>
+      `).join("")}
 
-      <optgroup label="Guest">
-        ${guestOptions}
-      </optgroup>
+      ${
+        value && !players.some(p=>p.id === value)
+        ? `<option value="${value}" selected>${playerMap[value] || "User"}</option>`
+        : ""
+      }
 
     </select>
   `;
