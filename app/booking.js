@@ -2079,13 +2079,13 @@ async function openMatchesPage(scheduleId){
   }
 
   // ===============================
-  // ADMIN / SUPERCOACH
+  // ADMIN / SUPERCOACH (FIXED)
   // ===============================
   else{
 
-    const allUsersSnap = await getDocs(collection(db,"users"));
-
-    players = allUsersSnap.docs.map(docSnap=>{
+    // USERS
+    const usersSnap = await getDocs(collection(db,"users"));
+    const userPlayers = usersSnap.docs.map(docSnap=>{
       const u = docSnap.data();
       return {
         id: docSnap.id,
@@ -2093,6 +2093,18 @@ async function openMatchesPage(scheduleId){
       };
     });
 
+    // GUEST
+    const guestSnap = await getDocs(collection(db,"guestPlayers"));
+    const guestPlayers = guestSnap.docs.map(docSnap=>{
+      const g = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: g.name || "Guest"
+      };
+    });
+
+    // MERGE
+    players = [...userPlayers, ...guestPlayers];
   }
 
   // ===============================
@@ -2100,39 +2112,28 @@ async function openMatchesPage(scheduleId){
   // ===============================
   const playerMap = {};
 
-  // dari players awal
-  players.forEach(p=>{
-    playerMap[p.id] = p.name;
-  });
-
-  // ===============================
-  // LOAD ALL USERS
-  // ===============================
+  // USERS
   try{
-    const allUsersSnap = await getDocs(collection(db,"users"));
+    const usersSnapAll = await getDocs(collection(db,"users"));
 
-    allUsersSnap.forEach(docSnap=>{
+    usersSnapAll.forEach(docSnap=>{
       const u = docSnap.data();
-      const name = u.usernameID || u.username || u.fullName || "User";
-
-      if(!playerMap[docSnap.id]){
-        playerMap[docSnap.id] = name;
-      }
+      playerMap[docSnap.id] = u.usernameID || u.username || u.fullName || "User";
     });
+
   }catch(e){
     console.error("Gagal load users:", e);
   }
 
-  // ===============================
-  // LOAD GUEST PLAYERS
-  // ===============================
+  // GUEST
   try{
-    const guestSnap = await getDocs(collection(db,"guestPlayers"));
+    const guestSnapAll = await getDocs(collection(db,"guestPlayers"));
 
-    guestSnap.forEach(docSnap=>{
+    guestSnapAll.forEach(docSnap=>{
       const g = docSnap.data();
       playerMap[docSnap.id] = g.name || "Guest";
     });
+
   }catch(e){
     console.error("Guest load error:", e);
   }
@@ -2177,6 +2178,7 @@ async function openMatchesPage(scheduleId){
   `;
 
   await loadMatches();
+}
   
   // ===============================
   // CLOSE
@@ -2361,7 +2363,7 @@ function renderSelect(id,key,value){
 
       ${
         value && !players.some(p=>p.id === value)
-        ? `<option value="${value}" selected>${playerMap[value] || "User"}</option>`
+        ? `<option value="${value}" selected>${playerMap[value] || "Unknown"}</option>`
         : ""
       }
 
