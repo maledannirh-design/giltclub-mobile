@@ -2385,6 +2385,8 @@ document.querySelectorAll("select").forEach(el=>{
 
     await updateDoc(doc(db,"matches",id),{
       [key]: el.value
+      updatedAt: serverTimestamp(),
+  updatedBy: auth.currentUser ? auth.currentUser.uid : null
     });
 
   };
@@ -2440,6 +2442,7 @@ document.querySelectorAll("select").forEach(el=>{
         await updateDoc(doc(db,"matches",id),{
           ...data,
           updatedAt: serverTimestamp()
+          updatedBy: auth.currentUser ? auth.currentUser.uid : null
         });
 
         delete editedMatches[id];
