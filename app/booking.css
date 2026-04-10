@@ -1635,3 +1635,73 @@ body.dark .progress-verified-card{
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.08);
 }
+
+
+/* ===============================
+   CHAMPION CLUB (MM SYSTEM)
+================================= */
+.mm-entry{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:10px;
+
+  background:#ffffff;
+}
+
+/* RANK */
+.mm-rank{
+  width:40px;
+  font-weight:700;
+}
+
+/* NAME */
+.mm-name{
+  flex:2;
+  font-weight:600;
+  font-size:14px;
+}
+
+/* STAT */
+.mm-stat{
+  flex:1;
+  font-size:13px;
+  opacity:0.7;
+  text-align:right;
+}
+
+/* DIFF */
+.mm-diff{
+  width:60px;
+  text-align:right;
+  font-weight:800;
+  font-size:16px;
+}
+
+/* POSITIVE */
+.mm-pos{
+  color:#1d4ed8;
+}
+
+/* NEGATIVE */
+.mm-neg{
+  color:#dc2626;
+}
+
+/* ===============================
+   TOP RANK STYLE
+================================= */
+.mm-entry:nth-child(1){
+  background:linear-gradient(135deg,#facc15,#fde68a);
+}
+
+.mm-entry:nth-child(2){
+  background:#e5e7eb;
+}
+
+.mm-entry:nth-child(3){
+  background:#e5e7eb;
+}
