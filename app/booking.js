@@ -2635,8 +2635,6 @@ async function renderRanking(){
 
 }
 
-}
-
 
 /* ===============================
    OPEN SCAN FOR CHECK IN
