@@ -3548,3 +3548,33 @@ body.scan-mode{
   background:#e5e7eb;
 }
 
+#championClub .mm-rank{
+  width:40px;
+  font-weight:700;
+}
+
+#championClub .mm-name{
+  flex:2;
+  font-weight:600;
+}
+
+#championClub .mm-stat{
+  flex:1;
+  font-size:13px;
+  opacity:0.7;
+  text-align:right;
+}
+
+#championClub .mm-diff{
+  width:60px;
+  text-align:right;
+  font-weight:800;
+}
+
+#championClub .mm-pos{
+  color:#1d4ed8;
+}
+
+#championClub .mm-neg{
+  color:#dc2626;
+}
