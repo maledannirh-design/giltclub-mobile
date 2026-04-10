@@ -27,6 +27,7 @@ let userBookings = [];
 let currentMonth = new Date();
 let selectedSport = "all";
 let slideDirection = "next";
+let globalPlayerMap = null;
 
 /* ===============================
    RENDER BOOKING PAGE
@@ -2110,29 +2111,32 @@ async function openMatchesPage(scheduleId){
   // ===============================
   // PLAYER MAP (FULL REGISTRY)
   // ===============================
-  const playerMap = {};
+ let playerMap = {};
+
+// 🔥 CACHE
+if(globalPlayerMap){
+  playerMap = globalPlayerMap;
+}else{
+
+  playerMap = {};
 
   // USERS
-  try{
-    const usersSnapAll = await getDocs(collection(db,"users"));
-
-    usersSnapAll.forEach(docSnap=>{
-      const u = docSnap.data();
-      playerMap[docSnap.id] = u.usernameID || u.username || u.fullName || "User";
-    });
-
-  }catch(e){
-    console.error("Gagal load users:", e);
-  }
+  const usersSnap = await getDocs(collection(db,"users"));
+  usersSnap.forEach(docSnap=>{
+    const u = docSnap.data();
+    playerMap[docSnap.id] =
+      u.usernameID || u.username || u.fullName || "User";
+  });
 
   // GUEST
-  try{
-    const guestSnapAll = await getDocs(collection(db,"guestPlayers"));
+  const guestSnap = await getDocs(collection(db,"guestPlayers"));
+  guestSnap.forEach(docSnap=>{
+    const g = docSnap.data();
+    playerMap[docSnap.id] = g.name || "Guest";
+  });
 
-    guestSnapAll.forEach(docSnap=>{
-      const g = docSnap.data();
-      playerMap[docSnap.id] = g.name || "Guest";
-    });
+  globalPlayerMap = playerMap; // cache
+}
 
   }catch(e){
     console.error("Guest load error:", e);
@@ -2215,8 +2219,6 @@ async function openMatchesPage(scheduleId){
       scoreB:0,
       createdAt: serverTimestamp()
     });
-
-    await loadMatches();
   };
 
 
@@ -2376,18 +2378,14 @@ function attachEvents(){
   // INPUT PLAYER (FINAL HYBRID)
   // =========================
 document.querySelectorAll("select").forEach(el=>{
-  el.onchange = async ()=>{
+  el.onchange = ()=>{
 
     const id = el.dataset.id;
     const key = el.dataset.key;
 
-    if(!el.value) return;
+    if(!editedMatches[id]) editedMatches[id] = {};
 
-    await updateDoc(doc(db,"matches",id),{
-      [key]: el.value,
-      updatedAt: serverTimestamp(),
-  updatedBy: auth.currentUser ? auth.currentUser.uid : null
-    });
+    editedMatches[id][key] = el.value;
 
   };
 });
@@ -2429,33 +2427,31 @@ document.querySelectorAll("select").forEach(el=>{
   document.querySelectorAll(".save-btn").forEach(btn=>{
     btn.onclick = async ()=>{
 
-      const id = btn.dataset.id;
-      const data = editedMatches[id];
+  const id = btn.dataset.id;
+  const data = editedMatches[id];
 
-      if(!data){
-        alert("Tidak ada perubahan");
-        return;
-      }
+  if(!data){
+    alert("Tidak ada perubahan");
+    return;
+  }
 
-      try{
+  try{
 
-        await updateDoc(doc(db,"matches",id),{
-          ...data,
-          updatedAt: serverTimestamp(),
-          updatedBy: auth.currentUser ? auth.currentUser.uid : null
-        });
+    await updateDoc(doc(db,"matches",id),{
+      ...data,
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser ? auth.currentUser.uid : null
+    });
 
-        delete editedMatches[id];
+    delete editedMatches[id];
 
-        await loadMatches();
+    await loadMatches();
 
-      }catch(err){
-        console.error(err);
-        alert("Gagal save");
-      }
-
-    };
-  });
+  }catch(err){
+    console.error(err);
+    alert("Gagal save");
+  }
+};
 
   // =========================
   // CANCEL BUTTON
@@ -2597,36 +2593,7 @@ async function renderRanking(){
       players: group
     };
   });
-
-  // ===============================
-  // 🔥 FIX: FETCH MISSING PLAYER NAMES
-  // ===============================
-  const missingIds = [];
-
-  matches.forEach(m=>{
-    ["a1","a2","b1","b2"].forEach(key=>{
-      const id = m[key];
-      if(id && !playerMap[id]){
-        missingIds.push(id);
-      }
-    });
-  });
-
-  const uniqueIds = [...new Set(missingIds)];
-
-  await Promise.all(uniqueIds.map(async id=>{
-    try{
-      const userSnap = await getDoc(doc(db,"users",id));
-      if(userSnap.exists()){
-        const u = userSnap.data();
-        playerMap[id] = u.usernameID || u.username || u.fullName || "User";
-      }else{
-        playerMap[id] = "User";
-      }
-    }catch(e){
-      playerMap[id] = "User";
-    }
-  }));
+// no fetch lagi, pakai playerMap saja
 
   // ===============================
   // RENDER
