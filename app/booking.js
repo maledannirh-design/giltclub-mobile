@@ -2384,7 +2384,7 @@ document.querySelectorAll("select").forEach(el=>{
     if(!el.value) return;
 
     await updateDoc(doc(db,"matches",id),{
-      [key]: el.value
+      [key]: el.value,
       updatedAt: serverTimestamp(),
   updatedBy: auth.currentUser ? auth.currentUser.uid : null
     });
@@ -2441,7 +2441,7 @@ document.querySelectorAll("select").forEach(el=>{
 
         await updateDoc(doc(db,"matches",id),{
           ...data,
-          updatedAt: serverTimestamp()
+          updatedAt: serverTimestamp(),
           updatedBy: auth.currentUser ? auth.currentUser.uid : null
         });
 
