@@ -2178,7 +2178,6 @@ async function openMatchesPage(scheduleId){
   `;
 
   await loadMatches();
-}
   
   // ===============================
   // CLOSE
