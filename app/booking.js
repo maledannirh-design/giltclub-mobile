@@ -2080,11 +2080,10 @@ async function openMatchesPage(scheduleId){
   }
 
   // ===============================
-  // ADMIN / SUPERCOACH (FIXED)
+  // ADMIN / SUPERCOACH
   // ===============================
   else{
 
-    // USERS
     const usersSnap = await getDocs(collection(db,"users"));
     const userPlayers = usersSnap.docs.map(docSnap=>{
       const u = docSnap.data();
@@ -2094,7 +2093,6 @@ async function openMatchesPage(scheduleId){
       };
     });
 
-    // GUEST
     const guestSnap = await getDocs(collection(db,"guestPlayers"));
     const guestPlayers = guestSnap.docs.map(docSnap=>{
       const g = docSnap.data();
@@ -2104,39 +2102,36 @@ async function openMatchesPage(scheduleId){
       };
     });
 
-    // MERGE
     players = [...userPlayers, ...guestPlayers];
   }
 
   // ===============================
-  // PLAYER MAP (FULL REGISTRY)
+  // PLAYER MAP (FULL REGISTRY + CACHE)
   // ===============================
- let playerMap = {};
+  let playerMap = {};
 
-// 🔥 CACHE
-if(globalPlayerMap){
-  playerMap = globalPlayerMap;
-}else{
+  if(globalPlayerMap){
+    playerMap = globalPlayerMap;
+  }else{
 
-  playerMap = {};
+    // USERS
+    const usersSnap = await getDocs(collection(db,"users"));
+    usersSnap.forEach(docSnap=>{
+      const u = docSnap.data();
+      playerMap[docSnap.id] =
+        u.usernameID || u.username || u.fullName || "User";
+    });
 
-  // USERS
-  const usersSnap = await getDocs(collection(db,"users"));
-  usersSnap.forEach(docSnap=>{
-    const u = docSnap.data();
-    playerMap[docSnap.id] =
-      u.usernameID || u.username || u.fullName || "User";
-  });
+    // GUEST
+    const guestSnap = await getDocs(collection(db,"guestPlayers"));
+    guestSnap.forEach(docSnap=>{
+      const g = docSnap.data();
+      playerMap[docSnap.id] = g.name || "Guest";
+    });
 
-  // GUEST
-  const guestSnap = await getDocs(collection(db,"guestPlayers"));
-  guestSnap.forEach(docSnap=>{
-    const g = docSnap.data();
-    playerMap[docSnap.id] = g.name || "Guest";
-  });
+    globalPlayerMap = playerMap;
+  }
 
-  globalPlayerMap = playerMap; // cache
-}
   // ===============================
   let matches = [];
   let editedMatches = {};
@@ -2177,6 +2172,7 @@ if(globalPlayerMap){
   `;
 
   await loadMatches();
+
   
   // ===============================
   // CLOSE
