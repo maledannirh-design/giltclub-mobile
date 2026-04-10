@@ -2472,7 +2472,7 @@ function attachEvents(){
 // ===============================
 // RANKING (FINAL FIX - SAFE & CLEAN)
 // ===============================
-function renderRanking(){
+async function renderRanking(){
 
   const container = document.getElementById("rankingContainer");
   if(!container){
@@ -2576,16 +2576,34 @@ function renderRanking(){
   });
 
   // ===============================
-  // 🔥 FIX: INJECT MISSING PLAYERS
+  // 🔥 FIX: FETCH MISSING PLAYER NAMES
   // ===============================
+  const missingIds = [];
+
   matches.forEach(m=>{
     ["a1","a2","b1","b2"].forEach(key=>{
       const id = m[key];
       if(id && !playerMap[id]){
-        playerMap[id] = "User";
+        missingIds.push(id);
       }
     });
   });
+
+  const uniqueIds = [...new Set(missingIds)];
+
+  await Promise.all(uniqueIds.map(async id=>{
+    try{
+      const userSnap = await getDoc(doc(db,"users",id));
+      if(userSnap.exists()){
+        const u = userSnap.data();
+        playerMap[id] = u.usernameID || u.username || u.fullName || "User";
+      }else{
+        playerMap[id] = "User";
+      }
+    }catch(e){
+      playerMap[id] = "User";
+    }
+  }));
 
   // ===============================
   // RENDER
@@ -2593,12 +2611,8 @@ function renderRanking(){
   container.innerHTML = rankedGroups.map(g=>{
 
     const playersHTML = g.players.map(p=>{
-
-      // fallback aman
       const name = playerMap[p.id] || "User";
-
       return `<div>${name}</div>`;
-
     }).join("");
 
     const wins = g.players[0].wins;
