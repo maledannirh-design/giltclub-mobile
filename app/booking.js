@@ -2094,88 +2094,90 @@ async function openMatchesPage(scheduleId){
     });
 
   }
-// ===============================
-// PLAYER MAP (FIXED - FULL USER REGISTRY)
-// ===============================
-const playerMap = {};
 
-// dari players (booking / role-based)
-players.forEach(p=> playerMap[p.id] = p.name);
+  // ===============================
+  // PLAYER MAP (FULL REGISTRY)
+  // ===============================
+  const playerMap = {};
 
-// 🔥 FIX: inject semua user biar gak ada "User" lagi
-try{
-
-  const allUsersSnap = await getDocs(collection(db,"users"));
-
-  allUsersSnap.forEach(docSnap=>{
-    const u = docSnap.data();
-
-    const name = u.usernameID || u.username || u.fullName || "User";
-
-    // hanya isi kalau belum ada (biar gak override booking name)
-    if(!playerMap[docSnap.id]){
-      playerMap[docSnap.id] = name;
-    }
+  // dari players awal
+  players.forEach(p=>{
+    playerMap[p.id] = p.name;
   });
-// 🔥 load guest players
-try{
-  // guest players
-const guestSnap = await getDocs(collection(db,"guestPlayers"));
 
-guestSnap.forEach(docSnap=>{
-  const g = docSnap.data();
-  playerMap[docSnap.id] = g.name || "Guest";
-});
+  // ===============================
+  // LOAD ALL USERS
+  // ===============================
+  try{
+    const allUsersSnap = await getDocs(collection(db,"users"));
 
-}catch(e){
-  console.error("Guest load error:", e);
-}
-}catch(e){
-  console.error("Gagal load users:", e);
-}
+    allUsersSnap.forEach(docSnap=>{
+      const u = docSnap.data();
+      const name = u.usernameID || u.username || u.fullName || "User";
 
+      if(!playerMap[docSnap.id]){
+        playerMap[docSnap.id] = name;
+      }
+    });
+  }catch(e){
+    console.error("Gagal load users:", e);
+  }
 
-// ===============================
-let matches = [];
-let editedMatches = {};
+  // ===============================
+  // LOAD GUEST PLAYERS
+  // ===============================
+  try{
+    const guestSnap = await getDocs(collection(db,"guestPlayers"));
 
+    guestSnap.forEach(docSnap=>{
+      const g = docSnap.data();
+      playerMap[docSnap.id] = g.name || "Guest";
+    });
+  }catch(e){
+    console.error("Guest load error:", e);
+  }
 
-// ===============================
-// UI
-// ===============================
-popup.innerHTML = `
-  <div class="popup-overlay">
-    <div class="popup-card matches-popup">
+  // ===============================
+  let matches = [];
+  let editedMatches = {};
 
-      <h2 class="matches-title">Matches</h2>
+  // ===============================
+  // UI
+  // ===============================
+  popup.innerHTML = `
+    <div class="popup-overlay">
+      <div class="popup-card matches-popup">
 
-      <div class="matches-tabs">
-        <button class="tab-btn active" data-tab="ranking">Score Ranking</button>
-        <button class="tab-btn" data-tab="matches">Pertandingan</button>
-      </div>
+        <h2 class="matches-title">Matches</h2>
 
-      <div class="matches-body">
-
-        <!-- RANKING -->
-        <div class="matches-tab-content active" id="tab-ranking">
-          <div id="rankingContainer"></div>
+        <div class="matches-tabs">
+          <button class="tab-btn active" data-tab="ranking">Score Ranking</button>
+          <button class="tab-btn" data-tab="matches">Pertandingan</button>
         </div>
 
-        <!-- MATCHES -->
-        <div class="matches-tab-content" id="tab-matches">
-          <button id="addMatchBtn">+ Pertandingan</button>
-          <div id="matchList"></div>
+        <div class="matches-body">
+
+          <!-- RANKING -->
+          <div class="matches-tab-content active" id="tab-ranking">
+            <div id="rankingContainer"></div>
+          </div>
+
+          <!-- MATCHES -->
+          <div class="matches-tab-content" id="tab-matches">
+            <button id="addMatchBtn">+ Pertandingan</button>
+            <div id="matchList"></div>
+          </div>
+
         </div>
 
+        <button id="closePopup" class="close-popup-btn">Tutup</button>
+
       </div>
-
-      <button id="closePopup" class="close-popup-btn">Tutup</button>
-
     </div>
-  </div>
-`;
+  `;
 
-await loadMatches();
+  await loadMatches();
+  
   // ===============================
   // CLOSE
   // ===============================
@@ -2346,17 +2348,34 @@ async function saveScore(matchId, newScore){
   // SELECT PLAYER
   // ===============================
 function renderSelect(id,key,value){
+
+  const userOptions = players
+    .filter(p=>p.type === "user")
+    .map(p=>`
+      <option value="${p.id}" ${p.id===value?"selected":""}>
+        👤 ${p.name}
+      </option>
+    `).join("");
+
+  const guestOptions = players
+    .filter(p=>p.type === "guest")
+    .map(p=>`
+      <option value="${p.id}" ${p.id===value?"selected":""}>
+        🧑‍🤝‍🧑 ${p.name}
+      </option>
+    `).join("");
+
   return `
     <select data-id="${id}" data-key="${key}">
       <option value="">Pilih</option>
 
-      ${players.map(p=>`
-        <option value="${p.id}" ${p.id===value?"selected":""}>
-          ${p.name}
-        </option>
-      `).join("")}
+      <optgroup label="Member">
+        ${userOptions}
+      </optgroup>
 
-      <option value="__guest__">➕ Tambah Guest</option>
+      <optgroup label="Guest">
+        ${guestOptions}
+      </optgroup>
 
     </select>
   `;
@@ -2367,40 +2386,12 @@ function attachEvents(){
   // =========================
   // INPUT PLAYER (FINAL HYBRID)
   // =========================
- document.querySelectorAll("select").forEach(el=>{
+document.querySelectorAll("select").forEach(el=>{
   el.onchange = async ()=>{
 
     const id = el.dataset.id;
     const key = el.dataset.key;
 
-    if(el.value === "__guest__"){
-
-      const name = prompt("Nama Guest:");
-      if(!name){
-        el.value = "";
-        return;
-      }
-
-      // 🔥 create guest player
-      const guestRef = await addDoc(collection(db,"guestPlayers"),{
-        name,
-        createdAt: serverTimestamp()
-      });
-
-      const guestId = guestRef.id;
-
-      // 🔥 simpan ke match
-      await updateDoc(doc(db,"matches",id),{
-        [key]: guestId
-      });
-
-      // reload UI
-      await loadMatches();
-
-      return;
-    }
-
-    // normal user
     if(!el.value) return;
 
     await updateDoc(doc(db,"matches",id),{
