@@ -312,32 +312,34 @@ const usersSnap = await getDocs(collection(db,"users"));
     [...teamA, ...teamB].forEach(uid=>initPlayer(uid));
 
     // update team A
-    teamA.forEach(uid=>{
-      table[uid].matchPlayed++;
+teamA.forEach(uid=>{
+  table[uid].matchPlayed++;
 
-      if(teamAWin){
-        table[uid].win++;
-        table[uid].points += 3;
-        table[uid].scoreDiff += diff;
-      }else{
-        table[uid].lose++;
-        table[uid].scoreDiff -= diff;
-      }
-    });
+  if(teamAWin){
+    table[uid].win++;
+    table[uid].points += 3;
+  }else{
+    table[uid].lose++;
+  }
 
-    // update team B
-    teamB.forEach(uid=>{
-      table[uid].matchPlayed++;
+  // ✅ FIX: pakai perspective A
+  table[uid].scoreDiff += (m.scoreA - m.scoreB);
+});
 
-      if(!teamAWin){
-        table[uid].win++;
-        table[uid].points += 3;
-        table[uid].scoreDiff -= diff;
-      }else{
-        table[uid].lose++;
-        table[uid].scoreDiff += diff;
-      }
-    });
+// update team B
+teamB.forEach(uid=>{
+  table[uid].matchPlayed++;
+
+  if(!teamAWin){
+    table[uid].win++;
+    table[uid].points += 3;
+  }else{
+    table[uid].lose++;
+  }
+
+  // ✅ FIX: pakai perspective B
+  table[uid].scoreDiff += (m.scoreB - m.scoreA);
+});
 
   });
 
