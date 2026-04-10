@@ -2212,7 +2212,7 @@ async function openMatchesPage(scheduleId){
     });
   };
 
-
+}
 // ===============================
 // RENDER MATCH (FINAL FIXED)
 // ===============================
