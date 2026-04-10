@@ -27,11 +27,12 @@ let userBookings = [];
 let currentMonth = new Date();
 let selectedSport = "all";
 let slideDirection = "next";
-let globalPlayerMap = null;
-let currentScheduleId = null;
-  // ===============================
+let players = [];
 let matches = [];
 let editedMatches = {};
+let playerMap = {};
+let currentScheduleId = null;
+let globalPlayerMap = null;
 
 /* ===============================
    RENDER BOOKING PAGE
