@@ -2138,7 +2138,7 @@ if(globalPlayerMap){
   globalPlayerMap = playerMap; // cache
 }
 
-  }catch(e){
+  catch(e){
     console.error("Guest load error:", e);
   }
 
