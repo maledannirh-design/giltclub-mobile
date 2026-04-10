@@ -2461,7 +2461,7 @@ function attachEvents(){
 }
 
 // ===============================
-// RANKING (FINAL FIX - M PREFIX SAFE)
+// RANKING (FINAL FIX - SAFE & CLEAN)
 // ===============================
 function renderRanking(){
 
@@ -2478,6 +2478,9 @@ function renderRanking(){
 
   const stats = {};
 
+  // ===============================
+  // BUILD STATS
+  // ===============================
   matches.forEach(m=>{
 
     const teamA = [m.a1, m.a2].filter(Boolean);
@@ -2510,11 +2513,17 @@ function renderRanking(){
     return;
   }
 
+  // ===============================
+  // SORT
+  // ===============================
   rankingRaw.sort((a,b)=>{
     if(b.wins !== a.wins) return b.wins - a.wins;
     return b.diff - a.diff;
   });
 
+  // ===============================
+  // GROUP (TIE HANDLING)
+  // ===============================
   const groups = [];
   let currentGroup = [];
 
@@ -2535,6 +2544,9 @@ function renderRanking(){
 
   if(currentGroup.length) groups.push(currentGroup);
 
+  // ===============================
+  // RANK ASSIGN
+  // ===============================
   let currentRank = 1;
 
   const rankedGroups = groups.map((group, index)=>{
@@ -2554,10 +2566,30 @@ function renderRanking(){
     };
   });
 
+  // ===============================
+  // 🔥 FIX: INJECT MISSING PLAYERS
+  // ===============================
+  matches.forEach(m=>{
+    ["a1","a2","b1","b2"].forEach(key=>{
+      const id = m[key];
+      if(id && !playerMap[id]){
+        playerMap[id] = "User";
+      }
+    });
+  });
+
+  // ===============================
+  // RENDER
+  // ===============================
   container.innerHTML = rankedGroups.map(g=>{
 
     const playersHTML = g.players.map(p=>{
-      return `<div>${playerMap[p.id] || "User"}</div>`;
+
+      // fallback aman
+      const name = playerMap[p.id] || "User";
+
+      return `<div>${name}</div>`;
+
     }).join("");
 
     const wins = g.players[0].wins;
