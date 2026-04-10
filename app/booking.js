@@ -2119,13 +2119,13 @@ try{
   });
 // 🔥 load guest players
 try{
-  const guestSnap = await getDocs(collection(db,"guestPlayers"));
+  // guest players
+const guestSnap = await getDocs(collection(db,"guestPlayers"));
 
-  guestSnap.forEach(docSnap=>{
-    const g = docSnap.data();
-
-    playerMap["guest_" + docSnap.id] = g.name || "Guest";
-  });
+guestSnap.forEach(docSnap=>{
+  const g = docSnap.data();
+  playerMap[docSnap.id] = g.name || "Guest";
+});
 
 }catch(e){
   console.error("Guest load error:", e);
@@ -2387,7 +2387,7 @@ function attachEvents(){
         createdAt: serverTimestamp()
       });
 
-      const guestId = "guest_" + guestRef.id;
+      const guestId = guestRef.id;
 
       // 🔥 simpan ke match
       await updateDoc(doc(db,"matches",id),{
