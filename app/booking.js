@@ -2137,10 +2137,6 @@ if(globalPlayerMap){
 
   globalPlayerMap = playerMap; // cache
 
-  catch(e){
-    console.error("Guest load error:", e);
-  }
-
   // ===============================
   let matches = [];
   let editedMatches = {};
