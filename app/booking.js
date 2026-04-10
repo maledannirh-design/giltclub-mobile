@@ -2309,15 +2309,24 @@ async function saveScore(matchId, newScore){
   // ===============================
   // SELECT PLAYER
   // ===============================
- function renderSelect(id,key,value){
+function renderSelect(id,key,value){
+
   return `
     <select data-id="${id}" data-key="${key}">
       <option value="">Pilih</option>
+
       ${players.map(p=>`
         <option value="${p.id}" ${p.id===value?"selected":""}>
           ${p.name}
         </option>
       `).join("")}
+
+      ${
+        value && !players.some(p=>p.id === value)
+        ? `<option value="${value}" selected>User</option>`
+        : ""
+      }
+
     </select>
   `;
 }
