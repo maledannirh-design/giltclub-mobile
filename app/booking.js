@@ -2094,52 +2094,76 @@ async function openMatchesPage(scheduleId){
     });
 
   }
+// ===============================
+// PLAYER MAP (FIXED - FULL USER REGISTRY)
+// ===============================
+const playerMap = {};
 
-  // ===============================
-  // PLAYER MAP
-  // ===============================
-  const playerMap = {};
-  players.forEach(p=> playerMap[p.id] = p.name);
+// dari players (booking / role-based)
+players.forEach(p=> playerMap[p.id] = p.name);
 
-  let matches = [];
-  let editedMatches = {};
+// 🔥 FIX: inject semua user biar gak ada "User" lagi
+try{
 
-  // ===============================
-  // UI
-  // ===============================
-  popup.innerHTML = `
-    <div class="popup-overlay">
-      <div class="popup-card matches-popup">
+  const allUsersSnap = await getDocs(collection(db,"users"));
 
-        <h2 class="matches-title">Matches</h2>
+  allUsersSnap.forEach(docSnap=>{
+    const u = docSnap.data();
 
-        <div class="matches-tabs">
-          <button class="tab-btn active" data-tab="ranking">Score Ranking</button>
-          <button class="tab-btn" data-tab="matches">Pertandingan</button>
+    const name = u.usernameID || u.username || u.fullName || "User";
+
+    // hanya isi kalau belum ada (biar gak override booking name)
+    if(!playerMap[docSnap.id]){
+      playerMap[docSnap.id] = name;
+    }
+  });
+
+}catch(e){
+  console.error("Gagal load users:", e);
+}
+
+
+// ===============================
+let matches = [];
+let editedMatches = {};
+
+
+// ===============================
+// UI
+// ===============================
+popup.innerHTML = `
+  <div class="popup-overlay">
+    <div class="popup-card matches-popup">
+
+      <h2 class="matches-title">Matches</h2>
+
+      <div class="matches-tabs">
+        <button class="tab-btn active" data-tab="ranking">Score Ranking</button>
+        <button class="tab-btn" data-tab="matches">Pertandingan</button>
+      </div>
+
+      <div class="matches-body">
+
+        <!-- RANKING -->
+        <div class="matches-tab-content active" id="tab-ranking">
+          <div id="rankingContainer"></div>
         </div>
 
-        <div class="matches-body">
-
-          <!-- RANKING -->
-          <div class="matches-tab-content active" id="tab-ranking">
-            <div id="rankingContainer"></div>
-          </div>
-
-          <!-- MATCHES -->
-          <div class="matches-tab-content" id="tab-matches">
-            <button id="addMatchBtn">+ Pertandingan</button>
-            <div id="matchList"></div>
-          </div>
-
+        <!-- MATCHES -->
+        <div class="matches-tab-content" id="tab-matches">
+          <button id="addMatchBtn">+ Pertandingan</button>
+          <div id="matchList"></div>
         </div>
-
-        <button id="closePopup" class="close-popup-btn">Tutup</button>
 
       </div>
-    </div>
-  `;
 
-  await loadMatches();
+      <button id="closePopup" class="close-popup-btn">Tutup</button>
+
+    </div>
+  </div>
+`;
+
+await loadMatches();
   // ===============================
   // CLOSE
   // ===============================
