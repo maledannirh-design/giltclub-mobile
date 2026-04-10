@@ -2025,7 +2025,22 @@ async function openMatchesPage(scheduleId){
   if(!popup) return;
 
   // ===============================
-  // LOAD MEMBERS
+  // GET ROLE
+  // ===============================
+  const currentUser = auth.currentUser;
+  let currentUserRole = "MEMBER";
+
+  if (currentUser) {
+    try {
+      const userSnap = await getDoc(doc(db,"users",currentUser.uid));
+      if(userSnap.exists()){
+        currentUserRole = (userSnap.data().role || "MEMBER").toUpperCase();
+      }
+    } catch(e){}
+  }
+
+  // ===============================
+  // LOAD MEMBERS (BOOKINGS)
   // ===============================
   const snap = await getDocs(
     query(
@@ -2035,25 +2050,54 @@ async function openMatchesPage(scheduleId){
     )
   );
 
-  const players = await Promise.all(
-    snap.docs.map(async d=>{
-      const data = d.data();
-      const userId = data.userId;
+  let players = [];
 
-      let name = "Member";
+  // ===============================
+  // MEMBER / HOST
+  // ===============================
+  if(!["ADMIN","SUPERCOACH"].includes(currentUserRole)){
 
-      try{
-        const userSnap = await getDoc(doc(db,"users",userId));
-        if(userSnap.exists()){
-          const u = userSnap.data();
-          name = u.usernameID || u.username || u.fullName || "Member";
-        }
-      }catch(e){}
+    players = await Promise.all(
+      snap.docs.map(async d=>{
+        const data = d.data();
+        const userId = data.userId;
 
-      return { id:userId, name };
-    })
-  );
+        let name = "Member";
 
+        try{
+          const userSnap = await getDoc(doc(db,"users",userId));
+          if(userSnap.exists()){
+            const u = userSnap.data();
+            name = u.usernameID || u.username || u.fullName || "Member";
+          }
+        }catch(e){}
+
+        return { id:userId, name };
+      })
+    );
+
+  }
+
+  // ===============================
+  // ADMIN / SUPERCOACH
+  // ===============================
+  else{
+
+    const allUsersSnap = await getDocs(collection(db,"users"));
+
+    players = allUsersSnap.docs.map(docSnap=>{
+      const u = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: u.usernameID || u.username || u.fullName || "User"
+      };
+    });
+
+  }
+
+  // ===============================
+  // PLAYER MAP
+  // ===============================
   const playerMap = {};
   players.forEach(p=> playerMap[p.id] = p.name);
 
@@ -2094,7 +2138,8 @@ async function openMatchesPage(scheduleId){
       </div>
     </div>
   `;
-await loadMatches();
+
+  await loadMatches();
   // ===============================
   // CLOSE
   // ===============================
@@ -2134,23 +2179,6 @@ await loadMatches();
 
     await loadMatches();
   };
-
- 
-  // ===============================
-  // SELECT
-  // ===============================
-  function renderSelect(id,key,value){
-    return `
-      <select data-id="${id}" data-key="${key}">
-        <option value="">Pilih</option>
-        ${players.map(p=>`
-          <option value="${p.id}" ${p.id===value?"selected":""}>
-            ${p.name}
-          </option>
-        `).join("")}
-      </select>
-    `;
-  }
 
 
 // ===============================
@@ -2282,24 +2310,15 @@ async function saveScore(matchId, newScore){
   // SELECT PLAYER
   // ===============================
  function renderSelect(id,key,value){
-
-  const listId = `player-list-${id}-${key}`;
-
   return `
-    <input 
-      list="${listId}"
-      data-id="${id}" 
-      data-key="${key}"
-      value="${value || ""}"
-      placeholder="Ketik atau pilih..."
-      class="player-input"
-    />
-
-    <datalist id="${listId}">
+    <select data-id="${id}" data-key="${key}">
+      <option value="">Pilih</option>
       ${players.map(p=>`
-        <option value="${p.name}"></option>
+        <option value="${p.id}" ${p.id===value?"selected":""}>
+          ${p.name}
+        </option>
       `).join("")}
-    </datalist>
+    </select>
   `;
 }
 
