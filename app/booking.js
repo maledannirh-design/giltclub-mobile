@@ -29,6 +29,9 @@ let selectedSport = "all";
 let slideDirection = "next";
 let globalPlayerMap = null;
 let currentScheduleId = null;
+  // ===============================
+let matches = [];
+let editedMatches = {};
 
 /* ===============================
    RENDER BOOKING PAGE
@@ -2053,7 +2056,7 @@ async function openMatchesPage(scheduleId){
     )
   );
 
-  let players = [];
+  players = [];
 
   // ===============================
   // MEMBER / HOST
@@ -2110,7 +2113,7 @@ async function openMatchesPage(scheduleId){
   // ===============================
   // PLAYER MAP (FULL REGISTRY + CACHE)
   // ===============================
-  let playerMap = {};
+  playerMap = {};
 
   if(globalPlayerMap){
     playerMap = globalPlayerMap;
@@ -2133,10 +2136,6 @@ async function openMatchesPage(scheduleId){
 
     globalPlayerMap = playerMap;
   }
-
-  // ===============================
-  let matches = [];
-  let editedMatches = {};
 
   // ===============================
   // UI
