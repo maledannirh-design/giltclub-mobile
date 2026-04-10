@@ -2117,7 +2117,19 @@ try{
       playerMap[docSnap.id] = name;
     }
   });
+// 🔥 load guest players
+try{
+  const guestSnap = await getDocs(collection(db,"guestPlayers"));
 
+  guestSnap.forEach(docSnap=>{
+    const g = docSnap.data();
+
+    playerMap["guest_" + docSnap.id] = g.name || "Guest";
+  });
+
+}catch(e){
+  console.error("Guest load error:", e);
+}
 }catch(e){
   console.error("Gagal load users:", e);
 }
@@ -2334,7 +2346,6 @@ async function saveScore(matchId, newScore){
   // SELECT PLAYER
   // ===============================
 function renderSelect(id,key,value){
-
   return `
     <select data-id="${id}" data-key="${key}">
       <option value="">Pilih</option>
@@ -2345,11 +2356,7 @@ function renderSelect(id,key,value){
         </option>
       `).join("")}
 
-      ${
-        value && !players.some(p=>p.id === value)
-        ? `<option value="${value}" selected>User</option>`
-        : ""
-      }
+      <option value="__guest__">➕ Tambah Guest</option>
 
     </select>
   `;
@@ -2360,39 +2367,48 @@ function attachEvents(){
   // =========================
   // INPUT PLAYER (FINAL HYBRID)
   // =========================
-  document.querySelectorAll(".player-input").forEach(el=>{
-    el.onchange = ()=>{
-      const id = el.dataset.id;
-      const key = el.dataset.key;
+ document.querySelectorAll("select").forEach(el=>{
+  el.onchange = async ()=>{
 
-      if(!editedMatches[id]) editedMatches[id] = {};
+    const id = el.dataset.id;
+    const key = el.dataset.key;
 
-      const inputValue = el.value.trim();
+    if(el.value === "__guest__"){
 
-      // 🔥 cari apakah ada di player list
-      const player = players.find(p => 
-        p.name.toLowerCase() === inputValue.toLowerCase()
-      );
+      const name = prompt("Nama Guest:");
+      if(!name){
+        el.value = "";
+        return;
+      }
 
-      if(player){
+      // 🔥 create guest player
+      const guestRef = await addDoc(collection(db,"guestPlayers"),{
+        name,
+        createdAt: serverTimestamp()
+      });
 
-  editedMatches[id][key] = {
-    id: player.id,
-    name: player.name,
-    isManual: false
+      const guestId = "guest_" + guestRef.id;
+
+      // 🔥 simpan ke match
+      await updateDoc(doc(db,"matches",id),{
+        [key]: guestId
+      });
+
+      // reload UI
+      await loadMatches();
+
+      return;
+    }
+
+    // normal user
+    if(!el.value) return;
+
+    await updateDoc(doc(db,"matches",id),{
+      [key]: el.value
+    });
+
   };
-
-}else{
-
-  editedMatches[id][key] = {
-    id: "manual_" + Date.now(),
-    name: inputValue,
-    isManual: true
-  };
-
-}
-    };
-  });
+});
 
   // =========================
   // SCORE INPUT (TETAP)
