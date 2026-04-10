@@ -28,6 +28,7 @@ let currentMonth = new Date();
 let selectedSport = "all";
 let slideDirection = "next";
 let globalPlayerMap = null;
+let currentScheduleId = null;
 
 /* ===============================
    RENDER BOOKING PAGE
@@ -2024,7 +2025,8 @@ async function openMatchesPage(scheduleId){
 
   const popup = document.getElementById("popupContainer");
   if(!popup) return;
-
+// ✅ WAJIB TARUH DI SINI
+  currentScheduleId = scheduleId;
   // ===============================
   // GET ROLE
   // ===============================
@@ -2297,7 +2299,7 @@ async function loadMatches(){
 
     const qMatches = query(
       collection(db,"matches"),
-      where("scheduleId","==",scheduleId)
+      where("scheduleId","==",currentScheduleId)
     );
 
     const snap = await getDocs(qMatches);
