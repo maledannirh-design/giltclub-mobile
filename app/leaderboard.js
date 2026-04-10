@@ -237,7 +237,6 @@ export function listenChampionClub(monthKey, callback){
 export function renderChampionClub(data){
 
   const container = document.getElementById("championClub");
-
   if(!container) return;
 
   container.innerHTML = "";
@@ -247,15 +246,18 @@ export function renderChampionClub(data){
     const rank = index + 1;
 
     const el = document.createElement("div");
-    el.className = "champion-entry";
+    el.className = "mm-entry";
 
     el.innerHTML = `
-      <div class="rank">#${rank}</div>
-      <div class="name">${p.name}</div>
-      <div class="stat">
+      <div class="mm-rank">#${rank}</div>
+
+      <div class="mm-name">${p.name}</div>
+
+      <div class="mm-stat">
         W:${p.win} | L:${p.lose}
       </div>
-      <div class="diff">
+
+      <div class="mm-diff ${p.scoreDiff >= 0 ? "mm-pos" : "mm-neg"}">
         ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
       </div>
     `;
