@@ -1512,9 +1512,21 @@ body.dark .edit-session-btn{
 }
 
 /* DIFF */
-.m-pos{ color:#2563eb; }
-.m-neg{ color:#dc2626; }
+.m-pos{
+  color:#1d4ed8;
+  font-weight:800;
+  text-shadow:0 1px 0 rgba(0,0,0,0.05);
+}
 
+.m-neg{
+  color:#dc2626;
+  font-weight:800;
+  text-shadow:0 1px 0 rgba(0,0,0,0.05);
+}
+.m-stat-value.m-pos,
+.m-stat-value.m-neg{
+  font-size:17px;
+}
 /* ===============================
    TOP RANK COLOR
 ================================= */
