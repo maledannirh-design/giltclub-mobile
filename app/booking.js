@@ -2418,49 +2418,37 @@ document.querySelectorAll("select").forEach(el=>{
   // SAVE BUTTON
   // =========================
   document.querySelectorAll(".save-btn").forEach(btn=>{
-    btn.onclick = async ()=>{
+  btn.onclick = async ()=>{
 
-  const id = btn.dataset.id;
-  const data = editedMatches[id];
+    const id = btn.dataset.id;
+    const data = editedMatches[id];
 
-  if(!data){
-    alert("Tidak ada perubahan");
-    return;
-  }
-
-  try{
+    if(!data){
+      alert("Tidak ada perubahan");
+      return;
+    }
 
     await updateDoc(doc(db,"matches",id),{
       ...data,
       updatedAt: serverTimestamp(),
-      updatedBy: auth.currentUser ? auth.currentUser.uid : null
+      updatedBy: auth.currentUser?.uid || null
     });
 
     delete editedMatches[id];
 
     await loadMatches();
-
-  }catch(err){
-    console.error(err);
-    alert("Gagal save");
-  }
-};
-}); // ✅ tutup forEach
+  };
+});
   // =========================
   // CANCEL BUTTON
   // =========================
-  document.querySelectorAll(".cancel-btn").forEach(btn=>{
-    btn.onclick = ()=>{
-      const id = btn.dataset.id;
-      const card = document.getElementById("match-" + id);
-
-      delete editedMatches[id];
-
-      if(card){
-        card.classList.remove("editing");
-      }
-    };
-  });
+ document.querySelectorAll(".cancel-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    const id = btn.dataset.id;
+    delete editedMatches[id];
+    loadMatches();
+  };
+});
 
   // =========================
   // DELETE MATCH
