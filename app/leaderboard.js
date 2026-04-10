@@ -241,28 +241,84 @@ export function renderChampionClub(data){
 
   container.innerHTML = "";
 
-  data.forEach((p, index)=>{
+  if(!data || data.length === 0){
+    container.innerHTML = "<div>Tidak ada data</div>";
+    return;
+  }
 
-    const rank = index + 1;
+  // ===============================
+  // GROUP (TIE LOGIC - SAME AS MATCHES)
+  // ===============================
+  const groups = [];
+  let currentGroup = [];
 
-    const el = document.createElement("div");
-    el.className = "mm-entry";
+  data.forEach((p,i)=>{
+    if(i === 0){
+      currentGroup.push(p);
+    }else{
+      const prev = data[i-1];
 
-    el.innerHTML = `
-      <div class="mm-rank">#${rank}</div>
+      if(p.win === prev.win && p.scoreDiff === prev.scoreDiff){
+        currentGroup.push(p);
+      }else{
+        groups.push(currentGroup);
+        currentGroup = [p];
+      }
+    }
+  });
 
-      <div class="mm-name">${p.name}</div>
+  if(currentGroup.length) groups.push(currentGroup);
 
-      <div class="mm-stat">
-        W:${p.win} | L:${p.lose}
-      </div>
+  // ===============================
+  // RANK ASSIGN
+  // ===============================
+  let currentRank = 1;
 
-      <div class="mm-diff ${p.scoreDiff >= 0 ? "mm-pos" : "mm-neg"}">
-        ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
-      </div>
-    `;
+  const rankedGroups = groups.map((group, index)=>{
 
-    container.appendChild(el);
+    if(index !== 0){
+      const prev = groups[index - 1][0];
+      const curr = group[0];
+
+      if(curr.win !== prev.win || curr.scoreDiff !== prev.scoreDiff){
+        currentRank++;
+      }
+    }
+
+    return {
+      rank: currentRank,
+      players: group
+    };
+  });
+
+  // ===============================
+  // RENDER
+  // ===============================
+  rankedGroups.forEach(g=>{
+
+    g.players.forEach(p=>{
+
+      const el = document.createElement("div");
+      el.className = "mm-entry";
+
+      el.innerHTML = `
+        <div class="mm-rank">#${g.rank}</div>
+
+        <div class="mm-name">${p.name}</div>
+
+        <div class="mm-stat">
+          W:${p.win} | L:${p.lose}
+        </div>
+
+        <div class="mm-diff ${p.scoreDiff >= 0 ? "mm-pos" : "mm-neg"}">
+          ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
+        </div>
+      `;
+
+      container.appendChild(el);
+
+    });
+
   });
 
 }
