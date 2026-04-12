@@ -511,59 +511,101 @@ async function initBroadcastUI(){
   // 🔧 HANDLE SEND
   btn.onclick = async ()=>{
 
-    const message = textarea.value.trim();
-    if(!message) return;
+  const message = textarea.value.trim();
 
-    btn.disabled = true;
-    btn.textContent = "Sending...";
+  if(!message){
+    alert("Message tidak boleh kosong");
+    return;
+  }
 
-    let targetUids = [];
+  if(btn.disabled) return; // 🔥 anti double click
 
-    try{
+  btn.disabled = true;
+  btn.textContent = "Sending...";
 
-      if(modeSelect.value === "all"){
+  let targetUids = [];
 
-        // 🔥 LOAD SEKALI JIKA BELUM ADA
-        if(!usersSnap){
-          usersSnap = await getDocs(collection(db,"users"));
-        }
+  try{
 
-        usersSnap.forEach(docSnap=>{
-          targetUids.push(docSnap.id);
-        });
+    console.log("MODE:", modeSelect.value);
 
-      }else{
+    // =========================
+    // 🔹 MODE ALL
+    // =========================
+    if(modeSelect.value === "all"){
 
-        document
-          .querySelectorAll(".broadcast-user-checkbox:checked")
-          .forEach(cb=>{
-            targetUids.push(cb.value);
-          });
-
-        if(targetUids.length === 0){
-          alert("Select at least one member.");
-          btn.disabled = false;
-          btn.textContent = "Send Broadcast";
-          return;
-        }
+      if(!usersSnap){
+        console.log("Fetching users...");
+        usersSnap = await getDocs(collection(db,"users"));
       }
 
-      await sendAdminBroadcast(message, targetUids);
+      usersSnap.forEach(docSnap=>{
+        targetUids.push(docSnap.id);
+      });
 
-      textarea.value = "";
-      btn.textContent = "Sent ✔";
-
-      setTimeout(()=>{
-        btn.textContent = "Send Broadcast";
-      },1500);
-
-    }catch(err){
-      console.error(err);
-      btn.textContent = "Error";
+      if(targetUids.length === 0){
+        throw new Error("User list kosong");
+      }
     }
 
-    btn.disabled = false;
-  };
+    // =========================
+    // 🔹 MODE MANUAL
+    // =========================
+    else{
+
+      document
+        .querySelectorAll(".broadcast-user-checkbox:checked")
+        .forEach(cb=>{
+          targetUids.push(cb.value);
+        });
+
+      if(targetUids.length === 0){
+        throw new Error("Pilih minimal 1 member");
+      }
+    }
+
+    console.log("TARGET:", targetUids.length);
+
+    // =========================
+    // 🔥 TIMEOUT GUARD
+    // =========================
+    const timeout = new Promise((_, reject)=>
+      setTimeout(()=>reject(new Error("Timeout kirim broadcast")), 15000)
+    );
+
+    await Promise.race([
+      sendAdminBroadcast(message, targetUids),
+      timeout
+    ]);
+
+    // =========================
+    // ✅ SUCCESS UI
+    // =========================
+    textarea.value = "";
+    btn.textContent = "Sent ✔";
+
+    console.log("Broadcast success");
+
+    setTimeout(()=>{
+      btn.textContent = "Send Broadcast";
+    },1500);
+
+  }catch(err){
+
+    console.error("Broadcast error:", err);
+
+    // 🔥 USER FRIENDLY ERROR
+    alert(err.message || "Gagal kirim broadcast");
+
+    btn.textContent = "Error";
+
+    setTimeout(()=>{
+      btn.textContent = "Send Broadcast";
+    },2000);
+  }
+
+  btn.disabled = false;
+};
 }
 
 export async function loadStoreApplications(){
