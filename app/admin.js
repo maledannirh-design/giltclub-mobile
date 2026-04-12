@@ -158,18 +158,6 @@ export async function renderAdmin() {
   <hr style="margin:30px 0;">
 
   <div class="admin-card">
-    <h3>Store Applications</h3>
-
-    <button onclick="exportStoreApplications()" class="admin-btn">
-      Export Store Applications
-    </button>
-
-    <div id="adminStoreApps" style="margin-top:15px;"></div>
-  </div>
-
-  <hr style="margin:30px 0;">
-
-  <div class="admin-card">
     <h3>Export & Audit Tools</h3>
 
     <button onclick="exportOnlineLogs()" class="admin-btn" style="margin-top:10px;">
