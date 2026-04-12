@@ -1,6 +1,4 @@
 import { 
-  doc,
-  setDoc,
   addDoc,
   serverTimestamp,
   collection
@@ -8,35 +6,34 @@ import {
 
 import { db } from "./firebase.js";
 
-export async function sendAdminBroadcast(message, targetUids){
+/* =====================================================
+   🚀 ADMIN BROADCAST (1 WRITE ONLY - PRO SYSTEM)
+===================================================== */
+export async function sendAdminBroadcast(message, targetUids = null){
 
-  for(const uid of targetUids){
-
-    const roomId = "broadcast_" + uid;
-
-    // Buat / update room
-    await setDoc(
-      doc(db,"chatRooms",roomId),
-      {
-        participants: [uid,"ADMIN_BROADCAST"],
-        type: "broadcast",
-        lastMessage: message,
-        lastMessageAt: serverTimestamp(),
-        unreadCount: { [uid]: 1 }
-      },
-      { merge:true }
-    );
-
-    // Tambah message
-    await addDoc(
-      collection(db,"chatRooms",roomId,"messages"),
-      {
-        senderId: "ADMIN_BROADCAST",
-        text: message,
-        createdAt: serverTimestamp()
-      }
-    );
-
+  if(!message){
+    throw new Error("Message kosong");
   }
+
+  // 🔥 Tentukan tipe target
+  let targetType = "ALL";
+
+  if(Array.isArray(targetUids) && targetUids.length > 0){
+    targetType = "CUSTOM";
+  }
+
+  // 🔥 SINGLE WRITE (INI KUNCI SCALABLE)
+  await addDoc(
+    collection(db,"broadcasts"),
+    {
+      text: message,
+      senderId: "ADMIN_BROADCAST",
+
+      targetType: targetType,        // ALL / CUSTOM
+      targetUids: targetUids || [],
+
+      createdAt: serverTimestamp()
+    }
+  );
 
 }
