@@ -218,7 +218,6 @@ document.getElementById("loadUsersBtn").onclick = async () => {
   await renderBalanceAdjustmentPanel();
   document.getElementById("adjustForm").style.display = "block";
 };
-  await loadStoreApplications();
   
 }
 /* =====================================================
@@ -472,44 +471,6 @@ async function initBroadcastUI(){
 
   btn.disabled = false;
 };
-}
-
-export async function loadStoreApplications(){
-
-  const container = document.getElementById("adminStoreApps");
-  if(!container) return;
-
-  container.innerHTML = "";
-
-  try{
-
-    const snap = await getDocs(collection(db,"storeApplications"));
-
-    snap.forEach(docu=>{
-
-      const d = docu.data();
-
-      container.innerHTML += `
-  <div class="admin-card">
-
-    <b>${d.storeName || "-"}</b><br>
-    ${d.fullName || d.name || "-"}<br>
-    ${d.phone || "-"}<br>
-
-    produk: ${d.productEstimate || "-"}<br>
-    omzet: ${d.revenueEstimate || "-"}<br>
-
-    status: ${d.status || "pending"}
-
-  </div>
-`;
-
-    });
-
-  }catch(err){
-    console.error(err);
-  }
-
 }
 
 /* =====================================================
