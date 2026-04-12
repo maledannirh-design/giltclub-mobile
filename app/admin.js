@@ -255,7 +255,6 @@ document.getElementById("loadUsersBtn").onclick = async () => {
   document.getElementById("adjustForm").style.display = "block";
 };
   await loadStoreApplications();
-  await initBroadcastUI();
   
 }
 /* =====================================================
