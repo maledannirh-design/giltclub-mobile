@@ -7,13 +7,11 @@ import {
   getDoc,
   increment,
   doc,
-  runTransaction,
   updateDoc,
   serverTimestamp,
   deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { sendAdminBroadcast } from "./broadcast.js";
-import { runMigration } from "./migration.js";
 import { applyMutation } from "./services/mutationService.js";
 
 
@@ -206,7 +204,7 @@ document.getElementById("loadUsersBtn").onclick = async () => {
   await renderBalanceAdjustmentPanel();
   document.getElementById("adjustForm").style.display = "block";
 };
-  
+  await initBroadcastUI();
 }
 /* =====================================================
    BALANCE ADJUSTMENT (NEW ENGINE)
@@ -310,18 +308,23 @@ async function initBroadcastUI(){
   const btn = document.getElementById("sendBroadcastBtn");
   const textarea = document.getElementById("broadcastMessage");
 
-  // 🔥 CACHE (ANTI RE-FETCH)
+  // 🔥 CACHE (manual only)
   let usersSnap = null;
   let usersLoaded = false;
 
-  // 🔧 HANDLE MODE CHANGE (LAZY LOAD)
+  // =========================
+  // MODE CHANGE
+  // =========================
   modeSelect.onchange = async ()=>{
 
+    // =========================
+    // 🔹 MANUAL MODE
+    // =========================
     if(modeSelect.value === "manual"){
 
       memberListDiv.style.display = "block";
 
-      // 🔥 LOAD SEKALI SAJA
+      // 🔥 LOAD SEKALI SAJA (manual only)
       if(!usersLoaded){
 
         memberListDiv.innerHTML = "Loading members...";
@@ -355,110 +358,109 @@ async function initBroadcastUI(){
         }
       }
 
-    } else {
-
+    } 
+    
+    // =========================
+    // 🔹 ALL MODE
+    // =========================
+    else {
       memberListDiv.style.display = "none";
     }
   };
 
-  // 🔧 HANDLE SEND
+  // =========================
+  // SEND BUTTON
+  // =========================
   btn.onclick = async ()=>{
 
-  const message = textarea.value.trim();
+    const message = textarea.value.trim();
 
-  if(!message){
-    alert("Message tidak boleh kosong");
-    return;
-  }
-
-  if(btn.disabled) return; // 🔥 anti double click
-
-  btn.disabled = true;
-  btn.textContent = "Sending...";
-
-  let targetUids = [];
-
-  try{
-
-    console.log("MODE:", modeSelect.value);
-
-    // =========================
-    // 🔹 MODE ALL
-    // =========================
-    if(modeSelect.value === "all"){
-
-      if(!usersSnap){
-        console.log("Fetching users...");
-        usersSnap = await getDocs(collection(db,"users"));
-      }
-
-      usersSnap.forEach(docSnap=>{
-        targetUids.push(docSnap.id);
-      });
-
-      if(targetUids.length === 0){
-        throw new Error("User list kosong");
-      }
+    if(!message){
+      alert("Message tidak boleh kosong");
+      return;
     }
 
-    // =========================
-    // 🔹 MODE MANUAL
-    // =========================
-    else{
+    if(btn.disabled) return;
 
-      document
-        .querySelectorAll(".broadcast-user-checkbox:checked")
-        .forEach(cb=>{
-          targetUids.push(cb.value);
-        });
+    btn.disabled = true;
+    btn.textContent = "Sending...";
 
-      if(targetUids.length === 0){
-        throw new Error("Pilih minimal 1 member");
+    let targetUids = null; // 🔥 default = ALL
+
+    try{
+
+      console.log("MODE:", modeSelect.value);
+
+      // =========================
+      // 🔹 MANUAL MODE
+      // =========================
+      if(modeSelect.value === "manual"){
+
+        targetUids = [];
+
+        document
+          .querySelectorAll(".broadcast-user-checkbox:checked")
+          .forEach(cb=>{
+            targetUids.push(cb.value);
+          });
+
+        if(targetUids.length === 0){
+          throw new Error("Pilih minimal 1 member");
+        }
       }
+
+      // =========================
+      // 🔹 ALL MODE
+      // =========================
+      else{
+        // 🔥 tidak load users lagi
+        targetUids = null;
+      }
+
+      console.log("TARGET:", targetUids ? targetUids.length : "ALL");
+
+      // =========================
+      // 🔥 TIMEOUT GUARD
+      // =========================
+      const timeout = new Promise((_, reject)=>
+        setTimeout(()=>reject(new Error("Timeout kirim broadcast")), 15000)
+      );
+
+      await Promise.race([
+        sendAdminBroadcast(message, targetUids),
+        timeout
+      ]);
+
+      // =========================
+      // SUCCESS
+      // =========================
+      textarea.value = "";
+      btn.textContent = "Sent ✔";
+
+      console.log("Broadcast success");
+
+      setTimeout(()=>{
+        btn.textContent = "Send Broadcast";
+      },1500);
+
+    }catch(err){
+
+      console.error("Broadcast error:", err);
+
+      alert(err.message || "Gagal kirim broadcast");
+
+      btn.textContent = "Error";
+
+      setTimeout(()=>{
+        btn.textContent = "Send Broadcast";
+      },2000);
     }
 
-    console.log("TARGET:", targetUids.length);
+    btn.disabled = false;
+  };
 
-    // =========================
-    // 🔥 TIMEOUT GUARD
-    // =========================
-    const timeout = new Promise((_, reject)=>
-      setTimeout(()=>reject(new Error("Timeout kirim broadcast")), 15000)
-    );
-
-    await Promise.race([
-      sendAdminBroadcast(message, targetUids),
-      timeout
-    ]);
-
-    // =========================
-    // ✅ SUCCESS UI
-    // =========================
-    textarea.value = "";
-    btn.textContent = "Sent ✔";
-
-    console.log("Broadcast success");
-
-    setTimeout(()=>{
-      btn.textContent = "Send Broadcast";
-    },1500);
-
-  }catch(err){
-
-    console.error("Broadcast error:", err);
-
-    // 🔥 USER FRIENDLY ERROR
-    alert(err.message || "Gagal kirim broadcast");
-
-    btn.textContent = "Error";
-
-    setTimeout(()=>{
-      btn.textContent = "Send Broadcast";
-    },2000);
-  }
-
-  btn.disabled = false;
-};
+  // 🔥 AUTO TRIGGER FIRST STATE
+  modeSelect.dispatchEvent(new Event("change"));
 }
 
 /* =====================================================
