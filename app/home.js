@@ -10,9 +10,12 @@ import {
 import { renderMemberCard } from "./utils.js";
 import { onSnapshot } from "./firestore.js";
 import { getVerifiedProgress } from "./verifiedlist/verifiedProgressEngine.js";
+import { listenBroadcast } from "./broadcastListener.js";
+
 
 let userUnsubscribe = null;
 let dailyLock = false;
+let broadcastStarted = false;
 
 
 /* =========================================
@@ -73,9 +76,9 @@ content.innerHTML = `
           <span>Leaderboard</span>
         </div>
         <div class="championclub-btn">
-    <i class="fa-solid fa-trophy"></i>
-    <span>Champion Club</span>
-  </div>
+          <i class="fa-solid fa-trophy"></i>
+          <span>Champion Club</span>
+        </div>
       </div>
 
     </div>
@@ -116,50 +119,63 @@ content.innerHTML = `
 
   </div>
 `;
-// 🔥 LETAKKAN DI SINI
-document.querySelector(".leaderboard-btn")
-  ?.addEventListener("click", ()=>{
-    if (window.navigate) {
-      window.navigate("leaderboard");
-    }
-  });
-document.querySelector(".championclub-btn")
-  ?.addEventListener("click", ()=>{
-    if (window.navigate) {
-      window.navigate("championClub");
-    }
-  });
-    /* =============================
-       REALTIME GPOINT LISTENER
-    ============================= */
-    if(userUnsubscribe){
-      userUnsubscribe();
-    }
 
-    userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
-      if(!snap.exists()) return;
-
-      const data = snap.data();
-
-      const gPointEl = document.querySelector(".home-gpoint");
-      if(gPointEl){
-        gPointEl.textContent = `${data.gPoint || 0} G-Point`;
+  // =============================
+  // NAVIGATION BUTTON
+  // =============================
+  document.querySelector(".leaderboard-btn")
+    ?.addEventListener("click", ()=>{
+      if (window.navigate) {
+        window.navigate("leaderboard");
       }
-
-      document.querySelectorAll(".daily-box").forEach((el, index) => {
-        const dayNumber = index + 1;
-
-        if (dayNumber <= (data.currentStreak || 0)) {
-          el.classList.add("claimed");
-        } else {
-          el.classList.remove("claimed");
-        }
-      });
-
     });
 
-    startResetCountdown();
-    
+  document.querySelector(".championclub-btn")
+    ?.addEventListener("click", ()=>{
+      if (window.navigate) {
+        window.navigate("championClub");
+      }
+    });
+
+  /* =============================
+     REALTIME GPOINT LISTENER
+  ============================= */
+  if(userUnsubscribe){
+    userUnsubscribe();
+  }
+
+  userUnsubscribe = onSnapshot(doc(db,"users",user.uid),(snap)=>{
+    if(!snap.exists()) return;
+
+    const data = snap.data();
+
+    const gPointEl = document.querySelector(".home-gpoint");
+    if(gPointEl){
+      gPointEl.textContent = `${data.gPoint || 0} G-Point`;
+    }
+
+    document.querySelectorAll(".daily-box").forEach((el, index) => {
+      const dayNumber = index + 1;
+
+      if (dayNumber <= (data.currentStreak || 0)) {
+        el.classList.add("claimed");
+      } else {
+        el.classList.remove("claimed");
+      }
+    });
+
+  });
+
+  // =============================
+  // SYSTEM INIT
+  // =============================
+  startResetCountdown();
+
+  // 🔥 BROADCAST LISTENER (ANTI DOUBLE)
+  if(!broadcastStarted){
+    listenBroadcast();
+    broadcastStarted = true;
+  }
 
   }catch(error){
 
@@ -172,7 +188,6 @@ document.querySelector(".championclub-btn")
     `;
   }
 }
-
 
 
 /* =========================================
