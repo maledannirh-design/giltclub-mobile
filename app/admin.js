@@ -255,6 +255,7 @@ document.getElementById("loadUsersBtn").onclick = async () => {
   document.getElementById("adjustForm").style.display = "block";
 };
   await loadStoreApplications();
+  await initBroadcastUI();
   
 }
 /* =====================================================
@@ -345,6 +346,7 @@ async function handleBalanceAdjustment() {
 
     alert("Adjustment berhasil");
     renderAdmin();
+    
 
   } catch(error){
     alert(error.message || "Gagal adjustment");
