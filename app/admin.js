@@ -172,28 +172,8 @@ export async function renderAdmin() {
   <div class="admin-card">
     <h3>Export & Audit Tools</h3>
 
-    <button onclick="exportWalletTransactionsRaw()" class="admin-btn">
-      Export WalletTransactions (RAW)
-    </button>
-
-    <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
-      Export Full Mutation (Ledger)
-    </button>
-
-    <button onclick="exportTopupHistory()" class="admin-btn" style="margin-top:10px;">
-      Export Topup History
-    </button>
-
-    <button onclick="exportBookingHistory()" class="admin-btn" style="margin-top:10px;">
-      Export Booking History
-    </button>
-
     <button onclick="exportOnlineLogs()" class="admin-btn" style="margin-top:10px;">
       Export Online Logs
-    </button>
-
-    <button onclick="exportAdjustmentHistory()" class="admin-btn" style="margin-top:10px;">
-      Export Adjustment History
     </button>
 
     <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
@@ -204,18 +184,6 @@ export async function renderAdmin() {
       Export Full Wallet Mutations
     </button>
 
-    <button onclick="auditOldSystemReconciliation()" class="admin-btn" style="margin-top:10px;">
-      Audit Old System
-    </button>
-
-    <button onclick="runMigration()" class="admin-btn" style="margin-top:10px;">
-      Run Migration
-    </button>
-
-    <button onclick="massiveCleanupFields()" class="admin-btn"
-            style="margin-top:10px;background:#b30000;color:#fff;">
-      Massive Cleanup Fields
-    </button>
   </div>
 
   <hr style="margin:30px 0;">
@@ -234,10 +202,6 @@ export async function renderAdmin() {
   const productBtn = document.getElementById("openProductAdmin");
   if(productBtn) productBtn.onclick = openProductAdmin;
 
-  // 🔥 INI MASIH BERAT → next optimization layer
-  // JANGAN AUTO LOAD
-// await renderBalanceAdjustmentPanel();
-// await initBroadcastUI();
   document.getElementById("adminBalanceAdjustment").innerHTML = `
   <div class="admin-card">
     <h3>Manual Adjustment</h3>
@@ -351,105 +315,6 @@ async function handleBalanceAdjustment() {
     alert(error.message || "Gagal adjustment");
   }
 }
-
-/* =====================================================
-   APPROVE TOPUP (OPTIMIZED - NO QUOTA SPAM)
-===================================================== */
-window.approveTopup = async function(trxId, userId){
-
-  try {
-
-    const trxRef = doc(db,"walletTransactions", trxId);
-    const trxSnap = await getDoc(trxRef);
-
-    if(!trxSnap.exists())
-      throw new Error("Transaksi tidak ditemukan");
-
-    const trxData = trxSnap.data();
-
-    if(trxData.status !== "PENDING")
-      throw new Error("Sudah diproses");
-
-    const amount = trxData.amount;
-
-    /* =========================================
-       APPLY MUTATION
-    ========================================= */
-    await applyMutation({
-      userId,
-      asset: "RUPIAH",
-      mutationType: "TOPUP",
-      amount: amount,
-      referenceId: trxId,
-      description: "Top Up Approved",
-      createdBy: auth.currentUser.uid
-    });
-
-    /* =========================================
-       UPDATE STATUS
-    ========================================= */
-    await updateDoc(trxRef,{
-      status: "SUCCESS",
-      processedAt: serverTimestamp(),
-      processedBy: auth.currentUser.uid
-    });
-
-    /* =========================================
-       UPDATE USER (NO READ - USE INCREMENT)
-    ========================================= */
-    const userRef = doc(db,"users", userId);
-
-    await updateDoc(userRef,{
-      totalTopup: increment(amount)
-    });
-
-    alert("Top up berhasil di-approve");
-
-    /* =========================================
-       ⚠️ JANGAN RELOAD SEMUA
-       UPDATE UI SAJA
-    ========================================= */
-
-    // contoh: hapus row langsung
-    const row = document.getElementById("trx-"+trxId);
-    if(row) row.remove();
-
-  } catch(error){
-    alert(error.message || "Gagal approve");
-  }
-};
-
-/* =====================================================
-   REJECT TOPUP (OPTIMIZED)
-===================================================== */
-window.rejectTopup = async function(trxId){
-
-  try {
-
-    const trxRef = doc(db,"walletTransactions",trxId);
-    const trxSnap = await getDoc(trxRef);
-
-    if(!trxSnap.exists() ||
-       trxSnap.data().status !== "PENDING"){
-      alert("Sudah diproses");
-      return;
-    }
-
-    await updateDoc(trxRef,{
-      status: "REJECTED",
-      rejectedAt: serverTimestamp()
-    });
-
-    alert("Top up ditolak");
-
-    // hapus row langsung (NO renderAdmin)
-    const row = document.getElementById("trx-"+trxId);
-    if(row) row.remove();
-
-  } catch(err){
-    alert("Gagal reject");
-  }
-};
 
 async function initBroadcastUI(){
 
@@ -646,37 +511,6 @@ export async function loadStoreApplications(){
   }
 
 }
-window.exportStoreApplications = async function(){
-
-  try{
-
-    const snap = await getDocs(collection(db,"storeApplications"));
-
-    let csv = "Nama,NamaToko,Phone,Produk,Omzet\n";
-
-    snap.forEach(docu=>{
-
-      const d = docu.data();
-
-      csv += `${d.name || ""},${d.storeName || ""},${d.phone || ""},${d.productEstimate || ""},${d.revenueEstimate || ""}\n`;
-
-    });
-
-    const blob = new Blob([csv],{type:"text/csv"});
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "storeApplications.csv";
-    a.click();
-
-  }catch(err){
-    console.error(err);
-  }
-
-};
-
-
 
 /* =====================================================
    EXPORT FUNCTIONS (RAPI & AMAN)
@@ -707,121 +541,6 @@ function downloadCSV(filename, rows) {
   link.click();
   document.body.removeChild(link);
 }
-
-
-/* =====================================================
-   EXPORT TOPUP HISTORY (ALL TIME)
-   Includes: username + email
-===================================================== */
-
-window.exportTopupHistory = async function(){
-
-  const snap = await getDocs(collection(db,"walletMutations"));
-
-  let rows = [[
-    "Tanggal",
-    "UID",
-    "Username",
-    "Email",
-    "Amount",
-    "BalanceAfter",
-    "Status",
-    "Source"
-  ]];
-
-  for (const docSnap of snap.docs){
-
-    const d = docSnap.data();
-
-    if (d.mutationType !== "TOPUP") continue;
-
-    let username = "";
-    let email = "";
-
-    if (d.userId){
-
-      try{
-
-        const userRef = doc(db,"users",d.userId);
-        const userSnap = await getDoc(userRef);
-
-        if(userSnap.exists()){
-          const u = userSnap.data();
-          username = u.username || u.name || "";
-          email = u.email || "";
-        }
-
-      }catch(e){
-        console.warn("User fetch error", e);
-      }
-
-    }
-
-    rows.push([
-      d.createdAt?.toDate?.()?.toLocaleString("id-ID") || "",
-      d.userId || "",
-      username,
-      email,
-      d.amount || 0,
-      d.balanceAfter ?? "",
-      d.description || "",
-      d.asset || ""
-    ]);
-
-  }
-
-  downloadCSV("topup_history_all.csv", rows);
-};
-/* =====================================================
-   EXPORT WALLET TRANSACTIONS (RAW – ALL FIELDS)
-===================================================== */
-
-window.exportWalletTransactionsRaw = async function(){
-
-  const snap =
-    await getDocs(collection(db,"walletTransactions"));
-
-  if (snap.empty) {
-    alert("Tidak ada data walletTransactions");
-    return;
-  }
-
-  // Ambil semua possible field secara dinamis
-  const allFields = new Set();
-
-  snap.forEach(docSnap=>{
-    const d = docSnap.data();
-    Object.keys(d).forEach(key=>{
-      allFields.add(key);
-    });
-  });
-
-  const headers = ["docId", ...Array.from(allFields)];
-
-  let rows = [headers];
-
-  snap.forEach(docSnap=>{
-
-    const d = docSnap.data();
-
-    const row = [docSnap.id];
-
-    headers.slice(1).forEach(field=>{
-
-      let value = d[field];
-
-      if (value?.toDate) {
-        value = value.toDate().toLocaleString("id-ID");
-      }
-
-      row.push(value ?? "");
-    });
-
-    rows.push(row);
-  });
-
-  downloadCSV("walletTransactions_FULL_RAW.csv", rows);
-};
 
 /* =====================================================
    EXPORT BOOKING HISTORY
@@ -859,50 +578,6 @@ window.exportBookingHistory = async function(){
 
   downloadCSV("booking_history.csv", rows);
 };
-
-
-/* =====================================================
-   EXPORT ADJUSTMENT HISTORY
-===================================================== */
-
-window.exportAdjustmentHistory = async function(){
-
-  const snap =
-    await getDocs(collection(db,"walletLedger"));
-
-  let rows = [[
-    "Tanggal",
-    "UID",
-    "EntryType",
-    "Amount",
-    "BalanceBefore",
-    "BalanceAfter",
-    "Note"
-  ]];
-
-  snap.forEach(docSnap => {
-
-    const d = docSnap.data();
-
-    if (d.referenceType !== "ADMIN_ADJUSTMENT")
-      return;
-
-    rows.push([
-      d.createdAt?.toDate?.()
-        ?.toLocaleString("id-ID") || "",
-      d.userId || "",
-      d.entryType || "",
-      d.amount || 0,
-      d.balanceBefore ?? "",
-      d.balanceAfter ?? "",
-      d.note || ""
-    ]);
-  });
-
-  downloadCSV("adjustment_history.csv", rows);
-};
-
-
 
 window.exportMembersToCSV = async function(){
 
@@ -967,7 +642,6 @@ window.exportMembersToCSV = async function(){
 
 };
 
-
 /* =====================================================
    EXPORT FULL MUTATION
 ===================================================== */
@@ -1007,147 +681,6 @@ window.exportFullMutation = async function(){
   });
 
   downloadCSV("wallet_mutations_full.csv", rows);
-
-};
-
-
-/* =====================================================
-   AUDIT OLD SYSTEM RECONCILIATION
-===================================================== */
-
-window.auditOldSystemReconciliation = async function(){
-
-  try {
-
-    const usersSnap =
-      await getDocs(collection(db,"users"));
-
-    const trxSnap =
-      await getDocs(collection(db,"walletTransactions"));
-
-    if (usersSnap.empty) {
-      alert("Tidak ada user");
-      return;
-    }
-
-    const calculatedBalance = {};
-
-    trxSnap.forEach(docSnap => {
-
-      const d = docSnap.data();
-      const uid = d.userId;
-
-      if (!uid) return;
-
-      if (d.status &&
-          d.status !== "APPROVED" &&
-          d.status !== "SUCCESS")
-        return;
-
-      if (!calculatedBalance[uid])
-        calculatedBalance[uid] = 0;
-
-      calculatedBalance[uid] +=
-        Number(d.amount || 0);
-    });
-
-    let rows = [[
-      "UID",
-      "Username",
-      "Stored WalletBalance",
-      "Calculated From Transactions",
-      "Difference"
-    ]];
-
-    usersSnap.forEach(userDoc => {
-
-      const uid = userDoc.id;
-      const userData = userDoc.data();
-
-      const stored =
-        Number(userData.walletBalance || 0);
-
-      const calculated =
-        Number(calculatedBalance[uid] || 0);
-
-      const diff = stored - calculated;
-
-      rows.push([
-        uid,
-        userData.username || "",
-        stored,
-        calculated,
-        diff
-      ]);
-    });
-
-    downloadCSV(
-      "audit_reconciliation_old_system.csv",
-      rows
-    );
-
-    alert("Audit Rekonsiliasi selesai");
-
-  } catch(err) {
-
-    console.error(err);
-    alert("Gagal audit");
-  }
-};
-
-
-/* =====================================================
-   MASSIVE CLEANUP
-===================================================== */
-
-window.massiveCleanupFields = async function(){
-
-  try {
-
-    const usersSnap =
-      await getDocs(collection(db,"users"));
-
-    for (const docSnap of usersSnap.docs) {
-
-      await updateDoc(
-        doc(db,"users",docSnap.id),
-        {
-          points: deleteField(),
-          usernameID: deleteField(),
-          displayName: deleteField(),
-          matches: deleteField(),
-          verifiedApproved: deleteField(),
-          wins: deleteField(),
-          gPoints: deleteField()
-        }
-      );
-
-      console.log("Cleaned:", docSnap.id);
-    }
-
-    console.log("Massive field cleanup DONE.");
-
-  } catch(err) {
-
-    console.error("Cleanup error:", err);
-  }
-};
-
-window.openFlashAdmin = async function () {
-
-  const { renderFlashAdmin } = await import("./store/flash-admin.js");
-  renderFlashAdmin();
-
-};
-window.handleBalanceAdjustment = handleBalanceAdjustment;
-window.runMigration = runMigration;
-
-window.openRewardAdmin = async function () {
-
-  const { renderRewardAdmin } =
-    await import("./store/reward-admin.js");
-
-  renderRewardAdmin();
 
 };
 
@@ -1195,4 +728,103 @@ window.openProductAdmin = async function(){
 
   renderProductAdmin();
 
+};
+
+/* =====================================================
+   APPROVE TOPUP (OPTIMIZED - NO QUOTA SPAM)
+===================================================== */
+window.approveTopup = async function(trxId, userId){
+
+  try {
+
+    const trxRef = doc(db,"walletTransactions", trxId);
+    const trxSnap = await getDoc(trxRef);
+
+    if(!trxSnap.exists())
+      throw new Error("Transaksi tidak ditemukan");
+
+    const trxData = trxSnap.data();
+
+    if(trxData.status !== "PENDING")
+      throw new Error("Sudah diproses");
+
+    const amount = trxData.amount;
+
+    /* =========================================
+       APPLY MUTATION
+    ========================================= */
+    await applyMutation({
+      userId,
+      asset: "RUPIAH",
+      mutationType: "TOPUP",
+      amount: amount,
+      referenceId: trxId,
+      description: "Top Up Approved",
+      createdBy: auth.currentUser.uid
+    });
+
+    /* =========================================
+       UPDATE STATUS
+    ========================================= */
+    await updateDoc(trxRef,{
+      status: "SUCCESS",
+      processedAt: serverTimestamp(),
+      processedBy: auth.currentUser.uid
+    });
+
+    /* =========================================
+       UPDATE USER (NO READ - USE INCREMENT)
+    ========================================= */
+    const userRef = doc(db,"users", userId);
+
+    await updateDoc(userRef,{
+      totalTopup: increment(amount)
+    });
+
+    alert("Top up berhasil di-approve");
+
+    /* =========================================
+       ⚠️ JANGAN RELOAD SEMUA
+       UPDATE UI SAJA
+    ========================================= */
+
+    // contoh: hapus row langsung
+    const row = document.getElementById("trx-"+trxId);
+    if(row) row.remove();
+
+  } catch(error){
+    alert(error.message || "Gagal approve");
+  }
+};
+
+/* =====================================================
+   REJECT TOPUP (OPTIMIZED)
+===================================================== */
+window.rejectTopup = async function(trxId){
+
+  try {
+
+    const trxRef = doc(db,"walletTransactions",trxId);
+    const trxSnap = await getDoc(trxRef);
+
+    if(!trxSnap.exists() ||
+       trxSnap.data().status !== "PENDING"){
+      alert("Sudah diproses");
+      return;
+    }
+
+    await updateDoc(trxRef,{
+      status: "REJECTED",
+      rejectedAt: serverTimestamp()
+    });
+
+    alert("Top up ditolak");
+
+    // hapus row langsung (NO renderAdmin)
+    const row = document.getElementById("trx-"+trxId);
+    if(row) row.remove();
+
+  } catch(err){
+    alert("Gagal reject");
+  }
 };
