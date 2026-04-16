@@ -326,10 +326,16 @@ function renderStars(value, skillKey){
   let html = "";
 
   for(let i=1; i<=5; i++){
+
+    const isActive = i <= value ? "active" : "";
+    const clickAttr = window.skillEditMode
+      ? `onclick="onClickStar('${skillKey}', ${i})"`
+      : "";
+
     html += `
       <span 
-        class="star ${i <= value ? 'active' : ''}"
-        onclick="${window.skillEditMode ? `onClickStar('${skillKey}', ${i})` : ''}"
+        class="star ${isActive}"
+        ${clickAttr}
       >
         ★
       </span>
@@ -338,6 +344,8 @@ function renderStars(value, skillKey){
 
   return html;
 }
+
+
 function buildSkillHTML(user, skills, userId){
 
   const editable = canEditSkill(user);
@@ -347,42 +355,33 @@ function buildSkillHTML(user, skills, userId){
 
       <div class="skill-header">
 
-  <div>Dashboard Skill</div>
-
-  ${
-    canEditSkill(user)
-    ? `
-      <div class="skill-actions">
+        <div>Dashboard Skill</div>
 
         ${
-          window.skillEditMode
+          editable
           ? `
-            <button onclick="saveSkillEdit()">💾 Save</button>
-            <button onclick="cancelSkillEdit()">✖ Cancel</button>
+            <div class="skill-actions">
+              ${
+                window.skillEditMode
+                ? `
+                  <button onclick="saveSkillEdit()">💾 Save</button>
+                  <button onclick="cancelSkillEdit()">✖ Cancel</button>
+                `
+                : `
+                  <button onclick="enableSkillEdit()">✏ Edit</button>
+                `
+              }
+            </div>
           `
-          : `
-            <button onclick="enableSkillEdit()">✏ Edit</button>
-          `
+          : ""
         }
 
       </div>
-    `
-    : ""
-  }
-
-</div>
 
       <div class="skill-topcard">
         <div class="skill-title">${user.username || "Member"}</div>
         <div class="skill-level">${user.playingLevel || "Newbie"}</div>
       </div>
-
-      ${editable ? `
-        <div class="skill-header-bar">
-          <button class="btn-edit" onclick="enableSkillEdit()">✏️ Edit</button>
-          <button class="btn-save" onclick="saveSkillEdit()" style="display:none;">💾 Save</button>
-        </div>
-      ` : ``}
   `;
 
   Object.entries(skillCategories).forEach(([category,list])=>{
