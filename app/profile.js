@@ -1498,18 +1498,29 @@ window.handleLogout = async function(){
 
   try{
 
+    // 🔥 STOP semua listener dulu
     if(window.stopAllListeners){
       stopAllListeners();
     }
 
+    // 🔥 tutup modal kalau ada
     if(window.closeSkillModal){
       closeSkillModal();
     }
 
-    // 🔥 pakai function auth.js
+    // 🔥 logout dari Firebase
     await logout();
+
+    // 🔥 RESET UI langsung ke login (tanpa refresh)
+    const module = await import("../auth.js");
+
+    if(module.renderLoginUI){
+      module.renderLoginUI();
+    }else if(module.renderAuthUI){
+      module.renderAuthUI();
+    }
 
   }catch(err){
     console.error("Logout error:", err);
   }
-}
+};
