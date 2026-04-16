@@ -1,6 +1,9 @@
 import { auth, db } from "./firebase.js";
 import { doc, getDoc, setDoc } from "./firestore.js";
 
+window.userCache = {};
+window.skillCache = {};
+
 /* ======================================================
    SKILL ORDER & CATEGORY
 ====================================================== */
@@ -237,7 +240,7 @@ let html = `
           </div>
 
           <div class="skill-stars">
-            ${renderStars(val, skillKey, editable)}
+            ${renderStars(val, skillKey, false)}
           </div>
 
         </div>
@@ -265,34 +268,73 @@ export async function renderSkillByUserId(userId){
   const content = document.getElementById("skillContent");
   if(!content) return;
 
-  const userSnap = await getDoc(doc(db,"users",userId));
-  const skillSnap = await getDoc(doc(db,"userSkills",userId));
+  content.innerHTML = "Loading...";
 
-  let username="Member";
-  let playingLevel="Newbie";
-  let skills={};
+  try{
 
-  if(userSnap.exists()){
-    const u=userSnap.data();
-    username = u.username || u.name || "Member";
-    playingLevel = u.playingLevel || "Newbie";
+    let userData;
+    let skills;
+
+    // 🔥 USER CACHE
+    if(userCache[userId]){
+      userData = userCache[userId];
+    }else{
+      const userSnap = await getDoc(doc(db,"users",userId));
+      userData = userSnap.exists() ? userSnap.data() : {};
+      userCache[userId] = userData;
+    }
+
+    // 🔥 SKILL CACHE
+    if(skillCache[userId]){
+      skills = skillCache[userId];
+    }else{
+      const skillSnap = await getDoc(doc(db,"userSkills",userId));
+      skills = skillSnap.exists() ? skillSnap.data() : {};
+      skillCache[userId] = skills;
+    }
+
+    // 🔥 BUILD UI
+    const html = buildSkillHTML(userData, skills, userId);
+
+    content.innerHTML = html;
+
+  }catch(err){
+    console.error(err);
+    content.innerHTML = "Error load";
+  }
+}
+
+function canEditSkill(userData){
+  return ["coach","admin","supercoach"].includes(userData?.role);
+}
+
+export function renderStars(value){
+
+  let html = "";
+
+  for(let i=1; i<=5; i++){
+    html += `
+      <span class="star ${i <= value ? 'active' : ''}">
+        ★
+      </span>
+    `;
   }
 
-  if(skillSnap.exists()){
-    skills = skillSnap.data();
-  }
+  return html;
+}
 
-  const editable = canEditSkill(window.userData || {});
+function buildSkillHTML(user, skills, userId){
 
-  window.currentViewedUserId = userId;
-  window.currentSkillData = skills;
-
-  let html=`
+  let html = `
     <div class="skill-wrapper">
-      <div class="skill-header">Dashboard Skill</div>
+
+      <div class="skill-header">
+        Dashboard Skill
+      </div>
+
       <div class="skill-topcard">
-        <div class="skill-title">${username}</div>
-        <div class="skill-level">${playingLevel}</div>
+        <div class="skill-title">${user.username || "Member"}</div>
+        <div class="skill-level">${user.playingLevel || "Newbie"}</div>
       </div>
   `;
 
@@ -305,10 +347,10 @@ export async function renderSkillByUserId(userId){
       const val = skills[skillKey] || 0;
 
       html += `
-        <div class="skill-row" data-skill="${skillKey}">
+        <div class="skill-row">
           <div class="skill-name">${skillLabels[skillKey]}</div>
           <div class="skill-stars">
-            ${renderStars(val, skillKey, editable)}
+            ${renderStars(val)}
           </div>
         </div>
       `;
@@ -318,28 +360,9 @@ export async function renderSkillByUserId(userId){
 
   html += `</div>`;
 
-  content.innerHTML = html;
-}
-
-function canEditSkill(userData){
-  return ["coach","admin","supercoach"].includes(userData?.role);
-}
-
-export function renderStars(value, skillKey, editable){
-
-  let html = "";
-
-  for(let i=1; i<=5; i++){
-    html += `
-      <span 
-        class="star ${i <= value ? 'active' : ''}"
-        ${editable ? `onclick="onClickStar('${skillKey}', ${i})"` : ""}
-      >★</span>
-    `;
-  }
-
   return html;
 }
+
 
 window.onClickStar = async function(skillKey, value){
 
@@ -377,3 +400,8 @@ window.onClickStar = async function(skillKey, value){
     showToast("Gagal simpan");
   }
 }
+
+window.onClickStar = function(){
+  return; // 🔥 matikan total
+}
+
