@@ -810,6 +810,11 @@ export function renderMembers(){
             <div>Status: ${data.status || "active"}</div>
 
             <div class="member-actions">
+            <button 
+    class="btn-skill"
+    onclick="openPlayerDashboard('${member.id}')">
+    Skill Dashboard
+  </button>
               <button class="follow-btn ${isFollowing ? 'following' : ''}"
                 onclick="toggleFollow('${uid}')">
                 ${isFollowing ? 'Following' : 'Follow'}
@@ -1463,3 +1468,8 @@ window.blockUser = function(uid){
     alert("User blocked: " + uid);
   }
 };
+
+
+window.openPlayerDashboard = function(userId){
+  console.log("Open skill dashboard:", userId);
+}
