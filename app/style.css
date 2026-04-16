@@ -3714,3 +3714,32 @@ body.scan-mode{
   background:#ff4d4d;
   color:#fff;
 }
+
+
+.skill-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  gap:10px;
+
+  /* 🔥 penting */
+  flex-wrap:nowrap;
+}
+
+.skill-stars{
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.skill-name{
+  flex:1;
+  font-size:13px; /* kecilin dikit */
+}
+.skill-row{
+  margin-bottom:6px;
+}
+
+.skill-stars .star{
+  font-size:14px;
+  margin-left:2px;
+}
