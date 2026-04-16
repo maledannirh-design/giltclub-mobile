@@ -3578,3 +3578,13 @@ body.scan-mode{
 #championClub .mm-neg{
   color:#dc2626;
 }
+
+.btn-skill{
+  width:100%;
+  margin-bottom:6px;
+  padding:6px;
+  border-radius:8px;
+  background:#222;
+  color:#fff;
+  font-size:12px;
+}
