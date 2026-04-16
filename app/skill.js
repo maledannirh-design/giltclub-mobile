@@ -1,8 +1,13 @@
 import { auth, db } from "./firebase.js";
-import { doc, getDoc, setDoc } from "./firestore.js";
+import { doc, getDoc, updateDoc } from "./firestore.js";
 
 window.userCache = {};
 window.skillCache = {};
+window.skillEditMode = false;
+window.tempSkillData = {};
+window.currentViewedUserId = null;
+window.currentSkillData = {};
+
 
 /* ======================================================
    SKILL ORDER & CATEGORY
@@ -293,6 +298,10 @@ export async function renderSkillByUserId(userId){
       skillCache[userId] = skills;
     }
 
+     // 🔥 TAMBAHKAN DI SINI
+window.currentViewedUserId = userId;
+window.currentSkillData = skills;
+
     // 🔥 BUILD UI
     const html = buildSkillHTML(userData, skills, userId);
 
@@ -307,14 +316,16 @@ export async function renderSkillByUserId(userId){
 function canEditSkill(userData){
   return ["coach","admin","supercoach"].includes(userData?.role);
 }
-
-export function renderStars(value){
+function renderStars(value, skillKey){
 
   let html = "";
 
   for(let i=1; i<=5; i++){
     html += `
-      <span class="star ${i <= value ? 'active' : ''}">
+      <span 
+        class="star ${i <= value ? 'active' : ''}"
+        onclick="${window.skillEditMode ? `onClickStar('${skillKey}', ${i})` : ''}"
+      >
         ★
       </span>
     `;
@@ -322,8 +333,9 @@ export function renderStars(value){
 
   return html;
 }
-
 function buildSkillHTML(user, skills, userId){
+
+  const editable = canEditSkill(user);
 
   let html = `
     <div class="skill-wrapper">
@@ -336,6 +348,13 @@ function buildSkillHTML(user, skills, userId){
         <div class="skill-title">${user.username || "Member"}</div>
         <div class="skill-level">${user.playingLevel || "Newbie"}</div>
       </div>
+
+      ${editable ? `
+        <div class="skill-header-bar">
+          <button class="btn-edit" onclick="enableSkillEdit()">✏️ Edit</button>
+          <button class="btn-save" onclick="saveSkillEdit()" style="display:none;">💾 Save</button>
+        </div>
+      ` : ``}
   `;
 
   Object.entries(skillCategories).forEach(([category,list])=>{
@@ -344,13 +363,17 @@ function buildSkillHTML(user, skills, userId){
 
     list.forEach(skillKey=>{
 
-      const val = skills[skillKey] || 0;
+      const source = window.skillEditMode 
+        ? window.tempSkillData 
+        : skills;
+
+      const val = source[skillKey] || 0;
 
       html += `
         <div class="skill-row">
           <div class="skill-name">${skillLabels[skillKey]}</div>
           <div class="skill-stars">
-            ${renderStars(val)}
+            ${renderStars(val, skillKey)}
           </div>
         </div>
       `;
@@ -363,45 +386,53 @@ function buildSkillHTML(user, skills, userId){
   return html;
 }
 
+window.enableSkillEdit = function(){
 
-window.onClickStar = async function(skillKey, value){
+  window.skillEditMode = true;
 
-  if(!canEditSkill(userData)){
-    showToast("Tidak punya akses");
-    return;
+  window.tempSkillData = { ...window.currentSkillData };
+
+  document.querySelector(".btn-edit").style.display = "none";
+  document.querySelector(".btn-save").style.display = "inline-block";
+   renderSkillByUserId(window.currentViewedUserId);
+
+};
+
+window.onClickStar = function(skillKey, value){
+
+  if(!window.skillEditMode) return;
+
+  const current = window.tempSkillData[skillKey] || 0;
+
+  if(current === value){
+    window.tempSkillData[skillKey] = 0;
+  }else{
+    window.tempSkillData[skillKey] = value;
   }
 
-  const current = currentSkillData[skillKey] || 0;
+  renderSkillByUserId(window.currentViewedUserId);
+};
 
-  const finalValue = (current === value) ? 0 : value;
+
+window.saveSkillEdit = async function(){
 
   try{
 
-    // update local
-    currentSkillData[skillKey] = finalValue;
-
-    // update UI langsung
-    const row = document.querySelector(`[data-skill="${skillKey}"]`);
-    const stars = row.querySelectorAll(".star");
-
-    stars.forEach((s, i)=>{
-      s.classList.toggle("active", i < finalValue);
-    });
-
-    // 🔥 SAVE KE FIRESTORE
-    await setDoc(
-      doc(db,"userSkills", currentViewedUserId),
-      currentSkillData,
-      { merge:true }
+    await updateDoc(
+      doc(db,"userSkills", window.currentViewedUserId),
+      window.tempSkillData
     );
+
+    window.currentSkillData = { ...window.tempSkillData };
+    window.skillEditMode = false;
+
+    document.querySelector(".btn-edit").style.display = "inline-block";
+    document.querySelector(".btn-save").style.display = "none";
+
+    alert("Berhasil disimpan ✔");
 
   }catch(err){
     console.error(err);
-    showToast("Gagal simpan");
+    alert("Gagal save");
   }
-}
-
-window.onClickStar = function(){
-  return; // 🔥 matikan total
-}
-
+};
