@@ -306,7 +306,12 @@ window.currentSkillData = skills;
     const html = buildSkillHTML(userData, skills, userId);
 
     content.innerHTML = html;
+const editBtn = document.getElementById("editSkillBtn");
 
+if(editBtn){
+  editBtn.addEventListener("click", window.enableSkillEdit);
+  editBtn.addEventListener("touchstart", window.enableSkillEdit);
+}
   }catch(err){
     console.error(err);
     content.innerHTML = "Error load";
@@ -369,7 +374,7 @@ const editable = canEditSkill(currentUser);
                   <button onclick="cancelSkillEdit()">✖ Cancel</button>
                 `
                 : `
-                  <button onclick="enableSkillEdit()">✏ Edit</button>
+                  <button id="editSkillBtn">✏ Edit</button>
                 `
               }
             </div>
