@@ -280,3 +280,34 @@ export async function renderSkill(){
   },250);
 
 }
+
+export function renderSkillDashboard(data, userId){
+
+  const skills = data.skills || {};
+
+  // 🔥 tentukan apakah bisa edit
+  const editable = canEditSkill(userData);
+
+  // 🔥 penting: set global target (biar onClickStar tau user mana)
+  window.currentViewedUserId = userId;
+
+  // 🔥 cache data sekarang (biar bisa compare saat klik)
+  window.currentSkillData = data;
+
+  return `
+    <div data-skill="hitTiming">
+      <div class="skill-label">Hit Timing</div>
+      ${renderStars(skills.hitTiming || 0, "hitTiming", editable)}
+    </div>
+
+    <div data-skill="stance">
+      <div class="skill-label">Stance</div>
+      ${renderStars(skills.stance || 0, "stance", editable)}
+    </div>
+
+    <div data-skill="grip">
+      <div class="skill-label">Grip</div>
+      ${renderStars(skills.grip || 0, "grip", editable)}
+    </div>
+  `;
+}
