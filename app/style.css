@@ -3626,3 +3626,28 @@ body.scan-mode{
   align-items:center;
   margin-bottom:12px;
 }
+
+.btn-skill{
+  width:100%;
+  padding:8px;
+  margin-bottom:6px;
+
+  border:none;
+  border-radius:10px;
+
+  background:linear-gradient(90deg, #2c2c2c, #4a4a4a);
+
+  color:#ffffff !important;   /* 🔥 paksa putih */
+  font-size:12px;
+  font-weight:600;
+
+  cursor:pointer;
+}
+
+.btn-skill{
+  color:#fff !important;
+}
+
+.btn-skill *{
+  color:#fff !important;
+}
