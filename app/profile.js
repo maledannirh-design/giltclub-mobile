@@ -811,7 +811,7 @@ export function renderMembers(){
 
             <div class="member-actions">
             <button 
-    class="btn-skill"
+    class="skill-dashboard-btn"
     onclick="openPlayerDashboard('${uid}')"
     ⭐ Skill Dashboard
   </button>
