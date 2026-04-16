@@ -26,7 +26,7 @@ export async function renderPrivasi(){
 
   const privacy = userData.privacy || {
     showOnlineStatus: true,
-    showSkillDashboard: true,
+    dashboardVisibility: "public"
     showNameInBooking: true,
     chatPermission: "all"
   };
@@ -47,13 +47,40 @@ export async function renderPrivasi(){
           </label>
         </div>
 
-        <div class="akun-checkbox-row">
-          <input type="checkbox" id="showSkillDashboard"
-            ${privacy.showSkillDashboard ? "checked" : ""}>
-          <label for="showSkillDashboard">
-            Tampilkan Dashboard Skill
-          </label>
-        </div>
+        <div style="margin-top:12px;">
+  <label style="font-size:13px;color:var(--color-text-muted);">
+    Dashboard Skill
+  </label>
+
+  <select id="dashboardVisibility" style="margin-top:6px;">
+
+    <option value="public"
+      ${privacy.dashboardVisibility === "public" ? "selected" : ""}>
+      Public
+    </option>
+
+    <option value="followers"
+      ${privacy.dashboardVisibility === "followers" ? "selected" : ""}>
+      Followers
+    </option>
+
+    <option value="following"
+      ${privacy.dashboardVisibility === "following" ? "selected" : ""}>
+      Following
+    </option>
+
+    <option value="mutual"
+      ${privacy.dashboardVisibility === "mutual" ? "selected" : ""}>
+      Mutual
+    </option>
+
+    <option value="private"
+      ${privacy.dashboardVisibility === "private" ? "selected" : ""}>
+      Private
+    </option>
+
+  </select>
+</div>
 
         <div class="akun-checkbox-row">
           <input type="checkbox" id="showNameInBooking"
@@ -106,8 +133,8 @@ export async function renderPrivasi(){
     const showOnlineStatus =
       document.getElementById("showOnlineStatus").checked;
 
-    const showSkillDashboard =
-      document.getElementById("showSkillDashboard").checked;
+    const dashboardVisibility =
+  document.getElementById("dashboardVisibility").value;
 
     const showNameInBooking =
       document.getElementById("showNameInBooking").checked;
@@ -118,16 +145,16 @@ export async function renderPrivasi(){
     try{
 
       await updateDoc(
-        doc(db,"users",user.uid),
-        {
-          privacy:{
-            showOnlineStatus,
-            showSkillDashboard,
-            showNameInBooking,
-            chatPermission
-          }
-        }
-      );
+  doc(db,"users",user.uid),
+  {
+    privacy:{
+      showOnlineStatus,
+      dashboardVisibility,
+      showNameInBooking,
+      chatPermission
+    }
+  }
+);
 
       alert("Pengaturan privasi diperbarui.");
 
