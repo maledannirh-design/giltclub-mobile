@@ -462,120 +462,6 @@ const menuMembers  = document.getElementById("menuMembers");
   }
 }
 
-
-
-export function renderMembershipLayer(userData){
-
-  const progressFill = document.getElementById("memberProgressFill");
-  const progressText = document.getElementById("memberProgressText");
-  const container = document.getElementById("membershipCardContainer");
-
-  if(!progressFill || !progressText || !container) return;
-
-  if(!userData){
-    progressFill.style.width = "0%";
-    progressText.innerText = "0%";
-    container.innerHTML = "";
-    return;
-  }
-
-  /* ===============================
-     FIELD WAJIB
-  =============================== */
-
-  const requiredFields = [
-    "phone",
-    "alamat",
-    "birthDate",
-    "genre"
-  ];
-
-  let success = 0;
-
-  for (const field of requiredFields) {
-
-  const value = userData[field];
-
-  if (
-  value !== undefined &&
-  value !== null &&
-  String(value).trim() !== ""
-) {
-  success++;
-}
-}
-
-  const total = requiredFields.length;
-  const percentage = Math.floor((success / total) * 100);
-
-  /* ===============================
-     UPDATE PROGRESS BAR
-  =============================== */
-
-  progressFill.style.width = percentage + "%";
-  progressText.innerText = percentage + "%";
-
-  /* ===============================
-     JIKA BELUM 100% → STOP
-  =============================== */
-
-  if(percentage < 100){
-    container.innerHTML = "";
-    return;
-  }
-
-  // lanjut render card (bagian kamu sudah benar)
-  /* ===============================
-     TEMPLATE SELECTION
-     DEFAULT = GREEN
-  =============================== */
-
-  const GREEN_CARD =
-    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card.webp";
-
-  const PINK_CARD =
-    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_pink.webp";
-
-  const BLACK_CARD =
-    "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card.webp";
-
-  let templateUrl = GREEN_CARD; // default jika genre belum ada
-
-  if(userData.membership === "VVIP"){
-    templateUrl = BLACK_CARD;
-  }else if(userData.genre === "female"){
-    templateUrl = PINK_CARD;
-  }else if(userData.genre === "male"){
-    templateUrl = GREEN_CARD;
-  }
-
-  /* ===============================
-     RENDER CARD
-  =============================== */
-
-  const displayName =
-    (userData.fullName || userData.username || "MEMBER").toUpperCase();
-
-  const memberCode =
-    userData.memberCode || "-";
-
-  container.innerHTML = `
-    <div class="membership-card">
-
-      <img src="${templateUrl}" class="wallet-member-big-img"/>
-
-      <div class="wallet-member-overlay">
-        <div class="wallet-member-name">
-          ${displayName}
-        </div>
-        <div class="wallet-member-code">
-          ${memberCode}
-        </div>
-      </div>
-
-    </div>
-  `;
-}
 /* =========================================
    PHOTO UPLOAD
 ========================================= */
@@ -739,6 +625,10 @@ export function renderMembers(){
       const data = userDoc.data;
       const uid  = userDoc.id;
 
+      // 🔥 TAMBAHKAN INI DI SINI
+  if(window.userCache){
+    userCache[uid] = data;
+  }
       if(currentUser && uid === currentUser.uid) return;
 
       const isFollowing = followingSet.has(uid);
@@ -1475,20 +1365,35 @@ window.blockUser = function(uid){
 };
 
 
+let isLoadingDashboard = false;
+
 window.openPlayerDashboard = async function(userId){
+
+  if(isLoadingDashboard) return; // 🔒 block spam click
+  isLoadingDashboard = true;
 
   const modal = document.getElementById("skillModal");
   const content = document.getElementById("skillContent");
+
+  if(!modal || !content){
+    console.error("Modal belum ada");
+    isLoadingDashboard = false;
+    return;
+  }
 
   modal.classList.remove("hidden");
   content.innerHTML = "Loading...";
 
   try{
+
     await renderSkillByUserId(userId);
+
   }catch(err){
-    content.innerHTML = "Gagal load dashboard";
     console.error(err);
+    content.innerHTML = "Error load";
   }
+
+  isLoadingDashboard = false;
 }
 
 window.closeSkillModal = function(){
