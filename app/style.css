@@ -3618,3 +3618,14 @@ body.scan-mode{
       0 0 20px #ff00ff;
   }
 }
+
+.skill-dashboard-btn{
+  color:#fff !important;
+  text-shadow:
+    0 0 2px #000,
+    0 0 4px #000;
+}
+.skill-dashboard-btn{
+  position:relative;
+  z-index:1;
+}
