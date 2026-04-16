@@ -17,7 +17,7 @@ import {
 // === SUB MODULE AKUN (LAZY LOAD TARGETS) ===
 // tidak perlu import statis, karena kita pakai dynamic import
 // jadi TIDAK perlu import keamanan.js dll di atas
-
+import { renderSkillByUserId } from "./skill.js";
 
 
 /* =========================================
@@ -1477,30 +1477,17 @@ window.blockUser = function(uid){
 
 window.openPlayerDashboard = async function(userId){
 
-  const modal = document.getElementById("playerDashboardModal");
-  const content = document.getElementById("playerDashboardContent");
+  const modal = document.getElementById("skillModal");
+  const content = document.getElementById("skillContent");
 
   modal.classList.remove("hidden");
   content.innerHTML = "Loading...";
 
   try{
-
-    // 🔥 ambil data skill
-    const skillSnap = await getDoc(doc(db,"player_skills", userId));
-
-    let data = {
-      skills:{}
-    };
-
-    if(skillSnap.exists()){
-      data = skillSnap.data();
-    }
-
-    // 🔥 render pakai skill.js kamu
-    content.innerHTML = renderSkillDashboard(data, userId);
-
+    await renderSkillByUserId(userId);
   }catch(err){
-    content.innerHTML = "Gagal load data";
+    content.innerHTML = "Gagal load dashboard";
+    console.error(err);
   }
 }
 
