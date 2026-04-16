@@ -346,8 +346,31 @@ function buildSkillHTML(user, skills, userId){
     <div class="skill-wrapper">
 
       <div class="skill-header">
-        Dashboard Skill
+
+  <div>Dashboard Skill</div>
+
+  ${
+    canEditSkill(user)
+    ? `
+      <div class="skill-actions">
+
+        ${
+          window.skillEditMode
+          ? `
+            <button onclick="saveSkillEdit()">💾 Save</button>
+            <button onclick="cancelSkillEdit()">✖ Cancel</button>
+          `
+          : `
+            <button onclick="enableSkillEdit()">✏ Edit</button>
+          `
+        }
+
       </div>
+    `
+    : ""
+  }
+
+</div>
 
       <div class="skill-topcard">
         <div class="skill-title">${user.username || "Member"}</div>
