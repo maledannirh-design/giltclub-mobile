@@ -185,6 +185,19 @@ href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput
 
   </div>
 </div>
+
+  <div id="playerDashboardModal" class="modal hidden">
+  <div class="modal-overlay" onclick="closePlayerDashboard()"></div>
+
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>Skill Dashboard</span>
+      <button onclick="closePlayerDashboard()">✕</button>
+    </div>
+
+    <div id="playerDashboardContent"></div>
+  </div>
+</div>
   
   <!-- ================= LIBRARIES ================= -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -209,6 +222,8 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+
+    
 /* INSTALL PROMPT HANDLER */
 let deferredPrompt;
 
