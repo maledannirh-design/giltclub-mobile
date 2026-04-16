@@ -16,6 +16,8 @@ import {
 // 🔥 TARUH DI SINI
 window.userCache = window.userCache || {};
 window.skillCache = window.skillCache || {};
+window.followingSet = window.followingSet || new Set();
+window.followersSet = window.followersSet || new Set();
 
 // === SUB MODULE AKUN (LAZY LOAD TARGETS) ===
 // tidak perlu import statis, karena kita pakai dynamic import
@@ -609,6 +611,8 @@ window.stopAllListeners = function(){
   unsubscribeFollowing = null;
   unsubscribeFollowers = null;
 };
+
+
 export function renderMembers(){
 
   const content = document.getElementById("content");
@@ -775,6 +779,8 @@ html += `
           followingSet.add(doc.id);
         });
 
+// 🔥 TAMBAHKAN INI
+window.followingSet = followingSet;
         renderUI();
       }
     );
@@ -788,7 +794,8 @@ html += `
         snapshot.forEach(doc=>{
           followersSet.add(doc.id);
         });
-
+// 🔥 TAMBAHKAN INI
+window.followersSet = followersSet;
         renderUI();
       }
     );
@@ -1386,12 +1393,11 @@ window.blockUser = function(uid){
   }
 };
 
-
 let isLoadingDashboard = false;
 
 window.openPlayerDashboard = async function(userId){
 
-  if(isLoadingDashboard) return; // 🔒 block spam click
+  if(isLoadingDashboard) return;
   isLoadingDashboard = true;
 
   const modal = document.getElementById("skillModal");
@@ -1408,6 +1414,60 @@ window.openPlayerDashboard = async function(userId){
 
   try{
 
+    const currentUser = auth.currentUser;
+
+    // 🔥 ambil data target user (PAKAI CACHE DULU)
+    let targetUser;
+
+    if(window.userCache && userCache[userId]){
+      targetUser = {
+        id: userId,
+        ...userCache[userId]
+      };
+    }else{
+      const userSnap = await getDoc(doc(db,"users",userId));
+      if(!userSnap.exists()){
+        content.innerHTML = "User tidak ditemukan";
+        isLoadingDashboard = false;
+        return;
+      }
+
+      targetUser = {
+        id: userId,
+        ...userSnap.data()
+      };
+    }
+
+    // 🔥 RELATION (pakai cache dari renderMembers)
+    const isFollowing = window.followingSet?.has(userId) || false;
+    const isFollower  = window.followersSet?.has(userId) || false;
+    const isMutual    = isFollowing && isFollower;
+
+    // 🔥 VISIBILITY RULE
+    const visibility = targetUser.privacy?.dashboardVisibility || "public";
+
+    let canView = false;
+
+    if(currentUser && currentUser.uid === userId){
+      canView = true;
+    }else if(visibility === "public"){
+      canView = true;
+    }else if(visibility === "followers" && isFollower){
+      canView = true;
+    }else if(visibility === "following" && isFollowing){
+      canView = true;
+    }else if(visibility === "mutual" && isMutual){
+      canView = true;
+    }
+
+    // 🔒 BLOCK
+    if(!canView){
+      content.innerHTML = "🔒 User tidak mengizinkan melihat dashboard";
+      isLoadingDashboard = false;
+      return;
+    }
+
+    // 🔥 RENDER
     await renderSkillByUserId(userId);
 
   }catch(err){
@@ -1417,7 +1477,6 @@ window.openPlayerDashboard = async function(userId){
 
   isLoadingDashboard = false;
 }
-
 window.closeSkillModal = function(){
   const modal = document.getElementById("skillModal");
   if(modal){
