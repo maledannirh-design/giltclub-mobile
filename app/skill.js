@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "./firestore.js";
+import { doc, getDoc, setDoc } from "./firestore.js";
 
 /* ======================================================
    SKILL ORDER & CATEGORY
@@ -90,29 +90,6 @@ const skillLabels = {
 
 
 /* ======================================================
-   STAR RENDER
-====================================================== */
-
-function renderStars(value=0){
-
-  let stars="";
-
-  for(let i=1;i<=5;i++){
-
-    if(i<=value){
-      stars += `<span class="star">⭐</span>`;
-    }else{
-      stars += `<span class="star off">⭐</span>`;
-    }
-
-  }
-
-  return stars;
-
-}
-
-
-/* ======================================================
    STAR EXPLOSION EFFECT
 ====================================================== */
 
@@ -181,56 +158,58 @@ export async function renderSkill(){
   }
 
   /* -------------------------
-     GET USER SKILLS
-  ------------------------- */
+   GET USER SKILLS
+------------------------- */
 
-  const skillSnap = await getDoc(doc(db,"userSkills",uid));
+const skillSnap = await getDoc(doc(db,"userSkills",uid));
 
-  let skills={};
+let skills = {};
 
-  if(skillSnap.exists()){
-    skills = skillSnap.data();
-  }
+if(skillSnap.exists()){
+  skills = skillSnap.data();
+}
 
-  /* -------------------------
-     CALCULATE TOTAL STARS
-  ------------------------- */
+/* -------------------------
+   CALCULATE TOTAL STARS
+------------------------- */
 
-  let totalStars=0;
+let totalStars = 0;
 
-  Object.values(skills).forEach(v=>{
-    totalStars += Number(v || 0);
-  });
+Object.values(skills).forEach(v=>{
+  totalStars += Number(v || 0);
+});
 
-  /* -------------------------
-     BUILD HTML
-  ------------------------- */
+/* -------------------------
+   BUILD HTML
+------------------------- */
 
-  let html=`
+// 🔥 dashboard sendiri = tidak bisa edit
+const editable = false;
 
-  <div class="skill-wrapper">
+let html = `
 
-    <div class="skill-header">
-      Dashboard Skill
+<div class="skill-wrapper">
+
+  <div class="skill-header">
+    Dashboard Skill
+  </div>
+
+  <div class="skill-topcard">
+
+    <div class="skill-title">
+      ${username}
     </div>
 
-    <div class="skill-topcard">
-
-      <div class="skill-title">
-        ${username}
-      </div>
-
-      <div class="skill-level">
-        ${playingLevel}
-      </div>
-
-      <div class="skill-total">
-        ⭐ ${totalStars}
-      </div>
-
+    <div class="skill-level">
+      ${playingLevel}
     </div>
 
-  `;
+    <div class="skill-total">
+      ⭐ ${totalStars}
+    </div>
+
+  </div>
+`;
 
 
   /* -------------------------
@@ -258,7 +237,7 @@ export async function renderSkill(){
           </div>
 
           <div class="skill-stars">
-            ${renderStars(val)}
+            ${renderStars(val, skillKey, editable)}
           </div>
 
         </div>
@@ -281,20 +260,17 @@ export async function renderSkill(){
 
 }
 
-
 export async function renderSkillByUserId(userId){
 
-  const content = document.getElementById("skillContent"); // modal target
+  const content = document.getElementById("skillContent");
   if(!content) return;
 
-  /* -------------------------
-     GET USER PROFILE
-  ------------------------- */
-
   const userSnap = await getDoc(doc(db,"users",userId));
+  const skillSnap = await getDoc(doc(db,"userSkills",userId));
 
   let username="Member";
   let playingLevel="Newbie";
+  let skills={};
 
   if(userSnap.exists()){
     const u=userSnap.data();
@@ -302,42 +278,21 @@ export async function renderSkillByUserId(userId){
     playingLevel = u.playingLevel || "Newbie";
   }
 
-  /* -------------------------
-     GET USER SKILLS
-  ------------------------- */
-
-  const skillSnap = await getDoc(doc(db,"userSkills",userId));
-
-  let skills={};
-
   if(skillSnap.exists()){
     skills = skillSnap.data();
   }
 
-  /* -------------------------
-     TOTAL STAR
-  ------------------------- */
+  const editable = canEditSkill(window.userData || {});
 
-  let totalStars=0;
-  Object.values(skills).forEach(v=>{
-    totalStars += Number(v || 0);
-  });
-
-  /* -------------------------
-     BUILD HTML (REUSE FULL)
-  ------------------------- */
+  window.currentViewedUserId = userId;
+  window.currentSkillData = skills;
 
   let html=`
     <div class="skill-wrapper">
-
-      <div class="skill-header">
-        Dashboard Skill
-      </div>
-
+      <div class="skill-header">Dashboard Skill</div>
       <div class="skill-topcard">
         <div class="skill-title">${username}</div>
         <div class="skill-level">${playingLevel}</div>
-        <div class="skill-total">⭐ ${totalStars}</div>
       </div>
   `;
 
@@ -350,9 +305,11 @@ export async function renderSkillByUserId(userId){
       const val = skills[skillKey] || 0;
 
       html += `
-        <div class="skill-row">
+        <div class="skill-row" data-skill="${skillKey}">
           <div class="skill-name">${skillLabels[skillKey]}</div>
-          <div class="skill-stars">${renderStars(val)}</div>
+          <div class="skill-stars">
+            ${renderStars(val, skillKey, editable)}
+          </div>
         </div>
       `;
     });
@@ -364,44 +321,8 @@ export async function renderSkillByUserId(userId){
   content.innerHTML = html;
 }
 
-
-export function renderSkillDashboard(data, userId){
-
-  const skills = data.skills || {};
-
-  // 🔥 tentukan apakah bisa edit
-  const editable = canEditSkill(userData);
-
-  // 🔥 penting: set global target (biar onClickStar tau user mana)
-  window.currentViewedUserId = userId;
-
-  // 🔥 cache data sekarang (biar bisa compare saat klik)
-  window.currentSkillData = data;
-
-  return `
-    <div data-skill="hitTiming">
-      <div class="skill-label">Hit Timing</div>
-      ${renderStars(skills.hitTiming || 0, "hitTiming", editable)}
-    </div>
-
-    <div data-skill="stance">
-      <div class="skill-label">Stance</div>
-      ${renderStars(skills.stance || 0, "stance", editable)}
-    </div>
-
-    <div data-skill="grip">
-      <div class="skill-label">Grip</div>
-      ${renderStars(skills.grip || 0, "grip", editable)}
-    </div>
-  `;
-}
-
 function canEditSkill(userData){
-  return (
-    userData.role === "admin" ||
-    userData.role === "supercoach" ||
-    userData.coachVerified === true
-  );
+  return ["coach","admin","supercoach"].includes(userData?.role);
 }
 
 export function renderStars(value, skillKey, editable){
@@ -418,4 +339,41 @@ export function renderStars(value, skillKey, editable){
   }
 
   return html;
+}
+
+window.onClickStar = async function(skillKey, value){
+
+  if(!canEditSkill(userData)){
+    showToast("Tidak punya akses");
+    return;
+  }
+
+  const current = currentSkillData[skillKey] || 0;
+
+  const finalValue = (current === value) ? 0 : value;
+
+  try{
+
+    // update local
+    currentSkillData[skillKey] = finalValue;
+
+    // update UI langsung
+    const row = document.querySelector(`[data-skill="${skillKey}"]`);
+    const stars = row.querySelectorAll(".star");
+
+    stars.forEach((s, i)=>{
+      s.classList.toggle("active", i < finalValue);
+    });
+
+    // 🔥 SAVE KE FIRESTORE
+    await setDoc(
+      doc(db,"userSkills", currentViewedUserId),
+      currentSkillData,
+      { merge:true }
+    );
+
+  }catch(err){
+    console.error(err);
+    showToast("Gagal simpan");
+  }
 }
