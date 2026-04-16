@@ -314,8 +314,13 @@ window.currentSkillData = skills;
 }
 
 function canEditSkill(userData){
-  return ["coach","admin","supercoach"].includes(userData?.role);
+
+  const role = (userData?.role || "").trim();
+
+  return ["COACH","ADMIN","SUPERCOACH"].includes(role);
 }
+
+
 function renderStars(value, skillKey){
 
   let html = "";
