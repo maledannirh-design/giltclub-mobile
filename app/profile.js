@@ -340,7 +340,7 @@ export async function renderAccountUI(){
           user
           ? `
             <button class="btn-primary">Membership</button>
-            <button class="btn-secondary" id="logoutBtn">Logout</button>
+            <button class="btn-secondary" id="Btn"></button>
           `
           : `
             <button class="btn-primary" id="registerBtn">Daftar</button>
@@ -532,7 +532,7 @@ function bindAccountEvents(user){
     const logoutBtn = document.getElementById("logoutBtn");
     if(logoutBtn){
       logoutBtn.onclick = async ()=>{
-        await logout();
+        await handleLogout();
         renderAccountUI();
       };
     }
@@ -1488,17 +1488,16 @@ window.handleLogout = async function(){
 
   try{
 
-    // 🔥 stop semua listener dulu
     if(window.stopAllListeners){
       stopAllListeners();
     }
 
-    // 🔥 tutup modal kalau ada
     if(window.closeSkillModal){
       closeSkillModal();
     }
 
-    await auth.signOut();
+    // 🔥 pakai function auth.js
+    await logout();
 
   }catch(err){
     console.error("Logout error:", err);
