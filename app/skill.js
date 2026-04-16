@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase.js";
-import { doc, getDoc, updateDoc } from "./firestore.js";
+import { doc, getDoc, setDoc, updateDoc } from "./firestore.js";
 
 window.userCache = {};
 window.skillCache = {};
@@ -345,7 +345,6 @@ function renderStars(value, skillKey){
   return html;
 }
 
-
 function buildSkillHTML(user, skills, userId){
 
   const currentUser = window.userCache?.[auth.currentUser?.uid];
@@ -448,43 +447,43 @@ window.onClickStar = function(skillKey, value){
 
 window.saveSkillEdit = async function(){
 
-  try{
+  try {
 
     const uid = window.currentViewedUserId;
 
-    if(!uid){
+    if (!uid) {
       alert("User tidak valid");
       return;
     }
 
+    if (!window.tempSkillData || Object.keys(window.tempSkillData).length === 0) {
+      alert("Tidak ada perubahan");
+      return;
+    }
+
     console.log("SAVE DATA:", window.tempSkillData);
+    console.log("UID:", uid);
 
     await setDoc(
-      doc(db,"userSkills", uid),
+      doc(db, "userSkills", uid),
       window.tempSkillData,
-      { merge:true }
+      { merge: true }
     );
 
+    // 🔥 keluar dari edit mode
     window.skillEditMode = false;
 
-    renderSkillByUserId(uid);
+    // 🔥 refresh UI
+    await renderSkillByUserId(uid);
 
     alert("Berhasil disimpan ✔");
 
-  }catch(err){
+  } catch (err) {
+
     console.error("SAVE ERROR:", err);
+
     alert("Gagal save");
+
   }
-};
 
-    window.skillEditMode = false;
-
-    renderSkillByUserId(window.currentViewedUserId);
-
-    alert("Berhasil disimpan ✔");
-
-  }catch(err){
-    console.error(err);
-    alert("Gagal save");
-  }
 };
