@@ -352,13 +352,6 @@ export async function renderAccountUI(){
       </div>
 
     </div>
-<div class="membership-progress-box">
-  <div class="progress-label">Aktifkan Membership Card</div>
-  <div class="progress-bar">
-    <div class="progress-fill" id="memberProgressFill"></div>
-  </div>
-  <div class="progress-percent" id="memberProgressText">0%</div>
-</div>
 
 <div class="account-group">
   <div class="group-row" id="menuKeamanan">Akun & Keamanan <span>›</span></div>
