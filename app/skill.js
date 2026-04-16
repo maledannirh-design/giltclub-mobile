@@ -421,10 +421,14 @@ window.enableSkillEdit = function(){
 
   window.tempSkillData = { ...window.currentSkillData };
 
-  document.querySelector(".btn-edit").style.display = "none";
-  document.querySelector(".btn-save").style.display = "inline-block";
-   renderSkillByUserId(window.currentViewedUserId);
+  renderSkillByUserId(window.currentViewedUserId);
+};
 
+window.cancelSkillEdit = function(){
+
+  window.skillEditMode = false;
+
+  renderSkillByUserId(window.currentViewedUserId);
 };
 
 window.onClickStar = function(skillKey, value){
@@ -442,7 +446,6 @@ window.onClickStar = function(skillKey, value){
   renderSkillByUserId(window.currentViewedUserId);
 };
 
-
 window.saveSkillEdit = async function(){
 
   try{
@@ -452,11 +455,9 @@ window.saveSkillEdit = async function(){
       window.tempSkillData
     );
 
-    window.currentSkillData = { ...window.tempSkillData };
     window.skillEditMode = false;
 
-    document.querySelector(".btn-edit").style.display = "inline-block";
-    document.querySelector(".btn-save").style.display = "none";
+    renderSkillByUserId(window.currentViewedUserId);
 
     alert("Berhasil disimpan ✔");
 
