@@ -3740,6 +3740,15 @@ body.scan-mode{
 }
 
 .skill-stars .star{
-  font-size:14px;
+  font-size:22px;
   margin-left:2px;
+}
+
+.skill-stars .star.active{
+  color:#FFD700;   /* gold */
+  text-shadow:0 0 6px rgba(255,215,0,0.7);
+}
+
+.skill-row{
+  gap:14px;
 }
