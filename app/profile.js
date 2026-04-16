@@ -605,13 +605,28 @@ let unsubscribeFollowers = null;
 // 🔥 TARUH DI SINI
 window.stopAllListeners = function(){
 
+  // ===== MEMBERS =====
   if(unsubscribeMembers) unsubscribeMembers();
   if(unsubscribeFollowing) unsubscribeFollowing();
   if(unsubscribeFollowers) unsubscribeFollowers();
 
+  // ===== CHAT =====
+  if(unsubscribeMessages) unsubscribeMessages();
+  if(unsubscribeTyping) unsubscribeTyping();
+  if(unsubscribeStatus) unsubscribeStatus();
+  if(unsubscribeChatList) unsubscribeChatList();
+
+  // RESET
   unsubscribeMembers = null;
   unsubscribeFollowing = null;
   unsubscribeFollowers = null;
+
+  unsubscribeMessages = null;
+  unsubscribeTyping = null;
+  unsubscribeStatus = null;
+  unsubscribeChatList = null;
+
+  console.log("🔥 ALL LISTENERS STOPPED");
 };
 
 
