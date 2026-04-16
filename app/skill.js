@@ -348,7 +348,9 @@ function renderStars(value, skillKey){
 
 function buildSkillHTML(user, skills, userId){
 
-  const editable = canEditSkill(user);
+  const currentUser = window.userCache?.[auth.currentUser?.uid];
+
+const editable = canEditSkill(currentUser);
 
   let html = `
     <div class="skill-wrapper">
