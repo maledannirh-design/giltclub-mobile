@@ -281,6 +281,90 @@ export async function renderSkill(){
 
 }
 
+
+export async function renderSkillByUserId(userId){
+
+  const content = document.getElementById("skillContent"); // modal target
+  if(!content) return;
+
+  /* -------------------------
+     GET USER PROFILE
+  ------------------------- */
+
+  const userSnap = await getDoc(doc(db,"users",userId));
+
+  let username="Member";
+  let playingLevel="Newbie";
+
+  if(userSnap.exists()){
+    const u=userSnap.data();
+    username = u.username || u.name || "Member";
+    playingLevel = u.playingLevel || "Newbie";
+  }
+
+  /* -------------------------
+     GET USER SKILLS
+  ------------------------- */
+
+  const skillSnap = await getDoc(doc(db,"userSkills",userId));
+
+  let skills={};
+
+  if(skillSnap.exists()){
+    skills = skillSnap.data();
+  }
+
+  /* -------------------------
+     TOTAL STAR
+  ------------------------- */
+
+  let totalStars=0;
+  Object.values(skills).forEach(v=>{
+    totalStars += Number(v || 0);
+  });
+
+  /* -------------------------
+     BUILD HTML (REUSE FULL)
+  ------------------------- */
+
+  let html=`
+    <div class="skill-wrapper">
+
+      <div class="skill-header">
+        Dashboard Skill
+      </div>
+
+      <div class="skill-topcard">
+        <div class="skill-title">${username}</div>
+        <div class="skill-level">${playingLevel}</div>
+        <div class="skill-total">⭐ ${totalStars}</div>
+      </div>
+  `;
+
+  Object.entries(skillCategories).forEach(([category,list])=>{
+
+    html += `<div class="skill-category">${category}</div>`;
+
+    list.forEach(skillKey=>{
+
+      const val = skills[skillKey] || 0;
+
+      html += `
+        <div class="skill-row">
+          <div class="skill-name">${skillLabels[skillKey]}</div>
+          <div class="skill-stars">${renderStars(val)}</div>
+        </div>
+      `;
+    });
+
+  });
+
+  html += `</div>`;
+
+  content.innerHTML = html;
+}
+
+
 export function renderSkillDashboard(data, userId){
 
   const skills = data.skills || {};
