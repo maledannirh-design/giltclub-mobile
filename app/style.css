@@ -3629,3 +3629,16 @@ body.scan-mode{
   position:relative;
   z-index:1;
 }
+
+.skill-dashboard-btn{
+  position:relative;
+  z-index:1;
+  color:#fff !important;
+  font-size:12px !important;
+}
+
+/* 🔥 pastikan text di atas efek */
+.skill-dashboard-btn span{
+  position:relative;
+  z-index:2;
+}
