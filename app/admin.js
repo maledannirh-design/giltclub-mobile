@@ -681,6 +681,19 @@ window.openProductAdmin = async function(){
 
 };
 
+window.openFlashAdmin = async function(){
+  const { renderFlashAdmin } =
+    await import("./flash/flash-admin.js");
+
+  renderFlashAdmin();
+};
+
+window.openRewardAdmin = async function(){
+  const { renderRewardAdmin } =
+    await import("./reward/reward-admin.js");
+
+  renderRewardAdmin();
+};
 /* =====================================================
    APPROVE TOPUP (OPTIMIZED - NO QUOTA SPAM)
 ===================================================== */
