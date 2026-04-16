@@ -753,81 +753,85 @@ export function renderMembers(){
       const avatar = data.photoURL
         ? `<img src="${data.photoURL}" class="member-avatar-img">`
         : `👤`;
+html += `
+  <div class="member-card">
 
-      html += `
-        <div class="member-card">
+    <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
 
-          <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
+    <div class="member-left">
+      <div class="member-avatar">${avatar}</div>
 
-          <div class="member-left">
-            <div class="member-avatar">${avatar}</div>
+      <div class="follow-stats">
+        <div>${data.followersCount || 0} Followers</div>
+        <div>${data.followingCount || 0} Following</div>
+      </div>
 
-            <div class="follow-stats">
-              <div>${data.followersCount || 0} Followers</div>
-              <div>${data.followingCount || 0} Following</div>
-            </div>
+      <div class="member-bio">
+        ${data.bio || "No bio yet"}
+      </div>
+    </div>
 
-            <div class="member-bio">
-              ${data.bio || "No bio yet"}
-            </div>
-          </div>
+    <div class="member-right">
 
-          <div class="member-right">
+      <div class="member-username">
+        ${data.username || "User"}
+        ${data.verified === true ? `
+          <span class="verified-badge">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
+              <path d="M9.5 12.5l1.8 1.8 3.5-4"
+                    fill="none"
+                    stroke="#fff"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"/>
+            </svg>
+          </span>
+        ` : ``}
+        ${
+          mutual
+            ? `<span class="mutual-badge">Mutual</span>`
+            : followsYou
+              ? `<span class="follows-you-badge">Follows You</span>`
+              : ``
+        }
+      </div>
 
-            <div class="member-username">
-              ${data.username || "User"}
-              ${data.verified === true ? `
-  <span class="verified-badge">
-    <svg viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
-      <path d="M9.5 12.5l1.8 1.8 3.5-4"
-            fill="none"
-            stroke="#fff"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"/>
-    </svg>
-  </span>
-` : ``}
-              ${
-                mutual
-                  ? `<span class="mutual-badge">Mutual</span>`
-                  : followsYou
-                    ? `<span class="follows-you-badge">Follows You</span>`
-                    : ``
-              }
-            </div>
+      <div>
+        <span class="role-badge ${badgeClass}">
+          ${data.role}
+        </span>
+      </div>
 
-            <div>
-              <span class="role-badge ${badgeClass}">
-                ${data.role}
-              </span>
-            </div>
+      <div>Level: ${data.level || 1}</div>
+      <div>Playing: ${data.playingLevel || "newbie"}</div>
+      <div>${data.membership || "MEMBER"}</div>
+      <div>Status: ${data.status || "active"}</div>
 
-            <div>Level: ${data.level || 1}</div>
-            <div>Playing: ${data.playingLevel || "newbie"}</div>
-            <div>${data.membership || "MEMBER"}</div>
-            <div>Status: ${data.status || "active"}</div>
+      <div class="member-actions">
 
-            <div class="member-actions">
-            <button 
-    class="skill-dashboard-btn"
-    onclick="openPlayerDashboard('${uid}')"
-    ⭐ Skill
-  </button>
-              <button class="follow-btn ${isFollowing ? 'following' : ''}"
-                onclick="toggleFollow('${uid}')">
-                ${isFollowing ? 'Following' : 'Follow'}
-              </button>
-              <button class="chat-btn" onclick="handleChat('${uid}')">
-                💬
-              </button>
-            </div>
+        <!-- 🔥 FIXED BUTTON -->
+        <button 
+          class="skill-dashboard-btn"
+          onclick="openPlayerDashboard('${uid}')">
+          ⭐ Skill Dashboard
+        </button>
 
-          </div>
+        <button class="follow-btn ${isFollowing ? 'following' : ''}"
+          onclick="toggleFollow('${uid}')">
+          ${isFollowing ? 'Following' : 'Follow'}
+        </button>
 
-        </div>
-      `;
+        <button class="chat-btn" onclick="handleChat('${uid}')">
+          💬
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+`;
     });
 
     listEl.innerHTML = html;
