@@ -1470,6 +1470,37 @@ window.blockUser = function(uid){
 };
 
 
-window.openPlayerDashboard = function(userId){
-  console.log("Open skill dashboard:", userId);
+window.openPlayerDashboard = async function(userId){
+
+  const modal = document.getElementById("playerDashboardModal");
+  const content = document.getElementById("playerDashboardContent");
+
+  modal.classList.remove("hidden");
+  content.innerHTML = "Loading...";
+
+  try{
+
+    // 🔥 ambil data skill
+    const skillSnap = await getDoc(doc(db,"player_skills", userId));
+
+    let data = {
+      skills:{}
+    };
+
+    if(skillSnap.exists()){
+      data = skillSnap.data();
+    }
+
+    // 🔥 render pakai skill.js kamu
+    content.innerHTML = renderSkillDashboard(data, userId);
+
+  }catch(err){
+    content.innerHTML = "Gagal load data";
+  }
+}
+
+window.closePlayerDashboard = function(){
+  document
+    .getElementById("playerDashboardModal")
+    .classList.add("hidden");
 }
