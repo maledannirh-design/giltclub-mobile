@@ -26,7 +26,7 @@ export async function renderPrivasi(){
 
   const privacy = userData.privacy || {
     showOnlineStatus: true,
-    dashboardVisibility: "public"
+    dashboardVisibility: "public",
     showNameInBooking: false,
     chatPermission: "all"
   };
@@ -41,8 +41,8 @@ export async function renderPrivasi(){
 
         <div class="akun-checkbox-row">
           <input type="checkbox" id="showOnlineStatus"
-            ${privacy.showOnlineStatus === true ? "checked" : ""}
-          <label for="showOnlineStatus">
+  ${privacy.showOnlineStatus === true ? "checked" : ""}>
+<label for="showOnlineStatus">
             Tampilkan Status Online
           </label>
         </div>
