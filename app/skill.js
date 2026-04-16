@@ -450,10 +450,32 @@ window.saveSkillEdit = async function(){
 
   try{
 
-    await updateDoc(
-      doc(db,"userSkills", window.currentViewedUserId),
-      window.tempSkillData
+    const uid = window.currentViewedUserId;
+
+    if(!uid){
+      alert("User tidak valid");
+      return;
+    }
+
+    console.log("SAVE DATA:", window.tempSkillData);
+
+    await setDoc(
+      doc(db,"userSkills", uid),
+      window.tempSkillData,
+      { merge:true }
     );
+
+    window.skillEditMode = false;
+
+    renderSkillByUserId(uid);
+
+    alert("Berhasil disimpan ✔");
+
+  }catch(err){
+    console.error("SAVE ERROR:", err);
+    alert("Gagal save");
+  }
+};
 
     window.skillEditMode = false;
 
