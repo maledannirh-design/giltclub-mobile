@@ -340,7 +340,9 @@ export async function renderAccountUI(){
           user
           ? `
             <button class="btn-primary">Membership</button>
-            <button class="btn-secondary" id="Btn"></button>
+            <button class="btn-secondary" onclick="handleLogout()">
+  Logout
+</button>
           `
           : `
             <button class="btn-primary" id="registerBtn">Daftar</button>
