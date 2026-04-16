@@ -1491,8 +1491,6 @@ window.openPlayerDashboard = async function(userId){
   }
 }
 
-window.closePlayerDashboard = function(){
-  document
-    .getElementById("playerDashboardModal")
-    .classList.add("hidden");
+window.closeSkillModal = function(){
+  document.getElementById("skillModal").classList.add("hidden");
 }
