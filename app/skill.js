@@ -311,3 +311,27 @@ export function renderSkillDashboard(data, userId){
     </div>
   `;
 }
+
+function canEditSkill(userData){
+  return (
+    userData.role === "admin" ||
+    userData.role === "supercoach" ||
+    userData.coachVerified === true
+  );
+}
+
+export function renderStars(value, skillKey, editable){
+
+  let html = "";
+
+  for(let i=1; i<=5; i++){
+    html += `
+      <span 
+        class="star ${i <= value ? 'active' : ''}"
+        ${editable ? `onclick="onClickStar('${skillKey}', ${i})"` : ""}
+      >★</span>
+    `;
+  }
+
+  return html;
+}
