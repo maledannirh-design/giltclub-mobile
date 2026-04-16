@@ -3651,3 +3651,64 @@ body.scan-mode{
 .btn-skill *{
   color:#fff !important;
 }
+
+
+.skill-dashboard-btn{
+  width:100%;
+  padding:8px;
+  margin-bottom:6px;
+
+  border:none;
+  border-radius:10px;
+
+  color:#fff !important;
+  font-weight:600;
+  font-size:12px;
+
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+
+  /* 🔥 warna disco jalan */
+  background:linear-gradient(
+    90deg,
+    #ff0000,
+    #ff9900,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+
+  background-size:400% 100%;
+  animation:discoMove 1s linear infinite;
+}
+
+/* 🔥 animasi geser warna */
+@keyframes discoMove{
+  0%{
+    background-position:0% 50%;
+  }
+  100%{
+    background-position:100% 50%;
+  }
+}
+
+/* 🔥 glow nyala */
+.skill-dashboard-btn{
+  box-shadow:
+    0 0 5px #fff,
+    0 0 10px #ff00ff,
+    0 0 20px #00ffff;
+}
+
+/* 🔥 hover makin brutal */
+.skill-dashboard-btn:hover{
+  transform:scale(1.05);
+  box-shadow:
+    0 0 10px #fff,
+    0 0 20px #ff00ff,
+    0 0 40px #00ffff;
+}
