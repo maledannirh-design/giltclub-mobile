@@ -813,7 +813,7 @@ export function renderMembers(){
             <button 
     class="btn-skill"
     onclick="openPlayerDashboard('${uid}')"
-    Skill Dashboard
+    ⭐ Skill Dashboard
   </button>
               <button class="follow-btn ${isFollowing ? 'following' : ''}"
                 onclick="toggleFollow('${uid}')">
