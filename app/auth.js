@@ -98,7 +98,7 @@ export async function register(
 
       role: "MEMBER",
       membership: "MEMBER",
-      playingLevel: "newbie",
+      playingLevel: "New Player (NTRP 1.0)",
 
       status: "active",
 
@@ -114,12 +114,16 @@ export async function register(
       attendanceCount: 0,
 
       coachApproved: false,
-      coachLevel: null,
-
-      verifiedApproved: false,
+      verified: false,
 
       isPublic: true,
-
+      // 🔥 TAMBAHKAN INI
+privacy: {
+  showOnlineStatus: false,
+  dashboardVisibility: "private",
+  showNameInBooking: false,
+  chatPermission: "followers"
+},
       pinTrx,
       createdAt: serverTimestamp()
 
