@@ -741,9 +741,22 @@ window.approveTopup = async function(trxId, userId){
     ========================================= */
     const userRef = doc(db,"users", userId);
 
-    await updateDoc(userRef,{
-      totalTopup: increment(amount)
-    });
+// 🔥 1. update totalTopup dulu
+await updateDoc(userRef,{
+  totalTopup: increment(amount)
+});
+
+// 🔥 2. ambil data terbaru
+const updatedSnap = await getDoc(userRef);
+const updatedData = updatedSnap.data();
+
+// 🔥 3. hitung EXP dari TOTAL
+const newExp = Math.floor((updatedData.totalTopup || 0) / 500) * 10;
+
+// 🔥 4. simpan EXP
+await updateDoc(userRef,{
+  exp: newExp
+});
 
     alert("Top up berhasil di-approve");
 
