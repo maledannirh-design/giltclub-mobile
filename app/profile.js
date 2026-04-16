@@ -2,7 +2,7 @@ import { auth, db, storage } from "./firebase.js";
 import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
 let currentUserData = null;
-let unsubscribeFollowers = null;
+
 
 import {
   doc, updateDoc, where, collection, query, increment,
@@ -13,6 +13,9 @@ import {
   getDatabase, ref, set, onDisconnect, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+// 🔥 TARUH DI SINI
+window.userCache = window.userCache || {};
+window.skillCache = window.skillCache || {};
 
 // === SUB MODULE AKUN (LAZY LOAD TARGETS) ===
 // tidak perlu import statis, karena kita pakai dynamic import
@@ -544,14 +547,25 @@ function openSheet(mode="login"){
   const sheet = document.getElementById("loginSheet");
   const overlay = document.getElementById("sheetOverlay");
 
+  if(!sheet || !overlay) return;
+
   overlay.classList.add("active");
   sheet.classList.add("active");
 
   renderSheetContent(mode);
 }
+
+function safeClass(el, action, className){
+  if(!el) return;
+  el.classList[action](className);
+}
+
 function closeSheet(){
-  document.getElementById("sheetOverlay").classList.remove("active");
-  document.getElementById("loginSheet").classList.remove("active");
+  const overlay = document.getElementById("sheetOverlay");
+  const sheet = document.getElementById("loginSheet");
+
+  if(overlay) overlay.classList.remove("active");
+  if(sheet) sheet.classList.remove("active");
 }
 
 /* =====================================================
@@ -582,7 +596,19 @@ auth.onAuthStateChanged(user=>{
 
 let unsubscribeMembers = null;
 let unsubscribeFollowing = null;
+let unsubscribeFollowers = null;
 
+// 🔥 TARUH DI SINI
+window.stopAllListeners = function(){
+
+  if(unsubscribeMembers) unsubscribeMembers();
+  if(unsubscribeFollowing) unsubscribeFollowing();
+  if(unsubscribeFollowers) unsubscribeFollowers();
+
+  unsubscribeMembers = null;
+  unsubscribeFollowing = null;
+  unsubscribeFollowers = null;
+};
 export function renderMembers(){
 
   const content = document.getElementById("content");
@@ -1393,5 +1419,29 @@ window.openPlayerDashboard = async function(userId){
 }
 
 window.closeSkillModal = function(){
-  document.getElementById("skillModal").classList.add("hidden");
+  const modal = document.getElementById("skillModal");
+  if(modal){
+    modal.classList.add("hidden");
+  }
+}
+
+window.handleLogout = async function(){
+
+  try{
+
+    // 🔥 stop semua listener dulu
+    if(window.stopAllListeners){
+      stopAllListeners();
+    }
+
+    // 🔥 tutup modal kalau ada
+    if(window.closeSkillModal){
+      closeSkillModal();
+    }
+
+    await auth.signOut();
+
+  }catch(err){
+    console.error("Logout error:", err);
+  }
 }
