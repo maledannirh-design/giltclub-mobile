@@ -212,3 +212,12 @@
 .star{
   user-select:none;
 }
+
+.skill-actions {
+  position: relative;
+  z-index: 10;
+}
+
+.sheet-overlay {
+  pointer-events: none;
+}
