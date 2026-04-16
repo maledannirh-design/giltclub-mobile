@@ -683,14 +683,14 @@ window.openProductAdmin = async function(){
 
 window.openFlashAdmin = async function(){
   const { renderFlashAdmin } =
-    await import("./flash/flash-admin.js");
+    await import("./store/flash-admin.js");
 
   renderFlashAdmin();
 };
 
 window.openRewardAdmin = async function(){
   const { renderRewardAdmin } =
-    await import("./reward/reward-admin.js");
+    await import("./store/reward-admin.js");
 
   renderRewardAdmin();
 };
