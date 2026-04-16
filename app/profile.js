@@ -812,7 +812,7 @@ export function renderMembers(){
             <div class="member-actions">
             <button 
     class="btn-skill"
-    onclick="openPlayerDashboard('${member.id}')">
+    onclick="openPlayerDashboard('${uid}')"
     Skill Dashboard
   </button>
               <button class="follow-btn ${isFollowing ? 'following' : ''}"
@@ -878,6 +878,7 @@ export function renderMembers(){
     );
   }
 }
+
 /* =========================================
    SECTION C TAMPILAN CHAT
 ========================================= */
