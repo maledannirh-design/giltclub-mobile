@@ -61,26 +61,18 @@ export async function openGolfForm(){
 
   const btn = document.getElementById("submitCreateSession");
 
-  // 🛑 PENTING: clear handler dulu (hindari double bind)
+  // hindari double bind
   btn.onclick = null;
 
   btn.onclick = async ()=>{
 
-    // =========================
-    // 🔒 ANTI SPAM CLICK
-    // =========================
     const now = Date.now();
 
-    if(isSubmittingGolf){
-      console.warn("BLOCK: still submitting");
-      return;
-    }
+    // 🔒 anti spam
+    if(isSubmittingGolf) return;
 
-    // throttle 1.5 detik
-    if(now - lastSubmitTime < 1500){
-      console.warn("BLOCK: too fast click");
-      return;
-    }
+    // ⏱ throttle
+    if(now - lastSubmitTime < 1500) return;
 
     isSubmittingGolf = true;
     lastSubmitTime = now;
@@ -126,6 +118,9 @@ export async function openGolfForm(){
         return;
       }
 
+      // =========================
+      // 🔥 SLOT SYSTEM FIX
+      // =========================
       const payload = {
         sport: "golf",
         createdBy: user.uid,
@@ -135,7 +130,11 @@ export async function openGolfForm(){
         notes: notes || "",
         createdAt: new Date().toISOString(),
         status: "open",
-        maxPlayer: 4
+        maxPlayer: 4,
+
+        // ✅ INI YANG BIKIN SLOT HIDUP
+        players: [user.uid],
+        playerCount: 1
       };
 
       console.log("CREATE GOLF:", payload);
