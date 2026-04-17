@@ -3,6 +3,9 @@ import { showToast } from "../ui.js";
 import { db } from "../firebase.js";
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+let isSubmittingGolf = false;
+let lastSubmitTime = 0;
+
 export async function openGolfForm(){
 
   if(!auth.currentUser){
@@ -50,18 +53,40 @@ export async function openGolfForm(){
     </div>
   `;
 
-  // =========================
-  // CLOSE HANDLER
-  // =========================
+  // CLOSE
   document.getElementById("createSessionOverlay").onclick = ()=>{
     sheet.classList.remove("active");
     sheet.innerHTML = "";
   };
 
-  // =========================
-  // SUBMIT HANDLER (FIX UTAMA)
-  // =========================
-  document.getElementById("submitCreateSession").onclick = async ()=>{
+  const btn = document.getElementById("submitCreateSession");
+
+  // 🛑 PENTING: clear handler dulu (hindari double bind)
+  btn.onclick = null;
+
+  btn.onclick = async ()=>{
+
+    // =========================
+    // 🔒 ANTI SPAM CLICK
+    // =========================
+    const now = Date.now();
+
+    if(isSubmittingGolf){
+      console.warn("BLOCK: still submitting");
+      return;
+    }
+
+    // throttle 1.5 detik
+    if(now - lastSubmitTime < 1500){
+      console.warn("BLOCK: too fast click");
+      return;
+    }
+
+    isSubmittingGolf = true;
+    lastSubmitTime = now;
+
+    btn.disabled = true;
+    btn.innerText = "Menyimpan...";
 
     try{
 
@@ -70,22 +95,16 @@ export async function openGolfForm(){
       const courtEl = document.getElementById("court");
       const notesEl = document.getElementById("notes");
 
-      // VALIDASI ELEMENT
       if(!dateEl || !timeEl || !courtEl || !notesEl){
-        console.error("Golf form element missing", {
-          dateEl, timeEl, courtEl, notesEl
-        });
-        showToast("Form error (element tidak ditemukan)","error");
+        showToast("Form error","error");
         return;
       }
 
-      // AMBIL VALUE
       const date = dateEl.value?.trim();
       const time = timeEl.value?.trim();
       const court = courtEl.value?.trim();
       const notes = notesEl.value?.trim();
 
-      // VALIDASI INPUT
       if(!date){
         showToast("Tanggal wajib diisi","error");
         return;
@@ -107,9 +126,6 @@ export async function openGolfForm(){
         return;
       }
 
-      // =========================
-      // BUILD DATA
-      // =========================
       const payload = {
         sport: "golf",
         createdBy: user.uid,
@@ -119,26 +135,36 @@ export async function openGolfForm(){
         notes: notes || "",
         createdAt: new Date().toISOString(),
         status: "open",
-        maxPlayer: 4 // optional: golf typical flight
+        maxPlayer: 4
       };
 
       console.log("CREATE GOLF:", payload);
 
-      // =========================
-      // SAVE
-      // =========================
       await addDoc(collection(db,"sessions"), payload);
 
       showToast("Sesi golf berhasil dibuat","success");
 
-      // CLOSE SHEET
       sheet.classList.remove("active");
       sheet.innerHTML = "";
 
     }catch(err){
 
       console.error("CREATE GOLF ERROR:", err);
-      showToast("Error: " + err.message,"error");
+
+      if(err.code === "resource-exhausted"){
+        showToast("Server penuh, coba lagi nanti","error");
+      }else{
+        showToast("Error: " + err.message,"error");
+      }
+
+    }finally{
+
+      isSubmittingGolf = false;
+
+      if(btn){
+        btn.disabled = false;
+        btn.innerText = "Buat Sesi";
+      }
 
     }
 
