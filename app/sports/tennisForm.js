@@ -13,7 +13,6 @@ export async function openTennisForm(){
   if(!sheet) return;
 
   sheet.classList.add("active");
-
   sheet.innerHTML = `
     <div id="createSessionOverlay"></div>
 
