@@ -661,10 +661,10 @@ export function renderMembers(){
       const data = userDoc.data;
       const uid  = userDoc.id;
 
-      // 🔥 TAMBAHKAN INI DI SINI
-  if(window.userCache){
-    userCache[uid] = data;
-  }
+      if(window.userCache){
+        userCache[uid] = data;
+      }
+
       if(currentUser && uid === currentUser.uid) return;
 
       const isFollowing = followingSet.has(uid);
@@ -679,88 +679,127 @@ export function renderMembers(){
       const avatar = data.photoURL
         ? `<img src="${data.photoURL}" class="member-avatar-img">`
         : `👤`;
-html += `
-  <div class="member-card">
 
-    <div class="block-btn" onclick="blockUser('${uid}')">🚫</div>
+      html += `
+        <div class="member-card">
 
-    <div class="member-left">
-      <div class="member-avatar">${avatar}</div>
+          <div class="block-btn" data-uid="${uid}">🚫</div>
 
-      <div class="follow-stats">
-        <div>${data.followersCount || 0} Followers</div>
-        <div>${data.followingCount || 0} Following</div>
-      </div>
+          <div class="member-left">
+            <div class="member-avatar">${avatar}</div>
 
-      <div class="member-bio">
-        ${data.bio || "No bio yet"}
-      </div>
-    </div>
+            <div class="follow-stats">
+              <div>${data.followersCount || 0} Followers</div>
+              <div>${data.followingCount || 0} Following</div>
+            </div>
 
-    <div class="member-right">
+            <div class="member-bio">
+              ${data.bio || "No bio yet"}
+            </div>
+          </div>
 
-      <div class="member-username">
-        ${data.username || "User"}
-        ${data.verified === true ? `
-          <span class="verified-badge">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" fill="#1DA1F2"/>
-              <path d="M9.5 12.5l1.8 1.8 3.5-4"
-                    fill="none"
-                    stroke="#fff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"/>
-            </svg>
-          </span>
-        ` : ``}
-        ${
-          mutual
-            ? `<span class="mutual-badge">Mutual</span>`
-            : followsYou
-              ? `<span class="follows-you-badge">Follows You</span>`
-              : ``
-        }
-      </div>
+          <div class="member-right">
 
-      <div>
-        <span class="role-badge ${badgeClass}">
-          ${data.role}
-        </span>
-      </div>
+            <div class="member-username">
+              ${data.username || "User"}
+              ${data.verified === true ? `
+                <span class="verified-badge">✔</span>
+              ` : ``}
+              ${
+                mutual
+                  ? `<span class="mutual-badge">Mutual</span>`
+                  : followsYou
+                    ? `<span class="follows-you-badge">Follows You</span>`
+                    : ``
+              }
+            </div>
 
-      <div>Level: ${data.level || 1}</div>
-      <div>Playing: ${data.playingLevel || "newbie"}</div>
-      <div>${data.membership || "MEMBER"}</div>
-      <div>Status: ${data.status || "active"}</div>
+            <div>
+              <span class="role-badge ${badgeClass}">
+                ${data.role}
+              </span>
+            </div>
 
-      <div class="member-actions">
+            <div>Level: ${data.level || 1}</div>
+            <div>Playing: ${data.playingLevel || "newbie"}</div>
+            <div>${data.membership || "MEMBER"}</div>
+            <div>Status: ${data.status || "active"}</div>
 
-        <!-- 🔥 FIXED BUTTON -->
-        <button 
-          class="skill-dashboard-btn"
-          onclick="openPlayerDashboard('${uid}')">
-          ⭐ Skill
-        </button>
+            <div class="member-actions">
 
-        <button class="follow-btn ${isFollowing ? 'following' : ''}"
-          onclick="toggleFollow('${uid}')">
-          ${isFollowing ? 'Following' : 'Follow'}
-        </button>
+              <!-- 🔥 FIX BUTTON -->
+              <button 
+                class="skill-dashboard-btn"
+                data-uid="${uid}">
+                ⭐ Skill
+              </button>
 
-        <button class="chat-btn" onclick="handleChat('${uid}')">
-          💬
-        </button>
+              <button 
+                class="follow-btn ${isFollowing ? 'following' : ''}"
+                data-uid="${uid}">
+                ${isFollowing ? 'Following' : 'Follow'}
+              </button>
 
-      </div>
+              <button 
+                class="chat-btn"
+                data-uid="${uid}">
+                💬
+              </button>
 
-    </div>
+            </div>
 
-  </div>
-`;
+          </div>
+
+        </div>
+      `;
     });
 
     listEl.innerHTML = html;
+
+    /* ============================
+       🔥 EVENT BINDING (FIX MOBILE)
+    ============================ */
+
+    // Skill button
+    document.querySelectorAll(".skill-dashboard-btn")
+      .forEach(btn => {
+
+        const uid = btn.dataset.uid;
+
+        btn.addEventListener("click", () => openPlayerDashboard(uid));
+        btn.addEventListener("touchstart", () => openPlayerDashboard(uid));
+      });
+
+    // Follow button
+    document.querySelectorAll(".follow-btn")
+      .forEach(btn => {
+
+        const uid = btn.dataset.uid;
+
+        btn.addEventListener("click", () => toggleFollow(uid));
+        btn.addEventListener("touchstart", () => toggleFollow(uid));
+      });
+
+    // Chat button
+    document.querySelectorAll(".chat-btn")
+      .forEach(btn => {
+
+        const uid = btn.dataset.uid;
+
+        btn.addEventListener("click", () => handleChat(uid));
+        btn.addEventListener("touchstart", () => handleChat(uid));
+      });
+
+    // Block button
+    document.querySelectorAll(".block-btn")
+      .forEach(btn => {
+
+        const uid = btn.dataset.uid;
+
+        btn.addEventListener("click", () => blockUser(uid));
+        btn.addEventListener("touchstart", () => blockUser(uid));
+      });
+
   }
 
   // ===== USERS REALTIME =====
@@ -779,33 +818,28 @@ html += `
 
   if(currentUser){
 
-    // ===== FOLLOWING REALTIME =====
+    // ===== FOLLOWING =====
     unsubscribeFollowing = onSnapshot(
       collection(db,"users",currentUser.uid,"following"),
       (snapshot)=>{
 
         followingSet = new Set();
-        snapshot.forEach(doc=>{
-          followingSet.add(doc.id);
-        });
+        snapshot.forEach(doc=> followingSet.add(doc.id));
 
-// 🔥 TAMBAHKAN INI
-window.followingSet = followingSet;
+        window.followingSet = followingSet;
         renderUI();
       }
     );
 
-    // ===== FOLLOWERS REALTIME =====
+    // ===== FOLLOWERS =====
     unsubscribeFollowers = onSnapshot(
       collection(db,"users",currentUser.uid,"followers"),
       (snapshot)=>{
 
         followersSet = new Set();
-        snapshot.forEach(doc=>{
-          followersSet.add(doc.id);
-        });
-// 🔥 TAMBAHKAN INI
-window.followersSet = followersSet;
+        snapshot.forEach(doc=> followersSet.add(doc.id));
+
+        window.followersSet = followersSet;
         renderUI();
       }
     );
