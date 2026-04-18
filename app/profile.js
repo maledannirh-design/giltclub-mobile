@@ -642,7 +642,6 @@ export function renderMembers(){
   let followersSet = new Set();
   let usersCache = [];
 
-  // ===== CLEAN OLD SNAPSHOT =====
   if(unsubscribeMembers) unsubscribeMembers();
   if(unsubscribeFollowing) unsubscribeFollowing();
   if(unsubscribeFollowers) unsubscribeFollowers();
@@ -702,9 +701,7 @@ export function renderMembers(){
 
             <div class="member-username">
               ${data.username || "User"}
-              ${data.verified === true ? `
-                <span class="verified-badge">✔</span>
-              ` : ``}
+              ${data.verified ? `<span class="verified-badge">✔</span>` : ``}
               ${
                 mutual
                   ? `<span class="mutual-badge">Mutual</span>`
@@ -727,22 +724,15 @@ export function renderMembers(){
 
             <div class="member-actions">
 
-              <!-- 🔥 FIX BUTTON -->
-              <button 
-                class="skill-dashboard-btn"
-                data-uid="${uid}">
+              <button class="skill-dashboard-btn" data-uid="${uid}">
                 ⭐ Skill
               </button>
 
-              <button 
-                class="follow-btn ${isFollowing ? 'following' : ''}"
-                data-uid="${uid}">
+              <button class="follow-btn ${isFollowing ? 'following' : ''}" data-uid="${uid}">
                 ${isFollowing ? 'Following' : 'Follow'}
               </button>
 
-              <button 
-                class="chat-btn"
-                data-uid="${uid}">
+              <button class="chat-btn" data-uid="${uid}">
                 💬
               </button>
 
@@ -757,394 +747,69 @@ export function renderMembers(){
     listEl.innerHTML = html;
 
     /* ============================
-       🔥 EVENT BINDING (FIX MOBILE)
+       EVENT BINDING (ANTI BUG)
     ============================ */
 
-    // Skill button
-    document.querySelectorAll(".skill-dashboard-btn")
-      .forEach(btn => {
+    // Skill
+    document.querySelectorAll(".skill-dashboard-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
+      btn.onclick = () => openPlayerDashboard(uid);
+    });
 
-        const uid = btn.dataset.uid;
+    // Follow (🔥 FIX ERROR DI SINI)
+    document.querySelectorAll(".follow-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
 
-        btn.addEventListener("click", () => openPlayerDashboard(uid));
-        btn.addEventListener("touchstart", () => openPlayerDashboard(uid));
-      });
+      btn.onclick = () => toggleFollow(uid, btn);
+    });
 
-    // Follow button
-    document.querySelectorAll(".follow-btn")
-      .forEach(btn => {
+    // Chat
+    document.querySelectorAll(".chat-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
+      btn.onclick = () => handleChat(uid);
+    });
 
-        const uid = btn.dataset.uid;
-
-        btn.addEventListener("click", () => toggleFollow(uid));
-        btn.addEventListener("touchstart", () => toggleFollow(uid));
-      });
-
-    // Chat button
-    document.querySelectorAll(".chat-btn")
-      .forEach(btn => {
-
-        const uid = btn.dataset.uid;
-
-        btn.addEventListener("click", () => handleChat(uid));
-        btn.addEventListener("touchstart", () => handleChat(uid));
-      });
-
-    // Block button
-    document.querySelectorAll(".block-btn")
-      .forEach(btn => {
-
-        const uid = btn.dataset.uid;
-
-        btn.addEventListener("click", () => blockUser(uid));
-        btn.addEventListener("touchstart", () => blockUser(uid));
-      });
-
+    // Block
+    document.querySelectorAll(".block-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
+      btn.onclick = () => blockUser(uid);
+    });
   }
 
-  // ===== USERS REALTIME =====
+  // USERS
   unsubscribeMembers = onSnapshot(
     query(collection(db,"users"), orderBy("createdAt","desc")),
-    (snapshot)=>{
-
+    snapshot=>{
       usersCache = snapshot.docs.map(doc=>({
         id: doc.id,
         data: doc.data()
       }));
-
       renderUI();
     }
   );
 
   if(currentUser){
 
-    // ===== FOLLOWING =====
+    // FOLLOWING
     unsubscribeFollowing = onSnapshot(
       collection(db,"users",currentUser.uid,"following"),
-      (snapshot)=>{
-
+      snapshot=>{
         followingSet = new Set();
         snapshot.forEach(doc=> followingSet.add(doc.id));
-
-        window.followingSet = followingSet;
         renderUI();
       }
     );
 
-    // ===== FOLLOWERS =====
+    // FOLLOWERS
     unsubscribeFollowers = onSnapshot(
       collection(db,"users",currentUser.uid,"followers"),
-      (snapshot)=>{
-
+      snapshot=>{
         followersSet = new Set();
         snapshot.forEach(doc=> followersSet.add(doc.id));
-
-        window.followersSet = followersSet;
         renderUI();
       }
     );
   }
-}
-
-/* =========================================
-   SECTION C TAMPILAN CHAT
-========================================= */
-
-let unsubscribeMessages = null;
-let unsubscribeTyping = null;
-let unsubscribeStatus = null;
-
-async function renderChatUI(roomId, targetUid){
-
-  const content = document.getElementById("content");
-  const user = auth.currentUser;
-  if(!user || !content) return;
-
-  // Stop old listeners
-  if(unsubscribeMessages) unsubscribeMessages();
-  if(unsubscribeTyping) unsubscribeTyping();
-  if(unsubscribeStatus) unsubscribeStatus();
-
-  // Update last read
-  await updateDoc(
-  doc(db,"chatRooms",roomId),
-  {
-    [`lastRead.${user.uid}`]: serverTimestamp(),
-    [`unreadCount.${user.uid}`]: 0
-  }
-);
-  
-  // Get target user
-  const userSnap = await getDoc(doc(db,"users",targetUid));
-  const targetData = userSnap.exists() ? userSnap.data() : null;
-
-  const username = targetData?.username || "User";
-  const photo = targetData?.photoURL
-    ? `<img src="${targetData.photoURL}" class="chat-avatar-img">`
-    : `<div class="chat-avatar-placeholder">👤</div>`;
-
-  // Render UI
-  content.innerHTML = `
-  <div class="chat-container">
-
-    <div class="chat-header">
-
-      <div class="chat-left">
-        <div class="chat-back" onclick="renderMembers()">←</div>
-
-        <div class="chat-user-info">
-          <div class="chat-avatar">${photo}</div>
-          <div class="chat-user-text">
-            <div class="chat-username">${username}</div>
-            <div class="chat-status">Loading...</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="chat-actions">
-        <div class="chat-clear" id="clearChatBtn">🗑</div>
-      </div>
-
-    </div>
-
-    <div id="chatMessages" class="chat-messages"></div>
-    <div id="typingIndicator"></div>
-
-    <div class="chat-input">
-      <input id="chatText" placeholder="Type message..." enterkeyhint="send">
-      <button id="sendMessageBtn">Send</button>
-    </div>
-
-  </div>
-`;
-
-  const messagesEl = document.getElementById("chatMessages");
-  const typingEl   = document.getElementById("typingIndicator");
-  const chatInput  = document.getElementById("chatText");
-  const sendBtn    = document.getElementById("sendMessageBtn");
-  const clearBtn   = document.getElementById("clearChatBtn");
-
-  if(!messagesEl || !typingEl || !chatInput || !sendBtn || !clearBtn) return;
-
-  // =============================
-  // ONLINE STATUS
-  // =============================
-
-  const statusRef = ref(rtdb, "status/" + targetUid);
-
-  unsubscribeStatus = onValue(statusRef, (snapshot)=>{
-    const statusEl = document.querySelector(".chat-status");
-    if(!statusEl) return;
-
-    const status = snapshot.val();
-
-    if(!status){
-      statusEl.textContent = "Offline";
-      return;
-    }
-
-    if(status.online){
-      statusEl.textContent = "Online";
-    }else if(status.lastSeen){
-      const date = new Date(status.lastSeen);
-      statusEl.textContent =
-        "Last seen " +
-        date.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
-    }else{
-      statusEl.textContent = "Offline";
-    }
-  });
-
-  // =============================
-  // MESSAGE LISTENER
-  // =============================
-
-  unsubscribeMessages = onSnapshot(
-    query(
-      collection(db,"chatRooms",roomId,"messages"),
-      orderBy("createdAt","asc")
-    ),
-    (snapshot)=>{
-
-      if(!document.getElementById("chatMessages")) return;
-
-      messagesEl.innerHTML = "";
-
-      let lastSender = null;
-      let currentGroup = null;
-
-      snapshot.forEach(docSnap=>{
-
-        const data = docSnap.data();
-        const isMine = data.senderId === user.uid;
-        const senderType = isMine ? "mine" : "theirs";
-
-        // New group if sender changes
-        if(lastSender !== data.senderId){
-          currentGroup = document.createElement("div");
-          currentGroup.className = `chat-group ${senderType}`;
-          messagesEl.appendChild(currentGroup);
-        }
-
-        const bubble = document.createElement("div");
-        bubble.className = `chat-bubble ${senderType}`;
-
-        const textEl = document.createElement("div");
-        textEl.className = "bubble-content";
-        textEl.textContent = data.text;
-        bubble.appendChild(textEl);
-
-        if(data.createdAt?.seconds){
-          const date = new Date(data.createdAt.seconds * 1000);
-          const footer = document.createElement("div");
-          footer.className = "bubble-footer";
-
-          const time = date.toLocaleTimeString([], {
-            hour:"2-digit",
-            minute:"2-digit"
-          });
-
-          footer.textContent = time;
-
-          if(isMine){
-            footer.textContent += data.seen ? " ✔✔" : " ✔";
-          }
-
-          bubble.appendChild(footer);
-        }
-
-        currentGroup.appendChild(bubble);
-
-        // Auto mark seen
-        if(!isMine && !data.seen){
-          updateDoc(docSnap.ref,{ seen:true });
-        }
-
-        lastSender = data.senderId;
-      });
-
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
-  );
-
-  // =============================
-  // SEND MESSAGE
-  // =============================
-
-  async function sendMessage(){
-    const text = chatInput.value.trim();
-    if(!text) return;
-
-    await addDoc(
-      collection(db,"chatRooms",roomId,"messages"),
-      {
-        senderId:user.uid,
-        text,
-        createdAt:serverTimestamp(),
-        seen:false
-      }
-    );
-
- await updateDoc(
-  doc(db,"chatRooms",roomId),
-  {
-    lastMessage: text,
-    lastMessageAt: serverTimestamp(),
-    lastSender: user.uid,
-
-    [`unreadCount.${targetUid}`]: increment(1),
-    [`unreadCount.${user.uid}`]: 0
-  }
-);
-
-    chatInput.value="";
-  }
-
-  sendBtn.onclick = sendMessage;
-
-  chatInput.addEventListener("keydown",(e)=>{
-    if(e.key==="Enter"){
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-
-  // =============================
-  // TYPING SYSTEM
-  // =============================
-
-  let typingTimeout = null;
-
-  chatInput.addEventListener("input", async ()=>{
-
-    const typingRef = doc(db,"chatRooms",roomId,"typing",user.uid);
-
-    await setDoc(typingRef,{
-      isTyping:true,
-      updatedAt:serverTimestamp()
-    });
-
-    clearTimeout(typingTimeout);
-
-    typingTimeout = setTimeout(async ()=>{
-      await setDoc(typingRef,{
-        isTyping:false,
-        updatedAt:serverTimestamp()
-      });
-    },1500);
-  });
-
-  unsubscribeTyping = onSnapshot(
-    collection(db,"chatRooms",roomId,"typing"),
-    (snapshot)=>{
-
-      if(!document.getElementById("typingIndicator")) return;
-
-      let someoneTyping = false;
-
-      snapshot.forEach(doc=>{
-        if(doc.id !== user.uid && doc.data().isTyping){
-          someoneTyping = true;
-        }
-      });
-
-      typingEl.innerHTML = someoneTyping
-        ? `<div class="typing-indicator">
-             <span></span><span></span><span></span>
-           </div>`
-        : "";
-    }
-  );
-
-  // =============================
-  // CLEAR CHAT
-  // =============================
-
-  clearBtn.onclick = async ()=>{
-
-    if(!confirm("Clear this chat?")) return;
-
-    const snap = await getDocs(
-      collection(db,"chatRooms",roomId,"messages")
-    );
-
-    const batch = writeBatch(db);
-
-    snap.forEach(doc=>{
-      batch.delete(doc.ref);
-    });
-
-    await batch.commit();
-
-    await updateDoc(
-      doc(db,"chatRooms",roomId),
-      {
-        lastMessage:"",
-        lastMessageAt:null,
-        lastSender:null
-      }
-    );
-  };
 }
 
 
