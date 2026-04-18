@@ -1223,3 +1223,18 @@ window.handleLogout = async function(){
     console.error("Logout error:", err);
   }
 };
+
+window.toggleFollow = async function(uid, btn){
+
+  if(!btn) return;
+
+  try{
+
+    btn.classList.toggle("following");
+
+    // lanjut firestore logic kamu
+
+  }catch(err){
+    console.error(err);
+  }
+};
