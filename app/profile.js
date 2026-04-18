@@ -942,78 +942,7 @@ username = username || "User";
 }
 
 
-/* =========================================
-   STUBS - WINDOW SECTION B
-========================================= */
 
-// 🔥 FUNGSI FOLLOW
-window.toggleFollow = async function(targetUid){
-
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const button = document.querySelector(
-    `button[onclick="toggleFollow('${targetUid}')"]`
-  );
-
-  const isCurrentlyFollowing = button.classList.contains("following");
-
-  // 🔥 Optimistic UI update
-  if(isCurrentlyFollowing){
-    button.classList.remove("following");
-    button.innerText = "Follow";
-  }else{
-    button.classList.add("following");
-    button.innerText = "Following";
-  }
-
-  try{
-
-    const myUid = user.uid;
-
-    const myFollowingRef = doc(db,"users",myUid,"following",targetUid);
-    const targetFollowerRef = doc(db,"users",targetUid,"followers",myUid);
-
-    const myUserRef = doc(db,"users",myUid);
-    const targetUserRef = doc(db,"users",targetUid);
-
-    await runTransaction(db, async (transaction)=>{
-
-      const followSnap = await transaction.get(myFollowingRef);
-
-      if(followSnap.exists()){
-
-        transaction.delete(myFollowingRef);
-        transaction.delete(targetFollowerRef);
-
-        transaction.update(myUserRef,{
-          followingCount: increment(-1)
-        });
-
-        transaction.update(targetUserRef,{
-          followersCount: increment(-1)
-        });
-
-      }else{
-
-        transaction.set(myFollowingRef,{ createdAt: serverTimestamp() });
-        transaction.set(targetFollowerRef,{ createdAt: serverTimestamp() });
-
-        transaction.update(myUserRef,{
-          followingCount: increment(1)
-        });
-
-        transaction.update(targetUserRef,{
-          followersCount: increment(1)
-        });
-      }
-
-    });
-
-  }catch(err){
-    console.error(err);
-  }
-}
 
 // 🔥 FUNGSI CHAT
 window.handleChat = async function(targetUid){
@@ -1092,7 +1021,6 @@ window.handleChat = async function(targetUid){
 
 // 🔥 expose global
 window.renderMembers = renderMembers;
-window.renderChatUI = renderChatUI;
 
 
 // 🔥 FUNGSI BLOCK MEMBER
@@ -1224,17 +1152,162 @@ window.handleLogout = async function(){
   }
 };
 
-window.toggleFollow = async function(uid, btn){
+/* =========================================
+   STUBS - WINDOW SECTION B (FIXED)
+========================================= */
 
-  if(!btn) return;
+// 🔥 FUNGSI FOLLOW (FINAL FIX)
+window.toggleFollow = async function(targetUid, btn){
+
+  const user = auth.currentUser;
+  if(!user || !btn) return;
 
   try{
 
-    btn.classList.toggle("following");
+    // 🔥 ambil state dari tombol langsung (AMAN)
+    const isCurrentlyFollowing = btn.classList.contains("following");
 
-    // lanjut firestore logic kamu
+    // 🔥 Optimistic UI update (langsung respon)
+    if(isCurrentlyFollowing){
+      btn.classList.remove("following");
+      btn.innerText = "Follow";
+    }else{
+      btn.classList.add("following");
+      btn.innerText = "Following";
+    }
+
+    const myUid = user.uid;
+
+    const myFollowingRef = doc(db,"users",myUid,"following",targetUid);
+    const targetFollowerRef = doc(db,"users",targetUid,"followers",myUid);
+
+    const myUserRef = doc(db,"users",myUid);
+    const targetUserRef = doc(db,"users",targetUid);
+
+    await runTransaction(db, async (transaction)=>{
+
+      const followSnap = await transaction.get(myFollowingRef);
+
+      if(followSnap.exists()){
+
+        // 🔥 UNFOLLOW
+        transaction.delete(myFollowingRef);
+        transaction.delete(targetFollowerRef);
+
+        transaction.update(myUserRef,{
+          followingCount: increment(-1)
+        });
+
+        transaction.update(targetUserRef,{
+          followersCount: increment(-1)
+        });
+
+      }else{
+
+        // 🔥 FOLLOW
+        transaction.set(myFollowingRef,{
+          createdAt: serverTimestamp()
+        });
+
+        transaction.set(targetFollowerRef,{
+          createdAt: serverTimestamp()
+        });
+
+        transaction.update(myUserRef,{
+          followingCount: increment(1)
+        });
+
+        transaction.update(targetUserRef,{
+          followersCount: increment(1)
+        });
+      }
+
+    });
 
   }catch(err){
-    console.error(err);
+
+    console.error("Follow error:", err);
+
+    // 🔥 rollback UI kalau gagal
+    if(btn){
+      btn.classList.toggle("following");
+
+      btn.innerText = btn.classList.contains("following")
+        ? "Following"
+        : "Follow";
+    }
   }
+};
+
+
+window.renderChatUI = async function(roomId, targetUid){
+
+  const content = document.getElementById("content");
+  const user = auth.currentUser;
+  if(!user || !content) return;
+
+  content.innerHTML = `
+    <div class="chat-room">
+      <div class="chat-header">
+        <button onclick="renderMembers()">← Back</button>
+        <div>Chat</div>
+      </div>
+
+      <div id="chatMessages" class="chat-messages">
+        Loading...
+      </div>
+
+      <div class="chat-input">
+        <input id="chatInput" placeholder="Type message...">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  `;
+
+  const msgBox = document.getElementById("chatMessages");
+
+  // 🔥 realtime messages
+  const messagesRef = collection(db,"chatRooms",roomId,"messages");
+
+  onSnapshot(query(messagesRef, orderBy("createdAt","asc")), snapshot=>{
+
+    let html = "";
+
+    snapshot.forEach(docSnap=>{
+
+      const msg = docSnap.data();
+      const isMine = msg.senderId === user.uid;
+
+      html += `
+        <div class="chat-bubble ${isMine ? "mine" : ""}">
+          ${msg.text}
+        </div>
+      `;
+    });
+
+    msgBox.innerHTML = html;
+    msgBox.scrollTop = msgBox.scrollHeight;
+  });
+
+  // 🔥 send message
+  document.getElementById("sendBtn").onclick = async ()=>{
+
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if(!text) return;
+
+    await addDoc(messagesRef,{
+      text,
+      senderId: user.uid,
+      createdAt: serverTimestamp()
+    });
+
+    await updateDoc(doc(db,"chatRooms",roomId),{
+      lastMessage: text,
+      lastMessageAt: serverTimestamp(),
+      lastSenderId: user.uid
+    });
+
+    input.value = "";
+  };
 };
