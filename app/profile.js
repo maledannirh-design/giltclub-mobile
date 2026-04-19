@@ -747,29 +747,47 @@ export function renderMembers(){
     listEl.innerHTML = html;
 
     /* ============================
-       EVENT BINDING (ANTI BUG)
+       EVENT BINDING (FIXED MOBILE)
     ============================ */
 
-    // Skill
+    // 🔥 SKILL BUTTON (FIX UTAMA)
     document.querySelectorAll(".skill-dashboard-btn").forEach(btn=>{
+
       const uid = btn.dataset.uid;
-      btn.onclick = () => openPlayerDashboard(uid);
+
+      let tapped = false;
+
+      const handler = (e)=>{
+        if(tapped) return;
+        tapped = true;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        openPlayerDashboard(uid);
+
+        setTimeout(()=>{
+          tapped = false;
+        }, 400);
+      };
+
+      btn.addEventListener("touchstart", handler, { passive:false });
+      btn.addEventListener("click", handler);
     });
 
-    // Follow (🔥 FIX ERROR DI SINI)
+    // FOLLOW
     document.querySelectorAll(".follow-btn").forEach(btn=>{
       const uid = btn.dataset.uid;
-
       btn.onclick = () => toggleFollow(uid, btn);
     });
 
-    // Chat
+    // CHAT
     document.querySelectorAll(".chat-btn").forEach(btn=>{
       const uid = btn.dataset.uid;
       btn.onclick = () => handleChat(uid);
     });
 
-    // Block
+    // BLOCK
     document.querySelectorAll(".block-btn").forEach(btn=>{
       const uid = btn.dataset.uid;
       btn.onclick = () => blockUser(uid);
@@ -796,6 +814,7 @@ export function renderMembers(){
       snapshot=>{
         followingSet = new Set();
         snapshot.forEach(doc=> followingSet.add(doc.id));
+        window.followingSet = followingSet;
         renderUI();
       }
     );
@@ -806,6 +825,7 @@ export function renderMembers(){
       snapshot=>{
         followersSet = new Set();
         snapshot.forEach(doc=> followersSet.add(doc.id));
+        window.followersSet = followersSet;
         renderUI();
       }
     );
@@ -1034,6 +1054,11 @@ let isLoadingDashboard = false;
 
 window.openPlayerDashboard = async function(userId){
 
+  // 🔥 ANTI DOUBLE TAP (mobile)
+  const now = Date.now();
+  if(window._lastDashboardTap && now - window._lastDashboardTap < 400) return;
+  window._lastDashboardTap = now;
+
   if(isLoadingDashboard) return;
   isLoadingDashboard = true;
 
@@ -1046,7 +1071,10 @@ window.openPlayerDashboard = async function(userId){
     return;
   }
 
+  // 🔥 pastikan benar-benar kebuka
   modal.classList.remove("hidden");
+  modal.style.display = "block";
+
   content.innerHTML = "Loading...";
 
   try{
@@ -1104,6 +1132,9 @@ window.openPlayerDashboard = async function(userId){
       return;
     }
 
+    // 🔥 SIMPAN TARGET USER (penting buat edit mode)
+    window.currentViewedUserId = userId;
+
     // 🔥 RENDER
     await renderSkillByUserId(userId);
 
@@ -1113,14 +1144,22 @@ window.openPlayerDashboard = async function(userId){
   }
 
   isLoadingDashboard = false;
-}
-window.closeSkillModal = function(){
-  const modal = document.getElementById("skillModal");
-  if(modal){
-    modal.classList.add("hidden");
-  }
-}
+};
 
+
+// 🔥 CLOSE MODAL (FIXED)
+window.closeSkillModal = function(){
+
+  const modal = document.getElementById("skillModal");
+
+  if(!modal) return;
+
+  modal.classList.add("hidden");
+  modal.style.display = "none";
+
+  // 🔥 reset state biar gak ke-lock
+  isLoadingDashboard = false;
+};
 window.handleLogout = async function(){
 
   try{
