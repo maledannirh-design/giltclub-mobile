@@ -301,17 +301,41 @@ export function renderChampionClub(data){
       const el = document.createElement("div");
       el.className = "mm-entry";
 
+      // ===============================
+      // MOVEMENT ICON
+      // ===============================
+      let movementIcon = "•";
+
+      if(p.movement !== undefined){
+        if(p.movement === "NEW"){
+          movementIcon = "🆕";
+        }else if(p.movement > 0){
+          movementIcon = `⬆️ ${p.movement}`;
+        }else if(p.movement < 0){
+          movementIcon = `⬇️ ${Math.abs(p.movement)}`;
+        }
+      }
+
+      // ===============================
+      // SAFE NAME
+      // ===============================
+      const displayName = p.name || "Unknown";
+
       el.innerHTML = `
         <div class="mm-rank">#${g.rank}</div>
 
-        <div class="mm-name">${p.name}</div>
+        <div class="mm-name">${displayName}</div>
 
         <div class="mm-stat">
-          W:${p.win} | L:${p.lose}
+          W:${p.win || 0} | L:${p.lose || 0}
         </div>
 
         <div class="mm-diff ${p.scoreDiff >= 0 ? "mm-pos" : "mm-neg"}">
-          ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff}
+          ${p.scoreDiff > 0 ? "+" : ""}${p.scoreDiff || 0}
+        </div>
+
+        <div class="mm-move">
+          ${movementIcon}
         </div>
       `;
 
@@ -326,27 +350,46 @@ export function renderChampionClub(data){
 export async function buildChampionClub(monthKey){
 
   const matchesSnap = await getDocs(collection(db,"matches"));
-const usersSnap = await getDocs(collection(db,"users"));
+  const usersSnap = await getDocs(collection(db,"users"));
+  const guestSnap = await getDocs(collection(db,"guestPlayer"));
 
   // mapping user biar cepat
   const usersMap = {};
+
+  // users
   usersSnap.forEach(doc=>{
+    usersMap[doc.id] = doc.data();
+  });
+
+  // guest players
+  guestSnap.forEach(doc=>{
     usersMap[doc.id] = doc.data();
   });
 
   const table = {};
 
   function initPlayer(uid){
+
+    if(!uid) return; // guard biar gak error
+
     if(!table[uid]){
+
+      const u = usersMap[uid] || {};
+
       table[uid] = {
         uid,
-        name: usersMap[uid]?.fullName || usersMap[uid]?.username || "Unknown",
+        name: 
+          u.fullName ||
+          u.username ||
+          u.name ||
+          "Unknown",
         matchPlayed: 0,
         win: 0,
         lose: 0,
         scoreDiff: 0,
         points: 0
       };
+
     }
   }
 
@@ -360,44 +403,44 @@ const usersSnap = await getDocs(collection(db,"users"));
 
     if(key !== monthKey) return;
 
-    const teamA = [m.a1, m.a2];
-    const teamB = [m.b1, m.b2];
-
-    const diff = m.scoreA - m.scoreB;
+    const teamA = [m.a1, m.a2].filter(Boolean);
+    const teamB = [m.b1, m.b2].filter(Boolean);
 
     const teamAWin = m.scoreA > m.scoreB;
 
     [...teamA, ...teamB].forEach(uid=>initPlayer(uid));
 
     // update team A
-teamA.forEach(uid=>{
-  table[uid].matchPlayed++;
+    teamA.forEach(uid=>{
+      if(!table[uid]) return;
 
-  if(teamAWin){
-    table[uid].win++;
-    table[uid].points += 3;
-  }else{
-    table[uid].lose++;
-  }
+      table[uid].matchPlayed++;
 
-  // ✅ FIX: pakai perspective A
-  table[uid].scoreDiff += (m.scoreA - m.scoreB);
-});
+      if(teamAWin){
+        table[uid].win++;
+        table[uid].points += 3;
+      }else{
+        table[uid].lose++;
+      }
 
-// update team B
-teamB.forEach(uid=>{
-  table[uid].matchPlayed++;
+      table[uid].scoreDiff += (m.scoreA - m.scoreB);
+    });
 
-  if(!teamAWin){
-    table[uid].win++;
-    table[uid].points += 3;
-  }else{
-    table[uid].lose++;
-  }
+    // update team B
+    teamB.forEach(uid=>{
+      if(!table[uid]) return;
 
-  // ✅ FIX: pakai perspective B
-  table[uid].scoreDiff += (m.scoreB - m.scoreA);
-});
+      table[uid].matchPlayed++;
+
+      if(!teamAWin){
+        table[uid].win++;
+        table[uid].points += 3;
+      }else{
+        table[uid].lose++;
+      }
+
+      table[uid].scoreDiff += (m.scoreB - m.scoreA);
+    });
 
   });
 
@@ -418,6 +461,7 @@ export function attachRankMovement(current, previous){
 
   const prevMap = {};
 
+  // build previous rank map
   previous.forEach((p, index)=>{
     prevMap[p.uid] = index + 1;
   });
@@ -425,14 +469,19 @@ export function attachRankMovement(current, previous){
   return current.map((p, index)=>{
 
     const currentRank = index + 1;
-    const prevRank = prevMap[p.uid] || currentRank;
+    const prevRank = prevMap[p.uid];
 
     let movement = 0;
 
-    if(prevRank > currentRank){
-      movement = prevRank - currentRank; // naik
+    if(prevRank === undefined){
+      // player baru (tidak ada di previous month)
+      movement = 0; // bisa nanti di UI jadi "NEW"
+    }else if(prevRank > currentRank){
+      // naik rank
+      movement = prevRank - currentRank;
     }else if(prevRank < currentRank){
-      movement = -(currentRank - prevRank); // turun
+      // turun rank
+      movement = -(currentRank - prevRank);
     }
 
     return {
@@ -443,7 +492,6 @@ export function attachRankMovement(current, previous){
   });
 
 }
-
 
 export async function saveChampionClub(monthKey, data){
 
