@@ -642,9 +642,22 @@ export function renderMembers(){
   let followersSet = new Set();
   let usersCache = [];
 
+  let renderScheduled = false;
+
   if(unsubscribeMembers) unsubscribeMembers();
   if(unsubscribeFollowing) unsubscribeFollowing();
   if(unsubscribeFollowers) unsubscribeFollowers();
+
+  // 🔥 DEBOUNCE RENDER (INI KUNCI HEMAT)
+  function scheduleRender(){
+    if(renderScheduled) return;
+    renderScheduled = true;
+
+    setTimeout(()=>{
+      renderScheduled = false;
+      renderUI();
+    }, 50); // cukup kecil tapi nahan spam
+  }
 
   function renderUI(){
 
@@ -747,51 +760,36 @@ export function renderMembers(){
     listEl.innerHTML = html;
 
     /* ============================
-       EVENT BINDING (FIXED MOBILE)
+       🔥 EVENT DELEGATION (SUPER HEMAT)
     ============================ */
 
-    // 🔥 SKILL BUTTON (FIX UTAMA)
-    document.querySelectorAll(".skill-dashboard-btn").forEach(btn=>{
+    listEl.onclick = function(e){
+
+      const btn = e.target.closest("button");
+      if(!btn) return;
 
       const uid = btn.dataset.uid;
 
-      let tapped = false;
-
-      const handler = (e)=>{
-        if(tapped) return;
-        tapped = true;
-
-        e.preventDefault();
-        e.stopPropagation();
-
+      // SKILL
+      if(btn.classList.contains("skill-dashboard-btn")){
         openPlayerDashboard(uid);
+      }
 
-        setTimeout(()=>{
-          tapped = false;
-        }, 400);
-      };
+      // FOLLOW
+      else if(btn.classList.contains("follow-btn")){
+        toggleFollow(uid, btn);
+      }
 
-      btn.addEventListener("touchstart", handler, { passive:false });
-      btn.addEventListener("click", handler);
-    });
+      // CHAT
+      else if(btn.classList.contains("chat-btn")){
+        handleChat(uid);
+      }
 
-    // FOLLOW
-    document.querySelectorAll(".follow-btn").forEach(btn=>{
-      const uid = btn.dataset.uid;
-      btn.onclick = () => toggleFollow(uid, btn);
-    });
-
-    // CHAT
-    document.querySelectorAll(".chat-btn").forEach(btn=>{
-      const uid = btn.dataset.uid;
-      btn.onclick = () => handleChat(uid);
-    });
-
-    // BLOCK
-    document.querySelectorAll(".block-btn").forEach(btn=>{
-      const uid = btn.dataset.uid;
-      btn.onclick = () => blockUser(uid);
-    });
+      // BLOCK
+      else if(btn.classList.contains("block-btn")){
+        blockUser(uid);
+      }
+    };
   }
 
   // USERS
@@ -802,7 +800,7 @@ export function renderMembers(){
         id: doc.id,
         data: doc.data()
       }));
-      renderUI();
+      scheduleRender();
     }
   );
 
@@ -815,7 +813,7 @@ export function renderMembers(){
         followingSet = new Set();
         snapshot.forEach(doc=> followingSet.add(doc.id));
         window.followingSet = followingSet;
-        renderUI();
+        scheduleRender();
       }
     );
 
@@ -826,7 +824,7 @@ export function renderMembers(){
         followersSet = new Set();
         snapshot.forEach(doc=> followersSet.add(doc.id));
         window.followersSet = followersSet;
-        renderUI();
+        scheduleRender();
       }
     );
   }
