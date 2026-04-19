@@ -350,41 +350,29 @@ export function renderChampionClub(data){
 export async function buildChampionClub(monthKey){
 
   const matchesSnap = await getDocs(collection(db,"matches"));
+  const usersSnap = await getDocs(collection(db,"users"));
+  const guestSnap = await getDocs(collection(db,"guestPlayers")); // ✅ FIX: pastikan nama collection sama
 
   // ===============================
-  // SINGLE SOURCE OF TRUTH
+  // UNIFIED PLAYER MAP
   // ===============================
-  let playerMap = window.playerMap;
+  const playerMap = {};
 
-  // fallback kalau belum ada (safety)
-  if(!playerMap || Object.keys(playerMap).length === 0){
+  // users
+  usersSnap.forEach(doc=>{
+    const d = doc.data();
+    playerMap[doc.id] =
+      d.fullName ||
+      d.username ||
+      d.name ||
+      "User";
+  });
 
-    const usersSnap = await getDocs(collection(db,"users"));
-    const guestSnap = await getDocs(collection(db,"guestPlayer"));
-
-    playerMap = {};
-
-    usersSnap.forEach(doc=>{
-      const d = doc.data();
-      playerMap[doc.id] =
-        d.fullName ||
-        d.username ||
-        d.name ||
-        "Unknown";
-    });
-
-    guestSnap.forEach(doc=>{
-      const d = doc.data();
-      playerMap[doc.id] =
-        d.name ||
-        d.fullName ||
-        d.username ||
-        "Unknown";
-    });
-
-    // cache ke global biar konsisten ke depan
-    window.playerMap = playerMap;
-  }
+  // guestPlayers (FIX UTAMA ADA DI SINI)
+  guestSnap.forEach(doc=>{
+    const d = doc.data();
+    playerMap[doc.id] = d.name || "Guest";
+  });
 
   const table = {};
 
@@ -396,14 +384,13 @@ export async function buildChampionClub(monthKey){
 
       const name = playerMap[uid];
 
-      // debug kalau masih miss
       if(!name){
         console.warn("PLAYER NOT FOUND:", uid);
       }
 
       table[uid] = {
         uid,
-        name: name || "Unknown",
+        name: name || "Guest",
         matchPlayed: 0,
         win: 0,
         lose: 0,
@@ -431,9 +418,7 @@ export async function buildChampionClub(monthKey){
 
     [...teamA, ...teamB].forEach(uid=>initPlayer(uid));
 
-    // ===============================
-    // UPDATE TEAM A
-    // ===============================
+    // TEAM A
     teamA.forEach(uid=>{
       if(!table[uid]) return;
 
@@ -449,9 +434,7 @@ export async function buildChampionClub(monthKey){
       table[uid].scoreDiff += (m.scoreA - m.scoreB);
     });
 
-    // ===============================
-    // UPDATE TEAM B
-    // ===============================
+    // TEAM B
     teamB.forEach(uid=>{
       if(!table[uid]) return;
 
@@ -469,14 +452,9 @@ export async function buildChampionClub(monthKey){
 
   });
 
-  // ===============================
-  // FINAL ARRAY
-  // ===============================
   const result = Object.values(table);
 
-  // ===============================
-  // SORTING (KRUSIAL)
-  // ===============================
+  // SORT
   result.sort((a,b)=>{
     if(b.win !== a.win) return b.win - a.win;
     if(b.scoreDiff !== a.scoreDiff) return b.scoreDiff - a.scoreDiff;
