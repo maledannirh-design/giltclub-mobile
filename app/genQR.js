@@ -1,20 +1,22 @@
 window.genQR = async () => {
-  const { collection, getDocs, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
 
-  const snap = await getDocs(collection(window.db, "users"));
+  const { getFirestore, collection, getDocs, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
+  const { getApp } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js");
+
+  const db = getFirestore(getApp());
+
+  const snap = await getDocs(collection(db, "users"));
 
   let skip = 0, update = 0;
 
   for (const d of snap.docs) {
     const data = d.data();
 
-    // 🔒 HARD PROTECTION (tidak akan ditimpa)
     if (data.qrUrl && data.qrUrl !== "") {
       skip++;
       continue;
     }
 
-    // wajib ada memberCode
     if (!data.memberCode) continue;
 
     const raw = d.id + data.memberCode;
@@ -26,7 +28,7 @@ window.genQR = async () => {
 
     const qrUrl = `https://giltclub.app/scan?c=${data.memberCode}&i=1&s=${sig}`;
 
-    await updateDoc(doc(window.db, "users", d.id), { qrUrl });
+    await updateDoc(doc(db, "users", d.id), { qrUrl });
 
     update++;
     console.log("CREATED:", data.memberCode);
