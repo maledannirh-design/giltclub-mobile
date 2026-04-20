@@ -1,5 +1,6 @@
 import { db } from "./firebase.js";
-import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc } from "./firebase-firestore.js"; 
+// ⬆️ kalau kamu belum punya file ini, lihat bawah
 
 window.genQR = async () => {
 
@@ -10,7 +11,6 @@ window.genQR = async () => {
   for (const d of snap.docs) {
     const data = d.data();
 
-    // 🔒 jangan timpa
     if (data.qrUrl && data.qrUrl !== "") {
       skip++;
       continue;
