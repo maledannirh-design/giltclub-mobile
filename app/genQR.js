@@ -1,39 +1,27 @@
-import {
-  db,
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  updateDoc
-} from "./firebase.js";
+window.genQR = async () => {
 
-window.genQR = async (uid = null) => {
+  // ambil module yang sama seperti firebase.js pakai
+  const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
-  let docs = [];
+  const { collection, getDocs, doc, updateDoc } = fs;
 
-  if (uid) {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
+  const db = window.db || (await import("./firebase.js")).db;
 
-    if (!snap.exists()) {
-      console.error("USER NOT FOUND");
-      return;
-    }
-
-    docs = [snap];
-  } else {
-    const snap = await getDocs(collection(db, "users"));
-    docs = snap.docs;
+  if (!db) {
+    console.error("DB NOT FOUND");
+    return;
   }
+
+  const snap = await getDocs(collection(db, "users"));
 
   let created = 0;
   let skipped = 0;
 
-  for (const d of docs) {
+  for (const d of snap.docs) {
     const data = d.data();
 
     // 🔒 ANTI TIMPA
-    if (data.qrUrl && data.qrUrl !== "") {
+    if (data.qrUrl) {
       skipped++;
       continue;
     }
@@ -51,14 +39,10 @@ window.genQR = async (uid = null) => {
 
     const qrUrl = `https://giltclub.app/scan?c=${data.memberCode}&i=1&s=${sig}`;
 
-    try {
-      await updateDoc(doc(db, "users", d.id), { qrUrl });
-      created++;
-      console.log("CREATED:", data.memberCode);
-    } catch (e) {
-      skipped++;
-      console.log("SKIP:", data.memberCode);
-    }
+    await updateDoc(doc(db, "users", d.id), { qrUrl });
+
+    created++;
+    console.log("CREATED:", data.memberCode);
   }
 
   console.log(`DONE ✅ created: ${created}, skipped: ${skipped}`);
