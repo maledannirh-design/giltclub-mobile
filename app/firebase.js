@@ -30,6 +30,3 @@ export const storage = getStorage(app);
 // Realtime Database (Presence System)
 export const rtdb = getDatabase(app);
 
-if(location.hostname === "localhost"){
-  window.db = db;
-}
