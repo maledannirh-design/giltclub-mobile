@@ -1,13 +1,22 @@
 window.genQR = async () => {
 
-  const { getFirestore, collection, getDocs, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
-  const { getApp } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js");
+  const db = window.db; // pakai yang dari app kamu
 
-  const db = getFirestore(getApp());
+  if (!db) {
+    console.error("DB NOT FOUND");
+    return;
+  }
 
-  const snap = await getDocs(collection(db, "users"));
+  const snap = await db._query
+    ? await db.getDocs(db.collection("users")) // fallback kalau ada wrapper
+    : await (await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"))
+        .then(async ({ collection, getDocs }) => {
+          return await getDocs(collection(db, "users"));
+        });
 
   let skip = 0, update = 0;
+
+  const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js");
 
   for (const d of snap.docs) {
     const data = d.data();
