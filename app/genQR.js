@@ -47,3 +47,5 @@ window.genQR = async () => {
 
   console.log(`DONE ✅ created: ${created}, skipped: ${skipped}`);
 };
+
+
