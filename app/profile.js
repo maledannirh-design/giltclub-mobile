@@ -655,11 +655,23 @@ export function renderMembers(){
 
   let renderScheduled = false;
 
-  if(unsubscribeMembers) unsubscribeMembers();
-  if(unsubscribeFollowing) unsubscribeFollowing();
-  if(unsubscribeFollowers) unsubscribeFollowers();
+  // 🔥 STOP LISTENER LAMA (ANTI DOUBLE)
+  if(typeof unsubscribeMembers === "function"){
+    try{ unsubscribeMembers(); }catch(e){}
+    unsubscribeMembers = null;
+  }
 
-  // 🔥 DEBOUNCE RENDER (INI KUNCI HEMAT)
+  if(typeof unsubscribeFollowing === "function"){
+    try{ unsubscribeFollowing(); }catch(e){}
+    unsubscribeFollowing = null;
+  }
+
+  if(typeof unsubscribeFollowers === "function"){
+    try{ unsubscribeFollowers(); }catch(e){}
+    unsubscribeFollowers = null;
+  }
+
+  // 🔥 DEBOUNCE RENDER
   function scheduleRender(){
     if(renderScheduled) return;
     renderScheduled = true;
@@ -667,10 +679,23 @@ export function renderMembers(){
     setTimeout(()=>{
       renderScheduled = false;
       renderUI();
-    }, 50); // cukup kecil tapi nahan spam
+    }, 50);
   }
 
   function renderUI(){
+
+    // 🔥 kalau logout / UI hilang → stop semua
+    if(!auth.currentUser || !document.getElementById("memberList")){
+      if(typeof unsubscribeMembers === "function") unsubscribeMembers();
+      if(typeof unsubscribeFollowing === "function") unsubscribeFollowing();
+      if(typeof unsubscribeFollowers === "function") unsubscribeFollowers();
+
+      unsubscribeMembers = null;
+      unsubscribeFollowing = null;
+      unsubscribeFollowers = null;
+
+      return;
+    }
 
     if(!usersCache.length){
       listEl.innerHTML = "Belum ada member.";
@@ -770,10 +795,7 @@ export function renderMembers(){
 
     listEl.innerHTML = html;
 
-    /* ============================
-       🔥 EVENT DELEGATION (SUPER HEMAT)
-    ============================ */
-
+    // 🔥 EVENT DELEGATION
     listEl.onclick = function(e){
 
       const btn = e.target.closest("button");
@@ -781,70 +803,79 @@ export function renderMembers(){
 
       const uid = btn.dataset.uid;
 
-      // SKILL
       if(btn.classList.contains("skill-dashboard-btn")){
         openPlayerDashboard(uid);
       }
-
-      // FOLLOW
       else if(btn.classList.contains("follow-btn")){
         toggleFollow(uid, btn);
       }
-
-      // CHAT
       else if(btn.classList.contains("chat-btn")){
         handleChat(uid);
       }
-
-      // BLOCK
       else if(btn.classList.contains("block-btn")){
         blockUser(uid);
       }
     };
   }
 
-  // USERS
+  // 🔥 USERS LISTENER
   unsubscribeMembers = onSnapshot(
     query(collection(db,"users"), orderBy("createdAt","desc")),
+
     snapshot=>{
       usersCache = snapshot.docs.map(doc=>({
         id: doc.id,
         data: doc.data()
       }));
       scheduleRender();
+    },
+
+    err=>{
+      if(err.code === "permission-denied"){
+        console.log("members listener stopped (logout)");
+        return;
+      }
+      console.error("members error:", err);
     }
   );
 
   if(currentUser){
 
-    // FOLLOWING
+    // 🔥 FOLLOWING
     unsubscribeFollowing = onSnapshot(
       collection(db,"users",currentUser.uid,"following"),
+
       snapshot=>{
         followingSet = new Set();
         snapshot.forEach(doc=> followingSet.add(doc.id));
         window.followingSet = followingSet;
         scheduleRender();
+      },
+
+      err=>{
+        if(err.code === "permission-denied") return;
+        console.error("following error:", err);
       }
     );
 
-    // FOLLOWERS
+    // 🔥 FOLLOWERS
     unsubscribeFollowers = onSnapshot(
       collection(db,"users",currentUser.uid,"followers"),
+
       snapshot=>{
         followersSet = new Set();
         snapshot.forEach(doc=> followersSet.add(doc.id));
         window.followersSet = followersSet;
         scheduleRender();
+      },
+
+      err=>{
+        if(err.code === "permission-denied") return;
+        console.error("followers error:", err);
       }
     );
   }
 }
-
-
-/* =========================================
-   CHAT LIST SCREEN
-========================================= */
 
 async function renderChatList(){
 
@@ -852,7 +883,11 @@ async function renderChatList(){
   const user = auth.currentUser;
   if(!user || !content) return;
 
-  if(unsubscribeChatList) unsubscribeChatList();
+  // 🔥 STOP LISTENER LAMA
+  if(typeof unsubscribeChatList === "function"){
+    try{ unsubscribeChatList(); }catch(e){}
+    unsubscribeChatList = null;
+  }
 
   content.innerHTML = `
     <div class="chatlist-container">
@@ -874,9 +909,17 @@ async function renderChatList(){
       where("participants","array-contains", user.uid),
       orderBy("lastMessageAt","desc")
     ),
+
     (snapshot)=>{
 
-      if(!document.getElementById("chatListBody")) return;
+      // 🔥 kalau logout / pindah halaman → stop listener
+      if(!auth.currentUser || !document.getElementById("chatListBody")){
+        if(typeof unsubscribeChatList === "function"){
+          unsubscribeChatList();
+          unsubscribeChatList = null;
+        }
+        return;
+      }
 
       if(snapshot.empty){
         listEl.innerHTML = `
@@ -901,20 +944,21 @@ async function renderChatList(){
 
         let username = otherUser.username;
 
-if(!username){
-  // fallback ambil dari users collection realtime
-  getDoc(doc(db,"users",otherUid)).then(snap=>{
-    if(snap.exists()){
-      const freshName = snap.data().username || "User";
-      const el = document.querySelector(
-        `.chatlist-card[onclick="renderChatUI('${roomId}','${otherUid}')"] .chatlist-username`
-      );
-      if(el) el.textContent = freshName;
-    }
-  });
-}
+        // 🔥 fallback (non-realtime, aman)
+        if(!username){
+          getDoc(doc(db,"users",otherUid)).then(snap=>{
+            if(snap.exists()){
+              const freshName = snap.data().username || "User";
+              const el = document.querySelector(
+                `.chatlist-card[onclick="renderChatUI('${roomId}','${otherUid}')"] .chatlist-username`
+              );
+              if(el) el.textContent = freshName;
+            }
+          });
+        }
 
-username = username || "User";
+        username = username || "User";
+
         const photo = otherUser.avatar
           ? `<img src="${otherUser.avatar}" class="chatlist-avatar-img">`
           : `<div class="chatlist-avatar-placeholder">👤</div>`;
@@ -964,11 +1008,17 @@ username = username || "User";
       });
 
       listEl.innerHTML = html;
+    },
+
+    (err)=>{
+      if(err.code === "permission-denied"){
+        console.log("chatList listener stopped (logout)");
+        return;
+      }
+      console.error("chatList error:", err);
     }
   );
 }
-
-
 
 
 // 🔥 FUNGSI CHAT
@@ -1292,6 +1342,12 @@ window.renderChatUI = async function(roomId, targetUid){
   const user = auth.currentUser;
   if(!user || !content) return;
 
+  // 🔥 STOP listener sebelumnya (ANTI DOUBLE LISTENER)
+  if(typeof unsubscribeMessages === "function"){
+    try{ unsubscribeMessages(); }catch(e){}
+    unsubscribeMessages = null;
+  }
+
   content.innerHTML = `
     <div class="chat-room">
       <div class="chat-header">
@@ -1311,49 +1367,82 @@ window.renderChatUI = async function(roomId, targetUid){
   `;
 
   const msgBox = document.getElementById("chatMessages");
+  if(!msgBox) return;
 
-  // 🔥 realtime messages
   const messagesRef = collection(db,"chatRooms",roomId,"messages");
 
-  onSnapshot(query(messagesRef, orderBy("createdAt","asc")), snapshot=>{
+  // 🔥 SIMPAN LISTENER KE GLOBAL
+  unsubscribeMessages = onSnapshot(
+    query(messagesRef, orderBy("createdAt","asc")),
 
-    let html = "";
+    (snapshot)=>{
 
-    snapshot.forEach(docSnap=>{
+      // 🔥 kalau user sudah logout / UI hilang → STOP
+      if(!auth.currentUser || !document.getElementById("chatMessages")){
+        if(typeof unsubscribeMessages === "function"){
+          unsubscribeMessages();
+          unsubscribeMessages = null;
+        }
+        return;
+      }
 
-      const msg = docSnap.data();
-      const isMine = msg.senderId === user.uid;
+      let html = "";
 
-      html += `
-        <div class="chat-bubble ${isMine ? "mine" : ""}">
-          ${msg.text}
-        </div>
-      `;
-    });
+      snapshot.forEach(docSnap=>{
 
-    msgBox.innerHTML = html;
-    msgBox.scrollTop = msgBox.scrollHeight;
-  });
+        const msg = docSnap.data();
+        const isMine = msg.senderId === auth.currentUser.uid;
 
-  // 🔥 send message
-  document.getElementById("sendBtn").onclick = async ()=>{
+        html += `
+          <div class="chat-bubble ${isMine ? "mine" : ""}">
+            ${msg.text}
+          </div>
+        `;
+      });
 
-    const input = document.getElementById("chatInput");
-    const text = input.value.trim();
-    if(!text) return;
+      msgBox.innerHTML = html;
+      msgBox.scrollTop = msgBox.scrollHeight;
+    },
 
-    await addDoc(messagesRef,{
-      text,
-      senderId: user.uid,
-      createdAt: serverTimestamp()
-    });
+    (err)=>{
+      // 🔥 SUPPRESS ERROR SAAT LOGOUT
+      if(err.code === "permission-denied"){
+        console.log("chat listener stopped (logout)");
+        return;
+      }
+      console.error("chat listener error:", err);
+    }
+  );
 
-    await updateDoc(doc(db,"chatRooms",roomId),{
-      lastMessage: text,
-      lastMessageAt: serverTimestamp(),
-      lastSenderId: user.uid
-    });
+  // 🔥 SEND MESSAGE (AMAN)
+  const sendBtn = document.getElementById("sendBtn");
 
-    input.value = "";
-  };
+  if(sendBtn){
+    sendBtn.onclick = async ()=>{
+
+      const input = document.getElementById("chatInput");
+      const text = input?.value.trim();
+      if(!text) return;
+
+      try{
+
+        await addDoc(messagesRef,{
+          text,
+          senderId: auth.currentUser.uid,
+          createdAt: serverTimestamp()
+        });
+
+        await updateDoc(doc(db,"chatRooms",roomId),{
+          lastMessage: text,
+          lastMessageAt: serverTimestamp(),
+          lastSenderId: auth.currentUser.uid
+        });
+
+        input.value = "";
+
+      }catch(err){
+        console.error("send message error:", err);
+      }
+    };
+  }
 };
