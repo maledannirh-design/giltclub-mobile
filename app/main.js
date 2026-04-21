@@ -452,7 +452,7 @@ async function loadHeaderStats(){
 }
 
 /* =========================================
-   AUTH STATE
+   AUTH STATE (FIXED - PRIORITY LOGOUT)
 ========================================= */
 
 onAuthStateChanged(auth, async (user)=>{
@@ -460,70 +460,8 @@ onAuthStateChanged(auth, async (user)=>{
   const label = document.getElementById("currentUserLabel");
   const adminButton = document.querySelector('[data-page="admin"]');
 
-  const frozen = await checkMaintenanceAndFreeze(user);
-  if(frozen) return;
-   
-  if(user){
-
-    navigate("home");
-
-    const statusRef = ref(rtdb, "status/" + user.uid);
-
-    set(statusRef,{
-      online: true,
-      lastSeen: Date.now()
-    });
-
-    onDisconnect(statusRef).set({
-      online: false,
-      lastSeen: Date.now()
-    });
-
-       // LOG USER VISIT
-  recordUserOnlineLog();
-    try{
-
-      const snap = await getDoc(doc(db, "users", user.uid));
-
-      if(snap.exists()){
-
-        const data = snap.data();
-          // VERIFIED SYSTEM CHECK
-  setTimeout(()=>{
-    runVerifiedCheck(data);
-  },500);
-        window.currentUserRole = data.role || "MEMBER";
-
-        if(label){
-          label.innerText =
-            `${data.username || "User"} (${data.role || "-"})`;
-        }
-
-        if(adminButton){
-          adminButton.style.display =
-            (data.role === "ADMIN" || data.role === "SUPERCOACH")
-            ? "flex"
-            : "none";
-        }
-
-      }else{
-
-        if(label) label.innerText = "User data missing";
-        if(adminButton) adminButton.style.display = "none";
-
-      }
-
-    }catch(error){
-
-      console.error("User load error:", error);
-      if(label) label.innerText = "Error loading user";
-      if(adminButton) adminButton.style.display = "none";
-
-    }
-
-    listenAttendanceNotification(user.uid);
-
-  }else{
+  // 🔥 PRIORITAS: LOGOUT HARUS INSTAN
+  if(!user){
 
     if(unsubscribeAttendance){
       unsubscribeAttendance();
@@ -534,7 +472,76 @@ onAuthStateChanged(auth, async (user)=>{
 
     if(label) label.innerText = "Not logged in";
     if(adminButton) adminButton.style.display = "none";
+
+    return; // ⛔ STOP di sini (jangan lanjut ke bawah)
   }
+
+  // 🔥 BARU CHECK MAINTENANCE (HANYA UNTUK USER LOGIN)
+  const frozen = await checkMaintenanceAndFreeze(user);
+  if(frozen) return;
+
+  // ================= LOGIN FLOW =================
+
+  navigate("home");
+
+  const statusRef = ref(rtdb, "status/" + user.uid);
+
+  set(statusRef,{
+    online: true,
+    lastSeen: Date.now()
+  });
+
+  onDisconnect(statusRef).set({
+    online: false,
+    lastSeen: Date.now()
+  });
+
+  // LOG USER VISIT
+  recordUserOnlineLog();
+
+  try{
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+
+    if(snap.exists()){
+
+      const data = snap.data();
+
+      // VERIFIED SYSTEM CHECK
+      setTimeout(()=>{
+        runVerifiedCheck(data);
+      },500);
+
+      window.currentUserRole = data.role || "MEMBER";
+
+      if(label){
+        label.innerText =
+          `${data.username || "User"} (${data.role || "-"})`;
+      }
+
+      if(adminButton){
+        adminButton.style.display =
+          (data.role === "ADMIN" || data.role === "SUPERCOACH")
+          ? "flex"
+          : "none";
+      }
+
+    }else{
+
+      if(label) label.innerText = "User data missing";
+      if(adminButton) adminButton.style.display = "none";
+
+    }
+
+  }catch(error){
+
+    console.error("User load error:", error);
+    if(label) label.innerText = "Error loading user";
+    if(adminButton) adminButton.style.display = "none";
+
+  }
+
+  listenAttendanceNotification(user.uid);
 
 });
 
@@ -546,6 +553,7 @@ onAuthStateChanged(auth, async (user)=>{
 initChatUnreadGlobal();
 
 loadHeaderStats();
+
 
 /* =========================================
    PWA SERVICE WORKER + INSTALL PROMPT
