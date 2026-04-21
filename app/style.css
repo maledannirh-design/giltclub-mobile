@@ -3719,47 +3719,37 @@ body.scan-mode{
   gap:14px;
 }
 /* =========================================
-   MEMBER USERNAME (LOCK LAYOUT)
+   VERIFIED BADGE FINAL (NO STRETCH)
 ========================================= */
 
 .member-username {
-  display: inline-flex;        /* 🔥 jangan full flex block */
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  line-height: 1;              /* 🔥 anti vertical stretch */
+  line-height: 1;
 }
-
-
-/* =========================================
-   VERIFIED BADGE (ANTI GEPENG)
-========================================= */
 
 .member-username .verified-badge {
   width: 16px;
   height: 16px;
-
-  min-width: 16px;             /* 🔥 kunci ukuran */
+  min-width: 16px;
   min-height: 16px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;              /* 🔥 jangan ikut ke-compress */
+  flex-shrink: 0;
 }
-
-
-/* =========================================
-   SVG FIX (KEEP PERFECT CIRCLE)
-========================================= */
 
 .member-username .verified-badge svg {
-  width: 16px;                 /* 🔥 jangan 100% */
-  height: 16px;
-  display: block;
+  width: 16px !important;
+  height: 16px !important;
 
-  aspect-ratio: 1 / 1;         /* 🔥 anti oval */
+  display: block;
+  aspect-ratio: 1 / 1;
 }
+
 
 /* =========================================
    VERIFIED BADGE (FIX BULAT & SHARP)
