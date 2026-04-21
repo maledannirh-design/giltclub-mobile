@@ -613,7 +613,7 @@ if (!window.__giltPWAInitialized) {
 
 
   /* =========================================
-     INSTALL BUTTON UI
+     INSTALL BUTTON UI (UPDATED UX)
   ========================================= */
 
   function showInstallButton() {
@@ -623,21 +623,30 @@ if (!window.__giltPWAInitialized) {
     const btn = document.createElement("button");
 
     btn.id = "installAppBtn";
-    btn.innerText = "Install App";
+    btn.innerHTML = "📲 Tambah ke Layar Utama";
 
     btn.style.position = "fixed";
     btn.style.bottom = "90px";
     btn.style.left = "50%";
     btn.style.transform = "translateX(-50%)";
     btn.style.padding = "12px 20px";
-    btn.style.borderRadius = "14px";
+    btn.style.borderRadius = "20px";
     btn.style.border = "none";
     btn.style.background = "#0f172a";
     btn.style.color = "#fff";
     btn.style.fontWeight = "600";
-    btn.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+    btn.style.fontSize = "14px";
+    btn.style.boxShadow = "0 6px 16px rgba(0,0,0,0.35)";
     btn.style.zIndex = "9999";
     btn.style.cursor = "pointer";
+
+    // 🔥 smooth muncul
+    btn.style.opacity = "0";
+    btn.style.transition = "all 0.3s ease";
+
+    setTimeout(()=>{
+      btn.style.opacity = "1";
+    }, 100);
 
     btn.onclick = installPWA;
 
