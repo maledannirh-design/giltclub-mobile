@@ -1167,6 +1167,7 @@ window.closeSkillModal = function(){
   // 🔥 reset state biar gak ke-lock
   isLoadingDashboard = false;
 };
+
 window.handleLogout = async function(){
 
   try{
@@ -1184,14 +1185,8 @@ window.handleLogout = async function(){
     // 🔥 logout dari Firebase
     await logout();
 
-    // 🔥 RESET UI langsung ke login (tanpa refresh)
-    const module = await import("../auth.js");
-
-    if(module.renderLoginUI){
-      module.renderLoginUI();
-    }else if(module.renderAuthUI){
-      module.renderAuthUI();
-    }
+    // 🔥 FORCE RESET UI (ANTI ERROR IMPORT)
+    location.reload();
 
   }catch(err){
     console.error("Logout error:", err);
