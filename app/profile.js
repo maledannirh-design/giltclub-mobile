@@ -846,8 +846,6 @@ export function renderMembers(){
    CHAT LIST SCREEN
 ========================================= */
 
-let unsubscribeChatList = null;
-
 async function renderChatList(){
 
   const content = document.getElementById("content");
