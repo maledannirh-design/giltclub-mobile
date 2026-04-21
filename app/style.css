@@ -3718,23 +3718,47 @@ body.scan-mode{
 .skill-row{
   gap:14px;
 }
+/* =========================================
+   MEMBER USERNAME (LOCK LAYOUT)
+========================================= */
 
 .member-username {
-  display: flex;
+  display: inline-flex;        /* 🔥 jangan full flex block */
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  line-height: 1;              /* 🔥 anti vertical stretch */
 }
 
-.member-username .verified-badge{
-  width:16px;
-  height:16px;
-  display:inline-flex;
+
+/* =========================================
+   VERIFIED BADGE (ANTI GEPENG)
+========================================= */
+
+.member-username .verified-badge {
+  width: 16px;
+  height: 16px;
+
+  min-width: 16px;             /* 🔥 kunci ukuran */
+  min-height: 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;              /* 🔥 jangan ikut ke-compress */
 }
 
-.member-username .verified-badge svg{
-  width:100%;
-  height:100%;
-  display:block;
+
+/* =========================================
+   SVG FIX (KEEP PERFECT CIRCLE)
+========================================= */
+
+.member-username .verified-badge svg {
+  width: 16px;                 /* 🔥 jangan 100% */
+  height: 16px;
+  display: block;
+
+  aspect-ratio: 1 / 1;         /* 🔥 anti oval */
 }
 
 /* =========================================
