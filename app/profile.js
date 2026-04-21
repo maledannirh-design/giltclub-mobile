@@ -1172,24 +1172,32 @@ window.handleLogout = async function(){
 
   try{
 
+    // 🔥 stop semua listener
     if(window.stopAllListeners){
       stopAllListeners();
     }
 
+    // 🔥 tutup modal
     if(window.closeSkillModal){
       closeSkillModal();
     }
 
+    // 🔥 logout firebase
     await logout();
 
-    // ❌ STOP DI SINI
-    // biarkan main.js yg handle UI via onAuthStateChanged
+    // ❌ JANGAN ADA:
+    // import()
+    // location.reload()
+
+    // ✅ trigger UI cepat (optional biar instant)
+    setTimeout(()=>{
+      navigate("account");
+    }, 30);
 
   }catch(err){
     console.error("Logout error:", err);
   }
 };
-
 /* =========================================
    STUBS - WINDOW SECTION B (FIXED)
 ========================================= */
