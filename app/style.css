@@ -3752,3 +3752,22 @@ body.scan-mode{
 .skill-row{
   gap:14px;
 }
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  transform: translateY(1px); /* 🔥 align ke text baseline */
+}
+
+.verified-badge svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.member-username {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
