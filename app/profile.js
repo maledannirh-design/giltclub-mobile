@@ -1172,21 +1172,26 @@ window.handleLogout = async function(){
 
   try{
 
-    // 🔥 STOP semua listener dulu
+    // 🔥 STOP semua listener
     if(window.stopAllListeners){
       stopAllListeners();
     }
 
-    // 🔥 tutup modal kalau ada
+    // 🔥 tutup modal
     if(window.closeSkillModal){
       closeSkillModal();
     }
 
-    // 🔥 logout dari Firebase
+    // 🔥 logout firebase
     await logout();
 
-    // 🔥 FORCE RESET UI (ANTI ERROR IMPORT)
-    location.reload();
+    // ❌ HAPUS INI:
+    // import("../auth.js")
+
+    // ❌ HAPUS:
+    // location.reload()
+
+    // ✅ BIARKAN auth listener yg handle UI
 
   }catch(err){
     console.error("Logout error:", err);
