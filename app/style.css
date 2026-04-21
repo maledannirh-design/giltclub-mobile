@@ -3722,8 +3722,8 @@ body.scan-mode{
 .member-username {
   display: flex;
   align-items: center;
+  gap: 4px;
 }
-
 
 .member-username .verified-badge{
   width:16px;
@@ -3738,7 +3738,7 @@ body.scan-mode{
 }
 
 /* =========================================
-   VERIFIED BADGE (CLEAN - IG STYLE)
+   VERIFIED BADGE (FIX BULAT & SHARP)
 ========================================= */
 
 .verified-badge {
@@ -3746,18 +3746,29 @@ body.scan-mode{
   align-items: center;
   justify-content: center;
 
-  margin-left: 6px;
-  transform: translateY(1px);
+  width: 16px;
+  height: 16px;
+  min-width: 16px; /* 🔥 anti ketarik */
+  min-height: 16px;
 
-  /* 🔥 PASTIKAN BERSIH */
+  margin-left: 6px;
+  flex-shrink: 0;
+
+  /* 🔥 bersih total */
   background: none !important;
+  border: none !important;
   box-shadow: none !important;
   filter: none !important;
-  border: none !important;
 }
 
 .verified-badge svg {
-  width: 14px;
-  height: 14px;
+  width: 100%;
+  height: 100%;
   display: block;
+
+  /* 🔥 JAGA ASPECT RATIO */
+  aspect-ratio: 1 / 1;
+}
+.verified-badge svg {
+  image-rendering: -webkit-optimize-contrast;
 }
