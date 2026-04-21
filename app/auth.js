@@ -19,18 +19,12 @@ import { showToast } from "./ui.js";
 import { navigate } from "./navigation.js";
 
 
-
-/* =========================================
-   INTERNAL LOCK (ANTI DOUBLE REGISTER)
-========================================= */
-
 let registerLock = false;
 
 
 /* =========================================
    REGISTER
 ========================================= */
-
 export async function register(
   email,
   pinLogin,
@@ -57,9 +51,6 @@ export async function register(
 
     const cleanUsername = username.toLowerCase();
 
-    // ==============================
-    // CEK USERNAME UNIK
-    // ==============================
     const q = query(
       collection(db, "users"),
       where("username", "==", cleanUsername)
@@ -71,25 +62,17 @@ export async function register(
       throw new Error("Username sudah digunakan");
     }
 
-    // ==============================
-    // BUAT USER AUTH
-    // ==============================
     const userCredential =
       await createUserWithEmailAndPassword(auth, email, pinLogin);
 
     const user = userCredential.user;
-
     await user.getIdToken();
 
-    // ==============================
-    // SIMPAN DATA PROFILE
-    // ==============================
     await setDoc(doc(db, "users", user.uid), {
 
       fullName,
       username: cleanUsername,
       email,
-
       phone,
       birthPlace,
       birthDate,
@@ -117,26 +100,20 @@ export async function register(
       verified: false,
 
       isPublic: true,
-      // 🔥 TAMBAHKAN INI
-privacy: {
-  showOnlineStatus: false,
-  dashboardVisibility: "private",
-  showNameInBooking: false,
-  chatPermission: "followers"
-},
+
+      privacy: {
+        showOnlineStatus: false,
+        dashboardVisibility: "private",
+        showNameInBooking: false,
+        chatPermission: "followers"
+      },
+
       pinTrx,
       createdAt: serverTimestamp()
 
     });
 
     showToast("Akun berhasil dibuat", "success");
-    navigate("home");
-
-    const sheet = document.getElementById("loginSheet");
-    const overlay = document.querySelector(".sheet-overlay");
-
-    if(sheet) sheet.classList.remove("active");
-    if(overlay) overlay.classList.remove("active");
 
   } finally {
     registerLock = false;
@@ -147,7 +124,6 @@ privacy: {
 /* =========================================
    LOGIN
 ========================================= */
-
 export async function login(email, pinLogin){
 
   if(!/^\d{6}$/.test(pinLogin)){
@@ -161,13 +137,11 @@ export async function login(email, pinLogin){
 
 
 /* =========================================
-   LOGOUT
+   LOGOUT (CLEAN)
 ========================================= */
-
 export function logout(){
   return signOut(auth);
 }
-
 
 /* =========================================
    BUTTON HANDLER (SAFE VERSION)
