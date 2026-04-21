@@ -594,20 +594,31 @@ auth.onAuthStateChanged(user=>{
 let unsubscribeMembers = null;
 let unsubscribeFollowing = null;
 let unsubscribeFollowers = null;
+// ===== CHAT LISTENERS =====
+let unsubscribeMessages = null;
+let unsubscribeTyping = null;
+let unsubscribeStatus = null;
+let unsubscribeChatList = null;
 
 // 🔥 TARUH DI SINI
 window.stopAllListeners = function(){
 
-  // ===== MEMBERS =====
-  if(unsubscribeMembers) unsubscribeMembers();
-  if(unsubscribeFollowing) unsubscribeFollowing();
-  if(unsubscribeFollowers) unsubscribeFollowers();
+  try{
 
-  // ===== CHAT =====
-  if(unsubscribeMessages) unsubscribeMessages();
-  if(unsubscribeTyping) unsubscribeTyping();
-  if(unsubscribeStatus) unsubscribeStatus();
-  if(unsubscribeChatList) unsubscribeChatList();
+    // ===== MEMBERS =====
+    if(typeof unsubscribeMembers === "function") unsubscribeMembers();
+    if(typeof unsubscribeFollowing === "function") unsubscribeFollowing();
+    if(typeof unsubscribeFollowers === "function") unsubscribeFollowers();
+
+    // ===== CHAT =====
+    if(typeof unsubscribeMessages === "function") unsubscribeMessages();
+    if(typeof unsubscribeTyping === "function") unsubscribeTyping();
+    if(typeof unsubscribeStatus === "function") unsubscribeStatus();
+    if(typeof unsubscribeChatList === "function") unsubscribeChatList();
+
+  }catch(err){
+    console.warn("Listener cleanup error:", err);
+  }
 
   // RESET
   unsubscribeMembers = null;
