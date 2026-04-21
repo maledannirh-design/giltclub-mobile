@@ -721,17 +721,7 @@ html, body {
   font-weight:600;
 }
 
-.member-username .verified-badge{
-  width:16px;
-  height:16px;
-  display:inline-flex;
-}
 
-.member-username .verified-badge svg{
-  width:100%;
-  height:100%;
-  display:block;
-}
 /* ROLE BADGE */
 .role-badge{
   display:inline-block;
@@ -797,19 +787,7 @@ html, body {
   opacity:1;
 }
 
-.verified-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:16px;
-  height:16px;
-  margin-left:6px;
-  border-radius:50%;
-  font-size:11px;
-  font-weight:700;
-  background:#E3C565;
-  color:#2E5D3A;
-}
+
 .member-actions {
   display: flex;
   gap: 8px;
@@ -1610,19 +1588,7 @@ html, body {
   color:inherit; /* supaya ikut theme */
 }
 
-/* Verified badge */
-.verified-badge{
-  display:none;
-  width:16px;
-  height:16px;
-  flex-shrink:0;
-}
 
-.verified-badge svg{
-  width:100%;
-  height:100%;
-  display:block;
-}
 .phone-group{
   display:flex;
   gap:8px;
@@ -3753,21 +3719,45 @@ body.scan-mode{
   gap:14px;
 }
 
+.member-username {
+  display: flex;
+  align-items: center;
+}
+
+
+.member-username .verified-badge{
+  width:16px;
+  height:16px;
+  display:inline-flex;
+}
+
+.member-username .verified-badge svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+/* =========================================
+   VERIFIED BADGE (CLEAN - IG STYLE)
+========================================= */
+
 .verified-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+
   margin-left: 6px;
-  transform: translateY(1px); /* 🔥 align ke text baseline */
+  transform: translateY(1px);
+
+  /* 🔥 PASTIKAN BERSIH */
+  background: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  border: none !important;
 }
 
 .verified-badge svg {
   width: 14px;
   height: 14px;
   display: block;
-}
-
-.member-username {
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
