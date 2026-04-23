@@ -655,23 +655,10 @@ export function renderMembers(){
 
   let renderScheduled = false;
 
-  // 🔥 STOP LISTENER LAMA (ANTI DOUBLE)
-  if(typeof unsubscribeMembers === "function"){
-    try{ unsubscribeMembers(); }catch(e){}
-    unsubscribeMembers = null;
-  }
+  if(unsubscribeMembers) unsubscribeMembers();
+  if(unsubscribeFollowing) unsubscribeFollowing();
+  if(unsubscribeFollowers) unsubscribeFollowers();
 
-  if(typeof unsubscribeFollowing === "function"){
-    try{ unsubscribeFollowing(); }catch(e){}
-    unsubscribeFollowing = null;
-  }
-
-  if(typeof unsubscribeFollowers === "function"){
-    try{ unsubscribeFollowers(); }catch(e){}
-    unsubscribeFollowers = null;
-  }
-
-  // 🔥 DEBOUNCE RENDER
   function scheduleRender(){
     if(renderScheduled) return;
     renderScheduled = true;
@@ -683,19 +670,6 @@ export function renderMembers(){
   }
 
   function renderUI(){
-
-    // 🔥 kalau logout / UI hilang → stop semua
-    if(!auth.currentUser || !document.getElementById("memberList")){
-      if(typeof unsubscribeMembers === "function") unsubscribeMembers();
-      if(typeof unsubscribeFollowing === "function") unsubscribeFollowing();
-      if(typeof unsubscribeFollowers === "function") unsubscribeFollowers();
-
-      unsubscribeMembers = null;
-      unsubscribeFollowing = null;
-      unsubscribeFollowers = null;
-
-      return;
-    }
 
     if(!usersCache.length){
       listEl.innerHTML = "Belum ada member.";
@@ -750,16 +724,7 @@ export function renderMembers(){
 
             <div class="member-username">
               ${data.username || "User"}
-              ${data.verified ? `
-  <span class="verified-badge">
-    <svg viewBox="0 0 24 24" aria-label="Verified">
-      <path fill="#1DA1F2"
-        d="M22.5 12l-2.1 2.1.3 3-3-.3L15 19.5l-3-1.5-3 1.5-2.7-1.7-3 .3.3-3L1.5 12l2.1-2.1-.3-3 3 .3L9 4.5l3 1.5 3-1.5 2.7 1.7 3-.3-.3 3z"/>
-      <path fill="#fff"
-        d="M10 13.5l-1.5-1.5-1 1L10 15.5l5-5-1-1z"/>
-    </svg>
-  </span>
-` : ``}
+              ${data.verified ? `<span class="verified-badge">✔</span>` : ``}
               ${
                 mutual
                   ? `<span class="mutual-badge">Mutual</span>`
@@ -804,83 +769,85 @@ export function renderMembers(){
 
     listEl.innerHTML = html;
 
-    // 🔥 EVENT DELEGATION
-    listEl.onclick = function(e){
+    /* ============================
+       🔥 EVENT PER BUTTON (FINAL FIX)
+    ============================ */
 
-      const btn = e.target.closest("button");
-      if(!btn) return;
+    let lastTap = 0;
 
+    // SKILL
+    document.querySelectorAll(".skill-dashboard-btn").forEach(btn=>{
       const uid = btn.dataset.uid;
 
-      if(btn.classList.contains("skill-dashboard-btn")){
+      btn.addEventListener("click", (e)=>{
+        const now = Date.now();
+        if(now - lastTap < 400) return;
+        lastTap = now;
+
+        e.preventDefault();
         openPlayerDashboard(uid);
-      }
-      else if(btn.classList.contains("follow-btn")){
+      });
+    });
+
+    // FOLLOW
+    document.querySelectorAll(".follow-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
+
+      btn.addEventListener("click", ()=>{
         toggleFollow(uid, btn);
-      }
-      else if(btn.classList.contains("chat-btn")){
+      });
+    });
+
+    // CHAT
+    document.querySelectorAll(".chat-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
+
+      btn.addEventListener("click", ()=>{
         handleChat(uid);
-      }
-      else if(btn.classList.contains("block-btn")){
+      });
+    });
+
+    // BLOCK
+    document.querySelectorAll(".block-btn").forEach(btn=>{
+      const uid = btn.dataset.uid;
+
+      btn.addEventListener("click", ()=>{
         blockUser(uid);
-      }
-    };
+      });
+    });
   }
 
-  // 🔥 USERS LISTENER
+  // USERS
   unsubscribeMembers = onSnapshot(
     query(collection(db,"users"), orderBy("createdAt","desc")),
-
     snapshot=>{
       usersCache = snapshot.docs.map(doc=>({
         id: doc.id,
         data: doc.data()
       }));
       scheduleRender();
-    },
-
-    err=>{
-      if(err.code === "permission-denied"){
-        console.log("members listener stopped (logout)");
-        return;
-      }
-      console.error("members error:", err);
     }
   );
 
   if(currentUser){
 
-    // 🔥 FOLLOWING
     unsubscribeFollowing = onSnapshot(
       collection(db,"users",currentUser.uid,"following"),
-
       snapshot=>{
         followingSet = new Set();
         snapshot.forEach(doc=> followingSet.add(doc.id));
         window.followingSet = followingSet;
         scheduleRender();
-      },
-
-      err=>{
-        if(err.code === "permission-denied") return;
-        console.error("following error:", err);
       }
     );
 
-    // 🔥 FOLLOWERS
     unsubscribeFollowers = onSnapshot(
       collection(db,"users",currentUser.uid,"followers"),
-
       snapshot=>{
         followersSet = new Set();
         snapshot.forEach(doc=> followersSet.add(doc.id));
         window.followersSet = followersSet;
         scheduleRender();
-      },
-
-      err=>{
-        if(err.code === "permission-denied") return;
-        console.error("followers error:", err);
       }
     );
   }
