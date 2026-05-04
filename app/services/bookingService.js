@@ -28,13 +28,14 @@ function calculateSessionPrice(scheduleData){
     throw new Error("Durasi sesi tidak valid");
   }
 
-  // 1 menit tetap dihitung 1 jam
   const billedHours = Math.ceil(totalMinutes / 60);
 
   return billedHours * (scheduleData.pricePerHour || 0);
 }
+
+
 /* =====================================================
-   CREATE BOOKING (FINAL CLEAN LEDGER VERSION)
+   CREATE BOOKING (UPDATED WITH MONTHLY PAYMENT)
 ===================================================== */
 export async function createBooking({
   userId,
@@ -43,7 +44,6 @@ export async function createBooking({
   pin
 }) {
 
-  // AUTO REQUEST PIN JIKA BELUM ADA
   if (!pin) {
     if (typeof window.requestTransactionPin === "function") {
       pin = await window.requestTransactionPin();
@@ -54,7 +54,6 @@ export async function createBooking({
     throw new Error("PIN transaksi diperlukan");
   }
 
-  // 1. VALIDATE PIN
   const pinCheck = await validateTransactionPin(userId, pin);
   if (!pinCheck.valid) {
     throw new Error(pinCheck.reason);
@@ -67,7 +66,6 @@ export async function createBooking({
 
   await runTransaction(db, async (transaction) => {
 
-    // 2. GET SCHEDULE
     const scheduleSnap = await transaction.get(scheduleRef);
     if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
@@ -75,14 +73,10 @@ export async function createBooking({
     const availableSlots =
       scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
 
-    if (availableSlots <= 0) {
-      throw new Error("Slot penuh");
-    }
+    if (availableSlots <= 0) throw new Error("Slot penuh");
 
-    // 3. HITUNG DURASI
     const sessionPrice = calculateSessionPrice(scheduleData);
 
-    // 4. RACKET
     const safeRacketQty = Number(racketQty) || 0;
     const racketStock = scheduleData.racketStock ?? 0;
 
@@ -94,7 +88,6 @@ export async function createBooking({
     const racketTotal = safeRacketQty * racketUnitPrice;
     const totalPayment = sessionPrice + racketTotal;
 
-    // 5. GET USER
     const userSnap = await transaction.get(userRef);
     if (!userSnap.exists()) throw new Error("User not found");
 
@@ -106,82 +99,55 @@ export async function createBooking({
     }
 
     // =========================
-    // PRIVACY LOGIC
+    // 🔥 MONTHLY LOGIC
     // =========================
-    const realName =
-      userData.usernameID ||
-      userData.fullName ||
-      userData.username ||
-      "Member";
+    const currentMonth = new Date().toISOString().slice(0,7);
 
-    const showName =
-      userData.privacy?.showNameInBooking === true;
+    let newMonthlyPayment = totalPayment;
 
-    const displayName = showName ? realName : "Member";
-    const avatarInitial = showName
-      ? realName.charAt(0).toUpperCase()
-      : "M";
-
-    const photoURL = showName
-      ? userData.photoURL || null
-      : null;
-
-    const isAnonymous = !showName;
-
-    // 6. DUPLICATE GUARD
-    const duplicateQuery = query(
-      bookingsCol,
-      where("userId", "==", userId),
-      where("scheduleId", "==", scheduleId),
-      where("status", "==", "active")
-    );
-
-    const duplicateSnap = await getDocs(duplicateQuery);
-    if (!duplicateSnap.empty) {
-      throw new Error("Sudah booking sesi ini");
+    if(userData.monthlyKey === currentMonth){
+      newMonthlyPayment =
+        (userData.monthlyPayment || 0) + totalPayment;
     }
 
-    // 7. CREATE BOOKING
+    // =========================
+    // BOOKING CREATE
+    // =========================
     const bookingRef = doc(bookingsCol);
 
     transaction.set(bookingRef, {
       userId,
       scheduleId,
-
-      displayName,
-      avatarInitial,
-      photoURL,
-      isAnonymous,
-
       sessionPrice,
       price: totalPayment,
-
       racketQty: safeRacketQty,
       racketUnitPrice,
       racketTotal,
-
       attendance: false,
       completed: false,
-
       status: "active",
       createdAt: serverTimestamp()
     });
 
-    // 8. UPDATE SCHEDULE
     transaction.update(scheduleRef, {
       slots: availableSlots - 1,
       racketStock: racketStock - safeRacketQty
     });
 
-    // 9. UPDATE USER BALANCE SNAPSHOT
     const newBalance = currentBalance - totalPayment;
 
+    // =========================
+    // 🔥 USER UPDATE (UPDATED)
+    // =========================
     transaction.update(userRef, {
       walletBalance: newBalance,
-      totalPayment: (userData.totalPayment || 0) + totalPayment
+
+      totalPayment: (userData.totalPayment || 0) + totalPayment,
+
+      monthlyPayment: newMonthlyPayment,
+      monthlyKey: currentMonth
     });
 
-    // 10. FINAL LEDGER (walletMutations ONLY)
     const mutationRef = doc(mutationsCol);
 
     transaction.set(mutationRef, {
@@ -201,9 +167,9 @@ export async function createBooking({
   return { success: true };
 }
 
+
 /* =====================================================
-   CANCEL BOOKING (FINAL TRANSPARENT VERSION)
-   FULL REFUND + PENALTY DEBIT
+   CANCEL BOOKING (UPDATED WITH MONTHLY PAYMENT)
 ===================================================== */
 export async function cancelBooking({
   bookingId,
@@ -265,10 +231,6 @@ export async function cancelBooking({
       throw new Error(pinCheck.reason);
     }
 
-    /* ===============================
-       HITUNG PENALTY
-    =============================== */
-
     const originalPrice = bookingData.price || 0;
     const racketQty = bookingData.racketQty || 0;
 
@@ -283,49 +245,41 @@ export async function cancelBooking({
 
     penaltyAmount = Math.floor(penaltyAmount);
 
-    /* ===============================
-       UPDATE BOOKING
-    =============================== */
-
     transaction.update(bookingRef, {
       status: "cancelled",
       cancelledAt: serverTimestamp(),
       penaltyAmount
     });
 
-    /* ===============================
-       RESTORE SLOT & RACKET
-    =============================== */
-
     transaction.update(scheduleRef, {
       slots: (scheduleData.slots ?? 0) + 1,
       racketStock: (scheduleData.racketStock ?? 0) + racketQty
     });
 
-    /* ===============================
-       UPDATE USER WALLET
-    =============================== */
+    const balanceBefore = userData.walletBalance || 0;
+    const afterFullRefund = balanceBefore + originalPrice;
+    const finalBalance = afterFullRefund - penaltyAmount;
 
-    const balanceBefore =
-      userData.walletBalance || 0;
+    // =========================
+    // 🔥 MONTHLY ADJUST
+    // =========================
+    const currentMonth = new Date().toISOString().slice(0,7);
 
-    // FULL REFUND
-    const afterFullRefund =
-      balanceBefore + originalPrice;
+    let newMonthlyPayment = userData.monthlyPayment || 0;
 
-    // AFTER PENALTY
-    const finalBalance =
-      afterFullRefund - penaltyAmount;
+    if(userData.monthlyKey === currentMonth){
+      newMonthlyPayment = newMonthlyPayment - originalPrice;
+    }
 
     transaction.update(userRef, {
       walletBalance: finalBalance,
-      totalPayment:
-        (userData.totalPayment || 0) - originalPrice
-    });
 
-    /* ===============================
-       LEDGER REFUND (FULL)
-    =============================== */
+      totalPayment:
+        (userData.totalPayment || 0) - originalPrice,
+
+      monthlyPayment: newMonthlyPayment,
+      monthlyKey: currentMonth
+    });
 
     const refundRef = doc(mutationsCol);
 
@@ -341,10 +295,6 @@ export async function cancelBooking({
       createdBy: bookingData.userId,
       status: "success"
     });
-
-    /* ===============================
-       LEDGER PENALTY
-    =============================== */
 
     if (penaltyAmount > 0) {
 
