@@ -1,5 +1,16 @@
 import { auth, db } from "../firebase.js";
 
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+  verifyBeforeUpdateEmail
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 export function renderKeamanan(){
 
   const content = document.getElementById("content");
@@ -166,23 +177,6 @@ async function openChangeEmailSheet(){
       }
 
       /* ===== GET USER DATA ===== */
-
-      const {
-        doc,
-        getDoc,
-        updateDoc,
-        serverTimestamp
-      } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
-      );
-
-      const {
-        verifyBeforeUpdateEmail
-      } = await import(
-        "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"
-      );
-
-      const { db } = await import("../firebase.js");
 
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
