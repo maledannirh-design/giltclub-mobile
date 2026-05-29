@@ -13,6 +13,11 @@ export function renderKeamanan(){
 
       <div class="akun-list">
 
+        <div class="akun-item" id="changeEmail">
+          <span>Ganti Alamat Gmail</span>
+          <span>›</span>
+        </div>
+
         <div class="akun-item" id="changeLoginPin">
           <span>Ubah PIN Login</span>
           <span>›</span>
@@ -24,7 +29,7 @@ export function renderKeamanan(){
         </div>
 
         <div class="akun-item" id="resetPin">
-          <span>Reset PIN</span>
+          <span>Lupa / Reset PIN</span>
           <span>›</span>
         </div>
 
@@ -55,6 +60,7 @@ export function renderKeamanan(){
     module.renderAccountUI();
   };
 
+  document.getElementById("changeEmail").onclick = openChangeEmailSheet;
   document.getElementById("changeLoginPin").onclick = () => openPinSheet("login");
   document.getElementById("changeTrxPin").onclick = () => openPinSheet("transaction");
   document.getElementById("resetPin").onclick = openResetPinSheet;
@@ -69,6 +75,42 @@ export function renderKeamanan(){
 
 /* ===== SHEET LOGIC ===== */
 
+function openChangeEmailSheet(){
+  const overlay = document.getElementById("sheetOverlay");
+  const sheet = document.getElementById("securitySheet");
+  const sheetContent = document.getElementById("sheetContent");
+
+  const currentEmail = auth.currentUser?.email || "";
+
+  sheetContent.innerHTML = `
+    <h3>Ganti Alamat Gmail</h3>
+
+    <div class="akun-card">
+
+      <input
+        type="email"
+        id="newEmail"
+        placeholder="Alamat Gmail Baru"
+        value="${currentEmail}"
+      >
+
+      <button class="akun-btn" id="saveEmailBtn">
+        Simpan Perubahan
+      </button>
+
+    </div>
+  `;
+
+  overlay.classList.add("active");
+  sheet.classList.add("active");
+  overlay.onclick = closeSheet;
+
+  document.getElementById("saveEmailBtn").onclick = ()=>{
+    closeSheet();
+    alert("Alamat Gmail berhasil diubah (dummy).");
+  };
+}
+
 function openPinSheet(type){
   const overlay = document.getElementById("sheetOverlay");
   const sheet = document.getElementById("securitySheet");
@@ -80,10 +122,29 @@ function openPinSheet(type){
 
   sheetContent.innerHTML = `
     <h3>${title}</h3>
+
     <div class="akun-card">
-      <input type="password" id="newPin" placeholder="PIN Baru (6 digit)" maxlength="6" inputmode="numeric">
-      <input type="password" id="confirmPin" placeholder="Konfirmasi PIN" maxlength="6" inputmode="numeric">
-      <button class="akun-btn" id="savePinBtn">Simpan</button>
+
+      <input
+        type="password"
+        id="newPin"
+        placeholder="PIN Baru (6 digit)"
+        maxlength="6"
+        inputmode="numeric"
+      >
+
+      <input
+        type="password"
+        id="confirmPin"
+        placeholder="Konfirmasi PIN"
+        maxlength="6"
+        inputmode="numeric"
+      >
+
+      <button class="akun-btn" id="savePinBtn">
+        Simpan
+      </button>
+
     </div>
   `;
 
@@ -103,9 +164,18 @@ function openResetPinSheet(){
   const sheetContent = document.getElementById("sheetContent");
 
   sheetContent.innerHTML = `
-    <h3>Reset PIN</h3>
+    <h3>Lupa / Reset PIN</h3>
+
     <div class="akun-card">
-      <button class="akun-btn" id="resetPinBtn">Kirim Reset</button>
+
+      <p class="akun-note">
+        Reset PIN akan mengirim instruksi verifikasi ke email akun Anda.
+      </p>
+
+      <button class="akun-btn" id="resetPinBtn">
+        Kirim Reset PIN
+      </button>
+
     </div>
   `;
 
@@ -115,7 +185,7 @@ function openResetPinSheet(){
 
   document.getElementById("resetPinBtn").onclick = ()=>{
     closeSheet();
-    alert("Instruksi reset dikirim (dummy).");
+    alert("Instruksi reset PIN dikirim (dummy).");
   };
 }
 
@@ -126,10 +196,13 @@ function openDeleteAccountSheet(){
 
   sheetContent.innerHTML = `
     <h3>Hapus Akun Permanen</h3>
+
     <div class="akun-card">
+
       <button class="akun-btn akun-btn-danger" id="confirmDelete">
         Hapus Permanen
       </button>
+
     </div>
   `;
 
