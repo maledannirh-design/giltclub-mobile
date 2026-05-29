@@ -75,7 +75,10 @@ export function renderKeamanan(){
 
 /* ===== SHEET LOGIC ===== */
 
-function openChangeEmailSheet(){
+/* ===== SHEET LOGIC ===== */
+
+async function openChangeEmailSheet(){
+
   const overlay = document.getElementById("sheetOverlay");
   const sheet = document.getElementById("securitySheet");
   const sheetContent = document.getElementById("sheetContent");
@@ -92,7 +95,21 @@ function openChangeEmailSheet(){
         id="newEmail"
         placeholder="Alamat Gmail Baru"
         value="${currentEmail}"
+        autocomplete="off"
       >
+
+      <input
+        type="password"
+        id="trxPin"
+        placeholder="PIN Transaksi"
+        maxlength="6"
+        inputmode="numeric"
+        autocomplete="off"
+      >
+
+      <p class="akun-note">
+        Email baru akan menerima link verifikasi sebelum perubahan diterapkan.
+      </p>
 
       <button class="akun-btn" id="saveEmailBtn">
         Simpan Perubahan
@@ -105,10 +122,143 @@ function openChangeEmailSheet(){
   sheet.classList.add("active");
   overlay.onclick = closeSheet;
 
-  document.getElementById("saveEmailBtn").onclick = ()=>{
-    closeSheet();
-    alert("Alamat Gmail berhasil diubah (dummy).");
+  document.getElementById("saveEmailBtn").onclick = async ()=>{
+
+    try{
+
+      const saveBtn = document.getElementById("saveEmailBtn");
+
+      const newEmail = document
+        .getElementById("newEmail")
+        .value
+        .trim()
+        .toLowerCase();
+
+      const trxPin = document
+        .getElementById("trxPin")
+        .value
+        .trim();
+
+      /* ===== VALIDATION ===== */
+
+      if(!newEmail){
+        alert("Alamat Gmail wajib diisi.");
+        return;
+      }
+
+      if(!newEmail.endsWith("@gmail.com")){
+        alert("Gunakan alamat Gmail yang valid.");
+        return;
+      }
+
+      if(trxPin.length !== 6){
+        alert("PIN transaksi harus 6 digit.");
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.innerText = "Memproses...";
+
+      const user = auth.currentUser;
+
+      if(!user){
+        throw new Error("User tidak ditemukan.");
+      }
+
+      /* ===== GET USER DATA ===== */
+
+      const {
+        doc,
+        getDoc,
+        updateDoc,
+        serverTimestamp
+      } = await import(
+        "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+      );
+
+      const {
+        verifyBeforeUpdateEmail
+      } = await import(
+        "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"
+      );
+
+      const { db } = await import("../firebase.js");
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if(!userSnap.exists()){
+        throw new Error("Data user tidak ditemukan.");
+      }
+
+      const userData = userSnap.data();
+
+      /* ===== CHECK PIN ===== */
+
+      if(userData.pinTrx !== trxPin){
+
+        const nextAttempt = (userData.pinAttempt || 0) + 1;
+
+        await updateDoc(userRef, {
+          pinAttempt: nextAttempt
+        });
+
+        alert("PIN transaksi salah.");
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Simpan Perubahan";
+
+        return;
+      }
+
+      /* ===== SEND VERIFICATION ===== */
+
+      await verifyBeforeUpdateEmail(user, newEmail);
+
+      /* ===== SAVE PENDING EMAIL ===== */
+
+      await updateDoc(userRef, {
+        pendingEmail: newEmail,
+        emailChangeRequestedAt: serverTimestamp(),
+        pinAttempt: 0
+      });
+
+      closeSheet();
+
+      alert(
+        "Link verifikasi telah dikirim ke Gmail baru Anda. Silakan buka email dan lakukan verifikasi sebelum perubahan diterapkan."
+      );
+
+    }catch(err){
+
+      console.error(err);
+
+      let message = err.message || "Terjadi kesalahan.";
+
+      if(err.code === "auth/email-already-in-use"){
+        message = "Alamat Gmail sudah digunakan akun lain.";
+      }
+
+      if(err.code === "auth/invalid-email"){
+        message = "Format Gmail tidak valid.";
+      }
+
+      if(err.code === "auth/requires-recent-login"){
+        message = "Silakan login ulang terlebih dahulu.";
+      }
+
+      alert(message);
+
+      const saveBtn = document.getElementById("saveEmailBtn");
+
+      if(saveBtn){
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Simpan Perubahan";
+      }
+
+    }
+
   };
+
 }
 
 function openPinSheet(type){
