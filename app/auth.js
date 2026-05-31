@@ -135,7 +135,55 @@ export async function login(email, pinLogin){
   showToast("Login berhasil", "success");
 }
 
+async function syncVerifiedEmail(){
 
+  try{
+
+    const user = auth.currentUser;
+
+    if(!user) return;
+
+    await user.reload();
+
+    const authEmail = (user.email || "").toLowerCase();
+
+    const userRef = doc(db, "users", user.uid);
+
+    const userSnap = await getDoc(userRef);
+
+    if(!userSnap.exists()) return;
+
+    const userData = userSnap.data();
+
+    const pendingEmail = (
+      userData.pendingEmail || ""
+    ).toLowerCase();
+
+    /* =========================
+       EMAIL SUDAH VERIFIED
+    ========================= */
+
+    if(
+      pendingEmail &&
+      authEmail === pendingEmail
+    ){
+
+      await updateDoc(userRef, {
+        email: authEmail,
+        pendingEmail: deleteField(),
+        emailVerified: true,
+        emailLastUpdated: serverTimestamp()
+      });
+
+    }
+
+  }catch(err){
+
+    console.error("syncVerifiedEmail error:", err);
+
+  }
+
+}
 /* =========================================
    LOGOUT (CLEAN)
 ========================================= */
