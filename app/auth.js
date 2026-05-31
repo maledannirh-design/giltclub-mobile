@@ -18,7 +18,6 @@ import {
 import { showToast } from "./ui.js";
 import { navigate } from "./navigation.js";
 
-
 let registerLock = false;
 
 
