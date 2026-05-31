@@ -452,6 +452,69 @@ async function loadHeaderStats(){
 }
 
 /* =========================================
+   SYNC VERIFIED EMAIL
+========================================= */
+
+export async function syncVerifiedEmail(){
+
+  try{
+
+    const user = auth.currentUser;
+
+    if(!user) return;
+
+    await user.reload();
+
+    const authEmail = (user.email || "")
+      .trim()
+      .toLowerCase();
+
+    const userRef = doc(db, "users", user.uid);
+
+    const userSnap = await getDoc(userRef);
+
+    if(!userSnap.exists()) return;
+
+    const userData = userSnap.data();
+
+    const pendingEmail = (
+      userData.pendingEmail || ""
+    )
+    .trim()
+    .toLowerCase();
+
+    /* =========================
+       EMAIL SUDAH VERIFIED
+    ========================= */
+
+    if(
+      pendingEmail &&
+      authEmail === pendingEmail
+    ){
+
+      await setDoc(doc(db, "users", user.uid), {
+
+        email: authEmail,
+        pendingEmail: deleteField(),
+        emailVerified: true,
+        emailLastUpdated: serverTimestamp()
+
+      }, { merge: true });
+
+    }
+
+  }catch(err){
+
+    console.error(
+      "syncVerifiedEmail error:",
+      err
+    );
+
+  }
+
+}
+
+/* =========================================
    AUTH STATE (FIXED - PRIORITY LOGOUT)
 ========================================= */
 
