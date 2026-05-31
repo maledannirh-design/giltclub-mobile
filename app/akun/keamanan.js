@@ -9,7 +9,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
-  verifyBeforeUpdateEmail
+  verifyBeforeUpdateEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
@@ -113,8 +115,8 @@ async function openChangeEmailSheet(){
 
       <input
         type="password"
-        id="trxPin"
-        placeholder="PIN Transaksi"
+        id="loginPin"
+        placeholder="PIN Login"
         maxlength="6"
         inputmode="numeric"
         autocomplete="off"
@@ -147,8 +149,8 @@ async function openChangeEmailSheet(){
         .trim()
         .toLowerCase();
 
-      const trxPin = document
-        .getElementById("trxPin")
+      const loginPin = document
+        .getElementById("loginPin")
         .value
         .trim();
 
@@ -166,8 +168,8 @@ async function openChangeEmailSheet(){
         return;
       }
 
-      if(trxPin.length !== 6){
-        alert("PIN transaksi harus 6 digit.");
+      if(loginPin.length !== 6){
+        alert("PIN Login harus 6 digit.");
         return;
       }
 
@@ -192,27 +194,20 @@ async function openChangeEmailSheet(){
         throw new Error("Data user tidak ditemukan.");
       }
 
-      const userData = userSnap.data();
-
       /* =========================
-         CHECK TRX PIN
+         REAUTH FIREBASE
       ========================= */
 
-      if(userData.pinTrx !== trxPin){
+      const credential =
+        EmailAuthProvider.credential(
+          user.email,
+          loginPin
+        );
 
-        const nextAttempt = (userData.pinAttempt || 0) + 1;
-
-        await updateDoc(userRef, {
-          pinAttempt: nextAttempt
-        });
-
-        alert("PIN transaksi salah.");
-
-        saveBtn.disabled = false;
-        saveBtn.innerText = "Simpan Perubahan";
-
-        return;
-      }
+      await reauthenticateWithCredential(
+        user,
+        credential
+      );
 
       /* =========================
          SAVE TEMP EMAIL
@@ -220,8 +215,7 @@ async function openChangeEmailSheet(){
 
       await updateDoc(userRef, {
         pendingEmail: newEmail,
-        emailChangeRequestedAt: serverTimestamp(),
-        pinAttempt: 0
+        emailChangeRequestedAt: serverTimestamp()
       });
 
       /* =========================
@@ -258,6 +252,14 @@ async function openChangeEmailSheet(){
 
       if(err.code === "auth/invalid-email"){
         message = "Format Gmail tidak valid.";
+      }
+
+      if(err.code === "auth/wrong-password"){
+        message = "PIN Login salah.";
+      }
+
+      if(err.code === "auth/invalid-credential"){
+        message = "PIN Login salah.";
       }
 
       if(err.code === "auth/requires-recent-login"){
