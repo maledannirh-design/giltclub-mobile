@@ -542,7 +542,7 @@ onAuthStateChanged(auth, async (user)=>{
   // 🔥 BARU CHECK MAINTENANCE (HANYA UNTUK USER LOGIN)
   const frozen = await checkMaintenanceAndFreeze(user);
   if(frozen) return;
-
+await syncVerifiedEmail();
   // ================= LOGIN FLOW =================
 
   navigate("home");
