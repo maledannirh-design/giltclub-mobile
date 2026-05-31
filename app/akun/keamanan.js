@@ -4,12 +4,14 @@ import {
   doc,
   getDoc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
   verifyBeforeUpdateEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 
 export function renderKeamanan(){
 
@@ -84,7 +86,7 @@ export function renderKeamanan(){
   document.getElementById("deleteAccount").onclick = openDeleteAccountSheet;
 }
 
-/* ===== SHEET LOGIC ===== */
+
 
 /* ===== SHEET LOGIC ===== */
 
@@ -119,7 +121,7 @@ async function openChangeEmailSheet(){
       >
 
       <p class="akun-note">
-        Email baru akan menerima link verifikasi sebelum perubahan diterapkan.
+        Link verifikasi akan dikirim ke Gmail baru Anda.
       </p>
 
       <button class="akun-btn" id="saveEmailBtn">
@@ -135,9 +137,9 @@ async function openChangeEmailSheet(){
 
   document.getElementById("saveEmailBtn").onclick = async ()=>{
 
-    try{
+    const saveBtn = document.getElementById("saveEmailBtn");
 
-      const saveBtn = document.getElementById("saveEmailBtn");
+    try{
 
       const newEmail = document
         .getElementById("newEmail")
@@ -150,7 +152,9 @@ async function openChangeEmailSheet(){
         .value
         .trim();
 
-      /* ===== VALIDATION ===== */
+      /* =========================
+         VALIDATION
+      ========================= */
 
       if(!newEmail){
         alert("Alamat Gmail wajib diisi.");
@@ -176,9 +180,12 @@ async function openChangeEmailSheet(){
         throw new Error("User tidak ditemukan.");
       }
 
-      /* ===== GET USER DATA ===== */
+      /* =========================
+         GET USER DATA
+      ========================= */
 
       const userRef = doc(db, "users", user.uid);
+
       const userSnap = await getDoc(userRef);
 
       if(!userSnap.exists()){
@@ -187,7 +194,9 @@ async function openChangeEmailSheet(){
 
       const userData = userSnap.data();
 
-      /* ===== CHECK PIN ===== */
+      /* =========================
+         CHECK TRX PIN
+      ========================= */
 
       if(userData.pinTrx !== trxPin){
 
@@ -198,17 +207,16 @@ async function openChangeEmailSheet(){
         });
 
         alert("PIN transaksi salah.");
+
         saveBtn.disabled = false;
         saveBtn.innerText = "Simpan Perubahan";
 
         return;
       }
 
-      /* ===== SEND VERIFICATION ===== */
-
-      await verifyBeforeUpdateEmail(user, newEmail);
-
-      /* ===== SAVE PENDING EMAIL ===== */
+      /* =========================
+         SAVE TEMP EMAIL
+      ========================= */
 
       await updateDoc(userRef, {
         pendingEmail: newEmail,
@@ -216,17 +224,33 @@ async function openChangeEmailSheet(){
         pinAttempt: 0
       });
 
+      /* =========================
+         SEND VERIFY EMAIL
+      ========================= */
+
+      await verifyBeforeUpdateEmail(
+        user,
+        newEmail,
+        {
+          url: window.location.origin
+        }
+      );
+
+      /* =========================
+         FORCE LOGOUT
+      ========================= */
+
       closeSheet();
 
-      alert(
-        "Link verifikasi telah dikirim ke Gmail baru Anda. Silakan buka email dan lakukan verifikasi sebelum perubahan diterapkan."
-      );
+      await auth.signOut();
+
+      location.reload();
 
     }catch(err){
 
       console.error(err);
 
-      let message = err.message || "Terjadi kesalahan.";
+      let message = "Terjadi kesalahan.";
 
       if(err.code === "auth/email-already-in-use"){
         message = "Alamat Gmail sudah digunakan akun lain.";
@@ -237,17 +261,17 @@ async function openChangeEmailSheet(){
       }
 
       if(err.code === "auth/requires-recent-login"){
-        message = "Silakan login ulang terlebih dahulu.";
+        message = "Session login expired. Silakan login ulang.";
+      }
+
+      if(err.code === "auth/too-many-requests"){
+        message = "Terlalu banyak percobaan. Coba lagi nanti.";
       }
 
       alert(message);
 
-      const saveBtn = document.getElementById("saveEmailBtn");
-
-      if(saveBtn){
-        saveBtn.disabled = false;
-        saveBtn.innerText = "Simpan Perubahan";
-      }
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Simpan Perubahan";
 
     }
 
