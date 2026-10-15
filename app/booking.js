@@ -13,7 +13,8 @@ import {
   onSnapshot,
   addDoc,
   runTransaction,   // ✅ TAMBAHKAN INI
-  serverTimestamp
+  serverTimestamp,
+  documentId
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
@@ -22,8 +23,16 @@ import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 ================================= */
 
 let unsubscribeSchedules = null;
+let unsubscribeBookings = null;
+let bookingsListenerUserId = null;
+let lastAutoCloseCheckAt = 0;
+let bookingRenderGeneration = 0;
+let upcomingScheduleRefreshGeneration = 0;
+const AUTO_CLOSE_CHECK_INTERVAL = 5 * 60 * 1000;
 let bookingLock = false;
 let allSchedules = [];
+let calendarSchedules = [];
+let upcomingBookedSchedules = [];
 let userBookings = [];
 let currentMonth = new Date();
 let selectedSport = "all";
@@ -41,12 +50,11 @@ let globalPlayerMap = null;
 
 export async function renderBooking() {
 
+  const renderGeneration = ++bookingRenderGeneration;
   const content = document.getElementById("content");
   if (!content) return;
 
-  // Auto close session yang sudah lewat (engine level)
-  await autoCloseFinishedSessions();
-
+  // Unsubscribe jadwal lama SEBELUM await apa pun agar listener tidak bertumpuk.
   if (unsubscribeSchedules) {
     unsubscribeSchedules();
     unsubscribeSchedules = null;
@@ -54,23 +62,82 @@ export async function renderBooking() {
 
   content.innerHTML = `<div style="padding:20px;text-align:center;opacity:.6;">Loading...</div>`;
 
-  // 🔥 Ambil SEMUA session (open + closed)
+  // Booking pengguna dipantau terpisah. Perubahan jadwal tidak lagi memuat ulang
+  // seluruh booking pengguna.
+  const userId = auth.currentUser?.uid || null;
+  if (bookingsListenerUserId !== userId) {
+    if (unsubscribeBookings) {
+      unsubscribeBookings();
+      unsubscribeBookings = null;
+    }
+
+    bookingsListenerUserId = userId;
+    userBookings = [];
+    upcomingBookedSchedules = [];
+    mergeScheduleLists();
+
+    if (userId) {
+      const userBookingsQuery = query(
+        collection(db, "bookings"),
+        where("userId", "==", userId),
+        where("status", "==", "active")
+      );
+
+      unsubscribeBookings = onSnapshot(
+        userBookingsQuery,
+        (snapshot) => {
+          userBookings = snapshot.docs.map(d => ({
+            id: d.id,
+            ...d.data()
+          }));
+          refreshUpcomingBookedSchedules().catch(error => {
+            console.error("Upcoming booked schedules load failed:", error);
+          });
+          renderFullUI();
+        },
+        (error) => {
+          console.error("User bookings listener failed:", error);
+        }
+      );
+    }
+  }
+
+  // Pemeriksaan auto-close dibatasi waktunya.
+  const now = Date.now();
+  if (now - lastAutoCloseCheckAt >= AUTO_CLOSE_CHECK_INTERVAL) {
+    lastAutoCloseCheckAt = now;
+    try {
+      await autoCloseFinishedSessions();
+    } catch (error) {
+      console.error("Auto-close sessions check failed:", error);
+    }
+  }
+
+  if (renderGeneration !== bookingRenderGeneration) return;
+
+  // Dengarkan jadwal hanya untuk rentang bulan yang sedang dilihat.
+  // Jadwal booking mendatang di luar rentang dimuat terpisah berdasarkan ID booking.
+  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  const startDate = formatDate(monthStart);
+  const endDate = formatDate(monthEnd);
+
   unsubscribeSchedules = onSnapshot(
-    collection(db, "schedules"),
-    async (snapshot) => {
-
-      allSchedules = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+    query(
+      collection(db, "schedules"),
+      where("date", ">=", startDate),
+      where("date", "<=", endDate)
+    ),
+    (snapshot) => {
+      calendarSchedules = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
       }));
-
-      if (auth.currentUser) {
-        userBookings = await loadUserBookings(auth.currentUser.uid);
-      } else {
-        userBookings = [];
-      }
-
+      mergeScheduleLists();
       renderFullUI();
+    },
+    (error) => {
+      console.error("Monthly schedules listener failed:", error);
     }
   );
 }
@@ -90,6 +157,60 @@ function renderFullUI() {
   `;
 
   attachGlobalEvents();
+}
+
+// Gabungkan jadwal bulan aktif dengan jadwal di luar bulan yang dibooking pengguna.
+function mergeScheduleLists() {
+  const byId = new Map();
+  for (const schedule of calendarSchedules) byId.set(schedule.id, schedule);
+  for (const schedule of upcomingBookedSchedules) {
+    if (!byId.has(schedule.id)) byId.set(schedule.id, schedule);
+  }
+  allSchedules = [...byId.values()];
+}
+
+async function refreshUpcomingBookedSchedules() {
+  const refreshGeneration = ++upcomingScheduleRefreshGeneration;
+  const userId = auth.currentUser?.uid || null;
+  // Jadwal yang sudah masuk snapshot bulan aktif tidak perlu dibaca lagi
+  // melalui getDocs(documentId in ...), agar tidak menggandakan pembacaan.
+  const visibleScheduleIds = new Set(calendarSchedules.map(schedule => schedule.id));
+  const ids = [...new Set(
+    userBookings
+      .map(booking => booking.scheduleId)
+      .filter(id => id && !visibleScheduleIds.has(id))
+  )];
+
+  if (!ids.length) {
+    upcomingBookedSchedules = [];
+    mergeScheduleLists();
+    if (refreshGeneration === upcomingScheduleRefreshGeneration) renderFullUI();
+    return;
+  }
+
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += 30) {
+    chunks.push(ids.slice(i, i + 30));
+  }
+
+  const snapshots = await Promise.all(chunks.map(chunk =>
+    getDocs(query(
+      collection(db, "schedules"),
+      where(documentId(), "in", chunk)
+    ))
+  ));
+
+  // Abaikan hasil lama jika booking berubah lagi saat query masih berjalan.
+  if (
+    refreshGeneration !== upcomingScheduleRefreshGeneration ||
+    (auth.currentUser?.uid || null) !== userId
+  ) return;
+
+  upcomingBookedSchedules = snapshots.flatMap(snapshot =>
+    snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+  );
+  mergeScheduleLists();
+  renderFullUI();
 }
 
 /* ===============================
@@ -332,6 +453,40 @@ async function openSessionPopup(dateStr) {
     .filter(s => s.date === dateStr)
     .sort((a,b)=> (a.startTime || "").localeCompare(b.startTime || ""));
 
+  // Ambil booking aktif untuk semua sesi pada tanggal ini dalam batch query.
+  // Sebelumnya satu getDocs dijalankan berurutan untuk setiap sesi (N+1 reads/query).
+  const bookingsBySchedule = new Map();
+
+  if (sessions.length) {
+    const scheduleIds = sessions.map(s => s.id);
+    const chunks = [];
+    for (let i = 0; i < scheduleIds.length; i += 30) {
+      chunks.push(scheduleIds.slice(i, i + 30));
+    }
+
+    const bookingSnapshots = await Promise.all(chunks.map(ids =>
+      getDocs(query(
+        collection(db, "bookings"),
+        where("scheduleId", "in", ids),
+        where("status", "==", "active")
+      ))
+    ));
+
+    for (const bookingSnap of bookingSnapshots) {
+      for (const bookingDoc of bookingSnap.docs) {
+        const bookingData = bookingDoc.data();
+        const scheduleId = bookingData.scheduleId;
+        if (!bookingsBySchedule.has(scheduleId)) {
+          bookingsBySchedule.set(scheduleId, []);
+        }
+        bookingsBySchedule.get(scheduleId).push({
+          id: bookingDoc.id,
+          data: bookingData
+        });
+      }
+    }
+  }
+
   let html = `
     <div class="popup-overlay">
       <div class="popup-card premium-popup">
@@ -346,21 +501,15 @@ async function openSessionPopup(dateStr) {
 
     for (const s of sessions) {
 
-      const bookingSnap = await getDocs(
-        query(
-          collection(db,"bookings"),
-          where("scheduleId","==",s.id),
-          where("status","==","active")
-        )
-      );
+      const activeBookings = bookingsBySchedule.get(s.id) || [];
 
       const maxPlayers = s.maxPlayers || 0;
       const lockedSlots = s.lockedSlots || [];
       const members = [];
 
-      for (const docSnap of bookingSnap.docs) {
+      for (const bookingItem of activeBookings) {
 
-        const bookingData = docSnap.data();
+        const bookingData = bookingItem.data;
 
         const isPrivilegedViewer =
           ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
@@ -1391,7 +1540,7 @@ function attachGlobalEvents(){
     if (e.target.id === "prevMonth") {
       slideDirection = "prev";
       currentMonth.setMonth(currentMonth.getMonth() - 1);
-      renderFullUI();
+      renderBooking();
       return;
     }
 
@@ -1399,7 +1548,7 @@ function attachGlobalEvents(){
     if (e.target.id === "nextMonth") {
       slideDirection = "next";
       currentMonth.setMonth(currentMonth.getMonth() + 1);
-      renderFullUI();
+      renderBooking();
       return;
     }
 
@@ -1883,6 +2032,8 @@ async function autoCloseFinishedSessions() {
 
   const now = new Date();
 
+  // Ambil hanya sesi yang masih open. Jangan membaca seluruh riwayat jadwal
+  // (termasuk sesi closed) setiap kali pengecekan auto-close berjalan.
   const q = query(
     collection(db, "schedules"),
     where("status", "==", "open")
@@ -1895,6 +2046,7 @@ async function autoCloseFinishedSessions() {
     const data = docSnap.data();
 
     if (!data.date || !data.endTime) continue;
+    if (data.date > formatDate(now)) continue;
 
     const sessionEnd = new Date(
       data.date + "T" + data.endTime
