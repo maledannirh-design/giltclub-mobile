@@ -381,6 +381,40 @@ async function openSessionPopup(dateStr) {
     .filter(s => s.date === dateStr)
     .sort((a,b)=> (a.startTime || "").localeCompare(b.startTime || ""));
 
+  // Ambil booking aktif untuk semua sesi pada tanggal ini dalam batch query.
+  // Sebelumnya satu getDocs dijalankan berurutan untuk setiap sesi (N+1 reads/query).
+  const bookingsBySchedule = new Map();
+
+  if (sessions.length) {
+    const scheduleIds = sessions.map(s => s.id);
+    const chunks = [];
+    for (let i = 0; i < scheduleIds.length; i += 30) {
+      chunks.push(scheduleIds.slice(i, i + 30));
+    }
+
+    const bookingSnapshots = await Promise.all(chunks.map(ids =>
+      getDocs(query(
+        collection(db, "bookings"),
+        where("scheduleId", "in", ids),
+        where("status", "==", "active")
+      ))
+    ));
+
+    for (const bookingSnap of bookingSnapshots) {
+      for (const bookingDoc of bookingSnap.docs) {
+        const bookingData = bookingDoc.data();
+        const scheduleId = bookingData.scheduleId;
+        if (!bookingsBySchedule.has(scheduleId)) {
+          bookingsBySchedule.set(scheduleId, []);
+        }
+        bookingsBySchedule.get(scheduleId).push({
+          id: bookingDoc.id,
+          data: bookingData
+        });
+      }
+    }
+  }
+
   let html = `
     <div class="popup-overlay">
       <div class="popup-card premium-popup">
@@ -395,21 +429,15 @@ async function openSessionPopup(dateStr) {
 
     for (const s of sessions) {
 
-      const bookingSnap = await getDocs(
-        query(
-          collection(db,"bookings"),
-          where("scheduleId","==",s.id),
-          where("status","==","active")
-        )
-      );
+      const activeBookings = bookingsBySchedule.get(s.id) || [];
 
       const maxPlayers = s.maxPlayers || 0;
       const lockedSlots = s.lockedSlots || [];
       const members = [];
 
-      for (const docSnap of bookingSnap.docs) {
+      for (const bookingItem of activeBookings) {
 
-        const bookingData = docSnap.data();
+        const bookingData = bookingItem.data;
 
         const isPrivilegedViewer =
           ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
