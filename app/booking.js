@@ -27,6 +27,7 @@ let unsubscribeBookings = null;
 let bookingsListenerUserId = null;
 let lastAutoCloseCheckAt = 0;
 let bookingRenderGeneration = 0;
+let upcomingScheduleRefreshGeneration = 0;
 const AUTO_CLOSE_CHECK_INTERVAL = 5 * 60 * 1000;
 let bookingLock = false;
 let allSchedules = [];
@@ -72,6 +73,8 @@ export async function renderBooking() {
 
     bookingsListenerUserId = userId;
     userBookings = [];
+    upcomingBookedSchedules = [];
+    mergeScheduleLists();
 
     if (userId) {
       const userBookingsQuery = query(
@@ -167,6 +170,8 @@ function mergeScheduleLists() {
 }
 
 async function refreshUpcomingBookedSchedules() {
+  const refreshGeneration = ++upcomingScheduleRefreshGeneration;
+  const userId = auth.currentUser?.uid || null;
   const ids = [...new Set(
     userBookings
       .map(booking => booking.scheduleId)
@@ -176,6 +181,7 @@ async function refreshUpcomingBookedSchedules() {
   if (!ids.length) {
     upcomingBookedSchedules = [];
     mergeScheduleLists();
+    if (refreshGeneration === upcomingScheduleRefreshGeneration) renderFullUI();
     return;
   }
 
@@ -191,10 +197,17 @@ async function refreshUpcomingBookedSchedules() {
     ))
   ));
 
+  // Abaikan hasil lama jika booking berubah lagi saat query masih berjalan.
+  if (
+    refreshGeneration !== upcomingScheduleRefreshGeneration ||
+    (auth.currentUser?.uid || null) !== userId
+  ) return;
+
   upcomingBookedSchedules = snapshots.flatMap(snapshot =>
     snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
   );
   mergeScheduleLists();
+  renderFullUI();
 }
 
 /* ===============================
