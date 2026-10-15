@@ -172,10 +172,13 @@ function mergeScheduleLists() {
 async function refreshUpcomingBookedSchedules() {
   const refreshGeneration = ++upcomingScheduleRefreshGeneration;
   const userId = auth.currentUser?.uid || null;
+  // Jadwal yang sudah masuk snapshot bulan aktif tidak perlu dibaca lagi
+  // melalui getDocs(documentId in ...), agar tidak menggandakan pembacaan.
+  const visibleScheduleIds = new Set(calendarSchedules.map(schedule => schedule.id));
   const ids = [...new Set(
     userBookings
       .map(booking => booking.scheduleId)
-      .filter(Boolean)
+      .filter(id => id && !visibleScheduleIds.has(id))
   )];
 
   if (!ids.length) {
