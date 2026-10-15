@@ -7,6 +7,13 @@
 
 <title>GMTC Community</title>
 
+<!-- Keep the app entry URL clean if an old create-store deep link is opened. -->
+<script>
+  if (window.location.hash === "#create-store") {
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+</script>
+
 <!-- PWA MANIFEST -->
 <link rel="manifest" href="/app/manifest.json">
 
