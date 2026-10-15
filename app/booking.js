@@ -22,6 +22,10 @@ import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 ================================= */
 
 let unsubscribeSchedules = null;
+let unsubscribeBookings = null;
+let bookingsListenerUserId = null;
+let lastAutoCloseCheckAt = 0;
+const AUTO_CLOSE_CHECK_INTERVAL = 5 * 60 * 1000;
 let bookingLock = false;
 let allSchedules = [];
 let userBookings = [];
@@ -44,9 +48,7 @@ export async function renderBooking() {
   const content = document.getElementById("content");
   if (!content) return;
 
-  // Auto close session yang sudah lewat (engine level)
-  await autoCloseFinishedSessions();
-
+  // Unsubscribe jadwal lama SEBELUM await apa pun agar listener tidak bertumpuk.
   if (unsubscribeSchedules) {
     unsubscribeSchedules();
     unsubscribeSchedules = null;
@@ -54,23 +56,64 @@ export async function renderBooking() {
 
   content.innerHTML = `<div style="padding:20px;text-align:center;opacity:.6;">Loading...</div>`;
 
-  // 🔥 Ambil SEMUA session (open + closed)
+  // Booking pengguna dipantau terpisah. Perubahan jadwal tidak lagi memuat ulang
+  // seluruh booking pengguna.
+  const userId = auth.currentUser?.uid || null;
+  if (bookingsListenerUserId !== userId) {
+    if (unsubscribeBookings) {
+      unsubscribeBookings();
+      unsubscribeBookings = null;
+    }
+
+    bookingsListenerUserId = userId;
+    userBookings = [];
+
+    if (userId) {
+      const userBookingsQuery = query(
+        collection(db, "bookings"),
+        where("userId", "==", userId),
+        where("status", "==", "active")
+      );
+
+      unsubscribeBookings = onSnapshot(
+        userBookingsQuery,
+        (snapshot) => {
+          userBookings = snapshot.docs.map(d => ({
+            id: d.id,
+            ...d.data()
+          }));
+          renderFullUI();
+        },
+        (error) => {
+          console.error("User bookings listener failed:", error);
+        }
+      );
+    }
+  }
+
+  // Auto-close tidak perlu scan koleksi pada setiap render / aksi UI.
+  const now = Date.now();
+  if (now - lastAutoCloseCheckAt >= AUTO_CLOSE_CHECK_INTERVAL) {
+    lastAutoCloseCheckAt = now;
+    try {
+      await autoCloseFinishedSessions();
+    } catch (error) {
+      console.error("Auto-close sessions check failed:", error);
+    }
+  }
+
+  // Satu listener jadwal aktif untuk halaman ini.
   unsubscribeSchedules = onSnapshot(
     collection(db, "schedules"),
-    async (snapshot) => {
-
-      allSchedules = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+    (snapshot) => {
+      allSchedules = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data()
       }));
-
-      if (auth.currentUser) {
-        userBookings = await loadUserBookings(auth.currentUser.uid);
-      } else {
-        userBookings = [];
-      }
-
       renderFullUI();
+    },
+    (error) => {
+      console.error("Schedules listener failed:", error);
     }
   );
 }
