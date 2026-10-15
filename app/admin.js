@@ -191,6 +191,9 @@ export async function renderAdmin() {
   const productBtn = document.getElementById("openProductAdmin");
   if(productBtn) productBtn.onclick = openProductAdmin;
 
+  const refreshActivitySummaryBtn = document.getElementById("refreshActivitySummaryBtn");
+  if (refreshActivitySummaryBtn) refreshActivitySummaryBtn.onclick = refreshActivitySummary;
+
   document.getElementById("adminBalanceAdjustment").innerHTML = `
   <div class="admin-card">
     <h3>Manual Adjustment</h3>
