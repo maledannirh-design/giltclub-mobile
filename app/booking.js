@@ -13,7 +13,8 @@ import {
   onSnapshot,
   addDoc,
   runTransaction,   // ✅ TAMBAHKAN INI
-  serverTimestamp
+  serverTimestamp,
+  documentId
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
@@ -29,6 +30,8 @@ let bookingRenderGeneration = 0;
 const AUTO_CLOSE_CHECK_INTERVAL = 5 * 60 * 1000;
 let bookingLock = false;
 let allSchedules = [];
+let calendarSchedules = [];
+let upcomingBookedSchedules = [];
 let userBookings = [];
 let currentMonth = new Date();
 let selectedSport = "all";
@@ -84,6 +87,9 @@ export async function renderBooking() {
             id: d.id,
             ...d.data()
           }));
+          refreshUpcomingBookedSchedules().catch(error => {
+            console.error("Upcoming booked schedules load failed:", error);
+          });
           renderFullUI();
         },
         (error) => {
@@ -93,7 +99,7 @@ export async function renderBooking() {
     }
   }
 
-  // Auto-close tidak perlu scan koleksi pada setiap render / aksi UI.
+  // Pemeriksaan auto-close dibatasi waktunya.
   const now = Date.now();
   if (now - lastAutoCloseCheckAt >= AUTO_CLOSE_CHECK_INTERVAL) {
     lastAutoCloseCheckAt = now;
@@ -104,22 +110,31 @@ export async function renderBooking() {
     }
   }
 
-  // Jika render baru dimulai saat auto-close masih berjalan, jangan pasang
-  // listener dari render lama (mencegah listener bertumpuk akibat race).
   if (renderGeneration !== bookingRenderGeneration) return;
 
-  // Satu listener jadwal aktif untuk halaman ini.
+  // Dengarkan jadwal hanya untuk rentang bulan yang sedang dilihat.
+  // Jadwal booking mendatang di luar rentang dimuat terpisah berdasarkan ID booking.
+  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  const startDate = formatDate(monthStart);
+  const endDate = formatDate(monthEnd);
+
   unsubscribeSchedules = onSnapshot(
-    collection(db, "schedules"),
+    query(
+      collection(db, "schedules"),
+      where("date", ">=", startDate),
+      where("date", "<=", endDate)
+    ),
     (snapshot) => {
-      allSchedules = snapshot.docs.map(d => ({
+      calendarSchedules = snapshot.docs.map(d => ({
         id: d.id,
         ...d.data()
       }));
+      mergeScheduleLists();
       renderFullUI();
     },
     (error) => {
-      console.error("Schedules listener failed:", error);
+      console.error("Monthly schedules listener failed:", error);
     }
   );
 }
@@ -139,6 +154,47 @@ function renderFullUI() {
   `;
 
   attachGlobalEvents();
+}
+
+// Gabungkan jadwal bulan aktif dengan jadwal di luar bulan yang dibooking pengguna.
+function mergeScheduleLists() {
+  const byId = new Map();
+  for (const schedule of calendarSchedules) byId.set(schedule.id, schedule);
+  for (const schedule of upcomingBookedSchedules) {
+    if (!byId.has(schedule.id)) byId.set(schedule.id, schedule);
+  }
+  allSchedules = [...byId.values()];
+}
+
+async function refreshUpcomingBookedSchedules() {
+  const ids = [...new Set(
+    userBookings
+      .map(booking => booking.scheduleId)
+      .filter(Boolean)
+  )];
+
+  if (!ids.length) {
+    upcomingBookedSchedules = [];
+    mergeScheduleLists();
+    return;
+  }
+
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += 30) {
+    chunks.push(ids.slice(i, i + 30));
+  }
+
+  const snapshots = await Promise.all(chunks.map(chunk =>
+    getDocs(query(
+      collection(db, "schedules"),
+      where(documentId(), "in", chunk)
+    ))
+  ));
+
+  upcomingBookedSchedules = snapshots.flatMap(snapshot =>
+    snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+  );
+  mergeScheduleLists();
 }
 
 /* ===============================
@@ -1468,7 +1524,7 @@ function attachGlobalEvents(){
     if (e.target.id === "prevMonth") {
       slideDirection = "prev";
       currentMonth.setMonth(currentMonth.getMonth() - 1);
-      renderFullUI();
+      renderBooking();
       return;
     }
 
@@ -1476,7 +1532,7 @@ function attachGlobalEvents(){
     if (e.target.id === "nextMonth") {
       slideDirection = "next";
       currentMonth.setMonth(currentMonth.getMonth() + 1);
-      renderFullUI();
+      renderBooking();
       return;
     }
 
