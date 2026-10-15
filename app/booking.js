@@ -2029,13 +2029,11 @@ async function autoCloseFinishedSessions() {
 
   const now = new Date();
 
-  // Ambil hanya jadwal bertanggal hari ini atau sebelumnya; jadwal masa depan
-  // tidak mungkin perlu ditutup. Filter status di memori untuk menghindari
-  // membaca seluruh koleksi jadwal open.
-  const today = formatDate(now);
+  // Ambil hanya sesi yang masih open. Jangan membaca seluruh riwayat jadwal
+  // (termasuk sesi closed) setiap kali pengecekan auto-close berjalan.
   const q = query(
     collection(db, "schedules"),
-    where("date", "<=", today)
+    where("status", "==", "open")
   );
 
   const snap = await getDocs(q);
@@ -2044,8 +2042,8 @@ async function autoCloseFinishedSessions() {
 
     const data = docSnap.data();
 
-    if (data.status !== "open") continue;
     if (!data.date || !data.endTime) continue;
+    if (data.date > formatDate(now)) continue;
 
     const sessionEnd = new Date(
       data.date + "T" + data.endTime
