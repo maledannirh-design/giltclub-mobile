@@ -194,41 +194,90 @@ content.innerHTML = `
 
 
 async function renderActivitySummaryCard(){
+  let d = null;
+  let readFailed = false;
   try{
     const snap = await getDoc(doc(db,"websiteStats","ActivitySummary"));
-    const d = snap.exists() ? snap.data() : null;
-    const fmt = n => Number(n || 0).toLocaleString("id-ID");
-    const value = (key, suffix = "") => d ? `${fmt(d[key])}${suffix}` : "—";
-    const updated = d?.generatedDateWita ? `${d.generatedDateWita} (WITA)` : "Belum diperbarui";
-    return `<section style="background:#fff;border-radius:20px;padding:20px;margin:18px 0;box-shadow:0 8px 24px #0000000d;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;">
-        <h3 style="margin:0;color:#2E5D3A;">GMTC Activity Summary</h3>
-        <span style="font-size:11px;color:#71816f;">Publik</span>
-      </div>
-      <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;font-size:13px;color:#355742;">
-          <thead><tr style="background:#F6F1E7;text-align:left;">
-            <th style="padding:11px 10px;border-radius:8px 0 0 8px;">Activity</th>
-            <th style="padding:11px 10px;text-align:right;border-radius:0 8px 8px 0;">Total</th>
-          </tr></thead>
-          <tbody>
-            <tr><td style="padding:13px 10px;border-bottom:1px solid #eee;">Sessions Hosted</td><td style="padding:13px 10px;text-align:right;font-weight:700;">${value("sessionsHosted")}</td></tr>
-            <tr><td style="padding:13px 10px;border-bottom:1px solid #eee;">Player Attendances</td><td style="padding:13px 10px;text-align:right;font-weight:700;">${value("playerAttendances")}</td></tr>
-            <tr><td style="padding:13px 10px;">Court Hours Played</td><td style="padding:13px 10px;text-align:right;font-weight:700;">${value("courtHoursPlayed"," jam")}</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p style="font-size:11px;color:#879184;margin:12px 0 0;">Terakhir diperbarui: ${updated}</p>
-      ${d ? "" : '<p style="font-size:12px;color:#71816f;margin:8px 0 0;">Belum ada data. Admin dapat menekan Refresh Statistic di menu Admin.</p>'}
-    </section>`;
+    d = snap.exists() ? snap.data() : null;
   }catch(error){
     console.error("Activity Summary read failed:",error);
-    return `<section style="background:#fff;border-radius:20px;padding:20px;margin:18px 0;"><h3 style="color:#2E5D3A;">GMTC Activity Summary</h3><p style="color:#71816f;">Ringkasan tidak dapat dimuat saat ini.</p></section>`;
+    readFailed = true;
   }
+
+  const fmt = n => Number(n || 0).toLocaleString("id-ID");
+  const value = (key, suffix = "") => d ? `${fmt(d[key])}${suffix}` : "—";
+  const updated = d?.generatedDateWita ? `${d.generatedDateWita} (WITA)` : "Belum diperbarui";
+
+  return `
+    <button type="button" onclick="openActivitySummaryModal()" aria-haspopup="dialog" style="
+      width:100%;text-align:left;background:#fff;border:1px solid #e8eee7;
+      border-radius:18px;padding:18px;margin:18px 0;box-shadow:0 8px 24px #0000000d;
+      cursor:pointer;color:#355742;display:block;
+    ">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div>
+          <div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#7b8c78;margin-bottom:5px;">Community Statistics</div>
+          <div style="font-size:18px;font-weight:800;color:#2E5D3A;">GMTC Activity Summary</div>
+          <div style="font-size:12px;color:#71816f;margin-top:5px;">${d ? "Lihat statistik aktivitas komunitas" : "Statistik belum diperbarui"}</div>
+        </div>
+        <span aria-hidden="true" style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex-shrink:0;border-radius:50%;background:#edf4ec;color:#2E5D3A;font-size:22px;">›</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;">
+        <div style="background:#f7f8f4;border-radius:12px;padding:10px 8px;">
+          <div style="font-size:10px;color:#7b8c78;line-height:1.4;">Sessions Hosted</div>
+          <div style="font-size:18px;font-weight:800;margin-top:4px;">${value("sessionsHosted")}</div>
+        </div>
+        <div style="background:#f7f8f4;border-radius:12px;padding:10px 8px;">
+          <div style="font-size:10px;color:#7b8c78;line-height:1.4;">Player Attendances</div>
+          <div style="font-size:18px;font-weight:800;margin-top:4px;">${value("playerAttendances")}</div>
+        </div>
+        <div style="background:#f7f8f4;border-radius:12px;padding:10px 8px;">
+          <div style="font-size:10px;color:#7b8c78;line-height:1.4;">Court Hours</div>
+          <div style="font-size:18px;font-weight:800;margin-top:4px;">${value("courtHoursPlayed"," jam")}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#879184;margin-top:12px;">Terakhir diperbarui: ${updated} <span style="float:right;color:#2E5D3A;font-weight:700;">Lihat detail ↗</span></div>
+    </button>
+
+    <div id="activitySummaryModal" role="dialog" aria-modal="true" aria-labelledby="activitySummaryModalTitle" style="
+      display:none;position:fixed;inset:0;z-index:9999;background:rgba(18,34,22,.58);
+      padding:18px;align-items:center;justify-content:center;box-sizing:border-box;
+    " onclick="if(event.target===this)closeActivitySummaryModal()">
+      <section style="width:100%;max-width:460px;max-height:85vh;overflow:auto;background:#fff;border-radius:22px;padding:22px;box-sizing:border-box;box-shadow:0 20px 60px #00000030;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px;">
+          <div>
+            <div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#879184;">GMTC Community</div>
+            <h2 id="activitySummaryModalTitle" style="margin:5px 0 0;color:#2E5D3A;font-size:22px;">Activity Summary</h2>
+            <p style="font-size:12px;color:#71816f;margin:6px 0 0;">Ringkasan aktivitas komunitas</p>
+          </div>
+          <button type="button" onclick="closeActivitySummaryModal()" aria-label="Tutup" style="border:0;background:#f1f4ef;color:#355742;width:36px;height:36px;border-radius:50%;font-size:22px;cursor:pointer;flex-shrink:0;">×</button>
+        </div>
+        ${readFailed ? '<p style="padding:14px;background:#fff6f0;border-radius:12px;color:#9a4b20;font-size:13px;">Ringkasan tidak dapat dimuat saat ini.</p>' : !d ? '<p style="padding:14px;background:#f7f8f4;border-radius:12px;color:#71816f;font-size:13px;">Belum ada data statistik. Ringkasan akan tampil setelah admin menjalankan Refresh Statistic.</p>' : `
+          <div style="display:grid;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px;background:#f7f8f4;border-radius:14px;"><span style="font-size:13px;color:#526653;">Sessions Hosted</span><strong style="font-size:22px;color:#2E5D3A;">${value("sessionsHosted")}</strong></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px;background:#f7f8f4;border-radius:14px;"><span style="font-size:13px;color:#526653;">Player Attendances</span><strong style="font-size:22px;color:#2E5D3A;">${value("playerAttendances")}</strong></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px;background:#f7f8f4;border-radius:14px;"><span style="font-size:13px;color:#526653;">Court Hours Played</span><strong style="font-size:22px;color:#2E5D3A;">${value("courtHoursPlayed"," jam")}</strong></div>
+          </div>
+          <p style="font-size:11px;color:#879184;margin:16px 0 0;">Terakhir diperbarui: ${updated}</p>
+        `}
+        <button type="button" onclick="closeActivitySummaryModal()" style="width:100%;margin-top:20px;padding:13px;border:0;border-radius:12px;background:#2E5D3A;color:#fff;font-weight:700;cursor:pointer;">Tutup</button>
+      </section>
+    </div>
+  `;
 }
-async function renderPublicActivitySummary(content){
-  content.innerHTML=`<div class="home-container" style="padding:18px;"><div style="margin:8px 0 16px;"><h2 style="color:#2E5D3A;margin:0 0 6px;">Selamat datang di GMTC</h2><p style="color:#7d8b79;margin:0;">Ringkasan aktivitas komunitas dapat dilihat tanpa login.</p></div><div id="publicActivitySummary">${await renderActivitySummaryCard()}</div></div>`;
-}
+
+window.openActivitySummaryModal = function(){
+  const modal = document.getElementById("activitySummaryModal");
+  if(!modal) return;
+  modal.style.display = "flex";
+  document.body.style.overflow = "hidden";
+};
+
+window.closeActivitySummaryModal = function(){
+  const modal = document.getElementById("activitySummaryModal");
+  if(modal) modal.style.display = "none";
+  document.body.style.overflow = "";
+};
 
 /* =========================================
    COUNTDOWN ENGINE
