@@ -25,6 +25,7 @@ let unsubscribeSchedules = null;
 let unsubscribeBookings = null;
 let bookingsListenerUserId = null;
 let lastAutoCloseCheckAt = 0;
+let bookingRenderGeneration = 0;
 const AUTO_CLOSE_CHECK_INTERVAL = 5 * 60 * 1000;
 let bookingLock = false;
 let allSchedules = [];
@@ -45,6 +46,7 @@ let globalPlayerMap = null;
 
 export async function renderBooking() {
 
+  const renderGeneration = ++bookingRenderGeneration;
   const content = document.getElementById("content");
   if (!content) return;
 
@@ -101,6 +103,10 @@ export async function renderBooking() {
       console.error("Auto-close sessions check failed:", error);
     }
   }
+
+  // Jika render baru dimulai saat auto-close masih berjalan, jangan pasang
+  // listener dari render lama (mencegah listener bertumpuk akibat race).
+  if (renderGeneration !== bookingRenderGeneration) return;
 
   // Satu listener jadwal aktif untuk halaman ini.
   unsubscribeSchedules = onSnapshot(
