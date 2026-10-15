@@ -25,10 +25,12 @@ export async function renderHome(){
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
-  if(!content || !user) return;
-
+  if(!content) return;
+  if(!user){
+    await renderPublicActivitySummary(content);
+    return;
+  }
   try{
-
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.exists() ? userSnap.data() : {};
 
@@ -46,6 +48,7 @@ export async function renderHome(){
 ============================= */
 content.innerHTML = `
   <div class="home-container">
+    ${await renderActivitySummaryCard()}
 
     <div class="home-header">
 
@@ -182,13 +185,34 @@ content.innerHTML = `
     console.error("Home error:", error);
 
     content.innerHTML = `
-      <div style="padding:20px;color:red;">
-        Failed to load home.
-      </div>
+      ${await renderActivitySummaryCard()}
+      <div style="padding:20px;color:#8b5e3c;">Beranda member gagal dimuat. Ringkasan aktivitas tetap ditampilkan.</div>
     `;
   }
 }
 
+
+
+async function renderActivitySummaryCard(){
+  try{
+    const snap = await getDoc(doc(db,"websiteStats","ActivitySummary"));
+    if(!snap.exists()) return `<section style="background:#fff;border-radius:20px;padding:20px;margin:18px 0;"><h3 style="color:#2E5D3A;margin:0 0 8px;">GMTC Activity Summary</h3><p style="color:#71816f;margin:0;">Ringkasan belum tersedia. Admin dapat menekan Refresh Statistic di menu Admin.</p></section>`;
+    const d=snap.data(), fmt=n=>Number(n||0).toLocaleString("id-ID");
+    return `<section style="background:#fff;border-radius:20px;padding:20px;margin:18px 0;box-shadow:0 8px 24px #0000000d;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><h3 style="margin:0;color:#2E5D3A;">GMTC Activity Summary</h3><span style="font-size:11px;color:#71816f;">Publik</span></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+        <div style="background:#F6F1E7;border-radius:14px;padding:14px;"><div style="font-size:12px;color:#71816f;">Sessions Hosted</div><strong style="display:block;font-size:24px;color:#2E5D3A;margin-top:5px;">${fmt(d.sessionsHosted)}</strong></div>
+        <div style="background:#F6F1E7;border-radius:14px;padding:14px;"><div style="font-size:12px;color:#71816f;">Player Attendances</div><strong style="display:block;font-size:24px;color:#2E5D3A;margin-top:5px;">${fmt(d.playerAttendances)}</strong></div>
+        <div style="background:#F6F1E7;border-radius:14px;padding:14px;grid-column:1/-1;"><div style="font-size:12px;color:#71816f;">Court Hours Played</div><strong style="display:block;font-size:24px;color:#2E5D3A;margin-top:5px;">${fmt(d.courtHoursPlayed)} jam</strong></div>
+      </div><p style="font-size:11px;color:#879184;margin:12px 0 0;">Terakhir diperbarui: ${d.generatedDateWita||"-"} (WITA)</p></section>`;
+  }catch(error){
+    console.error("Activity Summary read failed:",error);
+    return `<section style="background:#fff;border-radius:20px;padding:20px;margin:18px 0;"><h3 style="color:#2E5D3A;">GMTC Activity Summary</h3><p style="color:#71816f;">Ringkasan tidak dapat dimuat saat ini.</p></section>`;
+  }
+}
+async function renderPublicActivitySummary(content){
+  content.innerHTML=`<div class="home-container" style="padding:18px;"><div style="margin:8px 0 16px;"><h2 style="color:#2E5D3A;margin:0 0 6px;">Selamat datang di GMTC</h2><p style="color:#7d8b79;margin:0;">Ringkasan aktivitas komunitas dapat dilihat tanpa login.</p></div><div id="publicActivitySummary">${await renderActivitySummaryCard()}</div></div>`;
+}
 
 /* =========================================
    COUNTDOWN ENGINE
