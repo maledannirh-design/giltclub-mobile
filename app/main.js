@@ -535,6 +535,9 @@ onAuthStateChanged(auth, async (user)=>{
     }
 
     navigate("account");
+    // Re-render even when navigation is already on the account page.
+    const { renderAccountUI } = await import("./profile.js");
+    await renderAccountUI();
 
     if(label) label.innerText = "Not logged in";
     if(adminButton) adminButton.style.display = "none";
