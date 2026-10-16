@@ -1659,3 +1659,14 @@ body.light .popup-card p {
 body.light .popup-card .session-meta strong {
   color: #ffffff !important;
 }
+
+
+/* Keep white popup text legible in light mode by using a dark modal surface. */
+body.light .popup-card {
+  background: #1e1e1e !important;
+  color: #ffffff !important;
+}
+body.light .popup-card .popup-session-card {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}
