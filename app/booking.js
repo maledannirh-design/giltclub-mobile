@@ -178,7 +178,10 @@ export function cleanupBookingListeners(){
 ================================= */
 function renderFullUI() {
 
+  const oldPopup = document.getElementById("popupContainer");
+  const openDate = oldPopup?.innerHTML.trim() ? oldPopup.dataset.date : null;
   const content = document.getElementById("content");
+  if (!content) return;
 
   content.innerHTML = `
     ${renderMyUpcomingHero()}
@@ -188,6 +191,7 @@ function renderFullUI() {
   `;
 
   attachGlobalEvents();
+  if (openDate) openSessionPopup(openDate);
 }
 
 // Gabungkan jadwal bulan aktif dengan jadwal di luar bulan yang dibooking pengguna.
@@ -563,6 +567,7 @@ async function openSessionPopup(dateStr) {
 
         members.push({
           userId: bookingData.userId,
+          slotIndex: Number.isInteger(bookingData.slotIndex) ? bookingData.slotIndex : null,
           username: resolvedName,
           avatarInitial: resolvedName.charAt(0).toUpperCase(),
           photoURL: bookingData.isAnonymous && !isPrivilegedViewer
@@ -692,8 +697,19 @@ if((s.sportType || "tennis") !== "tennis"){
 
       /* SLOT RENDER */
       let slotHtml = "";
-      let memberPointer = 0;
+      const assignedMembers = new Map();
+      const legacyMembers = [];
 
+      // Keep explicitly selected slots stable; older bookings without slotIndex fill remaining slots in order.
+      for (const member of members) {
+        if (Number.isInteger(member.slotIndex) && member.slotIndex >= 0 && member.slotIndex < maxPlayers) {
+          assignedMembers.set(member.slotIndex, member);
+        } else {
+          legacyMembers.push(member);
+        }
+      }
+
+      let legacyPointer = 0;
       for (let i = 0; i < maxPlayers; i++) {
 
         const locked = lockedSlots.find(l => l.index === i);
@@ -712,7 +728,7 @@ if((s.sportType || "tennis") !== "tennis"){
           continue;
         }
 
-        const member = members[memberPointer];
+        const member = assignedMembers.get(i) || legacyMembers[legacyPointer];
 
         if (member) {
           slotHtml += `
@@ -729,7 +745,7 @@ if((s.sportType || "tennis") !== "tennis"){
               <div class="member-name">${member.username}</div>
             </div>
           `;
-          memberPointer++;
+          if (!assignedMembers.has(i)) legacyPointer++;
           continue;
         }
 
