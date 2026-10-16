@@ -942,6 +942,9 @@ attachSlotInteraction(currentUserRole);
   =============================== */
   document.querySelectorAll(".edit-session-btn").forEach(btn=>{
     btn.onclick = ()=>{
+      // Tutup popup detail sesi terlebih dahulu agar sheet edit tidak menumpuk di belakang overlay.
+      const popup = document.getElementById("popupContainer");
+      if (popup) popup.innerHTML = "";
       openEditSessionSheet(btn.dataset.id);
     };
   });
@@ -1258,7 +1261,8 @@ if (!isPrivileged) {
           });
 
           showToast("Slot berhasil dikunci","success");
-          renderBooking();
+          // Jangan renderBooking() di sini: onSnapshot schedules akan memperbarui UI.
+          // Menghindari unsubscribe/re-subscribe listener dan query ulang saat input history manual.
 
         } catch (err) {
           showToast(err.message || "Gagal lock slot","error");
@@ -1304,7 +1308,7 @@ if (!isPrivileged) {
           });
 
           showToast("Slot berhasil dibuka","success");
-          renderBooking();
+          // onSnapshot schedules akan memperbarui UI tanpa memasang ulang listener.
 
         } catch (err) {
           showToast(err.message || "Gagal unlock slot","error");
