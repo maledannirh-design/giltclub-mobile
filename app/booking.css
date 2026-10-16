@@ -1636,3 +1636,26 @@ body.dark .progress-verified-card{
   border: 1px solid rgba(255,255,255,0.08);
 }
 
+
+
+/* Light theme: improve readability across the session popup, not only confirmation dialogs. */
+body.light .popup-card,
+body.light .popup-card .popup-session-card,
+body.light .popup-card .session-meta,
+body.light .popup-card .session-meta div,
+body.light .popup-card .session-meta strong,
+body.light .popup-card .session-notes,
+body.light .popup-card .session-notes strong,
+body.light .popup-card .session-notes .notes-content,
+body.light .popup-card .session-cashback-info,
+body.light .popup-card .session-cashback-info strong,
+body.light .popup-card .cashback-list,
+body.light .popup-card .cashback-list div,
+body.light .popup-card h2,
+body.light .popup-card h3,
+body.light .popup-card p {
+  color: #ffffff !important;
+}
+body.light .popup-card .session-meta strong {
+  color: #ffffff !important;
+}
