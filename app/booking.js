@@ -1505,7 +1505,8 @@ export async function openCreateSessionSheet(){
   });
 
   setupCreateSessionSubmit();
-  setupCoachSelector();
+  // Coach selector sengaja dinonaktifkan sementara:
+  // form tetap terlihat, tetapi tidak menjalankan query Firestore atau memasang event listener.
 }
 
 /* ===============================
