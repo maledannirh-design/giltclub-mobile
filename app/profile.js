@@ -378,6 +378,20 @@ export async function renderAccountUI(){
     </button>
   </div>
   `;
+
+  <div class="member-access-overlay" id="memberAccessOverlay" onclick="if(event.target===this) closeMemberAccessModal()">
+    <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="memberAccessTitle">
+      <button class="member-access-close" type="button" aria-label="Tutup" onclick="closeMemberAccessModal()">×</button>
+      <div class="member-access-icon">🔒</div>
+      <h2 class="member-access-title" id="memberAccessTitle">Akses Khusus Member</h2>
+      <p class="member-access-text">Hanya member yang punya akses untuk menu ini</p>
+      <div class="member-access-actions">
+        <button type="button" class="member-access-register" onclick="closeMemberAccessModal(); document.getElementById('registerBtn')?.click()">Daftar</button>
+        <button type="button" class="member-access-login" onclick="closeMemberAccessModal(); document.getElementById('loginBtn')?.click()">Masuk</button>
+      </div>
+    </div>
+  </div>
+
   // =============================
   // PROFILE NAME & VERIFIED
   // =============================
@@ -425,7 +439,7 @@ const menuMembers  = document.getElementById("menuMembers");
 
   const requireMemberAccess = () => {
     if(auth.currentUser) return true;
-    alert("Hanya member yang punya akses untuk menu ini");
+    window.showMemberAccessModal?.();
     return false;
   };
 
@@ -1435,3 +1449,17 @@ window.renderChatUI = async function(roomId, targetUid){
     };
   }
 };
+
+
+window.showMemberAccessModal = function(){
+  const modal = document.getElementById("memberAccessOverlay");
+  if(!modal) return;
+  modal.classList.add("show");
+};
+window.closeMemberAccessModal = function(){
+  const modal = document.getElementById("memberAccessOverlay");
+  if(modal) modal.classList.remove("show");
+};
+document.addEventListener("keydown", event => {
+  if(event.key === "Escape") window.closeMemberAccessModal?.();
+});
