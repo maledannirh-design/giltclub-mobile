@@ -3786,3 +3786,28 @@ body.scan-mode{
 .verified-badge svg {
   image-rendering: -webkit-optimize-contrast;
 }
+
+
+/* Confirmation modal: readable in light mode while retaining the dark popup surface. */
+body.light .modal-box {
+  color: #fff;
+  background: #1e1e1e;
+}
+body.light .modal-title {
+  color: #fff;
+  font-size: 19px;
+  line-height: 1.4;
+}
+body.light .modal-message {
+  color: #f5f5f5;
+  font-size: 15px;
+  line-height: 1.65;
+  opacity: 1;
+}
+body.light .modal-message strong {
+  color: #fff;
+  font-weight: 700;
+}
+body.dark .modal-box {
+  color: inherit;
+}
