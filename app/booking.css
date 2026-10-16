@@ -1813,3 +1813,48 @@ html:not([data-theme="dark"]) .popup-card .matches-entry {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+
+/* Final light-theme palette: warm cream surfaces and clear green action buttons. */
+html:not([data-theme="dark"]) .popup-overlay {
+  background: #F5EAD5 !important;
+}
+html:not([data-theme="dark"]) .popup-card {
+  background: #FFF8E9 !important;
+  color: #2E5D3A !important;
+}
+html:not([data-theme="dark"]) .popup-card .popup-session-card {
+  background: #FFFDF7 !important;
+  border: 1px solid #E8DCC4 !important;
+}
+html:not([data-theme="dark"]) .popup-card .session-cashback-info,
+html:not([data-theme="dark"]) .popup-card .cashback-list {
+  background: #F5EAD5 !important;
+}
+html:not([data-theme="dark"]) .popup-card .matches-entry {
+  background: #F5EAD5 !important;
+  border: 1px solid #E2D2B3 !important;
+  color: #2E5D3A !important;
+}
+html:not([data-theme="dark"]) .popup-card .matches-entry .matches-text,
+html:not([data-theme="dark"]) .popup-card .matches-entry .matches-arrow {
+  color: #477653 !important;
+}
+html:not([data-theme="dark"]) .popup-card .close-popup-btn {
+  background: #E7F0E5 !important;
+  color: #214E2D !important;
+  border: 1px solid #C5DCC4 !important;
+  opacity: 1 !important;
+}
+html:not([data-theme="dark"]) .popup-card .cancel-join-btn,
+html:not([data-theme="dark"]) .popup-card .join-btn,
+html:not([data-theme="dark"]) .popup-card .edit-session-btn,
+html:not([data-theme="dark"]) .popup-card .checkin-btn {
+  background: #2E7D45 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #246638 !important;
+  opacity: 1 !important;
+}
+html:not([data-theme="dark"]) .popup-card button {
+  opacity: 1;
+}
