@@ -3990,3 +3990,14 @@ body.dark .modal-box {
   background:transparent;
   color:var(--color-text, #24543a);
 }
+
+.store-member-access-overlay {
+  pointer-events: none;
+  background: rgba(18,29,22,.42);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+.store-member-access-overlay .member-access-card,
+.store-member-access-overlay .member-access-close {
+  pointer-events: auto;
+}
