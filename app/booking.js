@@ -142,6 +142,28 @@ export async function renderBooking() {
   );
 }
 
+// Stop Firestore listeners when leaving the Booking page.
+export function cleanupBookingListeners(){
+  bookingRenderGeneration++;
+  upcomingScheduleRefreshGeneration++;
+
+  if (unsubscribeSchedules) {
+    unsubscribeSchedules();
+    unsubscribeSchedules = null;
+  }
+
+  if (unsubscribeBookings) {
+    unsubscribeBookings();
+    unsubscribeBookings = null;
+  }
+
+  bookingsListenerUserId = null;
+  userBookings = [];
+  calendarSchedules = [];
+  upcomingBookedSchedules = [];
+  allSchedules = [];
+}
+
 /* ===============================
    FULL UI
 ================================= */
