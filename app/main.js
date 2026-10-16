@@ -527,6 +527,7 @@ onAuthStateChanged(auth, async (user)=>{
   if(!user){
 
     if(window.stopAllListeners) window.stopAllListeners();
+    if(window.stopHomeListeners) window.stopHomeListeners();
     if(window.stopStoreListeners) window.stopStoreListeners();
 
     if(unsubscribeAttendance){
