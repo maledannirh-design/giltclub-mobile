@@ -526,6 +526,9 @@ onAuthStateChanged(auth, async (user)=>{
   // 🔥 PRIORITAS: LOGOUT HARUS INSTAN
   if(!user){
 
+    if(window.stopAllListeners) window.stopAllListeners();
+    if(window.stopStoreListeners) window.stopStoreListeners();
+
     if(unsubscribeAttendance){
       unsubscribeAttendance();
       unsubscribeAttendance = null;
