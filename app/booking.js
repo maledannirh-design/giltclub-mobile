@@ -134,7 +134,16 @@ export async function renderBooking() {
         ...d.data()
       }));
       mergeScheduleLists();
-      renderFullUI();
+
+      // Keep the session popup open when a slot is locked/unlocked.
+      // Refresh the popup contents for the selected date instead of replacing it with the calendar.
+      const popup = document.getElementById("popupContainer");
+      const openDate = popup?.dataset?.date;
+      if (popup && popup.innerHTML.trim() && openDate) {
+        openSessionPopup(openDate);
+      } else {
+        renderFullUI();
+      }
     },
     (error) => {
       console.error("Monthly schedules listener failed:", error);
@@ -470,6 +479,8 @@ async function openSessionPopup(dateStr) {
       console.error("Failed to fetch role", e);
     }
   }
+
+  popup.dataset.date = dateStr;
 
   const sessions = allSchedules
     .filter(s => s.date === dateStr)
