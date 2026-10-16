@@ -4015,7 +4015,4 @@ body.store-gate-open .bottom-nav {
   z-index: 10060;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-/* Visitor teaser mode: keep only Skill and Store visible in bottom navigation. */
-body.store-gate-open .bottom-nav button:not([data-page="skill"]):not([data-page="store"]) {
-  display: none;
-}
+/* Keep every bottom navigation item visible so visitors can reach login/account. */
