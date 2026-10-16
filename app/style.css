@@ -3992,9 +3992,9 @@ body.dark .modal-box {
 }
 
 .store-member-access-overlay {
-  pointer-events: auto;
-  touch-action: auto;
-  overscroll-behavior: contain;
+  pointer-events: none;
+  touch-action: pan-y;
+  overscroll-behavior: auto;
   background: rgba(18,29,22,.30);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
@@ -4002,4 +4002,8 @@ body.dark .modal-box {
 .store-member-access-overlay .member-access-card {
   pointer-events: auto;
   touch-action: manipulation;
+}
+/* Allow Store scrolling and bottom navigation, but block Store controls under the fixed modal. */
+body.store-gate-open #content {
+  pointer-events: none;
 }
