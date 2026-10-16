@@ -159,6 +159,50 @@ export async function renderStore() {
   checkStoreApplication();
   watchInboxBadge();
   updateCartBadge();
+
+  // Visitors can browse the Store, but see the member-access modal over it.
+  if(!auth.currentUser) showStoreMemberAccessModal();
+}
+
+function showStoreMemberAccessModal(){
+  let overlay = document.getElementById("storeMemberAccessOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "storeMemberAccessOverlay";
+    overlay.className = "member-access-overlay store-member-access-overlay";
+    overlay.innerHTML = `
+      <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="storeMemberAccessTitle">
+        <button type="button" class="member-access-close" aria-label="Tutup">×</button>
+        <div class="member-access-icon">🔒</div>
+        <h2 class="member-access-title" id="storeMemberAccessTitle">Akses Khusus Member</h2>
+        <div class="member-access-actions">
+          <div class="member-access-option">
+            <button type="button" class="member-access-register">Daftar</button>
+            <p>Belum jadi anggota? Klik daftar</p>
+          </div>
+          <div class="member-access-option">
+            <button type="button" class="member-access-login">Masuk</button>
+            <p>Sudah punya akun? Klik masuk</p>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".member-access-close").addEventListener("click", () => overlay.classList.remove("show"));
+    overlay.querySelector(".member-access-register").addEventListener("click", async () => {
+      overlay.classList.remove("show");
+      const { navigate } = await import("../navigation.js");
+      await navigate("account");
+      document.getElementById("registerBtn")?.click();
+    });
+    overlay.querySelector(".member-access-login").addEventListener("click", async () => {
+      overlay.classList.remove("show");
+      const { navigate } = await import("../navigation.js");
+      await navigate("account");
+      document.getElementById("loginBtn")?.click();
+    });
+  }
+  overlay.classList.add("show");
 }
 
 async function checkStoreApplication(){
