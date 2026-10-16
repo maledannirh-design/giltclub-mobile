@@ -14,6 +14,13 @@ import { listenBroadcast } from "./broadcastListener.js";
 
 
 let userUnsubscribe = null;
+
+window.stopHomeListeners = function(){
+  if(userUnsubscribe){
+    userUnsubscribe();
+    userUnsubscribe = null;
+  }
+};
 let dailyLock = false;
 let broadcastStarted = false;
 
@@ -167,6 +174,12 @@ content.innerHTML = `
       }
     });
 
+  }, (err)=>{
+    if(err.code === "permission-denied" && !auth.currentUser){
+      console.log("Home user listener stopped after logout");
+      return;
+    }
+    console.error("Home user listener error:", err);
   });
 
   // =============================
