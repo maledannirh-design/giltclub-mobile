@@ -423,8 +423,15 @@ const menuSosial   = document.getElementById("menuSosial");
 const menuPrivasi  = document.getElementById("menuPrivasi");
 const menuMembers  = document.getElementById("menuMembers");
 
+  const requireMemberAccess = () => {
+    if(auth.currentUser) return true;
+    alert("Hanya member yang punya akses untuk menu ini");
+    return false;
+  };
+
   if(menuKeamanan){
     menuKeamanan.onclick = async ()=>{
+      if(!requireMemberAccess()) return;
       const module = await import("./akun/keamanan.js");
       module.renderKeamanan();
     };
@@ -432,6 +439,7 @@ const menuMembers  = document.getElementById("menuMembers");
 
   if(menuProfil){
     menuProfil.onclick = async ()=>{
+      if(!requireMemberAccess()) return;
       const module = await import("./akun/profil.js");
       module.renderProfil();
     };
@@ -439,21 +447,23 @@ const menuMembers  = document.getElementById("menuMembers");
 
   if(menuSosial){
     menuSosial.onclick = async ()=>{
+      if(!requireMemberAccess()) return;
       const module = await import("./akun/sosial.js");
       module.renderSosial();
     };
   }
-  
 
   if(menuPrivasi){
     menuPrivasi.onclick = async ()=>{
+      if(!requireMemberAccess()) return;
       const module = await import("./akun/privasi.js");
       module.renderPrivasi();
     };
   }
   if(menuMembers){
-  menuMembers.onclick = ()=>{
-    renderMembers();
+    menuMembers.onclick = ()=>{
+      if(!requireMemberAccess()) return;
+      renderMembers();
     };
   }
 }
