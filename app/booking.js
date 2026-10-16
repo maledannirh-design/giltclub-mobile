@@ -179,7 +179,8 @@ export function cleanupBookingListeners(){
 function renderFullUI() {
 
   const oldPopup = document.getElementById("popupContainer");
-  const openDate = oldPopup?.innerHTML.trim() ? oldPopup.dataset.date : null;
+  // Preserve selected session even if an async Firestore callback has temporarily cleared popup markup.
+  const openDate = oldPopup?.dataset?.date || null;
   const content = document.getElementById("content");
   if (!content) return;
 
