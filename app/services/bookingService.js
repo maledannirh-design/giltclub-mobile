@@ -64,6 +64,19 @@ export async function createBooking({
   const userRef = doc(db, "users", userId);
   const bookingsCol = collection(db, "bookings");
   const mutationsCol = collection(db, "walletMutations");
+  // Firestore transactions support document reads, not query reads in this SDK.
+  // Query legacy bookings before the transaction, then use a deterministic guard document atomically.
+  const existingBookingQuery = query(
+    bookingsCol,
+    where("userId", "==", userId),
+    where("scheduleId", "==", scheduleId),
+    where("status", "==", "active")
+  );
+  const existingBookingSnap = await getDocs(existingBookingQuery);
+  if (!existingBookingSnap.empty) {
+    throw new Error("Kamu sudah terdaftar di sesi ini.");
+  }
+  const bookingGuardRef = doc(db, "bookingGuards", `${scheduleId}_${userId}`);
 
   await runTransaction(db, async (transaction) => {
 
@@ -72,16 +85,8 @@ export async function createBooking({
 
     const scheduleData = scheduleSnap.data();
 
-    // Enforce one active booking per member per session inside the transaction.
-    // This protects both entry paths (Join button and empty slot), including rapid/double clicks.
-    const existingBookingQuery = query(
-      bookingsCol,
-      where("userId", "==", userId),
-      where("scheduleId", "==", scheduleId),
-      where("status", "==", "active")
-    );
-    const existingBookingSnap = await transaction.get(existingBookingQuery);
-    if (!existingBookingSnap.empty) {
+    const guardSnap = await transaction.get(bookingGuardRef);
+    if (guardSnap.exists() && guardSnap.data().status === "active") {
       throw new Error("Kamu sudah terdaftar di sesi ini.");
     }
 
@@ -129,6 +134,14 @@ export async function createBooking({
     // BOOKING CREATE
     // =========================
     const bookingRef = doc(bookingsCol);
+
+    transaction.set(bookingGuardRef, {
+      userId,
+      scheduleId,
+      bookingId: bookingRef.id,
+      status: "active",
+      updatedAt: serverTimestamp()
+    });
 
     transaction.set(bookingRef, {
       userId,
@@ -260,6 +273,15 @@ export async function cancelBooking({
     else penaltyAmount = originalPrice;
 
     penaltyAmount = Math.floor(penaltyAmount);
+
+    const bookingGuardRef = doc(db, "bookingGuards", `${bookingData.scheduleId}_${bookingData.userId}`);
+    transaction.set(bookingGuardRef, {
+      userId: bookingData.userId,
+      scheduleId: bookingData.scheduleId,
+      bookingId,
+      status: "cancelled",
+      updatedAt: serverTimestamp()
+    }, { merge: true });
 
     transaction.update(bookingRef, {
       status: "cancelled",
