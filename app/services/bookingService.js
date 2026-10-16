@@ -70,6 +70,20 @@ export async function createBooking({
     if (!scheduleSnap.exists()) throw new Error("Schedule not found");
 
     const scheduleData = scheduleSnap.data();
+
+    // Enforce one active booking per member per session inside the transaction.
+    // This protects both entry paths (Join button and empty slot), including rapid/double clicks.
+    const existingBookingQuery = query(
+      bookingsCol,
+      where("userId", "==", userId),
+      where("scheduleId", "==", scheduleId),
+      where("status", "==", "active")
+    );
+    const existingBookingSnap = await transaction.get(existingBookingQuery);
+    if (!existingBookingSnap.empty) {
+      throw new Error("Kamu sudah terdaftar di sesi ini.");
+    }
+
     const availableSlots =
       scheduleData.slots ?? scheduleData.maxPlayers ?? 0;
 
