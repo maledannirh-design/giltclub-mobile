@@ -1200,7 +1200,10 @@ window.handleLogout = async function(){
 
     // 🔥 stop semua listener
     if(window.stopAllListeners){
-      stopAllListeners();
+      window.stopAllListeners();
+    }
+    if(window.stopStoreListeners){
+      window.stopStoreListeners();
     }
 
     // 🔥 tutup modal
