@@ -1098,81 +1098,12 @@ document.querySelectorAll(".join-btn").forEach(btn => {
         });
 
         showToast("Booking dibatalkan","success");
-        renderBooking();
         bookingLock = false;
         return;
       }
 
-      /* ===============================
-         JOIN FLOW
-      =============================== */
-
-      let racketQty = 0;
-      let racketTotal = 0;
-
-      if (s.racketStock && s.racketStock > 0) {
-
-        const selectedQty = await window.openRacketSelector(s);
-
-        if (selectedQty === null) {
-          bookingLock = false;
-          return;
-        }
-
-        racketQty = selectedQty;
-        racketTotal = racketQty * (s.racketPrice || 0);
-      }
-
-      // HITUNG DURASI
-      const [startH, startM] = s.startTime.split(":").map(Number);
-      const [endH, endM] = s.endTime.split(":").map(Number);
-
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-      const totalMinutes = endMinutes - startMinutes;
-
-      const billedHours = Math.ceil(totalMinutes / 60);
-      const sessionTotal =
-        billedHours * (s.pricePerHour || 0);
-
-      const totalPayment = sessionTotal + racketTotal;
-
-      const confirmed = await showConfirm({
-        title: "Konfirmasi Join Sesi",
-        message: `
-          Total sesi:
-          <br><strong>Rp ${sessionTotal.toLocaleString("id-ID")}</strong>
-          <br><br>
-          Total raket:
-          <br><strong>Rp ${racketTotal.toLocaleString("id-ID")}</strong>
-          <br><br>
-          Total pembayaran:
-          <br><strong>Rp ${totalPayment.toLocaleString("id-ID")}</strong>
-        `,
-        confirmText: "Ya, Bayar",
-        cancelText: "Tidak"
-      });
-
-      if (!confirmed) {
-        bookingLock = false;
-        return;
-      }
-
-      const pin = await requestTransactionPin();
-      if (!pin) {
-        bookingLock = false;
-        return;
-      }
-
-      await createBooking({
-        userId: currentUser.uid,
-        scheduleId: scheduleId,
-        racketQty: racketQty,
-        pin: pin
-      });
-
-      showToast("Berhasil join sesi","success");
-      renderBooking();
+      /* JOIN FLOW: shared price/racket/confirmation flow */
+      await runMemberBookingFlow({ scheduleId, schedule: s });
 
     } catch (err) {
 
@@ -1186,6 +1117,77 @@ document.querySelectorAll(".join-btn").forEach(btn => {
   };
 
 });
+}
+
+/* Shared member booking flow for Join button and empty-slot entry. */
+async function runMemberBookingFlow({ scheduleId, schedule, slotIndex = null }) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showToast("Login terlebih dahulu", "warning");
+    return;
+  }
+
+  // Refresh authoritative session data before presenting price/stock choices.
+  const scheduleSnap = await getDoc(doc(db, "schedules", scheduleId));
+  if (!scheduleSnap.exists()) throw new Error("Sesi tidak ditemukan");
+  const s = { id: scheduleSnap.id, ...scheduleSnap.data() };
+
+  const existing = await getDocs(query(
+    collection(db, "bookings"),
+    where("userId", "==", currentUser.uid),
+    where("scheduleId", "==", scheduleId),
+    where("status", "==", "active")
+  ));
+  if (!existing.empty) throw new Error("Kamu sudah terdaftar di sesi ini.");
+
+  if ((s.slots ?? s.maxPlayers ?? 0) <= 0) throw new Error("Slot penuh");
+  if (s.status === "closed") throw new Error("Sesi sudah ditutup");
+
+  let racketQty = 0;
+  let racketTotal = 0;
+  if ((s.racketStock || 0) > 0) {
+    const selectedQty = await window.openRacketSelector(s);
+    if (selectedQty === null) return;
+    racketQty = selectedQty;
+    racketTotal = racketQty * (s.racketPrice || 0);
+  }
+
+  const [startH, startM] = (s.startTime || "00:00").split(":").map(Number);
+  const [endH, endM] = (s.endTime || "00:00").split(":").map(Number);
+  const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+  if (durationMinutes <= 0) throw new Error("Durasi sesi tidak valid");
+  const sessionTotal = Math.ceil(durationMinutes / 60) * (s.pricePerHour || 0);
+  const totalPayment = sessionTotal + racketTotal;
+
+  const confirmed = await showConfirm({
+    title: "Konfirmasi Join Sesi",
+    message: `
+      Total sesi:
+      <br><strong>Rp ${sessionTotal.toLocaleString("id-ID")}</strong>
+      <br><br>
+      Total raket:
+      <br><strong>Rp ${racketTotal.toLocaleString("id-ID")}</strong>
+      <br><br>
+      Total pembayaran:
+      <br><strong>Rp ${totalPayment.toLocaleString("id-ID")}</strong>
+    `,
+    confirmText: "Ya, Bayar",
+    cancelText: "Tidak"
+  });
+  if (!confirmed) return;
+
+  const pin = await requestTransactionPin();
+  if (!pin) return;
+
+  await createBooking({
+    userId: currentUser.uid,
+    scheduleId,
+    racketQty,
+    slotIndex,
+    pin
+  });
+  showToast("Berhasil join sesi", "success");
+  // Do not call renderBooking(): the existing snapshot updates the open session modal.
 }
 
 /* ===============================
@@ -1224,36 +1226,18 @@ async function attachSlotInteraction(currentUserRole) {
       ================================================= */
       if (slot.classList.contains("empty-slot")) {
 
-      // MEMBER → BOOKING
+      // MEMBER → use the same booking flow as the Join button, but preserve this slot index.
 if (!isPrivileged) {
-
+  if (bookingLock) return;
+  bookingLock = true;
   try {
-
-    const confirmed = await showConfirm({
-      title: "Gabung Sesi",
-      message: "Lanjutkan booking sesi ini?",
-      confirmText: "Ya",
-      cancelText: "Batal"
-    });
-
-    if (!confirmed) return;
-
-    const pin = await requestTransactionPin();
-    if (!pin) return;
-
-    await createBooking({
-      userId: currentUser.uid,
-      scheduleId: scheduleId,
-      pin: pin
-    });
-
-    showToast("Berhasil join sesi","success");
-    renderBooking();
-
+    await runMemberBookingFlow({ scheduleId, schedule: scheduleData, slotIndex: index });
   } catch (err) {
-    showToast(err.message || "Gagal join","error");
+    console.error(err);
+    showToast(err.message || "Gagal join", "error");
+  } finally {
+    bookingLock = false;
   }
-
   return;
 }
 
