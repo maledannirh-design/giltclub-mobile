@@ -45,6 +45,51 @@ let playerMap = {};
 let currentScheduleId = null;
 let globalPlayerMap = null;
 
+
+// Reusable member-access modal for actions outside the Account page.
+function showMemberAccessPopup(){
+  let overlay = document.getElementById("bookingMemberAccessOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "bookingMemberAccessOverlay";
+    overlay.className = "member-access-overlay";
+    overlay.innerHTML = `
+      <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="bookingMemberAccessTitle">
+        <button type="button" class="member-access-close" aria-label="Tutup">×</button>
+        <div class="member-access-icon">🔒</div>
+        <h2 class="member-access-title" id="bookingMemberAccessTitle">Akses Khusus Member</h2>
+        <div class="member-access-actions">
+          <div class="member-access-option">
+            <button type="button" class="member-access-register">Daftar</button>
+            <p>Belum jadi anggota? Klik daftar</p>
+          </div>
+          <div class="member-access-option">
+            <button type="button" class="member-access-login">Masuk</button>
+            <p>Sudah punya akun? Klik masuk</p>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const close = () => overlay.classList.remove("show");
+    overlay.addEventListener("click", event => { if(event.target === overlay) close(); });
+    overlay.querySelector(".member-access-close").addEventListener("click", close);
+    overlay.querySelector(".member-access-register").addEventListener("click", async () => {
+      close();
+      const nav = await import("./navigation.js");
+      await nav.navigate("account");
+      document.getElementById("registerBtn")?.click();
+    });
+    overlay.querySelector(".member-access-login").addEventListener("click", async () => {
+      close();
+      const nav = await import("./navigation.js");
+      await nav.navigate("account");
+      document.getElementById("loginBtn")?.click();
+    });
+  }
+  overlay.classList.add("show");
+}
+
 /* ===============================
    RENDER BOOKING PAGE
 ================================= */
@@ -904,6 +949,12 @@ document.querySelectorAll(".matches-entry").forEach(el=>{
   el.onclick = ()=>{
     const id = el.dataset.id;
     if(!id) return;
+
+    // Visitors must sign in before loading booking/member match data.
+    if(!auth.currentUser){
+      showMemberAccessPopup();
+      return;
+    }
 
     openMatchesPage(id);
   };
