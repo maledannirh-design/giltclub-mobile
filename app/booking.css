@@ -1753,3 +1753,30 @@ body.light .popup-card .matches-entry * {
   opacity: 1 !important;
   text-shadow: none !important;
 }
+
+
+/* FINAL OVERRIDE: solid light-theme modal surfaces, no glass/blur. */
+body.light .popup-overlay {
+  background: #F3F3F3 !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body.light .popup-card {
+  background: #FFFFFF !important;
+  opacity: 1 !important;
+}
+body.light .popup-card .popup-session-card {
+  background: #F2F2F2 !important;
+  opacity: 1 !important;
+  border: 1px solid #D9D9D9 !important;
+}
+body.light .popup-card .matches-entry {
+  background: #E5E5E5 !important;
+  opacity: 1 !important;
+}
+body.light .popup-card .matches-entry,
+body.light .popup-card .matches-entry * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
