@@ -3,7 +3,6 @@ import { login, register, logout } from "./auth.js";
 import { showToast } from "./ui.js";
 let currentUserData = null;
 
-
 import {
   doc, updateDoc, where, collection, query, increment,
   orderBy, onSnapshot, getDocs, runTransaction,
