@@ -48,7 +48,6 @@ export async function renderHome(){
 ============================= */
 content.innerHTML = `
   <div class="home-container">
-    ${await renderActivitySummaryCard()}
 
     <div class="home-header">
 
@@ -119,6 +118,7 @@ content.innerHTML = `
 
     </div>
     ${renderVerifiedProgress(userData)}
+    ${await renderActivitySummaryCard()}
 
   </div>
 `;
