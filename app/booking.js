@@ -36,6 +36,7 @@ let upcomingBookedSchedules = [];
 let userBookings = [];
 let currentMonth = new Date();
 let selectedSport = "all";
+let selectedSessionDate = null;
 let slideDirection = "next";
 let players = [];
 let matches = [];
@@ -153,6 +154,7 @@ export async function renderBooking() {
 
 // Stop Firestore listeners when leaving the Booking page.
 export function cleanupBookingListeners(){
+  selectedSessionDate = null;
   bookingRenderGeneration++;
   upcomingScheduleRefreshGeneration++;
 
@@ -178,9 +180,8 @@ export function cleanupBookingListeners(){
 ================================= */
 function renderFullUI() {
 
-  const oldPopup = document.getElementById("popupContainer");
-  // Preserve selected session even if an async Firestore callback has temporarily cleared popup markup.
-  const openDate = oldPopup?.dataset?.date || null;
+  // Keep selected session in module state; popup DOM may be replaced by async listeners.
+  const openDate = selectedSessionDate;
   const content = document.getElementById("content");
   if (!content) return;
 
@@ -467,6 +468,8 @@ function renderCalendarMonth() {
 ================================= */
 async function openSessionPopup(dateStr) {
 
+  // Set synchronously before any await, so concurrent snapshot renders retain the selected date.
+  selectedSessionDate = dateStr;
   const popup = document.getElementById("popupContainer");
   if (!popup) return;
 
@@ -1571,7 +1574,11 @@ function attachGlobalEvents(){
     // ===== Tutup popup sesi =====
     if (e.target.id === "closePopup") {
       const popup = document.getElementById("popupContainer");
-      if(popup) popup.innerHTML = "";
+      if(popup) {
+        popup.innerHTML = "";
+        delete popup.dataset.date;
+      }
+      selectedSessionDate = null;
       return;
     }
 
