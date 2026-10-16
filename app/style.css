@@ -3995,15 +3995,22 @@ body.dark .modal-box {
   pointer-events: none;
   touch-action: pan-y;
   overscroll-behavior: auto;
-  background: rgba(18,29,22,.30);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .store-member-access-overlay .member-access-card {
   pointer-events: auto;
   touch-action: manipulation;
 }
-/* Allow Store scrolling and bottom navigation, but block Store controls under the fixed modal. */
+/* Blur only the Store content. Bottom navigation stays clear and clickable. */
 body.store-gate-open #content {
-  pointer-events: none;
+  filter: blur(5px);
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+body.store-gate-open .bottom-nav {
+  filter: none;
+  pointer-events: auto;
+  z-index: 10060;
 }
