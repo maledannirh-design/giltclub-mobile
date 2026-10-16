@@ -3993,11 +3993,19 @@ body.dark .modal-box {
 
 .store-member-access-overlay {
   pointer-events: none;
-  background: rgba(18,29,22,.42);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
+  touch-action: pan-y;
+  overscroll-behavior: auto;
+  background: rgba(18,29,22,.30);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 .store-member-access-overlay .member-access-card,
 .store-member-access-overlay .member-access-close {
   pointer-events: auto;
+  touch-action: manipulation;
+}
+/* Keep the Store page scrollable while the visitor modal floats above it. */
+#content:has(.gilt-store-banner) {
+  touch-action: pan-y;
+  overscroll-behavior-y: auto;
 }
