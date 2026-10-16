@@ -1701,3 +1701,27 @@ body.light .popup-card p {
 body.light .popup-card .session-meta strong {
   color: #2E5D3A !important;
 }
+
+
+/* Light theme: make the Matches entry card distinct from the blurred backdrop. */
+body.light .popup-card .matches-entry {
+  background: #F2F7F3 !important;
+  border: 1px solid rgba(46, 93, 58, 0.18) !important;
+  box-shadow: 0 2px 8px rgba(28, 55, 35, 0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body.light .popup-card .matches-entry > div,
+body.light .popup-card .matches-entry div[style],
+body.light .popup-card .matches-entry .matches-text,
+body.light .popup-card .matches-entry .matches-arrow {
+  color: #2E5D3A !important;
+  opacity: 1 !important;
+}
+body.light .popup-card .matches-entry .matches-text {
+  font-size: 13px;
+  line-height: 1.5;
+}
+body.light .popup-card .matches-entry .matches-arrow {
+  font-weight: 700;
+}
