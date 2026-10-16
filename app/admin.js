@@ -9,6 +9,7 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
+  setDoc,
   deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { sendAdminBroadcast } from "./broadcast.js";
@@ -173,6 +174,8 @@ export async function renderAdmin() {
   </div>
 
   <hr style="margin:30px 0;">
+  <div class="admin-card"><h3>Statistics Control</h3><p style="font-size:13px;opacity:.7;line-height:1.5;">Perbarui ringkasan aktivitas publik yang tampil di Teras dan website. Proses hanya berjalan saat tombol ditekan.</p><button id="refreshActivitySummaryBtn" class="admin-btn" style="margin-top:12px;">Refresh Statistic</button><div id="activitySummaryRefreshStatus" style="font-size:12px;margin-top:10px;"></div></div>
+  <hr style="margin:30px 0;">
   <div id="adminBalanceAdjustment"></div>
   `;
 
@@ -187,6 +190,9 @@ export async function renderAdmin() {
 
   const productBtn = document.getElementById("openProductAdmin");
   if(productBtn) productBtn.onclick = openProductAdmin;
+
+  const refreshActivitySummaryBtn = document.getElementById("refreshActivitySummaryBtn");
+  if (refreshActivitySummaryBtn) refreshActivitySummaryBtn.onclick = refreshActivitySummary;
 
   document.getElementById("adminBalanceAdjustment").innerHTML = `
   <div class="admin-card">
@@ -206,6 +212,39 @@ document.getElementById("loadUsersBtn").onclick = async () => {
 };
   await initBroadcastUI();
 }
+
+async function refreshActivitySummary(){
+  const btn=document.getElementById("refreshActivitySummaryBtn"), status=document.getElementById("activitySummaryRefreshStatus");
+  if(!btn||!status||!confirm("Hitung ulang Activity Summary dari koleksi schedules sekarang?")) return;
+  btn.disabled=true; btn.textContent="Refreshing..."; status.style.color="#64748b"; status.textContent="Membaca data jadwal...";
+  try{
+    const snap=await getDocs(collection(db,"schedules"));
+    const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Makassar",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+    const v=Object.fromEntries(parts.map(p=>[p.type,p.value])), todayWita=`${v.year}-${v.month}-${v.day}`;
+    const mins=(startTime,endTime)=>{
+      const parse=x=>{if(typeof x!=="string")return NaN;const m=x.match(/^(\d{1,2}):(\d{2})/);return m?Number(m[1])*60+Number(m[2]):NaN;};
+      const duration=parse(endTime)-parse(startTime);return Number.isFinite(duration)&&duration>0&&duration<=1440?duration:0;
+    };
+    let sessionsHosted=0,playerAttendances=0,courtMinutesPlayed=0;
+    snap.forEach(item=>{
+      const s=item.data(); if(typeof s.date!=="string"||!s.date||s.date>todayWita)return;
+      const max=Number(s.maxPlayers),remaining=Number(s.slots);if(!Number.isFinite(max)||!Number.isFinite(remaining))return;
+      const filled=Math.max(0,Math.min(max,max-remaining));if(filled<=0)return;
+      sessionsHosted++;playerAttendances+=filled;courtMinutesPlayed+=mins(s.startTime,s.endTime);
+    });
+    const courtHoursPlayed=Math.round(courtMinutesPlayed/60*10)/10;
+    await setDoc(doc(db,"websiteStats","ActivitySummary"),{
+      sessionsHosted,playerAttendances,courtHoursPlayed,source:"schedules",
+      attendanceDefinition:"sum(maxPlayers - slots) for past sessions with at least one filled slot",
+      generatedAt:serverTimestamp(),generatedDateWita:todayWita,
+      scheduleDocumentsScanned:snap.size,refreshedBy:auth.currentUser?.uid||null
+    });
+    status.style.color="#16803d";status.textContent=`Berhasil: ${sessionsHosted} sesi, ${playerAttendances} player attendances, ${courtHoursPlayed} jam lapangan. Teras publik dan website akan membaca ringkasan ini.`;
+  }catch(error){
+    console.error("Refresh Activity Summary failed:",error);status.style.color="#dc2626";status.textContent="Gagal refresh. Periksa kuota Firestore dan izin akses, lalu coba lagi.";
+  }finally{btn.disabled=false;btn.textContent="Refresh Statistic";}
+}
+
 /* =====================================================
    BALANCE ADJUSTMENT (NEW ENGINE)
 ===================================================== */
