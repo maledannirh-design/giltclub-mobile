@@ -1,10 +1,57 @@
+import { auth } from "./firebase.js";
 import { toggleTheme } from "./theme.js";
 import { renderChampionClubPage } from "./championClub.js";
 
 let navLock = false;
 let currentPage = null;
 
+function showMemberAccessForChat(){
+  let overlay = document.getElementById("memberAccessGateOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "memberAccessGateOverlay";
+    overlay.className = "member-access-overlay";
+    overlay.innerHTML = `
+      <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="memberAccessGateTitle">
+        <button type="button" class="member-access-close" aria-label="Tutup">×</button>
+        <div class="member-access-icon">🔒</div>
+        <h2 class="member-access-title" id="memberAccessGateTitle">Akses Khusus Member</h2>
+        <div class="member-access-actions">
+          <div class="member-access-option">
+            <button type="button" class="member-access-register">Daftar</button>
+            <p>Belum jadi anggota? Klik daftar</p>
+          </div>
+          <div class="member-access-option">
+            <button type="button" class="member-access-login">Masuk</button>
+            <p>Sudah punya akun? Klik masuk</p>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const close = () => overlay.classList.remove("show");
+    overlay.addEventListener("click", e => { if(e.target === overlay) close(); });
+    overlay.querySelector(".member-access-close").addEventListener("click", close);
+    overlay.querySelector(".member-access-register").addEventListener("click", async () => {
+      close();
+      await navigate("account");
+      document.getElementById("registerBtn")?.click();
+    });
+    overlay.querySelector(".member-access-login").addEventListener("click", async () => {
+      close();
+      await navigate("account");
+      document.getElementById("loginBtn")?.click();
+    });
+  }
+  overlay.classList.add("show");
+}
+
 export async function navigate(page){
+
+  if(page === "chat" && !auth.currentUser){
+    showMemberAccessForChat();
+    return;
+  }
 
   if (navLock) return;
   if (page === currentPage) return;
