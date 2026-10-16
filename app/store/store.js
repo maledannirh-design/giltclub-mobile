@@ -39,6 +39,27 @@ let warWatcherStarted = false;
 let currentFlashList = [];
 
 let productsWatcher = null;
+const storeUnsubscribers = new Set();
+
+function trackedOnSnapshot(...args){
+  const unsubscribe = onSnapshot(...args);
+  storeUnsubscribers.add(unsubscribe);
+  return () => {
+    unsubscribe();
+    storeUnsubscribers.delete(unsubscribe);
+  };
+}
+
+window.stopStoreListeners = function(){
+  storeUnsubscribers.forEach(unsubscribe => {
+    try { unsubscribe(); } catch (err) { console.warn('Store listener cleanup error:', err); }
+  });
+  storeUnsubscribers.clear();
+  productsWatcher = null;
+  inboxBadgeWatcherStarted = false;
+  warWatcherStarted = false;
+  console.log('Store listeners stopped');
+};
 
 /* ===============================
    MAIN ENTRY
@@ -193,7 +214,7 @@ function renderProducts(){
     where("active","==",true)
   );
 
-  productsWatcher = onSnapshot(q,(snapshot)=>{
+  productsWatcher = trackedOnSnapshot(q,(snapshot)=>{
 
     container.innerHTML = "";
 
@@ -671,7 +692,7 @@ function renderFlash(){
   where("active","==",true)
 );
 
-  onSnapshot(q, async (snapshot)=>{
+  trackedOnSnapshot(q, async (snapshot)=>{
 
     container.innerHTML = "";
 
@@ -1388,7 +1409,7 @@ async function watchInboxBadge(){
     where("status","==","unused")
   );
 
-  onSnapshot(q,(snap)=>{
+  trackedOnSnapshot(q,(snap)=>{
 
     const count = snap.size;
 
