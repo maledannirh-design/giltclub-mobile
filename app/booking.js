@@ -1577,6 +1577,12 @@ export async function setupCreateSessionSubmit(){
 
   btn.onclick = async ()=>{
 
+    // Prevent rapid repeated clicks from creating duplicate schedule documents.
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const originalLabel = btn.textContent;
+    btn.textContent = "Menyimpan...";
+
     try{
 
       const tier        = document.getElementById("tier").value;
@@ -1665,6 +1671,9 @@ export async function setupCreateSessionSubmit(){
 
     }catch(err){
       showToast(err.message || "Gagal membuat sesi","error");
+    }finally{
+      btn.disabled = false;
+      btn.textContent = originalLabel || "Buat Sesi";
     }
 
   };
