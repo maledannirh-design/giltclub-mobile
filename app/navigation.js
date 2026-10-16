@@ -13,6 +13,9 @@ export async function navigate(page){
   const previousPage = currentPage;
 
   try {
+    if (previousPage === "home" && page !== "home" && window.stopHomeListeners) {
+      window.stopHomeListeners();
+    }
     if (previousPage === "booking" && page !== "booking") {
       const bookingModule = await import("./booking.js");
       bookingModule.cleanupBookingListeners();
