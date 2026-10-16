@@ -295,18 +295,24 @@ html, body {
   left: 0;
   right: 0;
 
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  justify-content: stretch;
+  align-items: stretch;
 
   padding: 8px 0;
+  box-sizing: border-box;
 
   background: var(--color-card);
   border-top: 1px solid var(--color-border);
 }
 
 .bottom-nav button {
-  flex: 1;
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
   background: transparent;
   border: none;
 
@@ -327,7 +333,7 @@ html, body {
 
 .bottom-nav button.active {
   color: var(--color-highlight);
-  transform: translateY(-3px);
+  transform:none;
 }
 
 /* ================= TOAST ================= */
@@ -427,6 +433,18 @@ html, body {
   margin-top:18px;
   display:flex;
   gap:12px;
+  width:100%;
+  align-items:stretch;
+}
+
+.account-actions > button{
+  flex:1 1 0 !important;
+  width:auto !important;
+  min-width:0;
+  max-width:none;
+  margin:0;
+  padding:12px 4px;
+  box-sizing:border-box;
 }
 
 .btn-secondary{
