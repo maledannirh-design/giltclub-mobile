@@ -4013,6 +4013,12 @@ body.store-gate-open .bottom-nav {
   filter: none;
   pointer-events: auto;
   z-index: 10060;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  grid-auto-flow: column !important;
+}
+body.store-gate-open .bottom-nav button {
+  display: grid !important;
+  min-width: 0;
 }
 /* Keep every bottom navigation item visible so visitors can reach login/account. */
