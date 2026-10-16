@@ -3992,20 +3992,14 @@ body.dark .modal-box {
 }
 
 .store-member-access-overlay {
-  pointer-events: none;
-  touch-action: pan-y;
-  overscroll-behavior: auto;
+  pointer-events: auto;
+  touch-action: auto;
+  overscroll-behavior: contain;
   background: rgba(18,29,22,.30);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
 }
-.store-member-access-overlay .member-access-card,
-.store-member-access-overlay .member-access-close {
+.store-member-access-overlay .member-access-card {
   pointer-events: auto;
   touch-action: manipulation;
-}
-/* Keep the Store page scrollable while the visitor modal floats above it. */
-#content:has(.gilt-store-banner) {
-  touch-action: pan-y;
-  overscroll-behavior-y: auto;
 }
