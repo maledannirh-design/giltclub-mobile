@@ -127,7 +127,18 @@ case "skill":
 
   if(!user){
     showSkillMemberAccess();
-    content.innerHTML = `<section class="skill-wrapper skill-visitor-preview"><h2>GMTC Skill</h2><p>Kenali level dan perkembangan skill tenis member GMTC.</p><div class="skill-preview-levels"><div>🎾 Newbie</div><div>🎾 Beginner</div><div>🎾 Upper Beginner</div><div>🎾 Intermediate</div></div></section>`;
+    content.innerHTML = `<section class="skill-wrapper skill-visitor-preview">
+      <div class="skill-preview-heading"><span>🎾</span><div><h2>GMTC Skill Dashboard</h2><p>Gambaran penilaian skill pemain</p></div></div>
+      <div class="skill-preview-summary"><div class="skill-preview-star">⭐ <strong>2</strong><small>/ 5</small></div><div><strong>Preview Dashboard</strong><p>Contoh skor untuk mengenal sistem penilaian GMTC</p></div></div>
+      <div class="skill-preview-metrics">
+        <article><span>🎾</span><div><strong>Forehand</strong><small>Skor dummy</small></div><b>⭐ 2</b></article>
+        <article><span>🎾</span><div><strong>Backhand</strong><small>Skor dummy</small></div><b>⭐ 2</b></article>
+        <article><span>🎯</span><div><strong>Serve</strong><small>Skor dummy</small></div><b>⭐ 2</b></article>
+        <article><span>🏃</span><div><strong>Footwork</strong><small>Skor dummy</small></div><b>⭐ 2</b></article>
+        <article><span>🧠</span><div><strong>Match Strategy</strong><small>Skor dummy</small></div><b>⭐ 2</b></article>
+      </div>
+      <p class="skill-preview-note">Skor di atas hanya contoh, bukan penilaian akun kamu.</p>
+    </section>`;
     break;
   }
 
