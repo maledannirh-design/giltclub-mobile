@@ -155,17 +155,19 @@ export async function renderStore() {
 </div>
 `;
 
-  renderProducts();
-  renderRewards();
-  renderFlash();
-  checkStoreApplication();
-  watchInboxBadge();
-  updateCartBadge();
-
-  // Visitors see the public catalog without requiring authenticated Firestore reads.
   if(!auth.currentUser){
+    // Render the public preview only; do not start protected Firestore listeners.
     renderPublicStoreCatalog();
     showStoreMemberAccessModal();
+  }else{
+    renderProducts();
+    renderRewards();
+    renderFlash();
+    checkStoreApplication();
+    watchInboxBadge();
+    updateCartBadge();
+    document.body.classList.remove("store-gate-open");
+    document.getElementById("storeMemberAccessOverlay")?.classList.remove("show");
   }
 }
 
