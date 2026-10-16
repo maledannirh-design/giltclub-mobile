@@ -1685,3 +1685,19 @@ body.light .popup-card .popup-session-card {
   background: rgba(255, 255, 255, 0.98) !important;
   border: 1px solid rgba(46, 93, 58, 0.12) !important;
 }
+
+
+/* Preserve the brand's master green typography on the brighter light-theme session modal. */
+body.light .popup-card,
+body.light .popup-card .popup-session-card,
+body.light .popup-card .popup-session-card *,
+body.light .popup-card .session-meta,
+body.light .popup-card .session-meta *,
+body.light .popup-card h2,
+body.light .popup-card h3,
+body.light .popup-card p {
+  color: #2E5D3A !important;
+}
+body.light .popup-card .session-meta strong {
+  color: #2E5D3A !important;
+}
