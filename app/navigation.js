@@ -10,6 +10,17 @@ export async function navigate(page){
   if (page === currentPage) return;
 
   navLock = true;
+  const previousPage = currentPage;
+
+  try {
+    if (previousPage === "booking" && page !== "booking") {
+      const bookingModule = await import("./booking.js");
+      bookingModule.cleanupBookingListeners();
+    }
+  } catch (cleanupError) {
+    console.error("Booking listener cleanup failed:", cleanupError);
+  }
+
   currentPage = page;
 
   const content = document.getElementById("content");
