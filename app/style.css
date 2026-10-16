@@ -3811,3 +3811,21 @@ body.light .modal-message strong {
 body.dark .modal-box {
   color: inherit;
 }
+
+
+/* Confirmation dialogs must use readable white text in both light and dark themes. */
+.modal-box,
+.modal-box .modal-title,
+.modal-box .modal-message,
+.modal-box .modal-message strong {
+  color: #ffffff !important;
+}
+.modal-box .modal-title {
+  font-size: 19px;
+  line-height: 1.4;
+}
+.modal-box .modal-message {
+  font-size: 15px;
+  line-height: 1.65;
+  opacity: 1;
+}
