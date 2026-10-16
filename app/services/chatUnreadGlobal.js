@@ -48,6 +48,13 @@ function attach(uid){
 
     updateBadge(totalUnread);
 
+  }, err => {
+    if(err.code === "permission-denied" && !auth.currentUser){
+      cleanup();
+      console.log("Chat unread listener stopped after logout");
+      return;
+    }
+    console.error("Chat unread listener error:", err);
   });
 
 }
