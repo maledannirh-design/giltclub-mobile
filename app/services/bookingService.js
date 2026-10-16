@@ -41,6 +41,7 @@ export async function createBooking({
   userId,
   scheduleId,
   racketQty = 0,
+  slotIndex = null,
   pin
 }) {
 
@@ -135,6 +136,7 @@ export async function createBooking({
       sessionPrice,
       price: totalPayment,
       racketQty: safeRacketQty,
+      slotIndex: Number.isInteger(slotIndex) ? slotIndex : null,
       racketUnitPrice,
       racketTotal,
       attendance: false,
