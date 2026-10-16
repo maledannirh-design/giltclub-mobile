@@ -3871,3 +3871,106 @@ body.dark .modal-box {
   line-height: 1.65;
   opacity: 1;
 }
+
+
+/* ================= MEMBER ACCESS POPUP ================= */
+.member-access-overlay{
+  position:fixed;
+  inset:0;
+  z-index:10050;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(19,32,24,.48);
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .2s ease, visibility .2s ease;
+}
+.member-access-overlay.show{
+  opacity:1;
+  visibility:visible;
+}
+.member-access-card{
+  position:relative;
+  width:100%;
+  max-width:360px;
+  box-sizing:border-box;
+  padding:30px 22px 22px;
+  border:1px solid rgba(255,255,255,.7);
+  border-radius:26px;
+  background:var(--color-card, #fffdf7);
+  color:var(--color-text, #24543a);
+  box-shadow:0 24px 70px rgba(0,0,0,.22);
+  text-align:center;
+  transform:translateY(12px) scale(.97);
+  transition:transform .22s ease;
+}
+.member-access-overlay.show .member-access-card{
+  transform:translateY(0) scale(1);
+}
+.member-access-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:50%;
+  background:var(--color-highlight, #f1e3b9);
+  color:var(--color-text, #24543a);
+  font-size:23px;
+  line-height:1;
+  cursor:pointer;
+}
+.member-access-icon{
+  width:66px;
+  height:66px;
+  margin:0 auto 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:22px;
+  background:#e7f1e4;
+  color:#2e7d45;
+  font-size:30px;
+}
+.member-access-title{
+  margin:0 24px 10px;
+  font-size:21px;
+  line-height:1.3;
+  font-weight:700;
+}
+.member-access-text{
+  margin:0 auto 24px;
+  max-width:280px;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--color-text-muted, #718176);
+}
+.member-access-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.member-access-actions button{
+  min-height:48px;
+  padding:12px 10px;
+  border-radius:15px;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  box-sizing:border-box;
+}
+.member-access-register{
+  border:0;
+  background:var(--color-primary, #e8a5a5);
+  color:#174c30;
+}
+.member-access-login{
+  border:1px solid var(--color-border, #dce5dc);
+  background:transparent;
+  color:var(--color-text, #24543a);
+}
