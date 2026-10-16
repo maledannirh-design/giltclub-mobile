@@ -46,7 +46,26 @@ function showMemberAccessForChat(){
   overlay.classList.add("show");
 }
 
+
+function showSkillMemberAccess(){
+  let overlay=document.getElementById("skillMemberAccessOverlay");
+  if(!overlay){
+    overlay=document.createElement("div"); overlay.id="skillMemberAccessOverlay"; overlay.className="member-access-overlay skill-member-access-overlay";
+    overlay.innerHTML=`<div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="skillMemberAccessTitle"><div class="member-access-icon">🔒</div><h2 class="member-access-title" id="skillMemberAccessTitle">Akses Khusus Member</h2><div class="member-access-actions"><div class="member-access-option"><button type="button" class="member-access-register">Daftar</button><p>Belum jadi anggota? Klik daftar</p></div><div class="member-access-option"><button type="button" class="member-access-login">Masuk</button><p>Sudah punya akun? Klik masuk</p></div></div></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".member-access-register").addEventListener("click",async()=>{overlay.classList.remove("show");await navigate("account");document.getElementById("registerBtn")?.click();});
+    overlay.querySelector(".member-access-login").addEventListener("click",async()=>{overlay.classList.remove("show");await navigate("account");document.getElementById("loginBtn")?.click();});
+  }
+  overlay.classList.add("show");
+}
+
 export async function navigate(page){
+
+  if(page !== "store" && page !== "skill"){
+    document.body.classList.remove("store-gate-open");
+    document.getElementById("storeMemberAccessOverlay")?.classList.remove("show");
+    document.getElementById("skillMemberAccessOverlay")?.classList.remove("show");
+  }
 
   if(page === "chat" && !auth.currentUser){
     showMemberAccessForChat();
@@ -107,8 +126,9 @@ case "skill":
   const user = auth.currentUser;
 
   if(!user){
-    alert("Silakan login terlebih dahulu.");
-    return;
+    showSkillMemberAccess();
+    content.innerHTML = `<section class="skill-wrapper skill-visitor-preview"><h2>GMTC Skill</h2><p>Kenali level dan perkembangan skill tenis member GMTC.</p><div class="skill-preview-levels"><div>🎾 Newbie</div><div>🎾 Beginner</div><div>🎾 Upper Beginner</div><div>🎾 Intermediate</div></div></section>`;
+    break;
   }
 
   const userRef = doc(db,"users",user.uid);
