@@ -4005,7 +4005,7 @@ body.dark .modal-box {
 }
 /* Blur only the Store content. Bottom navigation stays clear and clickable. */
 body.store-gate-open #content {
-  filter: blur(5px);
+  filter: blur(2.5px);
   pointer-events: auto;
   touch-action: pan-y;
 }
