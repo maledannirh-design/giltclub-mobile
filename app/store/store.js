@@ -189,6 +189,7 @@ function showStoreMemberAccessModal(){
     document.body.appendChild(overlay);
     overlay.querySelector(".member-access-register").addEventListener("click", async () => {
       overlay.classList.remove("show");
+      document.body.classList.remove("store-gate-open");
       const { navigate } = await import("../navigation.js");
       await navigate("account");
       document.getElementById("registerBtn")?.click();
@@ -201,6 +202,7 @@ function showStoreMemberAccessModal(){
     });
   }
   overlay.classList.add("show");
+  document.body.classList.add("store-gate-open");
 }
 
 async function checkStoreApplication(){
