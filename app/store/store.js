@@ -156,8 +156,10 @@ export async function renderStore() {
 `;
 
   if(!auth.currentUser){
-    // Render the public preview only; do not start protected Firestore listeners.
-    renderPublicStoreCatalog();
+    // Render the existing Store sections and data sources; keep actions gated by the member modal.
+    renderProducts();
+    renderRewards();
+    renderFlash();
     showStoreMemberAccessModal();
   }else{
     renderProducts();
@@ -171,47 +173,6 @@ export async function renderStore() {
   }
 }
 
-function renderPublicStoreCatalog(){
-  const products = document.getElementById("storeProducts");
-  const rewards = document.getElementById("storeRewards");
-  const flash = document.getElementById("storeFlash");
-  if(products){
-    products.innerHTML = STORE_PRODUCTS.filter(p=>p.active).map(p=>
-      `<article class="store-card public-store-card">
-        <div class="card-image">${p.image ? `<img src="${p.image}" loading="lazy" alt="">` : ""}</div>
-        <div class="card-body"><h3>${p.name}</h3><div class="card-info"><span class="price">Rp ${Number(p.price||0).toLocaleString("id-ID")}</span><span class="stock">Stok tersedia</span></div><button type="button" disabled>Masuk untuk membeli</button></div>
-      </article>`
-    ).join("") || "<p>Belum ada merchandise.</p>";
-  }
-  if(rewards){
-    rewards.innerHTML = STORE_REWARDS.filter(r=>r.active).map(r=>
-      `<article class="store-card public-store-card">
-        <div class="card-image">${r.image ? `<img src="${r.image}" loading="lazy" alt="">` : ""}</div>
-        <div class="card-body"><h3>${r.name}</h3><div class="card-info"><span class="price gp">${Number(r.pointCost||0).toLocaleString("id-ID")} GP</span></div><button type="button" disabled>Masuk untuk menukar</button></div>
-      </article>`
-    ).join("") || "<p>Belum ada reward.</p>";
-  }
-  if(flash){
-    const items = STORE_FLASH.filter(f=>f.active);
-    flash.innerHTML = items.map(f=>
-      `<article class="store-card public-store-card">
-        <div class="card-image">${f.image ? `<img src="${f.image}" loading="lazy" alt="">` : ""}</div>
-        <div class="card-body"><h3>${f.name}</h3><div class="card-info"><span class="price gp">${Number(f.flashPointCost||0).toLocaleString("id-ID")} GP</span></div><button type="button" disabled>Masuk untuk menukar</button></div>
-      </article>`
-    ).join("") || "<p>Tidak ada flash drop.</p>";
-  }
-  // Block click actions on the Store while allowing native touch scrolling.
-  const content = document.getElementById("content");
-  if(content && !content.dataset.storeGateClickGuard){
-    content.dataset.storeGateClickGuard = "true";
-    content.addEventListener("click", event=>{
-      if(document.body.classList.contains("store-gate-open")){
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    }, true);
-  }
-}
 
 function showStoreMemberAccessModal(){
   let overlay = document.getElementById("storeMemberAccessOverlay");
