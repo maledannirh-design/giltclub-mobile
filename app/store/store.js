@@ -397,6 +397,11 @@ function renderProducts(){
 
     });
 
+  }, (error)=>{
+    console.error("Store products read failed:", error);
+    container.innerHTML = error?.code === "permission-denied"
+      ? "<p class='store-load-error'>Produk belum dapat ditampilkan untuk visitor: akses baca Firestore pada koleksi products ditolak.</p>"
+      : "<p class='store-load-error'>Produk gagal dimuat. Coba lagi nanti.</p>";
   });
 
 }
@@ -946,6 +951,11 @@ function renderFlash(){
 
     startCountdown();
 
+  }, (error)=>{
+    console.error("Store flash drops read failed:", error);
+    container.innerHTML = error?.code === "permission-denied"
+      ? "<p class='store-load-error'>Flash Drop belum dapat ditampilkan untuk visitor: akses baca Firestore pada koleksi flashDrops ditolak.</p>"
+      : "<p class='store-load-error'>Flash Drop gagal dimuat. Coba lagi nanti.</p>";
   });
 }
 /* ===============================
@@ -2494,3 +2504,6 @@ function calculateStoreGP(user,total){
   return Math.floor(total * 0.002);
 
 }
+
+
+.store-load-error{padding:14px 16px;border-radius:12px;background:#fff7ed;color:#8a4b18;font-size:13px;line-height:1.5;border:1px solid #f3d6b8;}
