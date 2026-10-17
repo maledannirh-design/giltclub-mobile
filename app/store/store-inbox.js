@@ -7,6 +7,7 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  deleteDoc,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -120,7 +121,8 @@ if(d.type === "product"){
 
 
       container.innerHTML += `
-        <div class="store-card ${status === "expired" ? "expired" : ""}">
+        <div class="store-card ${status === "expired" ? "expired" : ""}" style="position:relative;">
+          <button type="button" aria-label="Hapus item" title="Hapus item" onclick="confirmDeleteStoreInboxItem(\'${id}\')" style="position:absolute;top:8px;right:8px;z-index:2;width:32px;height:32px;border:0;border-radius:50%;background:#fff0ed;color:#b42318;font-size:17px;font-weight:700;cursor:pointer;">🗑</button>
 
           <div class="card-image">
 
@@ -233,4 +235,31 @@ window.confirmProductReceived = async function(itemId){
 
   }
 
+};
+
+
+/* Delete an inbox item after explicit confirmation. */
+window.confirmDeleteStoreInboxItem = function(itemId) {
+  document.getElementById('deleteStoreInboxConfirm')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'deleteStoreInboxConfirm';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.55);';
+  modal.innerHTML = '<div role="dialog" aria-modal="true" style="width:100%;max-width:360px;background:#fff;color:#245b46;border-radius:20px;padding:24px;box-shadow:0 16px 48px rgba(0,0,0,.28);"><h3 style="margin:0 0 12px;font-size:19px;">Hapus item?</h3><p style="margin:0 0 22px;line-height:1.5;">Anda yakin menghapus item ini? Item yang dihapus tidak bisa dikembalikan lagi.</p><div style="display:flex;gap:10px;"><button type="button" id="cancelDeleteStoreInbox" style="flex:1;padding:12px;border:1px solid #d6ded8;border-radius:12px;background:transparent;color:inherit;font-weight:600;cursor:pointer;">Batal</button><button type="button" id="confirmDeleteStoreInbox" style="flex:1;padding:12px;border:0;border-radius:12px;background:#b42318;color:#fff;font-weight:700;cursor:pointer;">Hapus</button></div></div>';
+  document.body.appendChild(modal);
+  modal.querySelector('#cancelDeleteStoreInbox').onclick = () => modal.remove();
+  modal.addEventListener('click', event => { if (event.target === modal) modal.remove(); });
+  modal.querySelector('#confirmDeleteStoreInbox').onclick = async () => {
+    const button = modal.querySelector('#confirmDeleteStoreInbox');
+    button.disabled = true; button.textContent = 'Menghapus...';
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Silakan login kembali.');
+      await deleteDoc(doc(db, 'users', user.uid, 'storeInbox', itemId));
+      modal.remove();
+    } catch (error) {
+      console.error('Delete store inbox item failed:', error);
+      button.disabled = false; button.textContent = 'Hapus';
+      alert('Gagal menghapus item. Periksa izin Firestore lalu coba lagi.');
+    }
+  };
 };
