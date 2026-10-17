@@ -451,6 +451,46 @@ input[type="checkbox"]{
 }
 
 /* =====================================================
+   DARK THEME ADMIN TEXT CONTRAST
+   Theme is applied on html[data-theme="dark"].
+===================================================== */
+html[data-theme="dark"] .admin-container {
+  color: #f3f5f3;
+}
+
+html[data-theme="dark"] .admin-container > h2,
+html[data-theme="dark"] .admin-container > h3 {
+  color: #f3f5f3;
+}
+
+html[data-theme="dark"] .admin-card {
+  color: #203b2c;
+}
+
+html[data-theme="dark"] .admin-card h3,
+html[data-theme="dark"] .admin-card label,
+html[data-theme="dark"] .admin-card p,
+html[data-theme="dark"] .admin-card .admin-card-title {
+  color: #244b35;
+}
+
+html[data-theme="dark"] .admin-card textarea,
+html[data-theme="dark"] .admin-card input,
+html[data-theme="dark"] .admin-card select {
+  color: #f7faf7;
+}
+
+html[data-theme="dark"] .admin-card textarea::placeholder,
+html[data-theme="dark"] .admin-card input::placeholder {
+  color: #c5d2c9;
+  opacity: 1;
+}
+
+html[data-theme="dark"] .admin-container hr {
+  border-color: #7b8980;
+}
+
+/* =====================================================
    ANIMATION
 ===================================================== */
 
