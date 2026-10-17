@@ -137,6 +137,23 @@ function starExplosion(){
    RENDER SKILL PAGE
 ====================================================== */
 
+
+export function renderGuestSkillDashboard(){
+  const content = document.getElementById("content");
+  if(!content) return;
+  const skills = Object.fromEntries(Object.keys(skillLabels).map(key => [key, 1]));
+  const totalStars = Object.values(skills).reduce((sum, value) => sum + Number(value || 0), 0);
+  let html = `<div class="skill-wrapper"><div class="skill-header">Dashboard Skill</div><div class="skill-topcard"><div class="skill-title">Guest</div><div class="skill-level">Newbie</div><div class="skill-total">⭐ ${totalStars}</div></div>`;
+  Object.entries(skillCategories).forEach(([category,list])=>{
+    html += `<div class="skill-category">${category}</div>`;
+    list.forEach(skillKey=>{
+      html += `<div class="skill-row"><div class="skill-name">${skillLabels[skillKey]}</div><div class="skill-stars">${renderStars(1, skillKey, false)}</div></div>`;
+    });
+  });
+  html += `<p class="skill-preview-note">Profil Guest untuk melihat contoh dashboard. Skor ini bukan penilaian pemain sungguhan.</p></div>`;
+  content.innerHTML = html;
+}
+
 export async function renderSkill(){
 
   const content = document.getElementById("content");
