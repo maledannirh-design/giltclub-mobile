@@ -507,8 +507,9 @@ body.dark .join-btn{
 #createSessionOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.65);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,.22);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Modal Card */
@@ -574,8 +575,9 @@ body.light .premium-sheet {
 #createSessionOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.45);
-  backdrop-filter: blur(2px);
+  background: rgba(0,0,0,.22);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* ===== BOTTOM SHEET: full-width form from the bottom ===== */
