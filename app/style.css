@@ -3991,8 +3991,8 @@ body.dark .modal-box {
   color:var(--color-text, #24543a);
 }
 
-.store-member-access-overlay {
-  pointer-events: none;
+ .store-member-access-overlay {
+  pointer-events: auto;
   touch-action: pan-y;
   overscroll-behavior: auto;
   background: transparent;
@@ -4006,7 +4006,7 @@ body.dark .modal-box {
 /* Blur only the Store content. Bottom navigation stays clear and clickable. */
 body.store-gate-open #content {
   filter: blur(1.5px);
-  pointer-events: auto;
+  pointer-events: none;
   touch-action: pan-y;
 }
 body.store-gate-open .bottom-nav {
