@@ -69,6 +69,9 @@ export async function navigate(page){
   if(page !== "home"){
     document.getElementById("guestCheckinAccessOverlay")?.classList.remove("show");
   }
+  if(page !== "wallet"){
+    document.getElementById("walletGuestAccessOverlay")?.classList.remove("show");
+  }
 
   if(page === "chat" && !auth.currentUser){
     showMemberAccessForChat();
