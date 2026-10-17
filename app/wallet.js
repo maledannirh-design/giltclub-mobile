@@ -24,9 +24,12 @@ export async function renderWallet(){
     content.innerHTML = `
       <div class="wallet-page guest-wallet-page">
         <div class="wallet-card-pink guest-wallet-protected">
-          <div class="wallet-card-header"><div class="wallet-title">G-WALLET</div><div class="wallet-saldo-toggle"><span>G-Saldo</span><span class="eye-btn">◉</span></div></div>
+          <div class="wallet-card-header">
+            <div class="wallet-title">G-WALLET</div>
+            <div class="wallet-saldo-toggle"><span>G-Saldo</span><span class="eye-btn">${eyeOpenSVG()}</span></div>
+          </div>
           <div class="wallet-amount">Rp 0</div>
-          <div class="wallet-big-card"><div class="member-card-name">Guest</div><div>G-WALLET</div></div>
+          <div class="wallet-big-card" id="guestWalletBigCard">${renderMemberCard({fullName:"GUEST",memberCode:"-",membership:"MEMBER",genre:"female"})}</div>
         </div>
         <div class="wallet-action-row guest-wallet-protected">
           <div class="wallet-action-card topup-card" role="button" tabindex="0" onclick="openWalletGuestAccess()"><div class="action-icon">➕</div><div class="action-title">Top Up</div></div>
