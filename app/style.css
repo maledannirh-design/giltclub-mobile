@@ -2162,9 +2162,22 @@ body.scan-mode{
 /* DAY BOX SCROLL */
 .daily-days{
   display:flex;
+  flex-wrap:nowrap;
   gap:12px;
+  width:100%;
+  min-width:0;
   overflow-x:auto;
+  overflow-y:hidden;
   padding-bottom:8px;
+  box-sizing:border-box;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-x pan-y;
+}
+
+.daily-days > .daily-box{
+  flex:0 0 95px;
+  min-width:95px;
+  box-sizing:border-box;
 }
 
 .daily-days::-webkit-scrollbar{
