@@ -182,6 +182,7 @@ function showStoreMemberAccessModal(){
     overlay.className = "member-access-overlay store-member-access-overlay";
     overlay.innerHTML = `
       <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="storeMemberAccessTitle">
+        <button type="button" class="member-access-close" aria-label="Tutup akses member">×</button>
         <div class="member-access-icon">🔒</div>
         <h2 class="member-access-title" id="storeMemberAccessTitle">Akses Khusus Member</h2>
         <div class="member-access-actions">
@@ -197,6 +198,10 @@ function showStoreMemberAccessModal(){
       </div>
     `;
     document.body.appendChild(overlay);
+    overlay.querySelector(".member-access-close").addEventListener("click", () => {
+      overlay.classList.remove("show");
+      document.body.classList.remove("store-gate-open");
+    });
     overlay.querySelector(".member-access-register").addEventListener("click", async () => {
       overlay.classList.remove("show");
       document.body.classList.remove("store-gate-open");
