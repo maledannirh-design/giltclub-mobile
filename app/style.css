@@ -4157,3 +4157,24 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   background: #ffffff;
   color: #1b4332;
 }
+
+
+/* Check-In Harian: reliable horizontal swipe without blocking vertical page scroll */
+.home-progress-group .daily-days,
+.daily-card .daily-days {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100%;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border, #cbd5c0) transparent;
+}
+.home-progress-group .daily-days > .daily-box,
+.daily-card .daily-days > .daily-box {
+  flex: 0 0 85px;
+  min-width: 85px;
+}
