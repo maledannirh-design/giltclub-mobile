@@ -578,31 +578,27 @@ body.light .premium-sheet {
   backdrop-filter: blur(2px);
 }
 
-/* ===== BOTTOM SHEET ===== */
+/* ===== BOTTOM SHEET: full-width form from the bottom ===== */
 .premium-sheet {
-
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-
+  width: 100%;
+  max-width: none;
+  height: auto;
+  max-height: 82vh;
+  max-height: 82dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
   background: var(--color-card);
   color: var(--color-text);
-
-  border-radius: 28px 28px 0 0;
-
-  padding: 24px 20px calc(40px + env(safe-area-inset-bottom));
-
-  max-height: 90vh;
-  overflow-y: auto;
-
+  border-radius: 26px 26px 0 0;
+  padding: 24px 20px calc(28px + env(safe-area-inset-bottom));
   transform: translateY(100%);
   transition: transform .35s cubic-bezier(.22,1,.36,1);
-
   box-shadow: 0 -12px 30px rgba(0,0,0,.12);
-
   z-index: 9999;
-
   -webkit-overflow-scrolling: touch;
 }
 
