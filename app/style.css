@@ -4064,6 +4064,10 @@ body:has(#skillMemberAccessOverlay.show) .bottom-nav {
 /* Admin nav stays hidden unless auth confirms an authorized role. */
 .bottom-nav [data-page="admin"] { display: none !important; }
 body.admin-user .bottom-nav [data-page="admin"] { display: grid !important; }
+/* Authorized admin has seven destinations; keep all icons in one aligned row. */
+body.admin-user .bottom-nav:not(.store-gate-open) {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
 body.store-gate-open .bottom-nav [data-page="admin"] { display: none !important; }
 
 
