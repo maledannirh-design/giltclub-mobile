@@ -15,7 +15,7 @@ import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
 import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
-export async function renderWallet(){
+export async function renderWallet(skipPin = false){
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
@@ -57,19 +57,21 @@ export async function renderWallet(){
    🔐 PIN GATE BEFORE OPEN WALLET
 ========================================= */
 
-const pin = await requestTransactionPin();
+if (!skipPin) {
+  const pin = await requestTransactionPin();
 
-if (!pin) {
-  navigate("home");
-  return;
-}
+  if (!pin) {
+    navigate("home");
+    return;
+  }
 
-const pinCheck = await validateTransactionPin(user.uid, pin);
+  const pinCheck = await validateTransactionPin(user.uid, pin);
 
-if (!pinCheck.valid) {
-  alert(pinCheck.reason || "PIN transaksi salah");
-  navigate("home");
-  return;
+  if (!pinCheck.valid) {
+    alert(pinCheck.reason || "PIN transaksi salah");
+    navigate("home");
+    return;
+  }
 }
   try{
 
@@ -262,6 +264,10 @@ async function renderLedger(filterAsset = "ALL"){
 
   let html = `
     <div class="ledger-container">
+
+      <button type="button"
+        style="display:inline-flex;align-items:center;gap:8px;padding:9px 14px;margin:0 0 12px;border:1px solid var(--color-border,#d7cbb1);border-radius:12px;background:var(--color-card,#fffaf0);color:var(--color-text,#245b46);font-weight:600;cursor:pointer;"
+        onclick="renderWallet(true)">← Kembali ke Saldo</button>
 
       <h3>Mutasi Rekening</h3>
 
