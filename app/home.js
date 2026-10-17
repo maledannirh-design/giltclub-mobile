@@ -206,6 +206,24 @@ content.innerHTML = `
 
 
 
+
+async function renderPublicActivitySummary(content){
+  const activityCard = await renderActivitySummaryCard();
+  content.innerHTML = `
+    <div class="home-container public-home-container">
+      <section class="home-public-welcome" style="padding:20px 16px 8px;">
+        <h2 style="margin:0 0 6px;color:#2E5D3A;">Selamat datang di GMTC</h2>
+        <p style="margin:0;color:#71816f;">Girl In Love Tennis Community — Balikpapan</p>
+      </section>
+      ${activityCard}
+      <section style="padding:0 18px 20px;color:#355742;">
+        <h3 style="margin:12px 0 6px;">Jadwal Main Saya Terdekat</h3>
+        <p style="margin:0;color:#71816f;">Belum ada jadwal pribadi. Lihat menu Jadwal untuk menemukan sesi dan bergabung.</p>
+      </section>
+    </div>
+  `;
+}
+
 async function renderActivitySummaryCard(){
   let d = null;
   let readFailed = false;
