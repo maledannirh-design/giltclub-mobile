@@ -60,6 +60,15 @@ function showSkillMemberAccess(){
 }
 
 export async function navigate(page){
+  // Leaving Jadwal cancels and closes any open create-session form.
+  if(page !== "booking"){
+    const createSessionSheet = document.getElementById("createSessionSheet");
+    if(createSessionSheet){
+      createSessionSheet.classList.remove("active");
+      createSessionSheet.innerHTML = "";
+    }
+  }
+
 
   if(page !== "store" && page !== "skill"){
     document.body.classList.remove("store-gate-open");
