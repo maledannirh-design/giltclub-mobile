@@ -479,3 +479,7 @@ function startCountdown(duration){
 
 
 window.renderLedger = renderLedger;
+
+
+// Expose wallet renderer for inline navigation buttons in the wallet/ledger UI.
+window.renderWallet = renderWallet;
