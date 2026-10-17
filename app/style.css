@@ -4128,3 +4128,32 @@ body.store-gate-open .bottom-nav [data-page="admin"] { display: none !important;
 .home-progress-group .verified-progress-card::after{display:none;}
 .home-progress-group .verified-progress-card{margin-top:18px;padding-top:16px;border-top:1px solid var(--color-border, rgba(40,91,61,.12));}
 .home-progress-group .daily-days{gap:8px;}
+
+
+/* =====================================================
+   DARK THEME: READABLE TEXT INSIDE LIGHT SURFACES
+   Keep forest-green text on white/cream cards and forms.
+===================================================== */
+html[data-theme="dark"] .admin-card {
+  color: #1b4332;
+}
+html[data-theme="dark"] .admin-card h3,
+html[data-theme="dark"] .admin-card label,
+html[data-theme="dark"] .admin-card p {
+  color: #1b4332;
+}
+html[data-theme="dark"] .admin-card #broadcastMode,
+html[data-theme="dark"] .admin-card #broadcastMessage,
+html[data-theme="dark"] .admin-card #memberSelectList {
+  background: #ffffff !important;
+  color: #1b4332 !important;
+  border-color: #cbd8ce !important;
+}
+html[data-theme="dark"] .admin-card #broadcastMessage::placeholder {
+  color: #587763 !important;
+  opacity: 1;
+}
+html[data-theme="dark"] .admin-card #broadcastMode option {
+  background: #ffffff;
+  color: #1b4332;
+}
