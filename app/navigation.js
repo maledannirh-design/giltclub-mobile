@@ -66,6 +66,9 @@ export async function navigate(page){
     document.getElementById("storeMemberAccessOverlay")?.classList.remove("show");
     document.getElementById("skillMemberAccessOverlay")?.classList.remove("show");
   }
+  if(page !== "home"){
+    document.getElementById("guestCheckinAccessOverlay")?.classList.remove("show");
+  }
 
   if(page === "chat" && !auth.currentUser){
     showMemberAccessForChat();
