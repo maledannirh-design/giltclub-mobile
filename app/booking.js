@@ -148,14 +148,28 @@ export async function renderBooking() {
     }
   }
 
-  // Pemeriksaan auto-close dibatasi waktunya.
+  // Auto-close mengubah data jadwal, jadi hanya jalankan untuk admin.
+  // Visitor/member tetap dapat membuka kalender tanpa memicu permission-denied.
   const now = Date.now();
-  if (now - lastAutoCloseCheckAt >= AUTO_CLOSE_CHECK_INTERVAL) {
-    lastAutoCloseCheckAt = now;
+  const currentUser = auth.currentUser;
+  if (currentUser && now - lastAutoCloseCheckAt >= AUTO_CLOSE_CHECK_INTERVAL) {
     try {
-      await autoCloseFinishedSessions();
+      const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+      const role = userSnap.exists() ? userSnap.data().role : null;
+      if (role === "ADMIN" || role === "SUPERCOACH") {
+        lastAutoCloseCheckAt = now;
+        await autoCloseFinishedSessions();
+      } else {
+        // Tandai interval agar user biasa tidak membaca profil berulang kali
+        // selama proses render kalender berikutnya.
+        lastAutoCloseCheckAt = now;
+      }
     } catch (error) {
-      console.error("Auto-close sessions check failed:", error);
+      // Jangan biarkan pemeriksaan administratif merusak tampilan kalender.
+      if (error?.code !== "permission-denied") {
+        console.error("Auto-close sessions check failed:", error);
+      }
+      lastAutoCloseCheckAt = now;
     }
   }
 
