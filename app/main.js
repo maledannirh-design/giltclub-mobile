@@ -542,6 +542,7 @@ onAuthStateChanged(auth, async (user)=>{
 
     if(label) label.innerText = "Not logged in";
     if(adminButton) adminButton.style.display = "none";
+    document.body.classList.remove("admin-user");
 
     return; // ⛔ STOP di sini (jangan lanjut ke bawah)
   }
@@ -590,16 +591,16 @@ await syncVerifiedEmail();
       }
 
       if(adminButton){
-        adminButton.style.display =
-          (data.role === "ADMIN" || data.role === "SUPERCOACH")
-          ? "flex"
-          : "none";
+        const isAdmin = data.role === "ADMIN" || data.role === "SUPERCOACH";
+        adminButton.style.display = isAdmin ? "flex" : "none";
+        document.body.classList.toggle("admin-user", isAdmin);
       }
 
     }else{
 
       if(label) label.innerText = "User data missing";
       if(adminButton) adminButton.style.display = "none";
+      document.body.classList.remove("admin-user");
 
     }
 
@@ -608,6 +609,7 @@ await syncVerifiedEmail();
     console.error("User load error:", error);
     if(label) label.innerText = "Error loading user";
     if(adminButton) adminButton.style.display = "none";
+    document.body.classList.remove("admin-user");
 
   }
 
