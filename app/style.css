@@ -4048,6 +4048,22 @@ body:has(#skillMemberAccessOverlay.show) .bottom-nav {
 .skill-preview-heading h2 { margin:0 0 4px; font-size:20px; }
 .skill-preview-heading p, .skill-preview-summary p { margin:0; color:var(--color-text-muted); font-size:13px; }
 .skill-preview-summary { display:flex; align-items:center; gap:14px; padding:16px; margin-bottom:14px; border-radius:16px; background:var(--color-card); border:1px solid var(--color-border); }
+/* Keep the Skill member-access popup readable in dark theme. */
+html[data-theme="dark"] #skillMemberAccessOverlay .member-access-card {
+  background: #202a24;
+  color: #f5f7f4;
+  border: 1px solid #52685a;
+}
+html[data-theme="dark"] #skillMemberAccessOverlay .member-access-card h1,
+html[data-theme="dark"] #skillMemberAccessOverlay .member-access-card h2,
+html[data-theme="dark"] #skillMemberAccessOverlay .member-access-card p,
+html[data-theme="dark"] #skillMemberAccessOverlay .member-access-card span {
+  color: #f5f7f4;
+}
+html[data-theme="dark"] #skillMemberAccessOverlay .member-access-card .member-access-close {
+  background: #34463a;
+  color: #ffffff;
+}
 .skill-preview-star { min-width:72px; text-align:center; font-size:20px; color:#d5a72d; }
 .skill-preview-star strong { color:var(--color-text); font-size:25px; }
 .skill-preview-star small { color:var(--color-text-muted); font-size:12px; }
