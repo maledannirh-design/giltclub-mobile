@@ -2505,5 +2505,3 @@ function calculateStoreGP(user,total){
 
 }
 
-
-.store-load-error{padding:14px 16px;border-radius:12px;background:#fff7ed;color:#8a4b18;font-size:13px;line-height:1.5;border:1px solid #f3d6b8;}
