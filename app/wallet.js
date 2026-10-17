@@ -19,7 +19,37 @@ export async function renderWallet(){
 
   const content = document.getElementById("content");
   const user = auth.currentUser;
-  if(!content || !user) return;
+  if(!content) return;
+  if(!user){
+    content.innerHTML = `
+      <div class="wallet-page guest-wallet-page">
+        <div class="wallet-card-pink guest-wallet-protected">
+          <div class="wallet-card-header"><div class="wallet-title">G-WALLET</div><div class="wallet-saldo-toggle"><span>G-Saldo</span><span class="eye-btn">◉</span></div></div>
+          <div class="wallet-amount">Rp 0</div>
+          <div class="wallet-big-card"><div class="member-card-name">Guest</div><div>G-WALLET</div></div>
+        </div>
+        <div class="wallet-action-row guest-wallet-protected">
+          <div class="wallet-action-card topup-card" role="button" tabindex="0" onclick="openWalletGuestAccess()"><div class="action-icon">➕</div><div class="action-title">Top Up</div></div>
+          <div class="wallet-action-card withdraw-card" role="button" tabindex="0" onclick="openWalletGuestAccess()"><div class="action-icon">➖</div><div class="action-title">Tarik Saldo</div></div>
+        </div>
+        <div class="wallet-action-card ledger-card guest-wallet-protected" role="button" tabindex="0" onclick="openWalletGuestAccess()"><div class="action-icon">📄</div><div class="action-title">Mutasi</div></div>
+      </div>
+      <div id="walletGuestAccessOverlay" class="member-access-overlay" onclick="if(event.target===this)closeWalletGuestAccess()">
+        <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="walletGuestAccessTitle">
+          <button class="member-access-close" type="button" aria-label="Tutup" onclick="closeWalletGuestAccess()">×</button>
+          <div class="member-access-icon">🔒</div><h2 class="member-access-title" id="walletGuestAccessTitle">Akses Khusus Member</h2>
+          <div class="member-access-actions">
+            <div class="member-access-option"><button type="button" class="member-access-register" onclick="closeWalletGuestAccess();window.navigate('account');setTimeout(()=>document.getElementById('registerBtn')?.click(),150)">Daftar</button><p>Belum jadi anggota? Klik daftar</p></div>
+            <div class="member-access-option"><button type="button" class="member-access-login" onclick="closeWalletGuestAccess();window.navigate('account');setTimeout(()=>document.getElementById('loginBtn')?.click(),150)">Masuk</button><p>Sudah punya akun? Klik masuk</p></div>
+          </div>
+        </div>
+      </div>`;
+    window.openWalletGuestAccess=()=>document.getElementById("walletGuestAccessOverlay")?.classList.add("show");
+    window.closeWalletGuestAccess=()=>document.getElementById("walletGuestAccessOverlay")?.classList.remove("show");
+    document.querySelectorAll(".guest-wallet-protected").forEach(el=>el.addEventListener("click",()=>window.openWalletGuestAccess()));
+    document.getElementById("walletGuestAccessOverlay")?.classList.add("show");
+    return;
+  }
 /* =========================================
    🔐 PIN GATE BEFORE OPEN WALLET
 ========================================= */
