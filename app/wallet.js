@@ -265,10 +265,10 @@ async function renderLedger(filterAsset = "ALL"){
 
       <h3>Mutasi Rekening</h3>
 
-      <div class="ledger-filter">
-        <button onclick="renderLedger('ALL')">Semua</button>
-        <button onclick="renderLedger('RUPIAH')">Saldo</button>
-        <button onclick="renderLedger('GPOINT')">GPoint</button>
+      <div class="ledger-filter" style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px;">
+        <button style="padding:10px 18px;border-radius:12px;border:1px solid ${filterAsset === "ALL" ? "#0f766e" : "#d7cbb1"};background:${filterAsset === "ALL" ? "#0f766e" : "#fffaf0"};color:${filterAsset === "ALL" ? "#ffffff" : "#245b46"};font-weight:600;box-shadow:0 2px 5px rgba(35,75,55,.08);cursor:pointer;" onclick="renderLedger('ALL')">Semua</button>
+        <button style="padding:10px 18px;border-radius:12px;border:1px solid ${filterAsset === "RUPIAH" ? "#0f766e" : "#d7cbb1"};background:${filterAsset === "RUPIAH" ? "#0f766e" : "#fffaf0"};color:${filterAsset === "RUPIAH" ? "#ffffff" : "#245b46"};font-weight:600;box-shadow:0 2px 5px rgba(35,75,55,.08);cursor:pointer;" onclick="renderLedger('RUPIAH')">Saldo</button>
+        <button style="padding:10px 18px;border-radius:12px;border:1px solid ${filterAsset === "GPOINT" ? "#0f766e" : "#d7cbb1"};background:${filterAsset === "GPOINT" ? "#0f766e" : "#fffaf0"};color:${filterAsset === "GPOINT" ? "#ffffff" : "#245b46"};font-weight:600;box-shadow:0 2px 5px rgba(35,75,55,.08);cursor:pointer;" onclick="renderLedger('GPOINT')">GPoint</button>
       </div>
   `;
 
