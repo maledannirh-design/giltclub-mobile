@@ -1635,3 +1635,12 @@ grid-template-columns:repeat(2,1fr);
   }
 
 }
+
+
+/* DARK THEME: improve product description/name contrast on white store cards */
+html[data-theme="dark"] .store-card .card-body h3,
+html[data-theme="dark"] .store-card .card-body p,
+html[data-theme="dark"] .store-card .card-body .description {
+  color: #1B4332 !important;
+  opacity: 1 !important;
+}
