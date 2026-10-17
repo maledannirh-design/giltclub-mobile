@@ -93,6 +93,7 @@ content.innerHTML = `
     </div>
 
     <!-- DAILY CHECK-IN -->
+    <div class="home-progress-group">
     <div class="daily-card">
 
       <div class="daily-header">
@@ -125,6 +126,7 @@ content.innerHTML = `
 
     </div>
     ${renderVerifiedProgress(userData)}
+    </div>
     ${await renderActivitySummaryCard()}
 
   </div>
@@ -226,7 +228,7 @@ async function renderPublicActivitySummary(content){
           <div class="championclub-btn"><i class="fa-solid fa-trophy"></i><span>Champion Club</span></div>
         </div>
       </div>
-      <div class="daily-card guest-protected-card">
+      <div class="home-progress-group guest-progress-group"><div class="daily-card guest-protected-card">
         <div class="daily-header"><div class="daily-title">Check-In Harian</div><div class="daily-info">Informasi Check-In</div></div>
         <div class="daily-days">
           ${rewardMatrix.map((reward,index)=>`<div class="daily-box guest-checkin-box" role="button" tabindex="0" onclick="openGuestCheckinAccess()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGuestCheckinAccess();}"><div class="daily-day">Hari ${index+1}</div><div class="daily-reward">🪙 +${reward}</div></div>`).join("")}
@@ -237,9 +239,9 @@ async function renderPublicActivitySummary(content){
         <div class="verified-title">Progress Verified (Bulan Ini)</div>
         <div class="verified-row"><div>Kehadiran bulan ini</div><div>0 / 2</div></div>
         <div class="verified-bar"><div class="verified-fill" style="width:0%"></div></div>
-        <div class="verified-row"><div>Kontribusi bulan ini</div><div>Rp 0 / Rp 300.000</div></div>
+        <div class="verified-row"><div>Kontribusi bulan ini</div><div>Rp 0 / Rp 250.000</div></div>
         <div class="verified-bar"><div class="verified-fill gold" style="width:0%"></div></div>
-      </div>
+      </div></div>
       ${await renderActivitySummaryCard()}
     </div>
     <div id="guestCheckinAccessOverlay" class="member-access-overlay" onclick="if(event.target===this)closeGuestCheckinAccess()">
