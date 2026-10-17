@@ -42,6 +42,7 @@ export function requestTransactionPin() {
           text-align:center;
           font-weight:bold;
           margin-bottom:10px;
+          color:#1B4332;
         ">
           Masukkan PIN Transaksi
         </div>
@@ -51,6 +52,7 @@ export function requestTransactionPin() {
           font-size:28px;
           letter-spacing:10px;
           margin:15px 0;
+          color:#1B4332;
         ">○ ○ ○ ○ ○ ○</div>
 
         <div id="pinError" style="
