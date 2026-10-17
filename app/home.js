@@ -208,31 +208,39 @@ content.innerHTML = `
 
 
 async function renderPublicActivitySummary(content){
-  const activityCard = await renderActivitySummaryCard();
+  // Guest sees the same TERAS layout as a logged-in member, with account values set to zero.
+  // Protected actions open the member-access modal; no private user document/listener is read.
+  const rewardMatrix = [10,10,10,10,10,10,150];
   content.innerHTML = `
-    <div class="home-container public-home-container">
-      <section class="home-public-welcome" style="padding:20px 16px 8px;">
-        <h2 style="margin:0 0 6px;color:#2E5D3A;">Selamat datang di GMTC</h2>
-        <p style="margin:0;color:#71816f;">Girl In Love Tennis Community — Balikpapan</p>
-      </section>
-      <section class="daily-card guest-daily-card" role="button" tabindex="0" onclick="openGuestCheckinAccess()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGuestCheckinAccess();}" style="cursor:pointer;">
-        <div class="daily-header"><div class="daily-title">Check-In Harian</div><div class="daily-info">Akses member</div></div>
-        <div class="daily-days">${[10,10,10,10,10,10,150].map((reward,index)=>`<div class="daily-box"><div class="daily-day">Hari ${index+1}</div><div class="daily-reward">🪙 +0</div></div>`).join("")}</div>
-        <div class="daily-status">Login sebagai member untuk melakukan check-in dan memperoleh G-Point.</div>
-      </section>
-      <section class="verified-progress-card guest-progress-card" onclick="openGuestCheckinAccess()" role="button" tabindex="0" style="cursor:pointer;">
+    <div class="home-container guest-home-container">
+      <div class="home-header">
+        <div class="home-profile-left">
+          <div class="home-avatar"><div class="avatar-placeholder">👤</div></div>
+          <div class="home-user-text">
+            <div class="home-username">Guest</div>
+            <div class="home-gpoint">0 G-Point</div>
+          </div>
+        </div>
+        <div class="home-profile-right">
+          <div class="leaderboard-btn"><i class="fa-solid fa-crown"></i><span>Leaderboard</span></div>
+          <div class="championclub-btn"><i class="fa-solid fa-trophy"></i><span>Champion Club</span></div>
+        </div>
+      </div>
+      <div class="daily-card guest-protected-card">
+        <div class="daily-header"><div class="daily-title">Check-In Harian</div><div class="daily-info">Informasi Check-In</div></div>
+        <div class="daily-days">
+          ${rewardMatrix.map((reward,index)=>`<div class="daily-box guest-checkin-box" role="button" tabindex="0" onclick="openGuestCheckinAccess()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGuestCheckinAccess();}"><div class="daily-day">Hari ${index+1}</div><div class="daily-reward">🪙 +${reward}</div></div>`).join("")}
+        </div>
+        <div class="daily-status guest-checkin-box" role="button" tabindex="0" onclick="openGuestCheckinAccess()">Scan kartu Anda untuk check-in hari ini</div>
+      </div>
+      <div class="verified-progress-card guest-protected-card" role="button" tabindex="0" onclick="openGuestCheckinAccess()">
         <div class="verified-title">Progress Verified (Bulan Ini)</div>
         <div class="verified-row"><div>Kehadiran bulan ini</div><div>0 / 2</div></div>
         <div class="verified-bar"><div class="verified-fill" style="width:0%"></div></div>
         <div class="verified-row"><div>Kontribusi bulan ini</div><div>Rp 0 / Rp 300.000</div></div>
         <div class="verified-bar"><div class="verified-fill gold" style="width:0%"></div></div>
-        <p style="margin:12px 0 0;color:#71816f;font-size:12px;">Login sebagai member untuk melihat progres akun kamu.</p>
-      </section>
-      ${activityCard}
-      <section style="padding:0 18px 20px;color:#355742;">
-        <h3 style="margin:12px 0 6px;">Jadwal Main Saya Terdekat</h3>
-        <p style="margin:0;color:#71816f;">Belum ada jadwal pribadi. Lihat menu Jadwal untuk menemukan sesi dan bergabung.</p>
-      </section>
+      </div>
+      ${await renderActivitySummaryCard()}
     </div>
     <div id="guestCheckinAccessOverlay" class="member-access-overlay" onclick="if(event.target===this)closeGuestCheckinAccess()">
       <div class="member-access-card" role="dialog" aria-modal="true" aria-labelledby="guestCheckinAccessTitle">
@@ -245,6 +253,8 @@ async function renderPublicActivitySummary(content){
       </div>
     </div>
   `;
+  document.querySelector(".leaderboard-btn")?.addEventListener("click",()=>window.navigate?.("leaderboard"));
+  document.querySelector(".championclub-btn")?.addEventListener("click",()=>window.navigate?.("championClub"));
 }
 window.openGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.add("show");};
 window.closeGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.remove("show");};
