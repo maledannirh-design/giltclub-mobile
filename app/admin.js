@@ -10,7 +10,8 @@ import {
   updateDoc,
   serverTimestamp,
   setDoc,
-  deleteField
+  deleteField,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { sendAdminBroadcast } from "./broadcast.js";
 import { applyMutation } from "./services/mutationService.js";
@@ -156,6 +157,29 @@ export async function renderAdmin() {
 
   <hr style="margin:30px 0;">
 
+  <div class="admin-card" id="massiveUploadCard">
+    <h3>Massive Upload</h3>
+    <p style="font-size:13px;opacity:.75;line-height:1.5;">Kelola impor massal dari satu tempat. Pilih template, download CSV, upload file yang sudah diisi, periksa validasi, lalu jalankan impor ke Firestore.</p>
+
+    <button id="downloadTemplateMasterBtn" class="admin-btn" type="button" style="margin-top:10px;">DOWNLOAD TEMPLATE MASTER ▾</button>
+    <div id="templateMasterOptions" style="display:none;margin-top:8px;">
+      <label for="templateMasterSelect" style="display:block;font-size:13px;margin-bottom:6px;">Pilih template</label>
+      <select id="templateMasterSelect" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--color-border);">
+        <option value="massive-schedule">Upload Massive Schedule</option>
+      </select>
+      <button id="downloadSelectedTemplateBtn" class="admin-btn" type="button" style="margin-top:8px;">Download Template Terpilih</button>
+    </div>
+
+    <hr style="margin:18px 0;">
+    <label for="massiveTemplateFile" style="display:block;font-size:13px;margin-bottom:6px;">Upload file template (CSV)</label>
+    <input id="massiveTemplateFile" type="file" accept=".csv,text/csv" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:10px;">
+    <div id="massiveTemplatePreview" style="font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;">Belum ada file dipilih.</div>
+    <button id="runMassiveTemplateBtn" class="admin-btn" type="button" disabled style="margin-top:12px;opacity:.55;">RUN TEMPLATE</button>
+    <div id="massiveTemplateRunStatus" style="font-size:12px;line-height:1.5;margin-top:10px;"></div>
+  </div>
+
+  <hr style="margin:30px 0;">
+
   <div class="admin-card">
     <h3>Export & Audit Tools</h3>
 
@@ -194,6 +218,24 @@ export async function renderAdmin() {
   const refreshActivitySummaryBtn = document.getElementById("refreshActivitySummaryBtn");
   if (refreshActivitySummaryBtn) refreshActivitySummaryBtn.onclick = refreshActivitySummary;
 
+  const downloadTemplateMasterBtn = document.getElementById("downloadTemplateMasterBtn");
+  if (downloadTemplateMasterBtn) downloadTemplateMasterBtn.onclick = () => {
+    const options = document.getElementById("templateMasterOptions");
+    if (!options) return;
+    const isOpen = options.style.display !== "none";
+    options.style.display = isOpen ? "none" : "block";
+    downloadTemplateMasterBtn.textContent = isOpen ? "DOWNLOAD TEMPLATE MASTER ▾" : "DOWNLOAD TEMPLATE MASTER ▴";
+  };
+
+  const downloadSelectedTemplateBtn = document.getElementById("downloadSelectedTemplateBtn");
+  if (downloadSelectedTemplateBtn) downloadSelectedTemplateBtn.onclick = downloadMassiveTemplate;
+
+  const massiveTemplateFile = document.getElementById("massiveTemplateFile");
+  if (massiveTemplateFile) massiveTemplateFile.onchange = handleMassiveTemplateFile;
+
+  const runMassiveTemplateBtn = document.getElementById("runMassiveTemplateBtn");
+  if (runMassiveTemplateBtn) runMassiveTemplateBtn.onclick = runMassiveTemplate;
+
   document.getElementById("adminBalanceAdjustment").innerHTML = `
   <div class="admin-card">
     <h3>Manual Adjustment</h3>
@@ -211,6 +253,193 @@ document.getElementById("loadUsersBtn").onclick = async () => {
   document.getElementById("adjustForm").style.display = "block";
 };
   await initBroadcastUI();
+}
+
+const MASSIVE_SCHEDULE_HEADERS = [
+  "sportType", "date", "startTime", "endTime", "tier", "sessionType", "mode",
+  "maxPlayers", "court", "pricePerHour", "racketStock", "racketPrice", "notes",
+  "cashbackMember", "cashbackVerified", "cashbackVVIP"
+];
+
+let parsedMassiveScheduleRows = [];
+
+function downloadMassiveTemplate() {
+  const selected = document.getElementById("templateMasterSelect")?.value;
+  if (selected !== "massive-schedule") {
+    alert("Template belum tersedia.");
+    return;
+  }
+  const csv = MASSIVE_SCHEDULE_HEADERS.join(",") + "\r\n";
+  const blob = new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "GMTC_Massive_Schedule_Template.csv";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", quoted = false;
+  text = text.replace(/^\\uFEFF/, "");
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"' && field.length === 0) quoted = true;
+    else if (ch === ",") { row.push(field); field = ""; }
+    else if (ch === "\\n" || ch === "\\r") {
+      if (ch === "\\r" && text[i + 1] === "\\n") i++;
+      row.push(field); field = "";
+      if (row.some(value => value.trim() !== "")) rows.push(row);
+      row = [];
+    } else field += ch;
+  }
+  row.push(field);
+  if (row.some(value => value.trim() !== "")) rows.push(row);
+  if (quoted) throw new Error("Ada tanda kutip CSV yang belum ditutup.");
+  return rows;
+}
+
+function handleMassiveTemplateFile(event) {
+  const file = event.target.files?.[0];
+  const preview = document.getElementById("massiveTemplatePreview");
+  const runBtn = document.getElementById("runMassiveTemplateBtn");
+  const status = document.getElementById("massiveTemplateRunStatus");
+  parsedMassiveScheduleRows = [];
+  if (runBtn) { runBtn.disabled = true; runBtn.style.opacity = ".55"; }
+  if (status) status.textContent = "";
+  if (!file) {
+    if (preview) preview.textContent = "Belum ada file dipilih.";
+    return;
+  }
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    if (preview) preview.textContent = "Format belum didukung. Gunakan file CSV hasil download template.";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const rows = parseCSV(String(reader.result || ""));
+      if (rows.length < 2) throw new Error("File hanya berisi header. Isi minimal satu baris jadwal.");
+      const headers = rows[0].map(value => value.trim());
+      const missing = MASSIVE_SCHEDULE_HEADERS.filter(header => !headers.includes(header));
+      if (missing.length) throw new Error("Header wajib tidak ditemukan: " + missing.join(", "));
+      const dataRows = rows.slice(1);
+      const errors = [];
+      parsedMassiveScheduleRows = dataRows.map((values, index) => {
+        const item = Object.fromEntries(headers.map((header, column) => [header, (values[column] || "").trim()]));
+        const rowNumber = index + 2;
+        const dateOK = /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date) && !Number.isNaN(Date.parse(item.date + "T00:00:00"));
+        const timeOK = value => /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(value);
+        const max = Number(item.maxPlayers);
+        if (!dateOK) errors.push("Baris " + rowNumber + ": date harus YYYY-MM-DD.");
+        if (!timeOK(item.startTime) || !timeOK(item.endTime) || item.endTime <= item.startTime) errors.push("Baris " + rowNumber + ": jam harus HH:MM dan jam selesai setelah jam mulai.");
+        if (!Number.isInteger(max) || max <= 0) errors.push("Baris " + rowNumber + ": maxPlayers harus bilangan bulat di atas 0.");
+        if (!item.tier || !item.sessionType || !item.mode || !item.court) errors.push("Baris " + rowNumber + ": tier, sessionType, mode, dan court wajib diisi.");
+        for (const field of ["pricePerHour", "racketStock", "racketPrice", "cashbackMember", "cashbackVerified", "cashbackVVIP"]) {
+          if (item[field] !== "" && (!Number.isFinite(Number(item[field])) || Number(item[field]) < 0)) errors.push("Baris " + rowNumber + ": " + field + " harus angka nol atau lebih.");
+        }
+        return { rowNumber, item, valid: dateOK && timeOK(item.startTime) && timeOK(item.endTime) && item.endTime > item.startTime && Number.isInteger(max) && max > 0 && !!item.tier && !!item.sessionType && !!item.mode && !!item.court };
+      }).filter(row => Object.values(row.item).some(value => value !== ""));
+      const validRows = parsedMassiveScheduleRows.filter(row => row.valid);
+      if (preview) {
+        preview.textContent = "File: " + file.name + "\\nBaris data: " + parsedMassiveScheduleRows.length + "\\nBaris lolos pemeriksaan dasar: " + validRows.length + "\\n" +
+          (errors.length ? "\\nPerlu diperbaiki sebelum Run Template:\\n• " + errors.slice(0, 12).join("\\n• ") + (errors.length > 12 ? "\\n• ...dan " + (errors.length - 12) + " kesalahan lain." : "") : "Semua baris lolos pemeriksaan dasar.");
+      }
+      if (runBtn && parsedMassiveScheduleRows.length && errors.length === 0) {
+        runBtn.disabled = false;
+        runBtn.style.opacity = "1";
+      }
+      if (errors.length) parsedMassiveScheduleRows = [];
+    } catch (error) {
+      parsedMassiveScheduleRows = [];
+      if (preview) preview.textContent = error.message || "Gagal membaca CSV.";
+    }
+  };
+  reader.onerror = () => {
+    parsedMassiveScheduleRows = [];
+    if (preview) preview.textContent = "File tidak dapat dibaca.";
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+async function runMassiveTemplate() {
+  const runBtn = document.getElementById("runMassiveTemplateBtn");
+  const status = document.getElementById("massiveTemplateRunStatus");
+  if (!runBtn || !status || !parsedMassiveScheduleRows.length) return;
+  const rows = [...parsedMassiveScheduleRows];
+  const valid = rows.every(row => row.valid);
+  if (!valid) {
+    alert("Template memiliki baris yang tidak valid. Perbaiki file dan upload ulang.");
+    return;
+  }
+  if (!confirm("Buat " + rows.length + " jadwal baru ke Firestore? Proses ini tidak mengedit atau menghapus jadwal yang sudah ada.")) return;
+
+  runBtn.disabled = true;
+  runBtn.textContent = "Memproses...";
+  status.style.color = "#64748b";
+  let created = 0;
+  try {
+    const batches = [];
+    for (let i = 0; i < rows.length; i += 450) batches.push(rows.slice(i, i + 450));
+    for (const batchRows of batches) {
+      const batch = writeBatch(db);
+      for (const row of batchRows) {
+        const s = row.item;
+        const maxPlayers = Number(s.maxPlayers);
+        const ref = doc(collection(db, "schedules"));
+        batch.set(ref, {
+          sportType: s.sportType || "tennis",
+          date: s.date,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          tier: s.tier,
+          sessionType: s.sessionType,
+          mode: s.mode,
+          maxPlayers,
+          slots: maxPlayers,
+          court: s.court,
+          hostId: auth.currentUser.uid,
+          coaches: [],
+          pricePerHour: Number(s.pricePerHour || 0),
+          racketStock: Number(s.racketStock || 0),
+          racketPrice: Number(s.racketPrice || 0),
+          notes: s.notes || "",
+          status: "open",
+          createdAt: serverTimestamp(),
+          cashbackMember: Number(s.cashbackMember || 0),
+          cashbackVerified: Number(s.cashbackVerified || 0),
+          cashbackVVIP: Number(s.cashbackVVIP || 0),
+          importSource: "massive-schedule"
+        });
+      }
+      await batch.commit();
+      created += batchRows.length;
+      status.textContent = "Berhasil membuat " + created + " dari " + rows.length + " jadwal...";
+    }
+    status.style.color = "#16803d";
+    status.textContent = "Selesai. " + created + " jadwal berhasil dibuat. Status awal semua jadwal: open.";
+    const preview = document.getElementById("massiveTemplatePreview");
+    if (preview) preview.textContent += "\\n\\nImpor selesai: " + created + " jadwal dibuat.";
+    parsedMassiveScheduleRows = [];
+    const fileInput = document.getElementById("massiveTemplateFile");
+    if (fileInput) fileInput.value = "";
+  } catch (error) {
+    console.error("Massive schedule upload failed:", error);
+    status.style.color = "#dc2626";
+    status.textContent = "Proses berhenti setelah " + created + " jadwal tersimpan. " + (created ? "Sebagian data sudah masuk; jangan langsung menjalankan ulang seluruh file agar tidak membuat duplikat." : "Belum ada jadwal yang berhasil disimpan.") + " Detail: " + (error.message || "gagal menyimpan.");
+  } finally {
+    runBtn.disabled = true;
+    runBtn.textContent = "RUN TEMPLATE";
+    runBtn.style.opacity = ".55";
+  }
 }
 
 async function refreshActivitySummary(){
