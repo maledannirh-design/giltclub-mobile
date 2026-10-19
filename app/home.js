@@ -456,14 +456,15 @@ function showMascotFaq(welcome,mascot,reposition,heading){
   const faq=[
     ["Cara bergabung dengan GMTC?","Daftar gratis melalui menu Akun dan lengkapi data pendaftaran."],
     ["Cara booking sesi tenis?","Buka jadwal sesi, pilih sesi yang memiliki slot tersedia, lalu ikuti proses booking."],
-    ["Cara isi saldo, bayar, dan cek mutasi?","Buka menu G-WALLET. Untuk isi saldo, pilih Top Up dan ikuti instruksi yang tersedia. Untuk membayar, gunakan saldo G-WALLET saat booking sesi atau melakukan transaksi yang didukung aplikasi. Untuk melihat riwayat transaksi, buka Mutasi/Ledger di menu G-WALLET."]
+    ["Cara isi saldo, bayar, dan cek mutasi?","wallet-tutorial"],
+    ["Bagaimana menghubungi admin GMTC?","admin-whatsapp"]
   ];
   const bubble=document.createElement("div");
   bubble.className="g-mascot-bubble g-mascot-contest-bubble g-mascot-faq-bubble";
   bubble.innerHTML='<button type="button" class="g-mascot-bubble-close" aria-label="Tutup FAQ">×</button><p class="g-mascot-greeting"></p><div class="g-mascot-faq-list"></div><div class="g-mascot-faq-answer" hidden></div><span class="g-mascot-bubble-tail" aria-hidden="true"></span>';
   bubble.querySelector(".g-mascot-greeting").textContent=heading;
   const list=bubble.querySelector(".g-mascot-faq-list");
-  faq.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.className="g-mascot-faq-item";b.textContent=item[0];b.addEventListener("click",async()=>{mascotContestTuit();if(item[0]==="Cara booking sesi tenis?"){const tutorial=await import("./tutorial/tutorial.js");tutorial.startBookingTutorial();return;}const answer=bubble.querySelector(".g-mascot-faq-answer");answer.textContent=item[1];answer.hidden=false;});list.appendChild(b);});
+  faq.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.className="g-mascot-faq-item";b.textContent=item[0];b.addEventListener("click",async()=>{mascotContestTuit();if(item[0]==="Cara booking sesi tenis?"){const tutorial=await import("./tutorial/tutorial.js");tutorial.startBookingTutorial();return;}if(item[1]==="wallet-tutorial"){const tutorial=await import("./tutorial/tutorial.js");tutorial.startWalletTutorial();return;}if(item[1]==="admin-whatsapp"){const message="Halo Admin GMTC, saya ingin bertanya mengenai komunitas dan layanan GMTC.";window.open("https://wa.me/6282253704720?text="+encodeURIComponent(message),"_blank","noopener");return;}const answer=bubble.querySelector(".g-mascot-faq-answer");answer.textContent=item[1];answer.hidden=false;});list.appendChild(b);});
   bubble.querySelector(".g-mascot-bubble-close").addEventListener("click",()=>{mascotContestTuit();bubble.classList.add("is-hidden");});
   welcome.appendChild(bubble);
   if(reposition) reposition(welcome,bubble,mascot);
