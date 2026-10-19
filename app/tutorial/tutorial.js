@@ -43,7 +43,7 @@ function renderWalletStage(){
   target?.classList.add("is-highlighted");
   const bubble=document.createElement("div");bubble.className="gt-guide-bubble gt-form-guide";
   bubble.innerHTML=`<strong>${title}</strong><p>${WALLET_STEPS[walletStep][2]}</p>`;
-  target?.appendChild(bubble);
+  if(target) target.insertAdjacentElement("afterend",bubble);
   const eye=track.querySelector(".gt-wallet-eye");
   eye?.addEventListener("click",()=>{const amount=track.querySelector(".gt-wallet-amount");const visible=amount.dataset.visible==="1";amount.textContent=visible?"Rp ******":"Rp 125.000";amount.dataset.visible=visible?"0":"1";eye.textContent=visible?"◉":"⊘";});
   track.querySelector(".gt-wallet-action[data-wallet-field=\"topup\"]")?.addEventListener("click",()=>{track.querySelector(".gt-wallet-demo-topup").hidden=false;});
