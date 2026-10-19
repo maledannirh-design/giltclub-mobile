@@ -248,8 +248,41 @@ function renderWelcomeMascot(isGuest){
     bubble.classList.add("is-hidden");
     mascot.setAttribute("aria-expanded","false");
   });
+  let dragStartX = 0, dragStartY = 0, mascotStartX = 0, mascotStartY = 0;
+  let didDrag = false;
+  mascot?.addEventListener("pointerdown",(event)=>{
+    if(event.pointerType === "mouse" && event.button !== 0) return;
+    const rect = welcome.getBoundingClientRect();
+    dragStartX = event.clientX;
+    dragStartY = event.clientY;
+    mascotStartX = rect.left;
+    mascotStartY = rect.top;
+    didDrag = false;
+    mascot.setPointerCapture?.(event.pointerId);
+  });
+  mascot?.addEventListener("pointermove",(event)=>{
+    if(!mascot.hasPointerCapture?.(event.pointerId)) return;
+    const dx = event.clientX - dragStartX;
+    const dy = event.clientY - dragStartY;
+    if(Math.abs(dx) > 5 || Math.abs(dy) > 5) didDrag = true;
+    if(!didDrag) return;
+    const maxX = Math.max(0, window.innerWidth - welcome.offsetWidth);
+    const maxY = Math.max(0, window.innerHeight - welcome.offsetHeight);
+    welcome.style.left = Math.min(maxX, Math.max(0, mascotStartX + dx)) + "px";
+    welcome.style.top = Math.min(maxY, Math.max(0, mascotStartY + dy)) + "px";
+    welcome.style.right = "auto";
+    welcome.style.bottom = "auto";
+  });
+  mascot?.addEventListener("pointerup",(event)=>{
+    if(mascot.hasPointerCapture?.(event.pointerId)) mascot.releasePointerCapture(event.pointerId);
+    if(didDrag){
+      mascot.dataset.dragged = "true";
+      setTimeout(()=>{ delete mascot.dataset.dragged; },0);
+    }
+  });
   mascot?.addEventListener("click",()=>{
-    const hidden=bubble.classList.toggle("is-hidden");
+    if(mascot.dataset.dragged === "true") return;
+    const hidden = bubble.classList.toggle("is-hidden");
     mascot.setAttribute("aria-expanded",String(!hidden));
   });
 }
