@@ -254,14 +254,28 @@ function renderWelcomeMascot(isGuest){
     <button type="button" class="g-mascot-float" aria-label="Buka sambutan GMTC" aria-expanded="true">
       <img src="./image/mascot-welcome.webp" alt="Maskot Welcome GMTC">
     </button>
-    <button type="button" class="g-mascot-name-cta">Kak tutorial dong, butuh panduan sistem?</button>
+    <div class="g-mascot-quick-actions"><button type="button" class="g-mascot-name-cta">Beri nama?</button><button type="button" class="g-mascot-tutorial-cta">Kak tutorial dong, butuh panduan sistem?</button></div>
   `;
   document.body.appendChild(welcome);
   const bubble=welcome.querySelector("#g-mascot-bubble");
   const mascot=welcome.querySelector(".g-mascot-float");
   const nameCta=welcome.querySelector(".g-mascot-name-cta");
+  const tutorialCta=welcome.querySelector(".g-mascot-tutorial-cta");
+  const syncNameCta=()=>{
+    const uid=auth.currentUser?.uid || "";
+    const doneKey=uid ? "gmtcMascotContestDone_" + uid : "gmtcMascotContestGuestDone";
+    nameCta.hidden=localStorage.getItem(doneKey)==="1";
+  };
+  syncNameCta();
   nameCta?.addEventListener("click",()=>{
     mascotContestTuit();
+    welcome.querySelector(".g-mascot-faq-bubble")?.remove();
+    sessionStorage.removeItem("gmtcMascotContestDismissedThisSession");
+    showMascotContest(welcome,mascot,positionWelcomeBubble);
+  });
+  tutorialCta?.addEventListener("click",()=>{
+    mascotContestTuit();
+    welcome.querySelector(".g-mascot-contest-bubble")?.classList.add("is-hidden");
     welcome.querySelector(".g-mascot-faq-bubble")?.remove();
     showMascotFaq(welcome,mascot,positionWelcomeBubble,"Kak tutorial dong, butuh panduan sistem?");
   });
@@ -320,9 +334,6 @@ function renderWelcomeMascot(isGuest){
     if(!hidden) positionWelcomeBubble(welcome, bubble, mascot);
     if(!hidden) showMascotContest(welcome, mascot, positionWelcomeBubble);
   });
-  if(sessionStorage.getItem("gmtcMascotContestDismissedThisSession") !== "1") {
-    setTimeout(()=>showMascotContest(welcome, mascot, positionWelcomeBubble), 1100);
-  }
 }
  
 function mascotContestTuit(){
@@ -418,6 +429,7 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
       }
       await addDoc(collection(db,"mascotNameSubmissions"),{name:proposedName,reason:why,prize,userId:user?.uid||null,status:"pending",createdAt:serverTimestamp()});
       localStorage.setItem(doneKey,"1");
+      welcome.querySelector(".g-mascot-name-cta")?.setAttribute("hidden","");
       close();
       showMascotFaq(welcome,mascot,reposition,"Makasih! Aku senang sekali! Mudah-mudahan nama yang kamu kasih terpilih jadi namaku, ya!");
       if(!user) setTimeout(()=>{window.navigate?.("account");setTimeout(()=>document.getElementById("registerBtn")?.click(),150);},2200);
