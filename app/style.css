@@ -4459,3 +4459,54 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   box-shadow:0 4px 12px rgba(120,0,0,.2);
 }
 .g-mascot-name-cta:active{transform:translateX(-50%) scale(.97);}
+
+
+/* Two persistent mascot actions below its feet */
+.g-mascot-quick-actions{
+  position:absolute;
+  left:50%;
+  bottom:-66px;
+  z-index:4;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  max-width:min(250px,calc(100vw - 20px));
+  transform:translateX(-50%);
+  pointer-events:auto;
+}
+.g-mascot-quick-actions button{
+  box-sizing:border-box;
+  width:max-content;
+  max-width:100%;
+  min-height:32px;
+  padding:7px 12px;
+  border:2px solid;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.25;
+  text-align:center;
+  white-space:normal;
+  box-shadow:0 3px 10px rgba(0,0,0,.16);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.g-mascot-name-cta{
+  border-color:#2879c7 !important;
+  background:#eef7ff !important;
+  color:#174a75 !important;
+}
+.g-mascot-tutorial-cta{
+  border-color:#c62828 !important;
+  background:#fff0f0 !important;
+  color:#9f1717 !important;
+}
+.g-mascot-quick-actions button:active{transform:scale(.97);}
+.g-mascot-quick-actions button[hidden]{display:none !important;}
+.g-mascot-welcome.is-dragging .g-mascot-quick-actions{pointer-events:none;}
+@media(max-width:420px){
+  .g-mascot-quick-actions{bottom:-72px;max-width:min(235px,calc(100vw - 16px));gap:5px;}
+  .g-mascot-quick-actions button{font-size:11px;padding:6px 10px;}
+}
