@@ -254,18 +254,16 @@ function renderWelcomeMascot(isGuest){
     <button type="button" class="g-mascot-float" aria-label="Buka sambutan GMTC" aria-expanded="true">
       <img src="./image/mascot-welcome.webp" alt="Maskot Welcome GMTC">
     </button>
-    <button type="button" class="g-mascot-name-cta">Beri nama?</button>
+    <button type="button" class="g-mascot-name-cta">Kak tutorial dong, butuh panduan sistem?</button>
   `;
   document.body.appendChild(welcome);
   const bubble=welcome.querySelector("#g-mascot-bubble");
   const mascot=welcome.querySelector(".g-mascot-float");
   const nameCta=welcome.querySelector(".g-mascot-name-cta");
   nameCta?.addEventListener("click",()=>{
-    const uid=auth.currentUser?.uid || "";
-    const doneKey=uid ? "gmtcMascotContestDone_" + uid : "gmtcMascotContestGuestDone";
-    if(localStorage.getItem(doneKey)==="1") return;
-    sessionStorage.removeItem("gmtcMascotContestDismissedThisSession");
-    showMascotContest(welcome,mascot,positionWelcomeBubble);
+    mascotContestTuit();
+    welcome.querySelector(".g-mascot-faq-bubble")?.remove();
+    showMascotFaq(welcome,mascot,positionWelcomeBubble,"Kak tutorial dong, butuh panduan sistem?");
   });
   welcome.querySelector(".g-mascot-bubble-close")?.addEventListener("click",()=>{
     bubble.classList.add("is-hidden");
