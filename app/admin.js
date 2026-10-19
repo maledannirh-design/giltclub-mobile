@@ -263,7 +263,8 @@ const MASSIVE_SCHEDULE_HEADERS = [
   "sportType", "date", "startTime", "endTime", "tier", "sessionType", "mode",
   "maxPlayers", "court", "pricePerHour", "racketStock", "racketPrice", "notes",
   "cashbackMember", "cashbackVerified", "cashbackVVIP",
-  ...Array.from({ length: 20 }, (_, index) => `playerName${index + 1}`)
+  ...Array.from({ length: 30 }, (_, index) => `playerName${index + 1}`),
+  "status"
 ];
 
 let parsedMassiveScheduleRows = [];
@@ -355,6 +356,7 @@ function handleMassiveTemplateFile(event) {
         if (!item.tier || !item.sessionType || !item.mode || !item.court) errors.push("Baris " + rowNumber + ": tier, sessionType, mode, dan court wajib diisi.");
         if (!["Mabar", "Drill", "Drill + Mabar"].includes(item.sessionType)) errors.push("Baris " + rowNumber + ": sessionType harus Mabar, Drill, atau Drill + Mabar.");
         if (!["reguler", "semi-private", "private"].includes(item.mode.toLowerCase())) errors.push("Baris " + rowNumber + ": mode harus reguler, semi-private, atau private.");
+        if (item.status && !["open", "closed", "cancelled"].includes(item.status.toLowerCase())) errors.push("Baris " + rowNumber + ": status harus open, closed, atau cancelled.");
         for (const field of ["pricePerHour", "racketStock", "racketPrice", "cashbackMember", "cashbackVerified", "cashbackVVIP"]) {
           if (item[field] !== "" && (!Number.isFinite(Number(item[field])) || Number(item[field]) < 0)) errors.push("Baris " + rowNumber + ": " + field + " harus angka nol atau lebih.");
         }
@@ -424,12 +426,12 @@ async function runMassiveTemplate() {
           racketStock: Number(s.racketStock || 0),
           racketPrice: Number(s.racketPrice || 0),
           notes: s.notes || "",
-          status: "open",
+          status: (s.status || "open").trim().toLowerCase(),
           createdAt: serverTimestamp(),
           cashbackMember: Number(s.cashbackMember || 0),
           cashbackVerified: Number(s.cashbackVerified || 0),
           cashbackVVIP: Number(s.cashbackVVIP || 0),
-          manualSlotNames: Array.from({ length: 20 }, (_, index) => String(s[`playerName${index + 1}`] || "").trim()).slice(0, maxPlayers),
+          manualSlotNames: Array.from({ length: 30 }, (_, index) => String(s[`playerName${index + 1}`] || "").trim()).slice(0, maxPlayers),
           importSource: "massive-schedule"
         });
       }
