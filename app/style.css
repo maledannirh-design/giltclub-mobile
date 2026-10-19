@@ -4605,3 +4605,8 @@ body.dashboard-gate-open .verify-modal.show .verify-modal-card{pointer-events:au
 body.dashboard-gate-open .bottom-nav{position:fixed;z-index:10001;filter:none !important;-webkit-filter:none !important;pointer-events:auto !important;}
 body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 .verify-guest-buttons{display:flex;gap:8px}.verify-guest-buttons button{flex:1}
+
+/* Ensure public guest Teras promo carousel remains visible above daily check-in. */
+.guest-home-container > .home-promo-section{display:block !important;visibility:visible !important;opacity:1 !important;width:100%;position:relative;z-index:1;}
+.guest-home-container > .home-promo-section .home-promo-track{display:flex;visibility:visible;}
+.guest-home-container > .home-promo-section .home-promo-card{display:block;}
