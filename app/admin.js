@@ -164,8 +164,8 @@ export async function renderAdmin() {
     <button id="downloadTemplateMasterBtn" class="admin-btn" type="button" style="margin-top:10px;">DOWNLOAD TEMPLATE MASTER ▾</button>
     <div id="templateMasterOptions" style="display:none;margin-top:8px;">
       <label for="templateMasterSelect" style="display:block;font-size:13px;margin-bottom:6px;">Pilih template</label>
-      <select id="templateMasterSelect" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--color-border);">
-        <option value="massive-schedule">Upload Massive Schedule</option>
+      <select id="templateMasterSelect" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--color-border);color:var(--color-text);background:var(--color-card, var(--color-bg));color-scheme:light dark;">
+        <option value="massive-schedule" style="color:#173b2a;background:#ffffff;">Upload Massive Schedule</option>
       </select>
       <button id="downloadSelectedTemplateBtn" class="admin-btn" type="button" style="margin-top:8px;">Download Template Terpilih</button>
     </div>
