@@ -4187,12 +4187,9 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   right: max(14px, env(safe-area-inset-right));
   bottom: calc(82px + env(safe-area-inset-bottom));
   z-index: 9000; /* Keep transaction PIN overlay above the mascot */
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  width: 112px;
+  height: 112px;
   pointer-events: none;
-  max-width: min(340px, calc(100vw - 24px));
 }
 
 .g-mascot-float,
@@ -4213,6 +4210,9 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 }
 
 .g-mascot-float {
+  position: absolute;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4243,8 +4243,11 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 }
 
 .g-mascot-bubble {
-  position: relative;
-  width: min(320px, calc(100vw - 32px));
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: min(320px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
   box-sizing: border-box;
   padding: 18px 17px 16px;
   border: 2px solid #2e7547;
@@ -4260,6 +4263,11 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 
 .g-mascot-bubble.is-hidden {
   display: none;
+}
+
+.g-mascot-bubble.align-left {
+  right: auto;
+  left: 0;
 }
 
 .g-mascot-bubble-close {
@@ -4336,6 +4344,10 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
     bottom: calc(74px + env(safe-area-inset-bottom));
   }
   .g-mascot-float {
+    width: 94px;
+    height: 94px;
+  }
+  .g-mascot-welcome {
     width: 94px;
     height: 94px;
   }
