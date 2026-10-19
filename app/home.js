@@ -366,7 +366,7 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
   const modal=document.createElement("div");
   modal.id="g-mascot-contest-modal";
   modal.className="g-mascot-contest-overlay";
-  modal.innerHTML='<section class="g-mascot-contest-card" role="dialog" aria-modal="true" aria-labelledby="g-mascot-contest-title"><button type="button" class="g-mascot-contest-modal-close" aria-label="Tutup">×</button><p class="g-mascot-contest-eyebrow">SAYEMBARA NAMA MASKOT GMTC</p><h2 id="g-mascot-contest-title">Bantu aku punya nama! 🎾</h2><p class="g-mascot-contest-intro">Nama usulan belum menjadi nama resmi. Nama terpilih akan ditentukan GMTC.</p><form class="g-mascot-contest-form"><label for="g-mascot-proposed-name">Nama maskot</label><input id="g-mascot-proposed-name" name="name" maxlength="40" required placeholder="Contoh: Gimo"><label for="g-mascot-proposed-reason">Alasan memilih nama</label><textarea id="g-mascot-proposed-reason" name="reason" maxlength="500" required rows="4" placeholder="Ceritakan alasan kamu..."></textarea><fieldset class="g-mascot-prize-fieldset"><legend>Pilih Hadiah</legend><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Sesi Mabar" required><span>1 × Sesi Mabar</span></label><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Sesi Latihan Drill" required><span>1 × Sesi Latihan Drill</span></label><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Grip Alien Pros" required><span>1 × Grip Alien Pros</span></label></fieldset><p class="g-mascot-contest-status" aria-live="polite"></p><div class="g-mascot-contest-form-actions"><button type="submit" class="g-mascot-contest-submit">Submit</button><button type="button" class="g-mascot-contest-reset">Reset</button><button type="button" class="g-mascot-contest-cancel">Cancel</button></div></form></section>';
+  modal.innerHTML='<section class="g-mascot-contest-card" role="dialog" aria-modal="true" aria-labelledby="g-mascot-contest-title"><button type="button" class="g-mascot-contest-modal-close" aria-label="Tutup">×</button><p class="g-mascot-contest-eyebrow">SAYEMBARA NAMA MASKOT GMTC</p><h2 id="g-mascot-contest-title">Bantu aku punya nama! 🎾</h2><p class="g-mascot-contest-intro">Nama usulan belum menjadi nama resmi. Nama terpilih akan ditentukan GMTC.</p><form class="g-mascot-contest-form"><label for="g-mascot-proposed-name">Nama maskot</label><input id="g-mascot-proposed-name" name="name" maxlength="40" required placeholder="Contoh: Gimo"><label for="g-mascot-proposed-reason">Alasan memilih nama</label><textarea id="g-mascot-proposed-reason" name="reason" maxlength="500" required rows="4" placeholder="Ceritakan alasan kamu..."></textarea><fieldset class="g-mascot-prize-fieldset"><legend>Pilih Hadiah</legend><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Sesi Mabar" required><span>1 × Sesi Mabar</span></label><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Sesi Latihan Drill" required><span>1 × Sesi Latihan Drill</span></label><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Grip Alien Pros" required><span>1 × Grip Alien Pros</span></label></fieldset><p class="g-mascot-contest-status" aria-live="polite"></p><div class="g-mascot-contest-form-actions"><button type="submit" class="g-mascot-contest-submit">Submit</button><button type="button" class="g-mascot-contest-reset">Reset</button><button type="button" class="g-mascot-contest-cancel">Nanti saja</button></div></form></section>';
   document.body.appendChild(modal);
   document.body.style.overflow="hidden";
   const form=modal.querySelector("form"), name=modal.querySelector('[name="name"]'), reason=modal.querySelector('[name="reason"]'), status=modal.querySelector(".g-mascot-contest-status"), submit=modal.querySelector(".g-mascot-contest-submit");
@@ -380,8 +380,29 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
     const proposedName=name.value.trim(), why=reason.value.trim(), prize=modal.querySelector('[name="prize"]:checked')?.value || "";
     if(!proposedName || !why || !prize){status.textContent="Nama, alasan, dan pilihan hadiah wajib diisi.";return;}
     submit.disabled=true;status.textContent="Mengirim usulan...";
+    const user=auth.currentUser;
+    if(!user?.uid){
+      submit.disabled=false;
+      status.textContent="";
+      const gate=document.createElement("div");
+      gate.className="g-mascot-register-gate";
+      gate.innerHTML='<section class="g-mascot-register-gate-card" role="dialog" aria-modal="true" aria-labelledby="g-mascot-register-gate-title"><h3 id="g-mascot-register-gate-title">Yuk, Kak, daftar dulu! 🎾</h3><p>Agar ide nama bagusnya tersimpan di sistem club, Kakak perlu daftar atau masuk ke akun GMTC terlebih dahulu.</p><p>Dengan begitu, Kakak juga berkesempatan masuk nominasi dan memenangkan hadiah pilihan Kakak.</p><div class="g-mascot-register-gate-actions"><button type="button" class="g-mascot-register-gate-yes">Daftar / Masuk</button><button type="button" class="g-mascot-register-gate-later">Nanti saja</button></div></section>';
+      modal.appendChild(gate);
+      gate.querySelector(".g-mascot-register-gate-later").addEventListener("click",()=>{gate.remove();mascotContestTuit();});
+      gate.querySelector(".g-mascot-register-gate-yes").addEventListener("click",()=>{
+        mascotContestTuit();
+        // Keep the entered proposal locally so it can be restored after registration.
+        try {
+          localStorage.setItem("gmtcMascotContestDraft",JSON.stringify({name:proposedName,reason:why,prize}));
+        } catch(_) {}
+        close();
+        window.navigate?.("account");
+        setTimeout(()=>document.getElementById("registerBtn")?.click(),150);
+      });
+      mascotContestTuit();
+      return;
+    }
     try{
-      const user=auth.currentUser;
       if(user?.uid){
         const existing=await getDocs(query(collection(db,"mascotNameSubmissions"),where("userId","==",user.uid)));
         if(!existing.empty){
