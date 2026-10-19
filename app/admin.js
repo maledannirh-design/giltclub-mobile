@@ -270,7 +270,7 @@ function downloadMassiveTemplate() {
     return;
   }
   const csv = MASSIVE_SCHEDULE_HEADERS.join(",") + "\r\n";
-  const blob = new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -284,7 +284,7 @@ function downloadMassiveTemplate() {
 function parseCSV(text) {
   const rows = [];
   let row = [], field = "", quoted = false;
-  text = text.replace(/^\\uFEFF/, "");
+  text = text.replace(/^\uFEFF/, "");
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
     if (quoted) {
@@ -293,8 +293,8 @@ function parseCSV(text) {
       else field += ch;
     } else if (ch === '"' && field.length === 0) quoted = true;
     else if (ch === ",") { row.push(field); field = ""; }
-    else if (ch === "\\n" || ch === "\\r") {
-      if (ch === "\\r" && text[i + 1] === "\\n") i++;
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
       row.push(field); field = "";
       if (row.some(value => value.trim() !== "")) rows.push(row);
       row = [];
@@ -336,8 +336,8 @@ function handleMassiveTemplateFile(event) {
       parsedMassiveScheduleRows = dataRows.map((values, index) => {
         const item = Object.fromEntries(headers.map((header, column) => [header, (values[column] || "").trim()]));
         const rowNumber = index + 2;
-        const dateOK = /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date) && !Number.isNaN(Date.parse(item.date + "T00:00:00"));
-        const timeOK = value => /^([01]?\\d|2[0-3]):[0-5]\\d$/.test(value);
+        const dateOK = /^\d{4}-\d{2}-\d{2}$/.test(item.date) && !Number.isNaN(Date.parse(item.date + "T00:00:00"));
+        const timeOK = value => /^([01]?\d|2[0-3]):[0-5]\d$/.test(value);
         const max = Number(item.maxPlayers);
         if (!dateOK) errors.push("Baris " + rowNumber + ": date harus YYYY-MM-DD.");
         if (!timeOK(item.startTime) || !timeOK(item.endTime) || item.endTime <= item.startTime) errors.push("Baris " + rowNumber + ": jam harus HH:MM dan jam selesai setelah jam mulai.");
@@ -350,8 +350,8 @@ function handleMassiveTemplateFile(event) {
       }).filter(row => Object.values(row.item).some(value => value !== ""));
       const validRows = parsedMassiveScheduleRows.filter(row => row.valid);
       if (preview) {
-        preview.textContent = "File: " + file.name + "\\nBaris data: " + parsedMassiveScheduleRows.length + "\\nBaris lolos pemeriksaan dasar: " + validRows.length + "\\n" +
-          (errors.length ? "\\nPerlu diperbaiki sebelum Run Template:\\n• " + errors.slice(0, 12).join("\\n• ") + (errors.length > 12 ? "\\n• ...dan " + (errors.length - 12) + " kesalahan lain." : "") : "Semua baris lolos pemeriksaan dasar.");
+        preview.textContent = "File: " + file.name + "\nBaris data: " + parsedMassiveScheduleRows.length + "\nBaris lolos pemeriksaan dasar: " + validRows.length + "\n" +
+          (errors.length ? "\nPerlu diperbaiki sebelum Run Template:\n• " + errors.slice(0, 12).join("\n• ") + (errors.length > 12 ? "\n• ...dan " + (errors.length - 12) + " kesalahan lain." : "") : "Semua baris lolos pemeriksaan dasar.");
       }
       if (runBtn && parsedMassiveScheduleRows.length && errors.length === 0) {
         runBtn.disabled = false;
@@ -427,7 +427,7 @@ async function runMassiveTemplate() {
     status.style.color = "#16803d";
     status.textContent = "Selesai. " + created + " jadwal berhasil dibuat. Status awal semua jadwal: open.";
     const preview = document.getElementById("massiveTemplatePreview");
-    if (preview) preview.textContent += "\\n\\nImpor selesai: " + created + " jadwal dibuat.";
+    if (preview) preview.textContent += "\n\nImpor selesai: " + created + " jadwal dibuat.";
     parsedMassiveScheduleRows = [];
     const fileInput = document.getElementById("massiveTemplateFile");
     if (fileInput) fileInput.value = "";
