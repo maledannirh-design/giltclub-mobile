@@ -70,6 +70,7 @@ export async function navigate(page){
   }
 
 
+  if(page !== "skill") document.body.classList.remove("dashboard-gate-open");
   if(page !== "store" && page !== "skill"){
     document.body.classList.remove("store-gate-open");
     document.getElementById("storeMemberAccessOverlay")?.classList.remove("show");
@@ -141,8 +142,9 @@ case "skill":
   const user = auth.currentUser;
 
   if(!user){
-    showVerifyRequiredModal();
     (await import("./skill.js")).renderGuestSkillDashboard();
+    document.body.classList.add("dashboard-gate-open");
+    showVerifyRequiredModal();
     break;
   }
 
@@ -157,8 +159,10 @@ case "skill":
   const userData = userSnap.data();
 
   if(userData.membership !== "VVIP"){
+    await (await import("./skill.js")).renderSkill();
+    document.body.classList.add("dashboard-gate-open");
     showVerifyRequiredModal();
-    return;
+    break;
   }
 
   (await import("./skill.js")).renderSkill();
@@ -296,5 +300,6 @@ window.closeVerifyModal = function(){
 
   const modal = document.getElementById("verifyModal");
   if(modal) modal.classList.remove("show");
+  document.body.classList.remove("dashboard-gate-open");
 
 }
