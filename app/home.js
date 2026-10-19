@@ -468,7 +468,7 @@ function showMascotFaq(welcome,mascot,reposition,heading){
   bubble.innerHTML='<button type="button" class="g-mascot-bubble-close" aria-label="Tutup FAQ">×</button><p class="g-mascot-greeting"></p><div class="g-mascot-faq-list"></div><div class="g-mascot-faq-answer" hidden></div><span class="g-mascot-bubble-tail" aria-hidden="true"></span>';
   bubble.querySelector(".g-mascot-greeting").textContent=heading;
   const list=bubble.querySelector(".g-mascot-faq-list");
-  faq.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.className="g-mascot-faq-item";b.textContent=item[0];b.addEventListener("click",()=>{mascotContestTuit();const answer=bubble.querySelector(".g-mascot-faq-answer");answer.textContent=item[1];answer.hidden=false;});list.appendChild(b);});
+  faq.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.className="g-mascot-faq-item";b.textContent=item[0];b.addEventListener("click",async()=>{mascotContestTuit();if(item[0]==="Cara booking sesi tenis?"){const tutorial=await import("./tutorial/tutorial.js");tutorial.startBookingTutorial();return;}const answer=bubble.querySelector(".g-mascot-faq-answer");answer.textContent=item[1];answer.hidden=false;});list.appendChild(b);});
   bubble.querySelector(".g-mascot-bubble-close").addEventListener("click",()=>{mascotContestTuit();bubble.classList.add("is-hidden");});
   welcome.appendChild(bubble);
   if(reposition) reposition(welcome,bubble,mascot);
