@@ -4395,3 +4395,10 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 .g-mascot-faq-item { text-align:left; border:1px solid #c8d9c9; border-radius:10px; padding:9px 11px; background:#fff; color:#294b35; font-size:12px; line-height:1.4; cursor:pointer; }
 .g-mascot-faq-answer { margin-top:10px; padding:11px; border-radius:10px; background:#eaf3e8; color:#294b35; font-size:12px; line-height:1.5; }
 @media (max-width:420px) { .g-mascot-contest-card { padding:20px 16px; } .g-mascot-contest-card h2 { font-size:21px; } .g-mascot-contest-form-actions { gap:6px; } .g-mascot-contest-form-actions button { font-size:12px; } }
+
+/* Prize selection in mascot contest */
+.g-mascot-prize-fieldset { display:grid; gap:9px; margin:8px 0 4px; padding:12px; border:1px solid #cbd8ce; border-radius:14px; }
+.g-mascot-prize-fieldset legend { padding:0 5px; font-size:13px; font-weight:800; color:#294b35; }
+.g-mascot-prize-option { display:flex !important; align-items:center; gap:10px; margin:0 !important; padding:10px 11px; border:1px solid #d9e4da; border-radius:11px; background:#fff; cursor:pointer; }
+.g-mascot-prize-option input[type="radio"] { width:18px !important; height:18px; margin:0; accent-color:#2e7547; flex:0 0 auto; }
+.g-mascot-prize-option span { font-size:13px; font-weight:600; color:#294b35; }
