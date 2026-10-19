@@ -4569,3 +4569,27 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   .g-mascot-quick-actions .g-mascot-name-cta{bottom:-8px;max-width:min(210px,calc(100vw - 16px));}
   .g-mascot-quick-actions .g-mascot-tutorial-cta{bottom:-56px;max-width:min(220px,calc(100vw - 16px));font-size:11px;}
 }
+
+
+/* VVIP gate: show the real Skill dashboard as a blurred, scrollable preview. */
+body.dashboard-gate-open #content{
+  filter:blur(5px);
+  -webkit-filter:blur(5px);
+  pointer-events:auto;
+  overflow-y:auto;
+  touch-action:pan-y;
+}
+body.dashboard-gate-open .bottom-nav,
+body.dashboard-gate-open .header{
+  filter:blur(3px);
+  -webkit-filter:blur(3px);
+}
+body.dashboard-gate-open .verify-modal.show{
+  background:rgba(0,0,0,.28);
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  pointer-events:none;
+}
+body.dashboard-gate-open .verify-modal.show .verify-modal-card{
+  pointer-events:auto;
+}
