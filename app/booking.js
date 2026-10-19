@@ -656,23 +656,25 @@ if((s.sportType || "tennis") !== "tennis"){
   ${
     Array.from({length: maxPlayers}, (_,i)=>{
 
+      const manualName = Array.isArray(s.manualSlotNames) ? String(s.manualSlotNames[i] || "").trim() : "";
       if(i < (maxPlayers - sisaSlot)){
+        const displayName = manualName || "Member";
         return `
           <div class="member-wrapper slot filled-slot">
             <div class="member-avatar">
-              <div class="avatar-initial">U</div>
+              <div class="avatar-initial">${displayName.charAt(0).toUpperCase()}</div>
             </div>
-            <div class="member-name">Member</div>
+            <div class="member-name">${displayName}</div>
           </div>
         `;
       }
 
       return `
-        <div class="member-wrapper slot empty-slot">
+        <div class="member-wrapper slot empty-slot ${manualName ? "manual-named-slot" : ""}">
           <div class="member-avatar">
-            <div class="avatar-initial">+</div>
+            <div class="avatar-initial">${manualName ? manualName.charAt(0).toUpperCase() : "+"}</div>
           </div>
-          <div class="member-name">Kosong</div>
+          <div class="member-name">${manualName || "Kosong"}</div>
         </div>
       `;
     }).join("")
@@ -792,14 +794,15 @@ if((s.sportType || "tennis") !== "tennis"){
           continue;
         }
 
+        const manualName = Array.isArray(s.manualSlotNames) ? String(s.manualSlotNames[i] || "").trim() : "";
         slotHtml += `
-  <div class="member-wrapper slot empty-slot"
+  <div class="member-wrapper slot empty-slot ${manualName ? "manual-named-slot" : ""}"
        data-schedule="${s.id}"
        data-index="${i}">
     <div class="member-avatar">
-      <div class="avatar-initial">+</div>
+      <div class="avatar-initial">${manualName ? manualName.charAt(0).toUpperCase() : "+"}</div>
     </div>
-    <div class="member-name">Kosong</div>
+    <div class="member-name">${manualName || "Kosong"}</div>
   </div>
 `;
       }
