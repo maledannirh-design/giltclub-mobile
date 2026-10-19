@@ -102,6 +102,8 @@ content.innerHTML = `
 
     </div>
 
+    ${await renderPromoCarousel()}
+
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
     <div class="daily-card">
@@ -219,6 +221,26 @@ content.innerHTML = `
 }
 
 
+
+
+/* =========================================
+   HOME PROMO CAROUSEL — admin-uploaded image cards
+========================================= */
+async function renderPromoCarousel(){
+  try{
+    const snap=await getDocs(query(collection(db,"promotions"),where("active","==",true)));
+    const promos=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const at=a.createdAt?.toMillis?.()||0, bt=b.createdAt?.toMillis?.()||0;return bt-at;
+    });
+    if(!promos.length){
+      return `<section class="home-promo-section"><div class="home-promo-heading">PROMO GMTC</div><div class="home-promo-empty">Belum ada promo.</div></section>`;
+    }
+    return `<section class="home-promo-section" aria-label="Promo GMTC"><div class="home-promo-heading">PROMO GMTC <span>Geser untuk melihat promo</span></div><div class="home-promo-track">${promos.map(p=>`<article class="home-promo-card"><img src="${String(p.imageUrl||"").replace(/"/g,"&quot;")}" alt="Promo GMTC" loading="lazy"></article>`).join("")}</div><div class="home-promo-dots">${promos.map((_,i)=>`<span class="home-promo-dot ${i===0?"active":""}"></span>`).join("")}</div></section>`;
+  }catch(error){
+    console.error("Home promos read failed:",error);
+    return `<section class="home-promo-section"><div class="home-promo-heading">PROMO GMTC</div><div class="home-promo-empty">Promo belum dapat dimuat.</div></section>`;
+  }
+}
 
 // =========================================
  // GMTC WELCOME MASCOT — floating home assistant
