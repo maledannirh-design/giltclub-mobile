@@ -5,7 +5,9 @@ import {
   getDocs,
   collection,
   query,
-  where
+  where,
+  addDoc,
+  serverTimestamp
 } from "./firestore.js";
 import { renderMemberCard } from "./utils.js";
 import { onSnapshot } from "./firestore.js";
@@ -309,7 +311,117 @@ function renderWelcomeMascot(isGuest){
     const hidden = bubble.classList.toggle("is-hidden");
     mascot.setAttribute("aria-expanded",String(!hidden));
     if(!hidden) positionWelcomeBubble(welcome, bubble, mascot);
+    if(!hidden) showMascotContest(welcome, mascot, positionWelcomeBubble);
   });
+}
+ 
+function mascotContestTuit(){
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    const ctx = new AC();
+    if(ctx.state === "suspended") ctx.resume().catch(()=>{});
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(1046,ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1568,ctx.currentTime + .075);
+    gain.gain.setValueAtTime(.0001,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.07,ctx.currentTime + .012);
+    gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime + .13);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + .14);
+    osc.onended=()=>ctx.close().catch(()=>{});
+  } catch(_) {}
+}
+
+function showMascotContest(welcome, mascot, reposition){
+  const uid = auth.currentUser?.uid || "";
+  const doneKey = uid ? "gmtcMascotContestDone_" + uid : "gmtcMascotContestGuestDone";
+  const dismissedKey = "gmtcMascotContestDismissedThisSession";
+  if(sessionStorage.getItem(dismissedKey)==="1" || localStorage.getItem(doneKey)==="1") return;
+  let prompt = welcome.querySelector(".g-mascot-contest-bubble");
+  if(prompt) { prompt.classList.remove("is-hidden"); return; }
+  prompt=document.createElement("div");
+  prompt.className="g-mascot-bubble g-mascot-contest-bubble";
+  prompt.innerHTML='<button type="button" class="g-mascot-bubble-close" aria-label="Tutup">×</button><p class="g-mascot-greeting">Saya adalah... eumm... saya belum dikasih nama. Mauukah kamu kasih nama ke saya?</p><div class="g-mascot-contest-actions"><button type="button" class="g-mascot-contest-yes">Ya, mau!</button><button type="button" class="g-mascot-contest-no">Tidak</button></div><span class="g-mascot-bubble-tail" aria-hidden="true"></span>';
+  welcome.appendChild(prompt);
+  const dismiss=()=>{mascotContestTuit();prompt.classList.add("is-hidden");sessionStorage.setItem(dismissedKey,"1");};
+  prompt.querySelector(".g-mascot-bubble-close").addEventListener("click",dismiss);
+  prompt.querySelector(".g-mascot-contest-no").addEventListener("click",dismiss);
+  prompt.querySelector(".g-mascot-contest-yes").addEventListener("click",()=>{
+    mascotContestTuit();
+    prompt.classList.add("is-hidden");
+    openMascotContestForm(welcome,mascot,reposition,prompt,doneKey,dismissedKey);
+  });
+  if(reposition) reposition(welcome,prompt,mascot);
+  mascotContestTuit();
+}
+
+function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dismissedKey){
+  document.getElementById("g-mascot-contest-modal")?.remove();
+  const modal=document.createElement("div");
+  modal.id="g-mascot-contest-modal";
+  modal.className="g-mascot-contest-overlay";
+  modal.innerHTML='<section class="g-mascot-contest-card" role="dialog" aria-modal="true" aria-labelledby="g-mascot-contest-title"><button type="button" class="g-mascot-contest-modal-close" aria-label="Tutup">×</button><p class="g-mascot-contest-eyebrow">SAYEMBARA NAMA MASKOT GMTC</p><h2 id="g-mascot-contest-title">Bantu aku punya nama! 🎾</h2><p class="g-mascot-contest-intro">Nama usulan belum menjadi nama resmi. Nama terpilih akan ditentukan GMTC.</p><form class="g-mascot-contest-form"><label for="g-mascot-proposed-name">Nama maskot</label><input id="g-mascot-proposed-name" name="name" maxlength="40" required placeholder="Contoh: Gimo"><label for="g-mascot-proposed-reason">Alasan memilih nama</label><textarea id="g-mascot-proposed-reason" name="reason" maxlength="500" required rows="4" placeholder="Ceritakan alasan kamu..."></textarea><p class="g-mascot-contest-status" aria-live="polite"></p><div class="g-mascot-contest-form-actions"><button type="submit" class="g-mascot-contest-submit">Submit</button><button type="button" class="g-mascot-contest-reset">Reset</button><button type="button" class="g-mascot-contest-cancel">Cancel</button></div></form></section>';
+  document.body.appendChild(modal);
+  document.body.style.overflow="hidden";
+  const form=modal.querySelector("form"), name=modal.querySelector('[name="name"]'), reason=modal.querySelector('[name="reason"]'), status=modal.querySelector(".g-mascot-contest-status"), submit=modal.querySelector(".g-mascot-contest-submit");
+  const close=()=>{mascotContestTuit();modal.remove();document.body.style.overflow="";sessionStorage.setItem(dismissedKey,"1");};
+  modal.querySelector(".g-mascot-contest-modal-close").addEventListener("click",close);
+  modal.querySelector(".g-mascot-contest-cancel").addEventListener("click",close);
+  modal.addEventListener("click",e=>{if(e.target===modal)close();});
+  modal.querySelector(".g-mascot-contest-reset").addEventListener("click",()=>{form.reset();status.textContent="";mascotContestTuit();name.focus();});
+  form.addEventListener("submit",async e=>{
+    e.preventDefault();
+    const proposedName=name.value.trim(), why=reason.value.trim();
+    if(!proposedName || !why){status.textContent="Nama dan alasan wajib diisi.";return;}
+    submit.disabled=true;status.textContent="Mengirim usulan...";
+    try{
+      const user=auth.currentUser;
+      if(user?.uid){
+        const existing=await getDocs(query(collection(db,"mascotNameSubmissions"),where("userId","==",user.uid)));
+        if(!existing.empty){
+          localStorage.setItem(doneKey,"1");status.textContent="Anda sudah pernah submit.";
+          submit.disabled=false;setTimeout(()=>{close();showMascotFaq(welcome,mascot,reposition,"Kamu sudah pernah mengirim usulan. Terima kasih!");},900);return;
+        }
+      }
+      await addDoc(collection(db,"mascotNameSubmissions"),{name:proposedName,reason:why,userId:user?.uid||null,status:"pending",createdAt:serverTimestamp()});
+      localStorage.setItem(doneKey,"1");
+      close();
+      showMascotFaq(welcome,mascot,reposition,"Makasih! Aku senang sekali! Mudah-mudahan nama yang kamu kasih terpilih jadi namaku, ya!");
+      if(!user) setTimeout(()=>{window.navigate?.("account");setTimeout(()=>document.getElementById("registerBtn")?.click(),150);},2200);
+    }catch(err){
+      console.error("Mascot name submission failed:",err);
+      status.textContent=err?.code==="permission-denied"?"Firebase belum mengizinkan pengiriman ini. Fitur perlu pengaturan Rules sebelum digunakan.":"Usulan belum terkirim. Periksa koneksi lalu coba lagi.";
+      submit.disabled=false;
+    }
+  });
+  mascotContestTuit();name.focus();
+}
+
+function showMascotFaq(welcome,mascot,reposition,heading){
+  welcome.querySelector(".g-mascot-contest-bubble")?.remove();
+  const faq=[
+    ["Cara bergabung dengan GMTC?","Daftar gratis melalui menu Akun dan lengkapi data pendaftaran."],
+    ["Cara booking sesi tenis?","Buka jadwal sesi, pilih sesi yang memiliki slot tersedia, lalu ikuti proses booking."],
+    ["Apa perbedaan Member, VVIP, dan Visitor?","Visitor belum terdaftar, Member memperoleh harga member, dan VVIP memiliki manfaat khusus sesuai ketentuan GMTC."],
+    ["Berapa harga mabar dan drill?","Harga mengikuti jenis sesi dan status keanggotaan. Periksa harga terbaru di website atau detail sesi."],
+    ["Bagaimana cara kerja G-WALLET?","G-WALLET adalah saldo akun untuk transaksi GMTC. Saldo dan mutasi dapat dilihat di menu wallet."],
+    ["Bagaimana cara mendapatkan diskon member?","Daftar dan gunakan akun member saat booking sesuai ketentuan harga yang berlaku."],
+    ["Di mana melihat jadwal dan slot tersedia?","Buka kalender atau menu jadwal di aplikasi GMTC."],
+    ["Bagaimana menghubungi admin GMTC?","Gunakan kanal kontak resmi GMTC yang tercantum di website atau aplikasi."]
+  ];
+  const bubble=document.createElement("div");
+  bubble.className="g-mascot-bubble g-mascot-contest-bubble g-mascot-faq-bubble";
+  bubble.innerHTML='<button type="button" class="g-mascot-bubble-close" aria-label="Tutup FAQ">×</button><p class="g-mascot-greeting"></p><div class="g-mascot-faq-list"></div><div class="g-mascot-faq-answer" hidden></div><span class="g-mascot-bubble-tail" aria-hidden="true"></span>';
+  bubble.querySelector(".g-mascot-greeting").textContent=heading;
+  const list=bubble.querySelector(".g-mascot-faq-list");
+  faq.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.className="g-mascot-faq-item";b.textContent=item[0];b.addEventListener("click",()=>{mascotContestTuit();const answer=bubble.querySelector(".g-mascot-faq-answer");answer.textContent=item[1];answer.hidden=false;});list.appendChild(b);});
+  bubble.querySelector(".g-mascot-bubble-close").addEventListener("click",()=>{mascotContestTuit();bubble.classList.add("is-hidden");});
+  welcome.appendChild(bubble);
+  if(reposition) reposition(welcome,bubble,mascot);
+  mascotContestTuit();
 }
 
 
