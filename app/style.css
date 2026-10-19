@@ -4200,6 +4200,18 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   pointer-events: auto;
 }
 
+.g-mascot-welcome.is-dragging {
+  transition: none !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.g-mascot-welcome.is-dragging .g-mascot-float {
+  animation: none !important;
+  cursor: grabbing;
+  touch-action: none;
+}
+
 .g-mascot-float {
   display: flex;
   align-items: center;
