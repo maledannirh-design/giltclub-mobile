@@ -4413,3 +4413,32 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 .g-mascot-register-gate-actions button{min-height:44px;padding:10px;border:0;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;}
 .g-mascot-register-gate-yes{background:#2e7547;color:#fff;}
 .g-mascot-register-gate-later{background:#eaf1e8;color:#294b35;}
+
+
+/* Persistent mascot naming CTA beneath the mascot's feet */
+.g-mascot-name-cta{
+  position:absolute;
+  left:50%;
+  bottom:-8px;
+  transform:translateX(-50%);
+  z-index:3;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:28px;
+  padding:5px 13px;
+  border:2px solid #2879c7;
+  border-radius:999px;
+  background:#eef7ff;
+  color:#174a75;
+  box-shadow:0 3px 10px rgba(0,0,0,.16);
+  font-size:12px;
+  font-weight:800;
+  line-height:1;
+  white-space:nowrap;
+  cursor:pointer;
+  pointer-events:auto;
+  -webkit-tap-highlight-color:transparent;
+}
+.g-mascot-name-cta:active{transform:translateX(-50%) scale(.96);}
+.g-mascot-welcome.is-dragging .g-mascot-name-cta{pointer-events:none;}
