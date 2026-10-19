@@ -4402,3 +4402,14 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 .g-mascot-prize-option { display:flex !important; align-items:center; gap:10px; margin:0 !important; padding:10px 11px; border:1px solid #d9e4da; border-radius:11px; background:#fff; cursor:pointer; }
 .g-mascot-prize-option input[type="radio"] { width:18px !important; height:18px; margin:0; accent-color:#2e7547; flex:0 0 auto; }
 .g-mascot-prize-option span { font-size:13px; font-weight:600; color:#294b35; }
+
+
+/* Guest submit gate for mascot naming contest */
+.g-mascot-register-gate{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;border-radius:22px;background:rgba(20,35,27,.48);}
+.g-mascot-register-gate-card{width:100%;max-width:360px;box-sizing:border-box;padding:24px 20px;border-radius:20px;background:#fffdf7;color:#294b35;box-shadow:0 16px 45px rgba(0,0,0,.25);text-align:center;}
+.g-mascot-register-gate-card h3{margin:0 0 12px;font-size:21px;line-height:1.3;}
+.g-mascot-register-gate-card p{margin:0 0 12px;font-size:14px;line-height:1.55;}
+.g-mascot-register-gate-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px;}
+.g-mascot-register-gate-actions button{min-height:44px;padding:10px;border:0;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;}
+.g-mascot-register-gate-yes{background:#2e7547;color:#fff;}
+.g-mascot-register-gate-later{background:#eaf1e8;color:#294b35;}
