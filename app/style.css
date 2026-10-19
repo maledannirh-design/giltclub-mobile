@@ -4216,6 +4216,11 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Must be present before pointerdown, otherwise mobile browser may steal the gesture for scrolling. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
   width: 112px;
   height: 112px;
   padding: 0;
