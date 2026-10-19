@@ -4523,3 +4523,49 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   bottom:auto;
   transform:rotate(225deg);
 }
+
+
+/* Final mascot action positioning: keep the naming button at its original spot,
+   and place the tutorial button directly beneath it without covering the mascot. */
+.g-mascot-quick-actions{
+  position:absolute;
+  left:50%;
+  bottom:0;
+  z-index:4;
+  display:block;
+  width:0;
+  height:0;
+  max-width:none;
+  transform:none;
+  pointer-events:none;
+}
+.g-mascot-quick-actions .g-mascot-name-cta{
+  position:absolute;
+  left:0;
+  bottom:-8px;
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:min(230px,calc(100vw - 20px));
+  min-height:32px;
+  white-space:normal;
+  pointer-events:auto;
+}
+.g-mascot-quick-actions .g-mascot-tutorial-cta{
+  position:absolute;
+  left:0;
+  bottom:-53px;
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:min(230px,calc(100vw - 20px));
+  min-height:36px;
+  pointer-events:auto;
+}
+.g-mascot-quick-actions .g-mascot-name-cta:active,
+.g-mascot-quick-actions .g-mascot-tutorial-cta:active{
+  transform:translateX(-50%) scale(.97);
+}
+.g-mascot-welcome.is-dragging .g-mascot-quick-actions{pointer-events:none;}
+@media(max-width:420px){
+  .g-mascot-quick-actions .g-mascot-name-cta{bottom:-8px;max-width:min(210px,calc(100vw - 16px));}
+  .g-mascot-quick-actions .g-mascot-tutorial-cta{bottom:-56px;max-width:min(220px,calc(100vw - 16px));font-size:11px;}
+}
