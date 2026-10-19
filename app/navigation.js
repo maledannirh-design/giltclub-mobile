@@ -70,7 +70,10 @@ export async function navigate(page){
   }
 
 
-  if(page !== "skill") document.body.classList.remove("dashboard-gate-open");
+  if(page !== "skill") {
+    document.body.classList.remove("dashboard-gate-open");
+    document.getElementById("verifyModal")?.classList.remove("show");
+  }
   if(page !== "store" && page !== "skill"){
     document.body.classList.remove("store-gate-open");
     document.getElementById("storeMemberAccessOverlay")?.classList.remove("show");
@@ -144,7 +147,7 @@ case "skill":
   if(!user){
     (await import("./skill.js")).renderGuestSkillDashboard();
     document.body.classList.add("dashboard-gate-open");
-    showVerifyRequiredModal();
+    showSkillGuestAccessModal();
     break;
   }
 
@@ -290,12 +293,18 @@ window.toggleTheme = toggleTheme;
 
 
 window.showVerifyRequiredModal = function(){
-
   const modal = document.getElementById("verifyModal");
   if(modal) modal.classList.add("show");
+};
 
+function showSkillGuestAccessModal(){
+  const modal = document.getElementById("verifyModal");
+  if(!modal) return;
+  const card = modal.querySelector(".verify-modal-card");
+  card.innerHTML = '<div class="verify-icon">🔒</div><div class="verify-title">Akses Dashboard</div><div class="verify-text">Masuk ke akun GMTC atau daftar gratis untuk melanjutkan.</div><div class="verify-buttons verify-guest-buttons"><button class="verify-primary" id="skillGuestLogin">Masuk</button><button class="verify-secondary" id="skillGuestRegister">Daftar</button></div>';
+  modal.classList.add("show");
+  card.querySelector("#skillGuestLogin").onclick = async () => { modal.classList.remove("show"); document.body.classList.remove("dashboard-gate-open"); await navigate("account"); setTimeout(()=>document.getElementById("loginBtn")?.click(),150); };
+  card.querySelector("#skillGuestRegister").onclick = async () => { modal.classList.remove("show"); document.body.classList.remove("dashboard-gate-open"); await navigate("account"); setTimeout(()=>document.getElementById("registerBtn")?.click(),150); };
 }
 
-window.closeVerifyModal = function(){
-  // Access gate is intentionally non-dismissible for non-VVIP users.
-}
+window.closeVerifyModal = function(){ /* Intentionally non-dismissible; use bottom navigation. */ };
