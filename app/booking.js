@@ -714,11 +714,12 @@ if((s.sportType || "tennis") !== "tennis"){
       ${
         isPrivileged
           ? `
+            ${["ADMIN", "SUPERCOACH"].includes(currentUserRole) ? `
             <div class="session-status-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="open" ${s.status === "open" ? "disabled" : ""}>Open</button>
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="closed" ${s.status === "closed" ? "disabled" : ""}>Close</button>
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="cancelled" ${s.status === "cancelled" ? "disabled" : ""}>Cancelled</button>
-            </div>
+            </div>` : ""}
           <div class="session-admin-actions">
             <button class="edit-session-btn" data-id="${s.id}">
               ✏️ Edit Session
@@ -894,11 +895,12 @@ if((s.sportType || "tennis") !== "tennis"){
           ${
             isPrivileged
               ? `
+            ${["ADMIN", "SUPERCOACH"].includes(currentUserRole) ? `
             <div class="session-status-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="open" ${s.status === "open" ? "disabled" : ""}>Open</button>
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="closed" ${s.status === "closed" ? "disabled" : ""}>Close</button>
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="cancelled" ${s.status === "cancelled" ? "disabled" : ""}>Cancelled</button>
-            </div>
+            </div>` : ""}
               <div class="session-admin-actions">
                 <button class="edit-session-btn" data-id="${s.id}">
                   ✏️ Edit Session
