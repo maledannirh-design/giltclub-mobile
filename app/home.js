@@ -370,6 +370,16 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
   document.body.appendChild(modal);
   document.body.style.overflow="hidden";
   const form=modal.querySelector("form"), name=modal.querySelector('[name="name"]'), reason=modal.querySelector('[name="reason"]'), status=modal.querySelector(".g-mascot-contest-status"), submit=modal.querySelector(".g-mascot-contest-submit");
+  try {
+    const draft=JSON.parse(localStorage.getItem("gmtcMascotContestDraft") || "null");
+    if(draft){
+      name.value=draft.name || "";
+      reason.value=draft.reason || "";
+      const choice=modal.querySelector('[name="prize"][value="'+String(draft.prize || "").replace(/"/g,"\\\\\"")+'"]');
+      if(choice) choice.checked=true;
+    }
+  } catch(_) {}
+
   const close=()=>{mascotContestTuit();modal.remove();document.body.style.overflow="";sessionStorage.setItem(dismissedKey,"1");};
   modal.querySelector(".g-mascot-contest-modal-close").addEventListener("click",close);
   modal.querySelector(".g-mascot-contest-cancel").addEventListener("click",close);
@@ -412,6 +422,7 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
       }
       await addDoc(collection(db,"mascotNameSubmissions"),{name:proposedName,reason:why,prize,userId:user?.uid||null,status:"pending",createdAt:serverTimestamp()});
       localStorage.setItem(doneKey,"1");
+      localStorage.removeItem("gmtcMascotContestDraft");
       close();
       showMascotFaq(welcome,mascot,reposition,"Makasih! Aku senang sekali! Mudah-mudahan nama yang kamu kasih terpilih jadi namaku, ya!");
       if(!user) setTimeout(()=>{window.navigate?.("account");setTimeout(()=>document.getElementById("registerBtn")?.click(),150);},2200);
