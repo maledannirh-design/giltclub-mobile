@@ -366,7 +366,7 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
   const modal=document.createElement("div");
   modal.id="g-mascot-contest-modal";
   modal.className="g-mascot-contest-overlay";
-  modal.innerHTML='<section class="g-mascot-contest-card" role="dialog" aria-modal="true" aria-labelledby="g-mascot-contest-title"><button type="button" class="g-mascot-contest-modal-close" aria-label="Tutup">×</button><p class="g-mascot-contest-eyebrow">SAYEMBARA NAMA MASKOT GMTC</p><h2 id="g-mascot-contest-title">Bantu aku punya nama! 🎾</h2><p class="g-mascot-contest-intro">Nama usulan belum menjadi nama resmi. Nama terpilih akan ditentukan GMTC.</p><form class="g-mascot-contest-form"><label for="g-mascot-proposed-name">Nama maskot</label><input id="g-mascot-proposed-name" name="name" maxlength="40" required placeholder="Contoh: Gimo"><label for="g-mascot-proposed-reason">Alasan memilih nama</label><textarea id="g-mascot-proposed-reason" name="reason" maxlength="500" required rows="4" placeholder="Ceritakan alasan kamu..."></textarea><p class="g-mascot-contest-status" aria-live="polite"></p><div class="g-mascot-contest-form-actions"><button type="submit" class="g-mascot-contest-submit">Submit</button><button type="button" class="g-mascot-contest-reset">Reset</button><button type="button" class="g-mascot-contest-cancel">Cancel</button></div></form></section>';
+  modal.innerHTML='<section class="g-mascot-contest-card" role="dialog" aria-modal="true" aria-labelledby="g-mascot-contest-title"><button type="button" class="g-mascot-contest-modal-close" aria-label="Tutup">×</button><p class="g-mascot-contest-eyebrow">SAYEMBARA NAMA MASKOT GMTC</p><h2 id="g-mascot-contest-title">Bantu aku punya nama! 🎾</h2><p class="g-mascot-contest-intro">Nama usulan belum menjadi nama resmi. Nama terpilih akan ditentukan GMTC.</p><form class="g-mascot-contest-form"><label for="g-mascot-proposed-name">Nama maskot</label><input id="g-mascot-proposed-name" name="name" maxlength="40" required placeholder="Contoh: Gimo"><label for="g-mascot-proposed-reason">Alasan memilih nama</label><textarea id="g-mascot-proposed-reason" name="reason" maxlength="500" required rows="4" placeholder="Ceritakan alasan kamu..."></textarea><fieldset class="g-mascot-prize-fieldset"><legend>Pilih Hadiah</legend><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Sesi Mabar" required><span>1 × Sesi Mabar</span></label><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Sesi Latihan Drill" required><span>1 × Sesi Latihan Drill</span></label><label class="g-mascot-prize-option"><input type="radio" name="prize" value="1 x Grip Alien Pros" required><span>1 × Grip Alien Pros</span></label></fieldset><p class="g-mascot-contest-status" aria-live="polite"></p><div class="g-mascot-contest-form-actions"><button type="submit" class="g-mascot-contest-submit">Submit</button><button type="button" class="g-mascot-contest-reset">Reset</button><button type="button" class="g-mascot-contest-cancel">Cancel</button></div></form></section>';
   document.body.appendChild(modal);
   document.body.style.overflow="hidden";
   const form=modal.querySelector("form"), name=modal.querySelector('[name="name"]'), reason=modal.querySelector('[name="reason"]'), status=modal.querySelector(".g-mascot-contest-status"), submit=modal.querySelector(".g-mascot-contest-submit");
@@ -377,8 +377,8 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
   modal.querySelector(".g-mascot-contest-reset").addEventListener("click",()=>{form.reset();status.textContent="";mascotContestTuit();name.focus();});
   form.addEventListener("submit",async e=>{
     e.preventDefault();
-    const proposedName=name.value.trim(), why=reason.value.trim();
-    if(!proposedName || !why){status.textContent="Nama dan alasan wajib diisi.";return;}
+    const proposedName=name.value.trim(), why=reason.value.trim(), prize=modal.querySelector('[name="prize"]:checked')?.value || "";
+    if(!proposedName || !why || !prize){status.textContent="Nama, alasan, dan pilihan hadiah wajib diisi.";return;}
     submit.disabled=true;status.textContent="Mengirim usulan...";
     try{
       const user=auth.currentUser;
@@ -389,7 +389,7 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
           submit.disabled=false;setTimeout(()=>{close();showMascotFaq(welcome,mascot,reposition,"Kamu sudah pernah mengirim usulan. Terima kasih!");},900);return;
         }
       }
-      await addDoc(collection(db,"mascotNameSubmissions"),{name:proposedName,reason:why,userId:user?.uid||null,status:"pending",createdAt:serverTimestamp()});
+      await addDoc(collection(db,"mascotNameSubmissions"),{name:proposedName,reason:why,prize,userId:user?.uid||null,status:"pending",createdAt:serverTimestamp()});
       localStorage.setItem(doneKey,"1");
       close();
       showMascotFaq(welcome,mascot,reposition,"Makasih! Aku senang sekali! Mudah-mudahan nama yang kamu kasih terpilih jadi namaku, ya!");
