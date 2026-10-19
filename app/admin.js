@@ -440,7 +440,7 @@ async function runMassiveTemplate() {
       status.textContent = "Berhasil membuat " + created + " dari " + rows.length + " jadwal...";
     }
     status.style.color = "#16803d";
-    status.textContent = "Selesai. " + created + " jadwal berhasil dibuat. Status awal semua jadwal: open.";
+    status.textContent = "Import selesai. Success: " + created + " row. Gagal: " + (rows.length - created) + " row.";
     const preview = document.getElementById("massiveTemplatePreview");
     if (preview) preview.textContent += "\n\nImpor selesai: " + created + " jadwal dibuat.";
     parsedMassiveScheduleRows = [];
@@ -449,7 +449,7 @@ async function runMassiveTemplate() {
   } catch (error) {
     console.error("Massive schedule upload failed:", error);
     status.style.color = "#dc2626";
-    status.textContent = "Proses berhenti setelah " + created + " jadwal tersimpan. " + (created ? "Sebagian data sudah masuk; jangan langsung menjalankan ulang seluruh file agar tidak membuat duplikat." : "Belum ada jadwal yang berhasil disimpan.") + " Detail: " + (error.message || "gagal menyimpan.");
+    status.textContent = "Import berhenti. Success: " + created + " row. Gagal: " + (rows.length - created) + " row belum berhasil diimport. " + (created ? "Sebagian data sudah masuk; jangan langsung menjalankan ulang seluruh file agar tidak membuat duplikat. " : "") + "Detail: " + (error.message || "gagal menyimpan.");
   } finally {
     runBtn.disabled = true;
     runBtn.textContent = "RUN TEMPLATE";
