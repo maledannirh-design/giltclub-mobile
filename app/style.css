@@ -4597,3 +4597,11 @@ body.dashboard-gate-open .verify-modal.show .verify-modal-card{pointer-events:au
 .promo-admin-meta{display:flex;flex:1;min-width:0;flex-direction:column;gap:7px;font-size:12px;overflow-wrap:anywhere}
 .promo-admin-meta .admin-btn{margin:0;width:100%}
 @media(max-width:420px){.home-promo-card{aspect-ratio:1.55/1}.promo-admin-row>img{width:86px}}
+
+/* Dashboard access gate: keep bottom navigation visible and interactive. */
+body.dashboard-gate-open #content{filter:blur(5px);-webkit-filter:blur(5px);overflow-y:auto;pointer-events:auto;touch-action:pan-y;}
+body.dashboard-gate-open .verify-modal.show{inset:0 0 64px 0;z-index:9999;background:rgba(0,0,0,.28);backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none;}
+body.dashboard-gate-open .verify-modal.show .verify-modal-card{pointer-events:auto;}
+body.dashboard-gate-open .bottom-nav{position:fixed;z-index:10001;filter:none !important;-webkit-filter:none !important;pointer-events:auto !important;}
+body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
+.verify-guest-buttons{display:flex;gap:8px}.verify-guest-buttons button{flex:1}
