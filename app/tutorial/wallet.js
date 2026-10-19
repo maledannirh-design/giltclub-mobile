@@ -3,7 +3,7 @@ export function renderWalletTutorial(step){
     <section class="gt-screen gt-wallet-screen">
       <div class="gt-home-profile"><span class="gt-avatar">💳</span><div><strong>G-WALLET</strong><small>Simulasi saldo & keanggotaan</small></div></div>
       <div class="gt-wallet-card">
-        <div class="gt-wallet-top"><span>G-Saldo</span><button type="button" class="gt-wallet-eye" aria-label="Tampilkan atau sembunyikan saldo">◉</button></div>
+        <div class="gt-wallet-top" data-wallet-field="balance"><span>G-Saldo</span><button type="button" class="gt-wallet-eye" aria-label="Tampilkan atau sembunyikan saldo">◉</button></div>
         <strong class="gt-wallet-amount">Rp ******</strong>
         <div class="gt-member-card" data-wallet-field="memberCard"><div class="gt-member-card-label">GMTC MEMBER CARD</div><strong>MEMBER NAME</strong><small>Member ID: GMTC-0000</small><div class="gt-member-card-actions"><button type="button" class="gt-sim-card-action">Scan Check-In</button><button type="button" class="gt-sim-card-action">Print Card</button></div></div>
       </div>
