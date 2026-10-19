@@ -171,8 +171,9 @@ export async function renderAdmin() {
     </div>
 
     <hr style="margin:18px 0;">
-    <label for="massiveTemplateFile" style="display:block;font-size:13px;margin-bottom:6px;">Upload file template (CSV)</label>
-    <input id="massiveTemplateFile" type="file" accept=".csv,text/csv" style="width:100%;padding:8px;border:1px solid var(--color-border);border-radius:10px;">
+    <label style="display:block;font-size:13px;margin-bottom:6px;">Upload template yang sudah diisi</label>
+    <button id="uploadMassiveTemplateBtn" class="admin-btn" type="button">UPLOAD TEMPLATE</button>
+    <input id="massiveTemplateFile" type="file" accept=".csv,text/csv" style="display:none;">
     <div id="massiveTemplatePreview" style="font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;">Belum ada file dipilih.</div>
     <button id="runMassiveTemplateBtn" class="admin-btn" type="button" disabled style="margin-top:12px;opacity:.55;">RUN TEMPLATE</button>
     <div id="massiveTemplateRunStatus" style="font-size:12px;line-height:1.5;margin-top:10px;"></div>
@@ -231,6 +232,8 @@ export async function renderAdmin() {
   if (downloadSelectedTemplateBtn) downloadSelectedTemplateBtn.onclick = downloadMassiveTemplate;
 
   const massiveTemplateFile = document.getElementById("massiveTemplateFile");
+  const uploadMassiveTemplateBtn = document.getElementById("uploadMassiveTemplateBtn");
+  if (uploadMassiveTemplateBtn && massiveTemplateFile) uploadMassiveTemplateBtn.onclick = () => massiveTemplateFile.click();
   if (massiveTemplateFile) massiveTemplateFile.onchange = handleMassiveTemplateFile;
 
   const runMassiveTemplateBtn = document.getElementById("runMassiveTemplateBtn");
