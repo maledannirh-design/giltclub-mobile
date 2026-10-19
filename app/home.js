@@ -252,19 +252,22 @@ function renderWelcomeMascot(isGuest){
   let didDrag = false;
   mascot?.addEventListener("pointerdown",(event)=>{
     if(event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
     const rect = welcome.getBoundingClientRect();
     dragStartX = event.clientX;
     dragStartY = event.clientY;
     mascotStartX = rect.left;
     mascotStartY = rect.top;
     didDrag = false;
-    mascot.setPointerCapture?.(event.pointerId);
+    welcome.classList.add("is-dragging");
+    try { mascot.setPointerCapture(event.pointerId); } catch (_) {}
   });
   mascot?.addEventListener("pointermove",(event)=>{
     if(!mascot.hasPointerCapture?.(event.pointerId)) return;
+    event.preventDefault();
     const dx = event.clientX - dragStartX;
     const dy = event.clientY - dragStartY;
-    if(Math.abs(dx) > 5 || Math.abs(dy) > 5) didDrag = true;
+    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag = true;
     if(!didDrag) return;
     const maxX = Math.max(0, window.innerWidth - welcome.offsetWidth);
     const maxY = Math.max(0, window.innerHeight - welcome.offsetHeight);
@@ -273,13 +276,18 @@ function renderWelcomeMascot(isGuest){
     welcome.style.right = "auto";
     welcome.style.bottom = "auto";
   });
-  mascot?.addEventListener("pointerup",(event)=>{
-    if(mascot.hasPointerCapture?.(event.pointerId)) mascot.releasePointerCapture(event.pointerId);
+  const finishMascotDrag = (event)=>{
+    if(mascot?.hasPointerCapture?.(event.pointerId)) {
+      try { mascot.releasePointerCapture(event.pointerId); } catch (_) {}
+    }
+    welcome.classList.remove("is-dragging");
     if(didDrag){
       mascot.dataset.dragged = "true";
-      setTimeout(()=>{ delete mascot.dataset.dragged; },0);
+      setTimeout(()=>{ delete mascot.dataset.dragged; },100);
     }
-  });
+  };
+  mascot?.addEventListener("pointerup",finishMascotDrag);
+  mascot?.addEventListener("pointercancel",finishMascotDrag);
   mascot?.addEventListener("click",()=>{
     if(mascot.dataset.dragged === "true") return;
     const hidden = bubble.classList.toggle("is-hidden");
