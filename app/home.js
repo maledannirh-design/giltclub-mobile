@@ -226,18 +226,25 @@ content.innerHTML = `
 function positionWelcomeBubble(welcome, bubble, mascot){
   if(!welcome || !bubble || !mascot || bubble.classList.contains("is-hidden")) return;
   const mascotRect = mascot.getBoundingClientRect();
-  const bubbleWidth = Math.min(320, window.innerWidth - 24);
+  const welcomeRect = welcome.getBoundingClientRect();
+  const viewportPadding = 12;
+  const bubbleWidth = Math.max(180, Math.min(320, window.innerWidth - viewportPadding * 2));
   bubble.style.width = bubbleWidth + "px";
-  // Keep the comic bubble inside the viewport regardless of where the mascot is dragged.
-  if(mascotRect.left + mascotRect.width / 2 < window.innerWidth / 2){
-    bubble.classList.add("align-left");
-  } else {
-    bubble.classList.remove("align-left");
+  bubble.style.maxWidth = "calc(100vw - " + (viewportPadding * 2) + "px)";
+  // Position relative to the mascot container, but clamp against the viewport edges.
+  const desiredLeft = mascotRect.left + mascotRect.width / 2 - bubbleWidth / 2;
+  const viewportLeft = Math.max(viewportPadding, Math.min(window.innerWidth - bubbleWidth - viewportPadding, desiredLeft));
+  bubble.style.left = (viewportLeft - welcomeRect.left) + "px";
+  bubble.style.right = "auto";
+  bubble.classList.remove("align-left");
+  // Keep long FAQ lists scrollable so the bubble does not cover the mascot's feet and action buttons.
+  bubble.style.maxHeight = Math.max(150, Math.min(window.innerHeight * 0.62, mascotRect.top - 24)) + "px";
+  bubble.style.overflowY = "auto";
+  bubble.classList.toggle("below-mascot", mascotRect.top < Math.min(210, window.innerHeight * 0.28));
+  if(bubble.classList.contains("below-mascot")){
+    bubble.style.maxHeight = Math.max(150, Math.min(window.innerHeight * 0.5, window.innerHeight - mascotRect.bottom - 120)) + "px";
   }
-  // If the mascot is dragged near the top edge, open its bubble below instead of off-screen.
-  bubble.classList.toggle("below-mascot", mascotRect.top < 210);
 }
-
 function renderWelcomeMascot(isGuest){
   document.getElementById("g-mascot-welcome")?.remove();
   const welcome = document.createElement("div");
