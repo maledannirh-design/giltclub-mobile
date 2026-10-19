@@ -297,9 +297,5 @@ window.showVerifyRequiredModal = function(){
 }
 
 window.closeVerifyModal = function(){
-
-  const modal = document.getElementById("verifyModal");
-  if(modal) modal.classList.remove("show");
-  document.body.classList.remove("dashboard-gate-open");
-
+  // Access gate is intentionally non-dismissible for non-VVIP users.
 }
