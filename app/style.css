@@ -4178,3 +4178,160 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   flex: 0 0 85px;
   min-width: 85px;
 }
+
+/* =========================================
+   GMTC FLOATING WELCOME MASCOT
+========================================= */
+.g-mascot-welcome {
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 12000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+  max-width: min(340px, calc(100vw - 24px));
+}
+
+.g-mascot-float,
+.g-mascot-bubble {
+  pointer-events: auto;
+}
+
+.g-mascot-float {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: gMascotFloat 3.2s ease-in-out infinite;
+}
+
+.g-mascot-float img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.18));
+}
+
+.g-mascot-bubble {
+  position: relative;
+  width: min(320px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 18px 17px 16px;
+  border: 2px solid #2e7547;
+  border-radius: 24px 24px 8px 24px;
+  background: #fffdf7;
+  color: #294b35;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  font-size: 14px;
+  line-height: 1.5;
+  transform-origin: bottom right;
+  animation: gMascotBubbleIn .22s ease-out both;
+}
+
+.g-mascot-bubble.is-hidden {
+  display: none;
+}
+
+.g-mascot-bubble-close {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #edf3eb;
+  color: #294b35;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.g-mascot-greeting {
+  margin: 0 22px 0 0;
+  font-size: 15px;
+}
+
+.g-mascot-greeting strong {
+  color: #2e7547;
+}
+
+.g-mascot-guest-copy {
+  margin: 10px 0 12px;
+  font-size: 13px;
+}
+
+.g-mascot-register {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 38px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #2e7547;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.g-mascot-bubble-tail {
+  position: absolute;
+  right: 34px;
+  bottom: -10px;
+  width: 18px;
+  height: 18px;
+  background: #fffdf7;
+  border-right: 2px solid #2e7547;
+  border-bottom: 2px solid #2e7547;
+  transform: rotate(45deg);
+  border-radius: 0 0 4px 0;
+}
+
+@keyframes gMascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes gMascotBubbleIn {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 420px) {
+  .g-mascot-welcome {
+    right: 10px;
+    bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+  .g-mascot-float {
+    width: 94px;
+    height: 94px;
+  }
+  .g-mascot-bubble {
+    padding: 16px 14px 14px;
+    border-radius: 21px 21px 7px 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-mascot-float,
+  .g-mascot-bubble {
+    animation: none;
+  }
+}
+
