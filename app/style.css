@@ -4364,3 +4364,52 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   }
 }
 
+
+
+/* GMTC mascot naming contest: bubble, form and FAQ */
+.g-mascot-contest-bubble { z-index:2; border-color:#2879c7; background:#eef7ff; color:#173f63; }
+.g-mascot-contest-bubble .g-mascot-bubble-tail { background:#eef7ff; border-color:#2879c7; }
+.g-mascot-contest-bubble .g-mascot-bubble-close { background:#d9ebfb; color:#173f63; }
+.g-mascot-contest-actions { display:flex; gap:8px; margin-top:12px; }
+.g-mascot-contest-actions button { min-height:38px; padding:8px 14px; border-radius:999px; border:1px solid #2879c7; font-size:13px; font-weight:700; cursor:pointer; }
+.g-mascot-contest-yes { background:#2879c7; color:#fff; }
+.g-mascot-contest-no { background:#fff; color:#174a75; }
+.g-mascot-contest-overlay { position:fixed; inset:0; z-index:12000; display:flex; align-items:center; justify-content:center; padding:18px; box-sizing:border-box; background:rgba(12,25,18,.62); }
+.g-mascot-contest-card { width:100%; max-width:440px; max-height:90vh; overflow:auto; position:relative; box-sizing:border-box; padding:24px; border-radius:22px; background:#fffdf7; color:#294b35; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+.g-mascot-contest-modal-close { position:absolute; top:12px; right:12px; width:34px; height:34px; border:0; border-radius:50%; background:#edf3eb; color:#294b35; font-size:22px; cursor:pointer; }
+.g-mascot-contest-eyebrow { margin:0 38px 8px 0; font-size:10px; letter-spacing:1.2px; font-weight:800; color:#2e7547; }
+.g-mascot-contest-card h2 { margin:0 30px 8px 0; font-size:23px; line-height:1.25; }
+.g-mascot-contest-intro { margin:0 0 18px; font-size:13px; line-height:1.5; color:#607264; }
+.g-mascot-contest-form { display:grid; gap:8px; }
+.g-mascot-contest-form label { margin-top:5px; font-size:13px; font-weight:700; }
+.g-mascot-contest-form input, .g-mascot-contest-form textarea { width:100%; box-sizing:border-box; border:1px solid #cbd8ce; border-radius:12px; padding:12px; background:#fff; color:#243d2c; font:inherit; font-size:14px; }
+.g-mascot-contest-form textarea { resize:vertical; min-height:96px; }
+.g-mascot-contest-status { min-height:18px; margin:3px 0; font-size:12px; color:#8a4b18; line-height:1.4; }
+.g-mascot-contest-form-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px; }
+.g-mascot-contest-form-actions button { min-height:42px; border:0; border-radius:12px; font-size:13px; font-weight:800; cursor:pointer; }
+.g-mascot-contest-submit { background:#2e7547; color:#fff; }
+.g-mascot-contest-reset { background:#eaf1e8; color:#294b35; }
+.g-mascot-contest-cancel { background:#f2e8e5; color:#80483d; }
+.g-mascot-contest-form-actions button:disabled { opacity:.6; cursor:wait; }
+.g-mascot-faq-list { display:grid; gap:7px; margin-top:12px; }
+.g-mascot-faq-item { text-align:left; border:1px solid #c8d9c9; border-radius:10px; padding:9px 11px; background:#fff; color:#294b35; font-size:12px; line-height:1.4; cursor:pointer; }
+.g-mascot-faq-answer { margin-top:10px; padding:11px; border-radius:10px; background:#eaf3e8; color:#294b35; font-size:12px; line-height:1.5; }
+@media (max-width:420px) { .g-mascot-contest-card { padding:20px 16px; } .g-mascot-contest-card h2 { font-size:21px; } .g-mascot-contest-form-actions { gap:6px; } .g-mascot-contest-form-actions button { font-size:12px; } }
+
+/* Prize selection in mascot contest */
+.g-mascot-prize-fieldset { display:grid; gap:9px; margin:8px 0 4px; padding:12px; border:1px solid #cbd8ce; border-radius:14px; }
+.g-mascot-prize-fieldset legend { padding:0 5px; font-size:13px; font-weight:800; color:#294b35; }
+.g-mascot-prize-option { display:flex !important; align-items:center; gap:10px; margin:0 !important; padding:10px 11px; border:1px solid #d9e4da; border-radius:11px; background:#fff; cursor:pointer; }
+.g-mascot-prize-option input[type="radio"] { width:18px !important; height:18px; margin:0; accent-color:#2e7547; flex:0 0 auto; }
+.g-mascot-prize-option span { font-size:13px; font-weight:600; color:#294b35; }
+
+
+/* Guest submit gate for mascot naming contest */
+.g-mascot-register-gate{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;border-radius:22px;background:rgba(20,35,27,.48);}
+.g-mascot-register-gate-card{width:100%;max-width:360px;box-sizing:border-box;padding:24px 20px;border-radius:20px;background:#fffdf7;color:#294b35;box-shadow:0 16px 45px rgba(0,0,0,.25);text-align:center;}
+.g-mascot-register-gate-card h3{margin:0 0 12px;font-size:21px;line-height:1.3;}
+.g-mascot-register-gate-card p{margin:0 0 12px;font-size:14px;line-height:1.55;}
+.g-mascot-register-gate-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px;}
+.g-mascot-register-gate-actions button{min-height:44px;padding:10px;border:0;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;}
+.g-mascot-register-gate-yes{background:#2e7547;color:#fff;}
+.g-mascot-register-gate-later{background:#eaf1e8;color:#294b35;}
