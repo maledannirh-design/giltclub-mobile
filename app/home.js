@@ -516,6 +516,7 @@ async function renderPublicActivitySummary(content){
           <div class="championclub-btn"><i class="fa-solid fa-trophy"></i><span>Champion Club</span></div>
         </div>
       </div>
+      ${await renderPromoCarousel()}
       <div class="home-progress-group guest-progress-group"><div class="daily-card guest-protected-card">
         <div class="daily-header"><div class="daily-title">Check-In Harian</div><div class="daily-info">Informasi Check-In</div></div>
         <div class="daily-days">
@@ -543,6 +544,13 @@ async function renderPublicActivitySummary(content){
       </div>
     </div>
   `;
+  const promoTrack = content.querySelector(".home-promo-track");
+  if(promoTrack){
+    const dots = [...content.querySelectorAll(".home-promo-dot")];
+    const updatePromoDots = () => { const index = Math.round(promoTrack.scrollLeft / Math.max(1,promoTrack.clientWidth)); dots.forEach((dot,i)=>dot.classList.toggle("active",i===index)); };
+    promoTrack.addEventListener("scroll",updatePromoDots,{passive:true});
+    dots.forEach((dot,i)=>dot.addEventListener("click",()=>promoTrack.scrollTo({left:i*promoTrack.clientWidth,behavior:"smooth"})));
+  }
   renderWelcomeMascot(true);
   document.querySelector(".leaderboard-btn")?.addEventListener("click",()=>window.navigate?.("leaderboard"));
   document.querySelector(".championclub-btn")?.addEventListener("click",()=>window.navigate?.("championClub"));
