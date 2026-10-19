@@ -141,6 +141,8 @@ content.innerHTML = `
   </div>
 `;
 
+  renderWelcomeMascot(false);
+
   // =============================
   // NAVIGATION BUTTON
   // =============================
@@ -217,6 +219,41 @@ content.innerHTML = `
 
 
 
+// =========================================
+// GMTC WELCOME MASCOT — floating home assistant
+// =========================================
+function renderWelcomeMascot(isGuest){
+  document.getElementById("g-mascot-welcome")?.remove();
+  const welcome = document.createElement("div");
+  welcome.id = "g-mascot-welcome";
+  welcome.className = "g-mascot-welcome";
+  const guestMessage = isGuest
+    ? '<p class="g-mascot-guest-copy">Yuk kak, daftar di sistem GMTC — gratis tanpa biaya! Langsung dapat potongan diskon mabar dan latihan drill sebagai member.</p><button type="button" class="g-mascot-register" onclick="window.navigate?.(\'account\');setTimeout(()=>document.getElementById(\'registerBtn\')?.click(),150)">Daftar gratis</button>'
+    : "";
+  welcome.innerHTML = `
+    <div class="g-mascot-bubble" id="g-mascot-bubble" role="status">
+      <button type="button" class="g-mascot-bubble-close" aria-label="Tutup sambutan" title="Tutup">×</button>
+      <p class="g-mascot-greeting">Selamat datang di GMTC, <strong>Home sweet Home!</strong> 🎾</p>
+      ${guestMessage}
+      <span class="g-mascot-bubble-tail" aria-hidden="true"></span>
+    </div>
+    <button type="button" class="g-mascot-float" aria-label="Buka sambutan GMTC" aria-expanded="true">
+      <img src="./image/mascot-welcome.webp" alt="Maskot Welcome GMTC">
+    </button>
+  `;
+  document.body.appendChild(welcome);
+  const bubble=welcome.querySelector("#g-mascot-bubble");
+  const mascot=welcome.querySelector(".g-mascot-float");
+  welcome.querySelector(".g-mascot-bubble-close")?.addEventListener("click",()=>{
+    bubble.classList.add("is-hidden");
+    mascot.setAttribute("aria-expanded","false");
+  });
+  mascot?.addEventListener("click",()=>{
+    const hidden=bubble.classList.toggle("is-hidden");
+    mascot.setAttribute("aria-expanded",String(!hidden));
+  });
+}
+
 
 async function renderPublicActivitySummary(content){
   // Guest sees the same TERAS layout as a logged-in member, with account values set to zero.
@@ -264,6 +301,7 @@ async function renderPublicActivitySummary(content){
       </div>
     </div>
   `;
+  renderWelcomeMascot(true);
   document.querySelector(".leaderboard-btn")?.addEventListener("click",()=>window.navigate?.("leaderboard"));
   document.querySelector(".championclub-btn")?.addEventListener("click",()=>window.navigate?.("championClub"));
 }
