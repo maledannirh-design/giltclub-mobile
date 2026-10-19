@@ -4510,3 +4510,16 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
   .g-mascot-quick-actions{bottom:-72px;max-width:min(235px,calc(100vw - 16px));gap:5px;}
   .g-mascot-quick-actions button{font-size:11px;padding:6px 10px;}
 }
+
+
+/* Flip mascot bubbles below the mascot when there is not enough room above */
+.g-mascot-bubble.below-mascot{
+  top:calc(100% + 10px);
+  bottom:auto;
+  transform-origin:top left;
+}
+.g-mascot-bubble.below-mascot .g-mascot-bubble-tail{
+  top:-10px;
+  bottom:auto;
+  transform:rotate(225deg);
+}
