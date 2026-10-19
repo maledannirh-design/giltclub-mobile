@@ -234,6 +234,8 @@ function positionWelcomeBubble(welcome, bubble, mascot){
   } else {
     bubble.classList.remove("align-left");
   }
+  // If the mascot is dragged near the top edge, open its bubble below instead of off-screen.
+  bubble.classList.toggle("below-mascot", mascotRect.top < 210);
 }
 
 function renderWelcomeMascot(isGuest){
