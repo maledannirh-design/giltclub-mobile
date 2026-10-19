@@ -12,7 +12,6 @@ import { onSnapshot } from "./firestore.js";
 import { getVerifiedProgress } from "./verifiedlist/verifiedProgressEngine.js";
 import { listenBroadcast } from "./broadcastListener.js";
 
-
 let userUnsubscribe = null;
 
 window.stopHomeListeners = function(){
