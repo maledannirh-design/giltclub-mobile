@@ -1,13 +1,7 @@
 import { auth, db } from "./firebase.js";
 import {
   doc,
-  getDoc,
-  getDocs,
-  collection,
-  query,
-  where,
-  addDoc,
-  serverTimestamp
+  getDoc
 } from "./firestore.js";
 import { renderMemberCard } from "./utils.js";
 import { onSnapshot } from "./firestore.js";
@@ -102,6 +96,8 @@ content.innerHTML = `
 
     </div>
 
+    ${await renderPromoCarousel()}
+
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
     <div class="daily-card">
@@ -141,6 +137,14 @@ content.innerHTML = `
 
   </div>
 `;
+
+  const promoTrack = content.querySelector('.home-promo-track');
+  if (promoTrack) {
+    const dots = [...content.querySelectorAll('.home-promo-dot')];
+    const updatePromoDots = () => { const index = Math.round(promoTrack.scrollLeft / Math.max(1, promoTrack.clientWidth)); dots.forEach((dot, i) => dot.classList.toggle('active', i === index)); };
+    promoTrack.addEventListener('scroll', updatePromoDots, { passive: true });
+    dots.forEach((dot, i) => dot.addEventListener('click', () => promoTrack.scrollTo({ left: i * promoTrack.clientWidth, behavior: 'smooth' })));
+  }
 
   renderWelcomeMascot(false);
 
@@ -219,6 +223,27 @@ content.innerHTML = `
 }
 
 
+
+
+/* =========================================
+   HOME PROMO CAROUSEL — admin-uploaded image cards
+========================================= */
+async function renderPromoCarousel(){
+  try{
+    const manifestUrl = new URL("./assets/promotions/promotions.json", import.meta.url);
+    const response = await fetch(manifestUrl, { cache: "no-cache" });
+    if(!response.ok) throw new Error("Promo manifest HTTP " + response.status);
+    const manifest = await response.json();
+    const promos = Array.isArray(manifest.promos) ? manifest.promos.filter(p => p && p.active !== false && typeof p.file === "string" && /^[a-zA-Z0-9._-]+$/.test(p.file)) : [];
+    if(!promos.length) return '<section class="home-promo-section"><div class="home-promo-heading">PROMO GMTC</div><div class="home-promo-empty">Belum ada promo.</div></section>';
+    const cards = promos.map(p => { const src = new URL("./assets/promotions/" + p.file, import.meta.url).href; return '<article class="home-promo-card"><img src="' + src + '" alt="Promo GMTC" loading="lazy"></article>'; }).join("");
+    const dots = promos.map((p,i) => '<span class="home-promo-dot ' + (i===0 ? "active" : "") + '"></span>').join("");
+    return '<section class="home-promo-section" aria-label="Promo GMTC"><div class="home-promo-heading">PROMO GMTC <span>Geser untuk melihat promo</span></div><div class="home-promo-track">' + cards + '</div><div class="home-promo-dots">' + dots + '</div></section>';
+  }catch(error){
+    console.error("Home promos read failed:",error);
+    return '<section class="home-promo-section"><div class="home-promo-heading">PROMO GMTC</div><div class="home-promo-empty">Belum ada promo.</div></section>';
+  }
+}
 
 // =========================================
  // GMTC WELCOME MASCOT — floating home assistant

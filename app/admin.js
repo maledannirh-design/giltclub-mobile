@@ -964,6 +964,8 @@ window.openProductAdmin = async function(){
 
 };
 
+
+
 window.openFlashAdmin = async function(){
   const { renderFlashAdmin } =
     await import("./store/flash-admin.js");
