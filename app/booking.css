@@ -1856,3 +1856,134 @@ html:not([data-theme="dark"]) .popup-card .checkin-btn {
 html:not([data-theme="dark"]) .popup-card button {
   opacity: 1;
 }
+
+/* =====================================
+   SESSION STATUS ACTIONS
+   Styled to match GMTC premium buttons/cards
+===================================== */
+.session-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px !important;
+  flex-wrap: wrap;
+  margin: 10px 0 14px !important;
+}
+
+.session-status-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .08);
+}
+
+.session-status-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
+}
+
+.session-status-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.session-status-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.session-status-btn[data-status="open"] {
+  background: #2e7d4a;
+  border-color: #2e7d4a;
+  color: #fff;
+}
+
+.session-status-btn[data-status="closed"] {
+  background: #f3ead5;
+  border-color: #d8c49b;
+  color: #5b4723;
+}
+
+.session-status-btn[data-status="cancelled"] {
+  background: #fff0f0;
+  border-color: #f2b8b8;
+  color: #b4232c;
+}
+
+body.dark .session-status-btn[data-status="open"] {
+  background: rgba(46, 125, 74, .22);
+  border-color: rgba(88, 190, 125, .55);
+  color: #a7edbd;
+}
+
+body.dark .session-status-btn[data-status="closed"] {
+  background: rgba(227, 197, 101, .12);
+  border-color: rgba(227, 197, 101, .4);
+  color: #e3c565;
+}
+
+body.dark .session-status-btn[data-status="cancelled"] {
+  background: rgba(220, 70, 80, .14);
+  border-color: rgba(255, 110, 120, .42);
+  color: #ff9da4;
+}
+
+.session-status-btn:disabled {
+  cursor: default;
+  opacity: .62;
+  box-shadow: none;
+  transform: none;
+}
+
+.session-status-btn[data-status="open"]:disabled {
+  background: #e3f2e8;
+  border-color: #b9ddc5;
+  color: #24643a;
+}
+
+.session-status-btn[data-status="closed"]:disabled {
+  background: #e6d8b8;
+  border-color: #d3bd8d;
+  color: #5b4723;
+}
+
+.session-status-btn[data-status="cancelled"]:disabled {
+  background: #f8dada;
+  border-color: #efb5b5;
+  color: #9f1d26;
+}
+
+body.dark .session-status-btn:disabled {
+  opacity: .78;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+body.dark .session-status-btn[data-status="open"]:disabled {
+  background: rgba(46, 125, 74, .36);
+  border-color: rgba(88, 190, 125, .55);
+  color: #bdf4cc;
+}
+
+body.dark .session-status-btn[data-status="closed"]:disabled {
+  background: rgba(227, 197, 101, .22);
+  border-color: rgba(227, 197, 101, .5);
+  color: #f0d989;
+}
+
+body.dark .session-status-btn[data-status="cancelled"]:disabled {
+  background: rgba(220, 70, 80, .25);
+  border-color: rgba(255, 110, 120, .5);
+  color: #ffc0c4;
+}
+
