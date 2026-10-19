@@ -12,3 +12,24 @@
 .gt-page-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.gt-sample-pill{font-size:10px;letter-spacing:.8px;background:#edf3eb;padding:6px 8px;border-radius:99px;font-weight:800}.gt-calendar-month{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.gt-calendar-month button{border:0;border-radius:10px;width:32px;height:32px;background:#f3f5ef;color:#496b4e;font-size:23px}.gt-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}.gt-calendar-weekdays span{font-size:11px;color:#7b8b79;padding:6px 0}.gt-calendar-day{position:relative;aspect-ratio:1;border:1px solid transparent;border-radius:50%;background:#f7f7f2;color:#2e5d3a;font-size:12px;cursor:pointer}.gt-calendar-day.is-target{border:3px solid #d52c2c;background:#fff0f0;color:#b51e1e;font-weight:900;box-shadow:0 0 0 4px #d52c2c20;animation:gtPulse 1.1s ease-in-out infinite}.gt-calendar-day:not(.is-target){opacity:.68}.gt-calendar-empty{aspect-ratio:1}@keyframes gtPulse{50%{box-shadow:0 0 0 8px #d52c2c08}}.gt-guide-bubble{position:relative;margin-top:14px;padding:12px 14px;border:2px solid #d52c2c;border-radius:14px;background:#fff0f0;color:#9f1717;font-size:13px;line-height:1.45;box-shadow:0 6px 16px #0001}.gt-guide-arrow{display:inline-block;margin-right:8px;animation:gtArrowNudge .65s ease-in-out infinite alternate}@keyframes gtArrowNudge{to{transform:translateX(7px)}}
 .gt-booking-form{display:grid;gap:12px}.gt-booking-form label{position:relative;display:grid;gap:6px;font-size:12px;font-weight:800}.gt-booking-form input,.gt-booking-form select{width:100%;box-sizing:border-box;border:1px solid #d8e0d2;border-radius:10px;background:#fafbf8;padding:11px;color:#34543a;font:inherit;font-weight:500}.gt-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.gt-booking-form .is-highlighted{outline:3px solid #d52c2c;border-radius:12px;padding:8px;margin:-8px}.gt-form-guide{margin-top:8px;font-weight:500}.gt-form-guide p{margin:4px 0 0}.gt-complete{text-align:center;padding:40px 16px}.gt-complete-icon{font-size:48px}.gt-complete h3{font-size:24px;margin:12px 0}.gt-complete p{font-size:14px;line-height:1.55}.gt-complete button{margin-top:12px}
 @media(max-width:420px){.gt-tutorial-window{max-height:94dvh;border-radius:18px}.gt-stage-track{padding:12px}.gt-screen{min-height:300px}.gt-home-card,.gt-calendar-card,.gt-booking-form{padding:12px}.gt-calendar-grid{gap:3px}.gt-calendar-day{font-size:11px}.gt-tutorial-footer{padding:10px 12px}}
+
+
+/* G-WALLET guided simulation */
+.gt-wallet-card{margin-top:14px;padding:15px;border-radius:18px;background:#fff;box-shadow:0 4px 18px #3b4b3210}
+.gt-wallet-top{display:flex;align-items:center;justify-content:space-between;color:#6b7d6a;font-size:13px}
+.gt-wallet-eye{border:0;border-radius:50%;width:34px;height:34px;background:#edf3eb;color:#2e5d3a;font-size:18px;cursor:pointer}
+.gt-wallet-amount{display:block;margin:8px 0 14px;font-size:24px;color:#2e5d3a}
+.gt-member-card{position:relative;overflow:hidden;padding:16px;border-radius:15px;background:linear-gradient(130deg,#e9b9cf,#f8dfe9 58%,#dba9c1);color:#63364b;display:grid;gap:7px}
+.gt-member-card-label{font-size:10px;font-weight:900;letter-spacing:1.5px}
+.gt-member-card strong{font-size:17px}.gt-member-card small{font-size:11px}
+.gt-member-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.gt-sim-card-action{border:1px solid #ffffffa0;border-radius:9px;padding:7px 10px;background:#ffffffa8;color:#63364b;font-size:11px;font-weight:800;cursor:pointer}
+.gt-wallet-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.gt-wallet-action{display:grid;grid-template-columns:30px 1fr;align-items:center;column-gap:8px;text-align:left;padding:12px;border:1px solid #e3e8dd;border-radius:13px;background:#fff;color:#2e5d3a;cursor:pointer}
+.gt-wallet-action>span{grid-row:span 2;display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:#edf3eb;font-size:17px}
+.gt-wallet-action strong{font-size:12px}.gt-wallet-action small{margin-top:3px;color:#71816f;font-size:10px}
+.gt-wallet-demo-topup{margin-top:12px;padding:13px;border:1px dashed #83a187;border-radius:14px;background:#fafff8;font-size:12px}
+.gt-wallet-demo-topup p{line-height:1.45}.gt-wallet-demo-topup input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #d8e0d2;border-radius:9px;background:#fff}
+.gt-sim-topup-submit{margin-top:9px;border:0;border-radius:10px;padding:10px 12px;background:#2e7547;color:#fff;font-weight:800;cursor:pointer}
+.gt-wallet-demo-message{color:#2e5d3a}.gt-wallet-demo-note{margin:12px 2px;color:#778574;font-size:10px;line-height:1.4}
+.gt-wallet-screen [data-wallet-field].is-highlighted{outline:3px solid #d52c2c;border-radius:13px;padding:8px;margin:-8px}
