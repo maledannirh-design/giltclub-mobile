@@ -44,6 +44,11 @@ function renderWalletStage(){
   const bubble=document.createElement("div");bubble.className="gt-guide-bubble gt-form-guide";
   bubble.innerHTML=`<strong>${title}</strong><p>${WALLET_STEPS[walletStep][2]}</p>`;
   target?.appendChild(bubble);
+  const eye=track.querySelector(".gt-wallet-eye");
+  eye?.addEventListener("click",()=>{const amount=track.querySelector(".gt-wallet-amount");const visible=amount.dataset.visible==="1";amount.textContent=visible?"Rp ******":"Rp 125.000";amount.dataset.visible=visible?"0":"1";eye.textContent=visible?"◉":"⊘";});
+  track.querySelector(".gt-wallet-action[data-wallet-field=\"topup\"]")?.addEventListener("click",()=>{track.querySelector(".gt-wallet-demo-topup").hidden=false;});
+  track.querySelector(".gt-sim-topup-submit")?.addEventListener("click",()=>{const input=track.querySelector(".gt-wallet-demo-topup input");const message=track.querySelector(".gt-wallet-demo-message");const amount=Number(input.value);message.textContent=amount>=10000?`Simulasi berhasil: pengajuan Top Up Rp ${amount.toLocaleString("id-ID")} akan terlihat sebagai contoh saja. Tidak ada transaksi yang dikirim.`:"Nominal minimum simulasi adalah Rp10.000.";});
+  track.querySelectorAll(".gt-sim-card-action").forEach(button=>button.addEventListener("click",()=>{button.textContent=button.textContent==="Scan Check-In"?"Simulasi scan saja":"Print preview";}));
   overlay.querySelector(".gt-step-label").textContent=`Wallet • ${walletStep+1}/${WALLET_STEPS.length}`;
   overlay.querySelector(".gt-progress span").style.width=((walletStep+1)/WALLET_STEPS.length*100)+"%";
   overlay.querySelector(".gt-back").disabled=walletStep===0;
