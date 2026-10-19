@@ -25,10 +25,8 @@ import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 let unsubscribeSchedules = null;
 let unsubscribeBookings = null;
 let bookingsListenerUserId = null;
-let lastAutoCloseCheckAt = 0;
 let bookingRenderGeneration = 0;
 let upcomingScheduleRefreshGeneration = 0;
-const AUTO_CLOSE_CHECK_INTERVAL = 5 * 60 * 1000;
 let bookingLock = false;
 let allSchedules = [];
 let calendarSchedules = [];
@@ -145,31 +143,6 @@ export async function renderBooking() {
           console.error("User bookings listener failed:", error);
         }
       );
-    }
-  }
-
-  // Auto-close mengubah data jadwal, jadi hanya jalankan untuk admin.
-  // Visitor/member tetap dapat membuka kalender tanpa memicu permission-denied.
-  const now = Date.now();
-  const currentUser = auth.currentUser;
-  if (currentUser && now - lastAutoCloseCheckAt >= AUTO_CLOSE_CHECK_INTERVAL) {
-    try {
-      const userSnap = await getDoc(doc(db, "users", currentUser.uid));
-      const role = userSnap.exists() ? userSnap.data().role : null;
-      if (role === "ADMIN" || role === "SUPERCOACH") {
-        lastAutoCloseCheckAt = now;
-        await autoCloseFinishedSessions();
-      } else {
-        // Tandai interval agar user biasa tidak membaca profil berulang kali
-        // selama proses render kalender berikutnya.
-        lastAutoCloseCheckAt = now;
-      }
-    } catch (error) {
-      // Jangan biarkan pemeriksaan administratif merusak tampilan kalender.
-      if (error?.code !== "permission-denied") {
-        console.error("Auto-close sessions check failed:", error);
-      }
-      lastAutoCloseCheckAt = now;
     }
   }
 
@@ -654,7 +627,8 @@ async function openSessionPopup(dateStr) {
 
       const isRunning = now >= sessionStart && now <= sessionEnd;
       const isFinished = now > sessionEnd;
-      const isClosed = s.status === "closed";
+      const isCancelled = s.status === "cancelled";
+      const isClosed = s.status === "closed" || isCancelled;
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
@@ -740,6 +714,11 @@ if((s.sportType || "tennis") !== "tennis"){
       ${
         isPrivileged
           ? `
+            <div class="session-status-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
+              <button type="button" class="session-status-btn" data-id="${s.id}" data-status="open" ${s.status === "open" ? "disabled" : ""}>Open</button>
+              <button type="button" class="session-status-btn" data-id="${s.id}" data-status="closed" ${s.status === "closed" ? "disabled" : ""}>Close</button>
+              <button type="button" class="session-status-btn" data-id="${s.id}" data-status="cancelled" ${s.status === "cancelled" ? "disabled" : ""}>Cancelled</button>
+            </div>
           <div class="session-admin-actions">
             <button class="edit-session-btn" data-id="${s.id}">
               ✏️ Edit Session
@@ -915,6 +894,11 @@ if((s.sportType || "tennis") !== "tennis"){
           ${
             isPrivileged
               ? `
+            <div class="session-status-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
+              <button type="button" class="session-status-btn" data-id="${s.id}" data-status="open" ${s.status === "open" ? "disabled" : ""}>Open</button>
+              <button type="button" class="session-status-btn" data-id="${s.id}" data-status="closed" ${s.status === "closed" ? "disabled" : ""}>Close</button>
+              <button type="button" class="session-status-btn" data-id="${s.id}" data-status="cancelled" ${s.status === "cancelled" ? "disabled" : ""}>Cancelled</button>
+            </div>
               <div class="session-admin-actions">
                 <button class="edit-session-btn" data-id="${s.id}">
                   ✏️ Edit Session
@@ -955,6 +939,29 @@ html += `
 `;
 
 popup.innerHTML = html;
+
+// Manual session status controls: admin-only UI, no additional listeners/queries.
+if (["ADMIN", "SUPERCOACH"].includes(currentUserRole)) {
+  popup.querySelectorAll(".session-status-btn").forEach(button => {
+    button.onclick = async () => {
+      const scheduleId = button.dataset.id;
+      const nextStatus = button.dataset.status;
+      if (!scheduleId || !["open", "closed", "cancelled"].includes(nextStatus)) return;
+      const labels = { open: "membuka", closed: "menutup", cancelled: "membatalkan" };
+      if (!confirm(`Yakin ${labels[nextStatus]} sesi ini?`)) return;
+      button.disabled = true;
+      try {
+        await updateDoc(doc(db, "schedules", scheduleId), { status: nextStatus });
+        showToast(nextStatus === "open" ? "Sesi dibuka" : nextStatus === "closed" ? "Sesi ditutup" : "Sesi dibatalkan", "success");
+        // Existing schedule onSnapshot refreshes the popup.
+      } catch (error) {
+        console.error("Manual session status update failed:", error);
+        showToast(error.message || "Gagal mengubah status sesi", "error");
+        button.disabled = false;
+      }
+    };
+  });
+}
 
 // ===============================
 // MATCHES CLICK (SAFE ATTACH)
@@ -1226,7 +1233,7 @@ async function runMemberBookingFlow({ scheduleId, schedule, slotIndex = null }) 
   if (!existing.empty) throw new Error("Kamu sudah terdaftar di sesi ini.");
 
   if ((s.slots ?? s.maxPlayers ?? 0) <= 0) throw new Error("Slot penuh");
-  if (s.status === "closed") throw new Error("Sesi sudah ditutup");
+  if (s.status === "closed" || s.status === "cancelled") throw new Error(s.status === "cancelled" ? "Sesi dibatalkan" : "Sesi sudah ditutup");
 
   let racketQty = 0;
   let racketTotal = 0;
@@ -2144,46 +2151,6 @@ async function openEditSessionSheet(scheduleId){
 
   },250);
 }
-
-/* ===============================
-   AUTO CLOSE FINISHED SESSIONS
-================================= */
-async function autoCloseFinishedSessions() {
-
-  const now = new Date();
-
-  // Ambil hanya sesi yang masih open. Jangan membaca seluruh riwayat jadwal
-  // (termasuk sesi closed) setiap kali pengecekan auto-close berjalan.
-  const q = query(
-    collection(db, "schedules"),
-    where("status", "==", "open")
-  );
-
-  const snap = await getDocs(q);
-
-  for (const docSnap of snap.docs) {
-
-    const data = docSnap.data();
-
-    if (!data.date || !data.endTime) continue;
-    if (data.date > formatDate(now)) continue;
-
-    const sessionEnd = new Date(
-      data.date + "T" + data.endTime
-    );
-
-    if (now > sessionEnd) {
-
-      await updateDoc(
-        doc(db, "schedules", docSnap.id),
-        {
-          status: "closed"
-        }
-      );
-    }
-  }
-}
-
 
 function openSportForm(sportType){
 
