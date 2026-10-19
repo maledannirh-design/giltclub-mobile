@@ -220,8 +220,21 @@ content.innerHTML = `
 
 
 // =========================================
-// GMTC WELCOME MASCOT — floating home assistant
-// =========================================
+ // GMTC WELCOME MASCOT — floating home assistant
+ // =========================================
+function positionWelcomeBubble(welcome, bubble, mascot){
+  if(!welcome || !bubble || !mascot || bubble.classList.contains("is-hidden")) return;
+  const mascotRect = mascot.getBoundingClientRect();
+  const bubbleWidth = Math.min(320, window.innerWidth - 24);
+  bubble.style.width = bubbleWidth + "px";
+  // Keep the comic bubble inside the viewport regardless of where the mascot is dragged.
+  if(mascotRect.left + mascotRect.width / 2 < window.innerWidth / 2){
+    bubble.classList.add("align-left");
+  } else {
+    bubble.classList.remove("align-left");
+  }
+}
+
 function renderWelcomeMascot(isGuest){
   document.getElementById("g-mascot-welcome")?.remove();
   const welcome = document.createElement("div");
@@ -248,12 +261,13 @@ function renderWelcomeMascot(isGuest){
     bubble.classList.add("is-hidden");
     mascot.setAttribute("aria-expanded","false");
   });
+  positionWelcomeBubble(welcome, bubble, mascot);
   let dragStartX = 0, dragStartY = 0, mascotStartX = 0, mascotStartY = 0;
   let didDrag = false;
   mascot?.addEventListener("pointerdown",(event)=>{
     if(event.pointerType === "mouse" && event.button !== 0) return;
     event.preventDefault();
-    const rect = welcome.getBoundingClientRect();
+    const rect = mascot.getBoundingClientRect();
     dragStartX = event.clientX;
     dragStartY = event.clientY;
     mascotStartX = rect.left;
@@ -269,12 +283,15 @@ function renderWelcomeMascot(isGuest){
     const dy = event.clientY - dragStartY;
     if(Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag = true;
     if(!didDrag) return;
-    const maxX = Math.max(0, window.innerWidth - welcome.offsetWidth);
-    const maxY = Math.max(0, window.innerHeight - welcome.offsetHeight);
+    const mascotWidth = mascot.offsetWidth || 112;
+    const mascotHeight = mascot.offsetHeight || 112;
+    const maxX = Math.max(0, window.innerWidth - mascotWidth);
+    const maxY = Math.max(0, window.innerHeight - mascotHeight);
     welcome.style.left = Math.min(maxX, Math.max(0, mascotStartX + dx)) + "px";
     welcome.style.top = Math.min(maxY, Math.max(0, mascotStartY + dy)) + "px";
     welcome.style.right = "auto";
     welcome.style.bottom = "auto";
+    positionWelcomeBubble(welcome, bubble, mascot);
   });
   const finishMascotDrag = (event)=>{
     if(mascot?.hasPointerCapture?.(event.pointerId)) {
@@ -292,6 +309,7 @@ function renderWelcomeMascot(isGuest){
     if(mascot.dataset.dragged === "true") return;
     const hidden = bubble.classList.toggle("is-hidden");
     mascot.setAttribute("aria-expanded",String(!hidden));
+    if(!hidden) positionWelcomeBubble(welcome, bubble, mascot);
   });
 }
 
