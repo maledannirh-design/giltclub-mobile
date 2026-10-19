@@ -144,6 +144,14 @@ content.innerHTML = `
   </div>
 `;
 
+  const promoTrack = content.querySelector('.home-promo-track');
+  if (promoTrack) {
+    const dots = [...content.querySelectorAll('.home-promo-dot')];
+    const updatePromoDots = () => { const index = Math.round(promoTrack.scrollLeft / Math.max(1, promoTrack.clientWidth)); dots.forEach((dot, i) => dot.classList.toggle('active', i === index)); };
+    promoTrack.addEventListener('scroll', updatePromoDots, { passive: true });
+    dots.forEach((dot, i) => dot.addEventListener('click', () => promoTrack.scrollTo({ left: i * promoTrack.clientWidth, behavior: 'smooth' })));
+  }
+
   renderWelcomeMascot(false);
 
   // =============================
