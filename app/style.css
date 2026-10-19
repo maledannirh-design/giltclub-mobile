@@ -4442,3 +4442,20 @@ html[data-theme="dark"] .admin-card #broadcastMode option {
 }
 .g-mascot-name-cta:active{transform:translateX(-50%) scale(.96);}
 .g-mascot-welcome.is-dragging .g-mascot-name-cta{pointer-events:none;}
+
+
+/* Red tutorial prompt: separate from the green welcome and blue naming contest */
+.g-mascot-name-cta{
+  width:max-content;
+  max-width:min(230px, calc(100vw - 28px));
+  min-height:42px;
+  padding:8px 12px;
+  white-space:normal;
+  text-align:center;
+  line-height:1.25;
+  border-color:#c62828;
+  background:#fff0f0;
+  color:#9f1717;
+  box-shadow:0 4px 12px rgba(120,0,0,.2);
+}
+.g-mascot-name-cta:active{transform:translateX(-50%) scale(.97);}
