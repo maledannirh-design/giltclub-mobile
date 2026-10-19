@@ -141,7 +141,7 @@ case "skill":
   const user = auth.currentUser;
 
   if(!user){
-    showSkillMemberAccess();
+    showVerifyRequiredModal();
     (await import("./skill.js")).renderGuestSkillDashboard();
     break;
   }
@@ -156,7 +156,7 @@ case "skill":
 
   const userData = userSnap.data();
 
-  if(!userData.verified){
+  if(userData.membership !== "VVIP"){
     showVerifyRequiredModal();
     return;
   }
