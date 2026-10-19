@@ -456,12 +456,7 @@ function showMascotFaq(welcome,mascot,reposition,heading){
   const faq=[
     ["Cara bergabung dengan GMTC?","Daftar gratis melalui menu Akun dan lengkapi data pendaftaran."],
     ["Cara booking sesi tenis?","Buka jadwal sesi, pilih sesi yang memiliki slot tersedia, lalu ikuti proses booking."],
-    ["Apa perbedaan Member, VVIP, dan Visitor?","Visitor belum terdaftar, Member memperoleh harga member, dan VVIP memiliki manfaat khusus sesuai ketentuan GMTC."],
-    ["Berapa harga mabar dan drill?","Harga mengikuti jenis sesi dan status keanggotaan. Periksa harga terbaru di website atau detail sesi."],
-    ["Bagaimana cara kerja G-WALLET?","G-WALLET adalah saldo akun untuk transaksi GMTC. Saldo dan mutasi dapat dilihat di menu wallet."],
-    ["Bagaimana cara mendapatkan diskon member?","Daftar dan gunakan akun member saat booking sesuai ketentuan harga yang berlaku."],
-    ["Di mana melihat jadwal dan slot tersedia?","Buka kalender atau menu jadwal di aplikasi GMTC."],
-    ["Bagaimana menghubungi admin GMTC?","Gunakan kanal kontak resmi GMTC yang tercantum di website atau aplikasi."]
+    ["Cara isi saldo, bayar, dan cek mutasi?","Buka menu G-WALLET. Untuk isi saldo, pilih Top Up dan ikuti instruksi yang tersedia. Untuk membayar, gunakan saldo G-WALLET saat booking sesi atau melakukan transaksi yang didukung aplikasi. Untuk melihat riwayat transaksi, buka Mutasi/Ledger di menu G-WALLET."]
   ];
   const bubble=document.createElement("div");
   bubble.className="g-mascot-bubble g-mascot-contest-bubble g-mascot-faq-bubble";
