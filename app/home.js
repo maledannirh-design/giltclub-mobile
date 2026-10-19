@@ -313,6 +313,9 @@ function renderWelcomeMascot(isGuest){
     if(!hidden) positionWelcomeBubble(welcome, bubble, mascot);
     if(!hidden) showMascotContest(welcome, mascot, positionWelcomeBubble);
   });
+  if(sessionStorage.getItem("gmtcMascotContestDismissedThisSession") !== "1") {
+    setTimeout(()=>showMascotContest(welcome, mascot, positionWelcomeBubble), 1100);
+  }
 }
  
 function mascotContestTuit(){
