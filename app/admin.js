@@ -174,7 +174,8 @@ export async function renderAdmin() {
     <label style="display:block;font-size:13px;margin-bottom:6px;">Upload template yang sudah diisi</label>
     <button id="uploadMassiveTemplateBtn" class="admin-btn" type="button">UPLOAD TEMPLATE</button>
     <input id="massiveTemplateFile" type="file" accept=".csv,text/csv" style="display:none;">
-    <div id="massiveTemplatePreview" style="font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;">Belum ada file dipilih.</div>
+    <div id="massiveTemplateFileName" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--color-border);border-radius:10px;color:var(--color-text);background:var(--color-card, transparent);overflow-wrap:anywhere;font-size:13px;"></div>
+    <div id="massiveTemplatePreview" style="font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;color:var(--color-text);">Belum ada file dipilih.</div>
     <button id="runMassiveTemplateBtn" class="admin-btn" type="button" disabled style="margin-top:12px;opacity:.55;">RUN TEMPLATE</button>
     <div id="massiveTemplateRunStatus" style="font-size:12px;line-height:1.5;margin-top:10px;"></div>
   </div>
@@ -261,7 +262,8 @@ document.getElementById("loadUsersBtn").onclick = async () => {
 const MASSIVE_SCHEDULE_HEADERS = [
   "sportType", "date", "startTime", "endTime", "tier", "sessionType", "mode",
   "maxPlayers", "court", "pricePerHour", "racketStock", "racketPrice", "notes",
-  "cashbackMember", "cashbackVerified", "cashbackVVIP"
+  "cashbackMember", "cashbackVerified", "cashbackVVIP",
+  ...Array.from({ length: 20 }, (_, index) => `playerName${index + 1}`)
 ];
 
 let parsedMassiveScheduleRows = [];
@@ -312,11 +314,16 @@ function parseCSV(text) {
 function handleMassiveTemplateFile(event) {
   const file = event.target.files?.[0];
   const preview = document.getElementById("massiveTemplatePreview");
+  const fileNameDisplay = document.getElementById("massiveTemplateFileName");
   const runBtn = document.getElementById("runMassiveTemplateBtn");
   const status = document.getElementById("massiveTemplateRunStatus");
   parsedMassiveScheduleRows = [];
   if (runBtn) { runBtn.disabled = true; runBtn.style.opacity = ".55"; }
   if (status) status.textContent = "";
+  if (fileNameDisplay) {
+    fileNameDisplay.style.display = file ? "block" : "none";
+    fileNameDisplay.textContent = file ? "File dipilih: " + file.name : "";
+  }
   if (!file) {
     if (preview) preview.textContent = "Belum ada file dipilih.";
     return;
@@ -346,6 +353,8 @@ function handleMassiveTemplateFile(event) {
         if (!timeOK(item.startTime) || !timeOK(item.endTime) || item.endTime <= item.startTime) errors.push("Baris " + rowNumber + ": jam harus HH:MM dan jam selesai setelah jam mulai.");
         if (!Number.isInteger(max) || max <= 0) errors.push("Baris " + rowNumber + ": maxPlayers harus bilangan bulat di atas 0.");
         if (!item.tier || !item.sessionType || !item.mode || !item.court) errors.push("Baris " + rowNumber + ": tier, sessionType, mode, dan court wajib diisi.");
+        if (!["Mabar", "Drill", "Drill + Mabar"].includes(item.sessionType)) errors.push("Baris " + rowNumber + ": sessionType harus Mabar, Drill, atau Drill + Mabar.");
+        if (!["reguler", "semi-private", "private"].includes(item.mode.toLowerCase())) errors.push("Baris " + rowNumber + ": mode harus reguler, semi-private, atau private.");
         for (const field of ["pricePerHour", "racketStock", "racketPrice", "cashbackMember", "cashbackVerified", "cashbackVVIP"]) {
           if (item[field] !== "" && (!Number.isFinite(Number(item[field])) || Number(item[field]) < 0)) errors.push("Baris " + rowNumber + ": " + field + " harus angka nol atau lebih.");
         }
@@ -420,6 +429,7 @@ async function runMassiveTemplate() {
           cashbackMember: Number(s.cashbackMember || 0),
           cashbackVerified: Number(s.cashbackVerified || 0),
           cashbackVVIP: Number(s.cashbackVVIP || 0),
+          manualSlotNames: Array.from({ length: 20 }, (_, index) => String(s[`playerName${index + 1}`] || "").trim()).slice(0, maxPlayers),
           importSource: "massive-schedule"
         });
       }
