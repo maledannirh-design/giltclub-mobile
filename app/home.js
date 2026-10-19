@@ -370,16 +370,6 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
   document.body.appendChild(modal);
   document.body.style.overflow="hidden";
   const form=modal.querySelector("form"), name=modal.querySelector('[name="name"]'), reason=modal.querySelector('[name="reason"]'), status=modal.querySelector(".g-mascot-contest-status"), submit=modal.querySelector(".g-mascot-contest-submit");
-  try {
-    const draft=JSON.parse(localStorage.getItem("gmtcMascotContestDraft") || "null");
-    if(draft){
-      name.value=draft.name || "";
-      reason.value=draft.reason || "";
-      const choice=modal.querySelector('[name="prize"][value="'+String(draft.prize || "").replace(/"/g,"\\\\\"")+'"]');
-      if(choice) choice.checked=true;
-    }
-  } catch(_) {}
-
   const close=()=>{mascotContestTuit();modal.remove();document.body.style.overflow="";sessionStorage.setItem(dismissedKey,"1");};
   modal.querySelector(".g-mascot-contest-modal-close").addEventListener("click",close);
   modal.querySelector(".g-mascot-contest-cancel").addEventListener("click",close);
@@ -401,11 +391,10 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
       gate.querySelector(".g-mascot-register-gate-later").addEventListener("click",()=>{gate.remove();mascotContestTuit();});
       gate.querySelector(".g-mascot-register-gate-yes").addEventListener("click",()=>{
         mascotContestTuit();
-        // Keep the entered proposal locally so it can be restored after registration.
-        try {
-          localStorage.setItem("gmtcMascotContestDraft",JSON.stringify({name:proposedName,reason:why,prize}));
-        } catch(_) {}
-        close();
+        // Close without dismissing the contest for this session; the user can reopen it after registration.
+        mascotContestTuit();
+        modal.remove();
+        document.body.style.overflow="";
         window.navigate?.("account");
         setTimeout(()=>document.getElementById("registerBtn")?.click(),150);
       });
