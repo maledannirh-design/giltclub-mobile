@@ -411,7 +411,6 @@ function openMascotContestForm(welcome, mascot, reposition, prompt, doneKey, dis
       }
       await addDoc(collection(db,"mascotNameSubmissions"),{name:proposedName,reason:why,prize,userId:user?.uid||null,status:"pending",createdAt:serverTimestamp()});
       localStorage.setItem(doneKey,"1");
-      localStorage.removeItem("gmtcMascotContestDraft");
       close();
       showMascotFaq(welcome,mascot,reposition,"Makasih! Aku senang sekali! Mudah-mudahan nama yang kamu kasih terpilih jadi namaku, ya!");
       if(!user) setTimeout(()=>{window.navigate?.("account");setTimeout(()=>document.getElementById("registerBtn")?.click(),150);},2200);
