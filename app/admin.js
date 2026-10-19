@@ -151,7 +151,6 @@ export async function renderAdmin() {
 
   <hr style="margin:30px 0;">
 
-  <button id="openPromoAdmin" class="admin-btn">Promo Teras</button>
   <button id="openFlashAdmin" class="admin-btn">Flash Drop</button>
   <button id="openRewardAdmin" class="admin-btn">Reward GP</button>
   <button id="openProductAdmin" class="admin-btn">Store Products</button>
@@ -209,9 +208,6 @@ export async function renderAdmin() {
   content.innerHTML = html;
 
   // 🔹 EVENT BINDING (AMAN)
-  const promoBtn = document.getElementById("openPromoAdmin");
-  if (promoBtn) promoBtn.onclick = openPromoAdmin;
-
   const flashBtn = document.getElementById("openFlashAdmin");
   if (flashBtn) flashBtn.onclick = openFlashAdmin;
 
@@ -968,10 +964,7 @@ window.openProductAdmin = async function(){
 
 };
 
-window.openPromoAdmin = async function(){
-  const { renderPromoAdmin } = await import("./promo-admin.js");
-  renderPromoAdmin();
-};
+
 
 window.openFlashAdmin = async function(){
   const { renderFlashAdmin } =
