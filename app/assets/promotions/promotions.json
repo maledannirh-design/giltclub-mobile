@@ -1,6 +1,10 @@
 {
   "promos": [
     {
+      "file": "turnament.webp",
+      "active": true
+    },
+    {
       "file": "promotennispilates1.webp",
       "active": true
     },
