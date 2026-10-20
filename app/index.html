@@ -228,10 +228,39 @@ href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput
 
   <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/app/service-worker.js")
-      .then(() => console.log("Service Worker registered"))
-      .catch(err => console.log("SW failed", err));
+  let reloadingForNewController = false;
+
+  // Ask the browser to check the worker script on every app launch,
+  // bypassing the HTTP cache for the service-worker script itself.
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("/app/service-worker.js", {
+        updateViaCache: "none"
+      });
+      console.log("Service Worker registered:", registration.scope);
+      await registration.update();
+    } catch (err) {
+      console.error("Service Worker update check failed:", err);
+    }
+  });
+
+  // When a newly activated worker takes control, reload once so all users
+  // receive the current HTML/module entry points rather than old in-memory code.
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloadingForNewController) return;
+    reloadingForNewController = true;
+    window.location.reload();
+  });
+
+  // Installed PWAs may stay open for days; check again when users return.
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState !== "visible") return;
+    try {
+      const registration = await navigator.serviceWorker.getRegistration("/app/");
+      if (registration) await registration.update();
+    } catch (err) {
+      console.warn("Service Worker refresh check failed:", err);
+    }
   });
 }
 
