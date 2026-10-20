@@ -30,7 +30,7 @@ export async function renderProductAdmin(){
 
     <h2>Store Products Admin</h2>
 
-    <div class="store-card">
+    <div class="store-card" id="productEditor">
 
       <div class="card-body">
 
