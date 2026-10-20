@@ -185,8 +185,10 @@ export async function renderAdmin() {
   <div class="admin-card">
     <h3>Export & Audit Tools</h3>
 
+    <p style="font-size:13px;opacity:.75;line-height:1.5;">Ekspor riwayat login/kunjungan yang sudah tercatat: UID, username, waktu, device/browser, halaman, dan IP jika memang tersedia pada dokumen log. Kode saat ini belum merekam IP baru.</p>
+
     <button onclick="exportOnlineLogs()" class="admin-btn" style="margin-top:10px;">
-      Export Online Logs
+      Export Login & Device Logs (CSV)
     </button>
 
     <button onclick="exportMascotNameSubmissions()" class="admin-btn" style="margin-top:10px;">
@@ -987,33 +989,73 @@ window.exportFullMutation = async function(){
 
 window.exportOnlineLogs = async function(){
 
-  const snap =
-    await getDocs(collection(db,"onlineLogs"));
+  const btn = document.querySelector('button[onclick="exportOnlineLogs()"]');
 
-  let rows = [[
-    "Timestamp",
-    "UID",
-    "Username",
-    "Device",
-    "Page"
-  ]];
+  try{
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = "Mengekspor login logs...";
+    }
 
-  snap.forEach(docSnap => {
+    const snap = await getDocs(collection(db,"onlineLogs"));
 
-    const d = docSnap.data();
+    if(snap.empty){
+      alert("Belum ada data onlineLogs yang tersimpan.");
+      return;
+    }
 
-    rows.push([
-      d.timestamp?.toDate?.()
-        ?.toLocaleString("id-ID") || "",
-      d.uid || "",
-      d.username || "",
-      d.device || "",
-      d.page || ""
+    const rows = [[
+      "Timestamp",
+      "UID",
+      "Username",
+      "Device / Browser (User Agent)",
+      "Page",
+      "IP Address"
+    ]];
+
+    const uniqueUsers = new Set();
+
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      if(d.uid) uniqueUsers.add(d.uid);
+
+      const timestamp = d.timestamp?.toDate
+        ? d.timestamp.toDate().toLocaleString("id-ID")
+        : (d.timestamp || "");
+
+      // IP only appears if a log document already contains one of these fields.
+      // The current recordUserOnlineLog() implementation does not create an IP field.
+      const ipAddress = d.ipAddress || d.ip || d.clientIp || d.clientIP || "";
+
+      rows.push([
+        timestamp,
+        d.uid || "",
+        d.username || "",
+        d.device || d.userAgent || "",
+        d.page || "",
+        ipAddress
+      ]);
+    });
+
+    // UTF-8 BOM improves Indonesian text display in Excel.
+    downloadCSV("gmtc_login_device_logs.csv", [
+      ["\uFEFF" + rows[0][0], ...rows[0].slice(1)],
+      ...rows.slice(1)
     ]);
 
-  });
-
-  downloadCSV("online_logs.csv", rows);
+    alert(
+      "Export berhasil: " + snap.size + " catatan log dari " +
+      uniqueUsers.size + " akun unik. Kolom IP hanya terisi jika IP memang pernah tersimpan."
+    );
+  }catch(error){
+    console.error("Export online logs failed:", error);
+    alert("Gagal mengekspor login logs. Periksa koneksi dan izin akses Admin.");
+  }finally{
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Export Login & Device Logs (CSV)";
+    }
+  }
 
 };
 
