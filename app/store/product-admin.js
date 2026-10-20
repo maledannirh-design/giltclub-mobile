@@ -12,6 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let editModeId = null;
+const productCache = new Map();
 
 
 /* ===============================
@@ -290,6 +291,9 @@ async function loadProductList(){
   const snap =
     await getDocs(collection(db,"products"));
 
+  productCache.clear();
+  snap.forEach(docSnap => productCache.set(docSnap.id, { id: docSnap.id, ...docSnap.data() }));
+
   if(snap.empty){
 
     container.innerHTML =
@@ -348,13 +352,17 @@ async function loadProductList(){
 
 window.editProduct = async function(id){
   try{
-    const snap = await getDoc(doc(db,"products",id));
-    if(!snap.exists()){
-      alert("Produk tidak ditemukan. Muat ulang daftar produk lalu coba lagi.");
-      return;
+    // Prefer the product already loaded for the list; avoid a second Firestore read.
+    let d = productCache.get(id);
+    if(!d){
+      const snap = await getDoc(doc(db,"products",id));
+      if(!snap.exists()){
+        alert("Produk tidak ditemukan. Muat ulang daftar produk lalu coba lagi.");
+        return;
+      }
+      d = snap.data();
+      productCache.set(id, { id, ...d });
     }
-
-    const d = snap.data();
     editModeId = id;
 
     document.getElementById("productName").value = d.name || "";
@@ -382,7 +390,8 @@ window.editProduct = async function(id){
     document.getElementById("productName").focus({preventScroll:true});
   }catch(error){
     console.error("Edit product failed:",error);
-    alert("Produk gagal dibuka untuk diedit. Periksa koneksi dan izin akses, lalu coba lagi.");
+    const message = error?.code ? error.code + ": " : "";
+    alert("Produk gagal dibuka untuk diedit. " + message + (error?.message || "Periksa koneksi dan izin akses, lalu coba lagi."));
   }
 };
 
