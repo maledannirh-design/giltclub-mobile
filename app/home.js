@@ -516,7 +516,6 @@ async function renderPublicActivitySummary(content){
           <div class="championclub-btn"><i class="fa-solid fa-trophy"></i><span>Champion Club</span></div>
         </div>
       </div>
-      ${await renderPromoCarousel()}
       <div class="home-progress-group guest-progress-group"><div class="daily-card guest-protected-card">
         <div class="daily-header"><div class="daily-title">Check-In Harian</div><div class="daily-info">Informasi Check-In</div></div>
         <div class="daily-days">
@@ -544,6 +543,11 @@ async function renderPublicActivitySummary(content){
       </div>
     </div>
   `;
+  // Insert the public promo carousel directly after the guest header so it is not skipped by template/render timing.
+  const guestHomeHeader = content.querySelector(".guest-home-container .home-header");
+  if(guestHomeHeader){
+    guestHomeHeader.insertAdjacentHTML("afterend", await renderPromoCarousel());
+  }
   const promoTrack = content.querySelector(".home-promo-track");
   if(promoTrack){
     const dots = [...content.querySelectorAll(".home-promo-dot")];
