@@ -189,6 +189,10 @@ export async function renderAdmin() {
       Export Online Logs
     </button>
 
+    <button onclick="exportMascotNameSubmissions()" class="admin-btn" style="margin-top:10px;">
+      Export Sayembara Nama Maskot (Excel)
+    </button>
+
     <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
       Export Members
     </button>
@@ -775,6 +779,65 @@ function downloadCSV(filename, rows) {
   link.click();
   document.body.removeChild(link);
 }
+
+
+/* =====================================================
+   EXPORT MASCOT NAMING CONTEST SUBMISSIONS
+===================================================== */
+window.exportMascotNameSubmissions = async function(){
+  try{
+    const btn = document.querySelector('button[onclick="exportMascotNameSubmissions()"]');
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = "Mengambil data sayembara...";
+    }
+
+    const snap = await getDocs(collection(db, "mascotNameSubmissions"));
+    if(snap.empty){
+      alert("Belum ada usulan nama maskot yang tersimpan.");
+      return;
+    }
+
+    const rows = [[
+      "Submission ID",
+      "Nama Usulan",
+      "Alasan Memilih Nama",
+      "Pilihan Hadiah",
+      "Status",
+      "User ID",
+      "Tanggal Submit"
+    ]];
+
+    snap.forEach(docSnap => {
+      const d = docSnap.data();
+      const createdAt = d.createdAt?.toDate
+        ? d.createdAt.toDate().toISOString()
+        : (d.createdAt instanceof Date ? d.createdAt.toISOString() : (d.createdAt || ""));
+      rows.push([
+        docSnap.id,
+        d.name || "",
+        d.reason || "",
+        d.prize || "",
+        d.status || "pending",
+        d.userId || "",
+        createdAt
+      ]);
+    });
+
+    // UTF-8 BOM helps Excel display Indonesian characters correctly.
+    downloadCSV("sayembara_nama_maskot_gmtc.csv", [["\uFEFF" + rows[0][0], ...rows[0].slice(1)], ...rows.slice(1)]);
+    alert("Berhasil mengekspor " + snap.size + " usulan nama maskot.");
+  }catch(error){
+    console.error("Export mascot submissions failed:", error);
+    alert("Gagal mengekspor sayembara nama maskot. Periksa koneksi dan izin akses Admin.");
+  }finally{
+    const btn = document.querySelector('button[onclick="exportMascotNameSubmissions()"]');
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Export Sayembara Nama Maskot (Excel)";
+    }
+  }
+};
 
 /* =====================================================
    EXPORT BOOKING HISTORY
