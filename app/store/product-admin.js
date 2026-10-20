@@ -73,9 +73,13 @@ export async function renderProductAdmin(){
 
         </div>
 
+        <div id="productEditorStatus" role="status" style="font-size:13px;margin:8px 0;color:#2E5D3A;"></div>
         <button class="btn-primary"
                 id="saveProductBtn">
           Save Product
+        </button>
+        <button type="button" id="cancelProductEditBtn" style="display:none;width:100%;margin-top:8px;">
+          Cancel Edit
         </button>
 
       </div>
@@ -108,6 +112,11 @@ export async function renderProductAdmin(){
   document
     .getElementById("saveProductBtn")
     .onclick = saveProduct;
+
+  document.getElementById("cancelProductEditBtn").onclick = () => {
+    editModeId = null;
+    renderProductAdmin();
+  };
 
   loadProductList();
 
@@ -338,31 +347,43 @@ async function loadProductList(){
 ================================= */
 
 window.editProduct = async function(id){
+  try{
+    const snap = await getDoc(doc(db,"products",id));
+    if(!snap.exists()){
+      alert("Produk tidak ditemukan. Muat ulang daftar produk lalu coba lagi.");
+      return;
+    }
 
-  const snap =
-    await getDoc(doc(db,"products",id));
+    const d = snap.data();
+    editModeId = id;
 
-  if(!snap.exists()) return;
+    document.getElementById("productName").value = d.name || "";
+    document.getElementById("productImage").value = d.image || "";
+    document.getElementById("productCategory").value = d.category || "";
+    document.getElementById("productNormalPrice").value = d.normalPrice ?? "";
+    document.getElementById("productDiscountPrice").value = d.discountPrice ?? "";
 
-  const d = snap.data();
+    const sizeEnabled = Boolean(d.sizeEnabled);
+    document.getElementById("sizeEnabled").value = sizeEnabled ? "yes" : "no";
+    document.getElementById("sizeInputs").style.display = sizeEnabled ? "block" : "none";
+    document.getElementById("noSizeStock").style.display = sizeEnabled ? "none" : "block";
+    document.getElementById("productStock").value = d.stock ?? "";
 
-  editModeId = id;
+    const sizeList = ["SS","S","SM","M","MM","L","LL","LLL","XL","XXL","XXXL"];
+    sizeList.forEach(size => {
+      const input = document.getElementById("size_" + size);
+      if(input) input.value = d.sizes?.[size] ?? "";
+    });
 
-  document.getElementById("productName").value =
-    d.name || "";
-
-  document.getElementById("productImage").value =
-    d.image || "";
-
-  document.getElementById("productCategory").value =
-    d.category || "";
-
-  document.getElementById("productNormalPrice").value =
-    d.normalPrice || 0;
-
-  document.getElementById("productDiscountPrice").value =
-    d.discountPrice || 0;
-
+    document.getElementById("saveProductBtn").textContent = "Update Product";
+    document.getElementById("cancelProductEditBtn").style.display = "block";
+    document.getElementById("productEditorStatus").textContent = "Sedang mengedit: " + (d.name || "produk");
+    document.getElementById("productEditor").scrollIntoView({behavior:"smooth",block:"start"});
+    document.getElementById("productName").focus({preventScroll:true});
+  }catch(error){
+    console.error("Edit product failed:",error);
+    alert("Produk gagal dibuka untuk diedit. Periksa koneksi dan izin akses, lalu coba lagi.");
+  }
 };
 
 
