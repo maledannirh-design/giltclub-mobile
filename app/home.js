@@ -4,7 +4,7 @@ import {
   getDoc
 } from "./firestore.js";
 import { renderMemberCard } from "./utils.js";
-import { onSnapshot } from "./firestore.js";
+import { onSnapshot, getDocs, query, collection, where, addDoc, serverTimestamp } from "./firestore.js";
 import { getVerifiedProgress } from "./verifiedlist/verifiedProgressEngine.js";
 import { listenBroadcast } from "./broadcastListener.js";
 
