@@ -33,6 +33,6 @@ self.addEventListener("fetch", event => {
       }
     })());
   } else {
-    event.respondWith(fetch(request));
+    event.respondWith(fetch(request, { cache: "no-store" }));
   }
 });
