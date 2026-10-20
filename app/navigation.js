@@ -164,7 +164,7 @@ case "skill":
   if(userData.membership !== "VVIP"){
     await (await import("./skill.js")).renderSkill();
     document.body.classList.add("dashboard-gate-open");
-    showVerifyRequiredModal();
+    showDashboardVvipGate();
     break;
   }
 
@@ -288,30 +288,47 @@ function updateActiveNav(page){
 
 /* Sponsor logo carousel behind the persistent app header. */
 (function initSponsorMarquee(){
-  const logo = document.getElementById("sponsorMarqueeLogo");
-  if(!logo) return;
-  const sponsors = [
-    "./assets/sponsors/aplogo.png",
-    "./assets/sponsors/aplusgold1.png",
-    "./assets/sponsors/kunkwanlogo.png"
-  ];
-  let index = 0;
-  window.setInterval(() => {
-    logo.classList.add("sponsor-logo-exit");
-    window.setTimeout(() => {
-      index = (index + 1) % sponsors.length;
-      logo.src = sponsors[index];
-      logo.onload = () => {
-        logo.classList.remove("sponsor-logo-exit");
-        logo.classList.add("sponsor-logo-enter");
-        requestAnimationFrame(() => requestAnimationFrame(() => logo.classList.remove("sponsor-logo-enter")));
+  const startCarousel = () => {
+    const logo = document.getElementById("sponsorMarqueeLogo");
+    if(!logo || logo.dataset.carouselReady === "true") return;
+    logo.dataset.carouselReady = "true";
+    const sponsors = [
+      "/app/assets/sponsors/aplogo.png",
+      "/app/assets/sponsors/aplusgold1.png",
+      "/app/assets/sponsors/kunkwanlogo.png"
+    ];
+    let index = 0;
+    let busy = false;
+    const showNext = () => {
+      if(busy) return;
+      busy = true;
+      const nextIndex = (index + 1) % sponsors.length;
+      const preloader = new Image();
+      preloader.onload = () => {
+        logo.classList.add("sponsor-logo-exit");
+        window.setTimeout(() => {
+          index = nextIndex;
+          logo.src = sponsors[index];
+          logo.classList.remove("sponsor-logo-exit", "sponsor-logo-enter");
+          void logo.offsetWidth;
+          logo.classList.add("sponsor-logo-enter");
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            logo.classList.remove("sponsor-logo-enter");
+            busy = false;
+          }));
+        }, 350);
       };
-      logo.onerror = () => {
-        console.error("Sponsor logo failed to load:", sponsors[index]);
-        logo.classList.remove("sponsor-logo-exit");
+      preloader.onerror = () => {
+        console.error("Sponsor logo failed to preload:", sponsors[nextIndex]);
+        busy = false;
       };
-    }, 350);
-  }, 1500);
+      preloader.src = sponsors[nextIndex];
+    };
+    logo.src = sponsors[0];
+    window.setInterval(showNext, 1500);
+  };
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", startCarousel, {once:true});
+  else startCarousel();
 })();
 
 /* ============================
@@ -325,6 +342,19 @@ window.showVerifyRequiredModal = function(){
   const modal = document.getElementById("verifyModal");
   if(modal) modal.classList.add("show");
 };
+
+function showDashboardVvipGate(){
+  const modal = document.getElementById("verifyModal");
+  if(!modal) return;
+  const card = modal.querySelector(".verify-modal-card");
+  if(!card) return;
+  card.innerHTML = '<div class="verify-icon">🔒</div><div class="verify-title">Dashboard Locked</div><div class="verify-text">Fitur Dashboard hanya tersedia untuk VVIP Member. Hubungi Coach GMTC untuk membuka akses dan mendapatkan penjelasan fitur ini.</div><div class="verify-buttons"><button class="verify-primary" id="dashboardCoachChat">Chat ke Coach</button></div>';
+  modal.classList.add("show");
+  card.querySelector("#dashboardCoachChat").onclick = () => {
+    const message = "halo coach, sy ingin tanya terkait fungsi dashboard apps G-Apps";
+    window.open("https://wa.me/6281255939291?text=" + encodeURIComponent(message), "_blank", "noopener");
+  };
+}
 
 function showSkillGuestAccessModal(){
   const modal = document.getElementById("verifyModal");

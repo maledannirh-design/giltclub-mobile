@@ -1,4 +1,4 @@
-const CACHE = "giltclub-v1";
+const CACHE = "giltclub-v2";
 
 self.addEventListener("install", event => {
   event.waitUntil(
