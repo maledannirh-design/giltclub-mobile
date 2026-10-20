@@ -285,6 +285,35 @@ function updateActiveNav(page){
   });
 }
 
+
+/* Sponsor logo carousel behind the persistent app header. */
+(function initSponsorMarquee(){
+  const logo = document.getElementById("sponsorMarqueeLogo");
+  if(!logo) return;
+  const sponsors = [
+    "./assets/sponsors/aplogo.png",
+    "./assets/sponsors/aplusgold1.png",
+    "./assets/sponsors/kunkwanlogo.png"
+  ];
+  let index = 0;
+  window.setInterval(() => {
+    logo.classList.add("sponsor-logo-exit");
+    window.setTimeout(() => {
+      index = (index + 1) % sponsors.length;
+      logo.src = sponsors[index];
+      logo.onload = () => {
+        logo.classList.remove("sponsor-logo-exit");
+        logo.classList.add("sponsor-logo-enter");
+        requestAnimationFrame(() => requestAnimationFrame(() => logo.classList.remove("sponsor-logo-enter")));
+      };
+      logo.onerror = () => {
+        console.error("Sponsor logo failed to load:", sponsors[index]);
+        logo.classList.remove("sponsor-logo-exit");
+      };
+    }, 350);
+  }, 1500);
+})();
+
 /* ============================
    GLOBAL BIND
 ============================ */
