@@ -4610,3 +4610,15 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 .guest-home-container > .home-promo-section{display:block !important;visibility:visible !important;opacity:1 !important;width:100%;position:relative;z-index:1;}
 .guest-home-container > .home-promo-section .home-promo-track{display:flex;visibility:visible;}
 .guest-home-container > .home-promo-section .home-promo-card{display:block;}
+
+
+/* Rotating sponsor logos behind the GMTC app header text. */
+.header{position:relative;isolation:isolate;overflow:hidden;}
+.sponsor-marquee-layer{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.10),rgba(255,255,255,.02));}
+.sponsor-marquee-layer::after{content:"";position:absolute;inset:0;background:rgba(12,24,18,.76);}
+.sponsor-marquee-layer img{position:absolute;right:8%;top:50%;transform:translate(0,-50%);width:58%;height:92%;object-fit:contain;opacity:.18;filter:grayscale(.1);transition:opacity .35s ease,transform .35s ease;}
+.sponsor-marquee-layer img.sponsor-logo-exit{opacity:0;transform:translate(-45px,-50%);}
+.sponsor-marquee-layer img.sponsor-logo-enter{opacity:0;transform:translate(45px,-50%);}
+.header-title,.header-actions{position:relative;z-index:1;}
+.header-title{ text-shadow:0 1px 3px rgba(0,0,0,.15); }
+@media(prefers-reduced-motion:reduce){.sponsor-marquee-layer img{transition:none;}}
