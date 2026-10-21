@@ -92,6 +92,7 @@ content.innerHTML = `
           <i class="fa-solid fa-trophy"></i>
           <span>Champion Club</span>
         </div>
+        <div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div>
       </div>
 
     </div>
@@ -164,6 +165,14 @@ content.innerHTML = `
         window.navigate("championClub");
       }
     });
+
+  // Video Lab is an independent static page; no Firebase listeners are added.
+  const openVideoLab = () => { window.location.href = new URL("./videolab/", import.meta.url).href; };
+  const videoLabButton = document.querySelector(".videolab-btn");
+  videoLabButton?.addEventListener("click", openVideoLab);
+  videoLabButton?.addEventListener("keydown", event => {
+    if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openVideoLab(); }
+  });
 
   /* =============================
      REALTIME GPOINT LISTENER
@@ -514,6 +523,7 @@ async function renderPublicActivitySummary(content){
         <div class="home-profile-right">
           <div class="leaderboard-btn"><i class="fa-solid fa-crown"></i><span>Leaderboard</span></div>
           <div class="championclub-btn"><i class="fa-solid fa-trophy"></i><span>Champion Club</span></div>
+          <div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div>
         </div>
       </div>
       <div class="home-progress-group guest-progress-group"><div class="daily-card guest-protected-card">
@@ -558,6 +568,10 @@ async function renderPublicActivitySummary(content){
   renderWelcomeMascot(true);
   document.querySelector(".leaderboard-btn")?.addEventListener("click",()=>window.navigate?.("leaderboard"));
   document.querySelector(".championclub-btn")?.addEventListener("click",()=>window.navigate?.("championClub"));
+  const openVideoLab = () => { window.location.href = new URL("./videolab/", import.meta.url).href; };
+  const videoLabButton = document.querySelector(".videolab-btn");
+  videoLabButton?.addEventListener("click", openVideoLab);
+  videoLabButton?.addEventListener("keydown", event => { if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openVideoLab(); } });
 }
 window.openGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.add("show");};
 window.closeGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.remove("show");};
