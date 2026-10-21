@@ -4691,3 +4691,14 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 @media(max-width:480px){
   .reward-confirm-box .size-btn{min-height:36px;padding:8px 10px;font-size:12px;margin-right:4px;}
 }
+
+
+/* ================= VIDEO LAB LAUNCHER ================= */
+.home-profile-right .videolab-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  min-height:38px;padding:8px 11px;border:1px solid var(--color-border);
+  border-radius:12px;background:var(--color-card);color:var(--color-text);
+  font-size:12px;font-weight:600;cursor:pointer;transition:transform .15s ease,background-color .15s ease;
+}
+.home-profile-right .videolab-btn:active{transform:scale(.97);background:var(--color-highlight)}
+.home-profile-right .videolab-btn:focus-visible{outline:2px solid var(--color-highlight);outline-offset:2px}
