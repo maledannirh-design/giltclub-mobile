@@ -134,6 +134,11 @@ export async function navigate(page){
       case "home":
         (await import("./home.js")).renderHome();
         break;
+
+      // Video Lab is hosted as a separate static page without app-level listeners.
+      case "videolab":
+        window.location.href = new URL("./videolab/", import.meta.url).href;
+        break;
 /* ======================
    SKILL (VERIFIED ONLY)
 ====================== */
