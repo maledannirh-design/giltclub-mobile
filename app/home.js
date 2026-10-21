@@ -568,10 +568,8 @@ async function renderPublicActivitySummary(content){
   renderWelcomeMascot(true);
   document.querySelector(".leaderboard-btn")?.addEventListener("click",()=>window.navigate?.("leaderboard"));
   document.querySelector(".championclub-btn")?.addEventListener("click",()=>window.navigate?.("championClub"));
-  const openVideoLab = () => { window.location.href = new URL("./videolab/", import.meta.url).href; };
-  const videoLabButton = document.querySelector(".videolab-btn");
-  videoLabButton?.addEventListener("click", openVideoLab);
-  videoLabButton?.addEventListener("keydown", event => { if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openVideoLab(); } });
+  // Guest launcher: separate static page, no app listeners.
+  document.querySelector(".videolab-btn")?.addEventListener("click", () => { window.location.href = new URL("./videolab/", import.meta.url).href; });
 }
 window.openGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.add("show");};
 window.closeGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.remove("show");};
