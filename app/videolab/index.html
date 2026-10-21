@@ -17,7 +17,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}.field{display:grid;gap:8px
 <body><main class="shell">
 <header class="top"><a class="back" href="../index.html">← GMTC</a><div><h1>Video Lab</h1><div class="sub">Tennis Motion Review</div></div></header>
 <section class="panel">
-<div id="empty" class="empty">Pilih video latihan dari galeri HP.</div>
+<div id="empty" class="empty" hidden></div>
 <div id="videoStage" class="video-stage" hidden><video id="video" playsinline></video><canvas id="drawCanvas" aria-label="Lapisan coretan"></canvas></div>
 <input id="videoFile" type="file" accept="video/*" hidden>
 <div class="actions"><label class="file-btn" for="videoFile">＋ Import Video</label><button id="playPause" disabled aria-label="Putar atau jeda">▶ Play</button><button id="stepBack" disabled title="Mundur kira-kira satu frame">−1 frame</button><button id="stepForward" disabled title="Maju kira-kira satu frame">+1 frame</button></div>
