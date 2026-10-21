@@ -569,7 +569,9 @@ async function renderPublicActivitySummary(content){
   document.querySelector(".leaderboard-btn")?.addEventListener("click",()=>window.navigate?.("leaderboard"));
   document.querySelector(".championclub-btn")?.addEventListener("click",()=>window.navigate?.("championClub"));
   // Guest launcher: separate static page, no app listeners.
-  document.querySelector(".videolab-btn")?.addEventListener("click", () => { window.location.href = new URL("./videolab/", import.meta.url).href; });
+  const guestVideoLabButton = document.querySelector(".videolab-btn");
+  guestVideoLabButton?.addEventListener("click", () => { window.location.href = new URL("./videolab/", import.meta.url).href; });
+  guestVideoLabButton?.addEventListener("keydown", event => { if(event.key === "Enter" || event.key === " "){ event.preventDefault(); window.location.href = new URL("./videolab/", import.meta.url).href; } });
 }
 window.openGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.add("show");};
 window.closeGuestCheckinAccess = function(){document.getElementById("guestCheckinAccessOverlay")?.classList.remove("show");};
