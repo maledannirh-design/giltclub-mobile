@@ -166,6 +166,14 @@ content.innerHTML = `
       }
     });
 
+  // Video Lab opens as a separate static page; no additional Firebase listeners.
+  const videoLabButton = document.querySelector(".videolab-btn");
+  const openVideoLab = () => { window.location.href = new URL("./videolab/", import.meta.url).href; };
+  videoLabButton?.addEventListener("click", openVideoLab);
+  videoLabButton?.addEventListener("keydown", event => {
+    if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openVideoLab(); }
+  });
+
   // Video Lab is an independent static page; no Firebase listeners are added.
   /* =============================
      REALTIME GPOINT LISTENER
