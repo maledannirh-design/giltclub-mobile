@@ -90,6 +90,10 @@ function render(){
     video.src = BASE + item.file; video.controls = true; video.playsInline = true; video.preload = "metadata";
     const titleEl = document.createElement("div"); titleEl.className = "title"; titleEl.textContent = title;
     const description = document.createElement("div"); description.className = "desc"; description.textContent = pref.description ?? item.description ?? "";
+    const engagement = document.createElement("div"); engagement.className = "engagement";
+    const viewMetric = document.createElement("span"); viewMetric.className = "metric"; viewMetric.innerHTML = "◉ <span>— kali dilihat</span>";
+    const likeButton = document.createElement("button"); likeButton.className = "like-button"; likeButton.type = "button"; likeButton.innerHTML = "👍 <span>—</span>"; likeButton.setAttribute("aria-label", "Like video");
+    engagement.append(viewMetric, likeButton);
     const actions = document.createElement("div"); actions.className = "actions";
     const analyse = document.createElement("button"); analyse.textContent = "Analisa Video Lab"; analyse.addEventListener("click", () => openAnalysis(item.file));
     actions.appendChild(analyse);
