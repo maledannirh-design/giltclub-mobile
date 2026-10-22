@@ -109,6 +109,7 @@ async function initGallery(){
     ]);
     statsDb = db; firestoreApi = firestore;
     onAuthStateChanged(auth, async user => {
+      authUser = user || null;
       isAdmin = false;
       if (user) {
         try {
