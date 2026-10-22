@@ -5,7 +5,7 @@
 @media(prefers-color-scheme:dark){:root{--bg:#1f241f;--card:#2a302a;--ink:#e6e1d6;--muted:#a8b3a0;--line:rgba(255,255,255,.12)}}
 </style></head><body><main class="shell">
 <header class="top"><a class="back" href="./index.html">← Video Lab</a><div><h1>Tonton Video Galeri</h1><div class="sub">Koleksi video latihan GMTC</div></div></header>
-<div class="actions"><button id="adminToggle" type="button">⚙ Mode Admin</button></div><div id="adminNote" class="note" hidden>Mode admin untuk mengatur tampilan pada browser ini. Status hide dan perubahan judul disimpan lokal di browser ini, belum mengubah file GitHub untuk pengunjung lain.</div>
+
 <div id="gallery" class="grid"></div>
 <p class="note">Sumber video: <code>app/assets/videolab/galery/</code>. Tambahkan file dan daftarkan di array VIDEOS pada file gallery.html.</p>
 </main>
@@ -19,16 +19,15 @@ let adminMode = false;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
 const gallery = document.getElementById("gallery");
-const adminToggle = document.getElementById("adminToggle");
-const adminNote = document.getElementById("adminNote");
+let isAdmin = false;
 function saveSettings(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch {} }
 function openAnalysis(file){ location.href = "./analysis.html?video=" + encodeURIComponent(BASE + file); }
 function render(){
   gallery.replaceChildren();
-  const visibleItems = VIDEOS.filter(item => adminMode || !(settings[item.file]?.hidden ?? item.hidden));
+  const visibleItems = VIDEOS.filter(item => isAdmin || !(settings[item.file]?.hidden ?? item.hidden));
   if (!visibleItems.length) {
     const empty = document.createElement("div"); empty.className = "empty";
-    empty.textContent = adminMode ? "Tidak ada video untuk ditampilkan." : "Belum ada video di galeri.";
+    empty.textContent = "Belum ada video di galeri.";
     gallery.appendChild(empty); return;
   }
   for (const item of visibleItems) {
@@ -44,7 +43,7 @@ function render(){
     const actions = document.createElement("div"); actions.className = "actions";
     const analyse = document.createElement("button"); analyse.textContent = "Analisa Video Lab"; analyse.addEventListener("click", () => openAnalysis(item.file));
     actions.appendChild(analyse);
-    if (adminMode) {
+    if (isAdmin) {
       const edit = document.createElement("button"); edit.textContent = "✎ Edit Title";
       edit.addEventListener("click", () => { const next = prompt("Judul video:", title); if (next === null) return; const clean = next.trim(); if (!clean) { alert("Judul tidak boleh kosong."); return; } settings[item.file] = {...settings[item.file], title: clean}; saveSettings(); render(); });
       const toggle = document.createElement("button"); toggle.textContent = isHidden ? "◉ Show Video" : "◉ Hide Video";
@@ -55,6 +54,31 @@ function render(){
     card.append(video, titleEl, description, actions); gallery.appendChild(card);
   }
 }
-adminToggle.addEventListener("click", () => { adminMode = !adminMode; adminToggle.textContent = adminMode ? "✓ Mode Admin Aktif" : "⚙ Mode Admin"; adminNote.hidden = !adminMode; render(); });
-render();
+async function initGallery(){
+  try {
+    const [{ auth, db }, { doc, getDoc }, { onAuthStateChanged }] = await Promise.all([
+      import("../firebase.js"),
+      import("../firestore.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
+    ]);
+    onAuthStateChanged(auth, async user => {
+      isAdmin = false;
+      if (user) {
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          const role = String(snap.exists() ? snap.data().role || "" : "").toUpperCase();
+          isAdmin = role === "ADMIN" || role === "SUPERCOACH";
+        } catch (error) {
+          console.error("Gagal memeriksa role galeri:", error);
+        }
+      }
+      render();
+    });
+  } catch (error) {
+    console.error("Autentikasi galeri tidak tersedia:", error);
+    isAdmin = false;
+    render();
+  }
+}
+initGallery();
 </script></body></html>
