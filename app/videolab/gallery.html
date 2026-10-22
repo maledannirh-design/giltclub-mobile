@@ -40,11 +40,8 @@ async function setupEngagement(item, viewMetric, likeButton){
   try{
     let snap=await getDoc(ref);
     let data=snap.exists()?snap.data():{};
-    if(!localStorage.getItem(viewKey)){
-      await runTransaction(statsDb,async tx=>{const s=await tx.get(ref);if(s.exists())tx.update(ref,{views:increment(1),updatedAt:serverTimestamp()});else tx.set(ref,{file:item.file,views:1,likes:0,likedBy:{},updatedAt:serverTimestamp()})});
-      localStorage.setItem(viewKey,"1");
-      snap=await getDoc(ref);data=snap.exists()?snap.data():data;
-    }
+    await runTransaction(statsDb,async tx=>{const s=await tx.get(ref);if(s.exists())tx.update(ref,{views:increment(1),updatedAt:serverTimestamp()});else tx.set(ref,{file:item.file,views:1,likes:0,likedBy:{},updatedAt:serverTimestamp()})});
+    snap=await getDoc(ref);data=snap.exists()?snap.data():data;
     const likedBy=data.likedBy||{};
     viewMetric.innerHTML="◉ <span>"+Number(data.views||0).toLocaleString("id-ID")+" kali dilihat</span>";
     const liked=!!likedBy[viewer];
