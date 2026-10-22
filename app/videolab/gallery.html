@@ -111,7 +111,7 @@ async function initGallery(){
       isAdmin = false;
       if (user) {
         try {
-          const snap = await firestore.doc(db, "users", user.uid).get?.();
+          const snap = await firestore.getDoc(firestore.doc(db, "users", user.uid));
           const role = String(snap.exists() ? snap.data().role || "" : "").toUpperCase();
           isAdmin = role === "ADMIN" || role === "SUPERCOACH";
         } catch (error) {
