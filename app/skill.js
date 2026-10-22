@@ -326,8 +326,8 @@ window.currentSkillData = skills;
 const editBtn = document.getElementById("editSkillBtn");
 
 if(editBtn){
+  editBtn.type = "button";
   editBtn.addEventListener("click", window.enableSkillEdit);
-  editBtn.addEventListener("touchstart", window.enableSkillEdit);
 }
   }catch(err){
     console.error(err);
@@ -373,6 +373,8 @@ function buildSkillHTML(user, skills, userId){
 
 const editable = canEditSkill(currentUser);
 
+  const totalStars = Object.values(skills || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+
   let html = `
     <div class="skill-wrapper">
 
@@ -404,6 +406,7 @@ const editable = canEditSkill(currentUser);
       <div class="skill-topcard">
         <div class="skill-title">${user.username || "Member"}</div>
         <div class="skill-level">${user.playingLevel || "Newbie"}</div>
+        <div class="skill-total">⭐ ${totalStars}</div>
       </div>
   `;
 
@@ -436,8 +439,9 @@ const editable = canEditSkill(currentUser);
   return html;
 }
 
-window.enableSkillEdit = function(){
-
+window.enableSkillEdit = function(event){
+  if(event){event.preventDefault();event.stopPropagation();}
+  if(window.skillEditMode) return;
   window.skillEditMode = true;
 
   window.tempSkillData = { ...window.currentSkillData };
@@ -445,8 +449,8 @@ window.enableSkillEdit = function(){
   renderSkillByUserId(window.currentViewedUserId);
 };
 
-window.cancelSkillEdit = function(){
-
+window.cancelSkillEdit = function(event){
+  if(event){event.preventDefault();event.stopPropagation();}
   window.skillEditMode = false;
 
   renderSkillByUserId(window.currentViewedUserId);
@@ -467,8 +471,10 @@ window.onClickStar = function(skillKey, value){
   renderSkillByUserId(window.currentViewedUserId);
 };
 
-window.saveSkillEdit = async function(){
-
+window.saveSkillEdit = async function(event){
+  if(event){event.preventDefault();event.stopPropagation();}
+  if(window.skillSaving) return;
+  window.skillSaving = true;
   try {
 
     const uid = window.currentViewedUserId;
@@ -506,6 +512,8 @@ window.saveSkillEdit = async function(){
 
     alert("Gagal save");
 
+  } finally {
+    window.skillSaving = false;
   }
 
 };
