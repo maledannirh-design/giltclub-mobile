@@ -104,7 +104,7 @@ function render(){
       editDescription.addEventListener("click", () => { const next = prompt("Deskripsi video:", pref.description ?? item.description ?? ""); if (next === null) return; settings[item.file] = {...settings[item.file], description: next.trim()}; saveSettings(); render(); });
       const toggle = document.createElement("button"); toggle.textContent = isHidden ? "◉ Show Video" : "◉ Hide Video";
       toggle.addEventListener("click", () => { settings[item.file] = {...settings[item.file], hidden: !isHidden}; saveSettings(); render(); });
-      actions.append(edit, toggle);
+      actions.append(edit, editDescription, toggle);
       if (isHidden) { const badge = document.createElement("div"); badge.className = "badge"; badge.textContent = "Video disembunyikan (hanya terlihat dalam Mode Admin)"; card.appendChild(badge); }
     }
     card.append(video, titleEl, description, engagement, actions); gallery.appendChild(card);
