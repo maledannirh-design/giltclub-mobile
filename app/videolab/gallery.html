@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#183b2b"><title>Galeri Video — GMTC Video Lab</title>
 <style>
-:root{--bg:#f2e8d5;--card:#fff;--ink:#2e5d3a;--muted:#607466;--line:rgba(46,93,58,.18)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:900px;margin:0 auto;padding:14px 12px 30px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}h1{font-size:clamp(24px,5vw,34px);margin:0}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{font:inherit;font-weight:650;border:1px solid var(--line);border-radius:11px;background:var(--card);color:inherit;padding:10px 12px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;overflow:hidden}.card video{display:block;width:100%;max-height:320px;background:#111;border-radius:10px;object-fit:contain}.title{font-size:18px;font-weight:750;margin:10px 2px 0}.engagement{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:8px 2px 0;font-size:14px;color:var(--muted)}.metric{display:inline-flex;align-items:center;gap:5px}.like-button{padding:5px 9px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.like-button.liked{color:#e65a68;border-color:#e65a68;background:rgba(230,90,104,.08)}.like-button:disabled{opacity:.7;cursor:default}.desc{white-space:pre-wrap;line-height:1.5;margin:7px 2px 0}.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:20px;line-height:1.5;color:var(--muted)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}.admin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}.hidden-card{opacity:.72;border-style:dashed}.badge{font-size:12px;color:var(--muted)}
+:root{--bg:#f2e8d5;--card:#fff;--ink:#2e5d3a;--muted:#607466;--line:rgba(46,93,58,.18)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:900px;margin:0 auto;padding:14px 12px 30px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}h1{font-size:clamp(24px,5vw,34px);margin:0}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{font:inherit;font-weight:650;border:1px solid var(--line);border-radius:11px;background:var(--card);color:inherit;padding:10px 12px;cursor:pointer}.grid{display:grid;grid-template-columns:1fr;gap:14px}.grid.grid-view{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.grid.grid-view .card video{max-height:220px}.grid.grid-view .card{padding:8px}.grid.grid-view .title{font-size:15px}.grid.grid-view .actions button{font-size:12px;padding:7px}.layout-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.layout-tools button.active{background:var(--ink);color:var(--card)}.drag-handle{display:none;font-size:14px;cursor:grab;touch-action:none;user-select:none;padding:6px 8px;border:1px dashed var(--line);border-radius:8px;margin-bottom:8px}.admin-layout .drag-handle{display:inline-flex;align-items:center;gap:6px}.card.dragging{opacity:.45}.card.drop-target{outline:2px dashed var(--ink);outline-offset:2px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;overflow:hidden}.card video{display:block;width:100%;max-height:320px;background:#111;border-radius:10px;object-fit:contain}.title{font-size:18px;font-weight:750;margin:10px 2px 0}.engagement{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:8px 2px 0;font-size:14px;color:var(--muted)}.metric{display:inline-flex;align-items:center;gap:5px}.like-button{padding:5px 9px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.like-button.liked{color:#e65a68;border-color:#e65a68;background:rgba(230,90,104,.08)}.like-button:disabled{opacity:.7;cursor:default}.desc{white-space:pre-wrap;line-height:1.5;margin:7px 2px 0}.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:20px;line-height:1.5;color:var(--muted)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}.admin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}.hidden-card{opacity:.72;border-style:dashed}.badge{font-size:12px;color:var(--muted)}
 @media(prefers-color-scheme:dark){:root{--bg:#1f241f;--card:#2a302a;--ink:#e6e1d6;--muted:#a8b3a0;--line:rgba(255,255,255,.12)}}
 </style></head><body><main class="shell">
 <header class="top"><a class="back" href="./index.html">← Video Lab</a><div><h1>Tonton Video Galeri</h1><div class="sub">Koleksi video latihan GMTC</div></div></header>
 
   
-<div id="gallery" class="grid"></div>
+<div id="layoutTools" class="layout-tools" hidden><button id="normalView" type="button">☰ Normal View</button><button id="gridView" type="button">▦ Grid View</button></div><div id="gallery" class="grid"></div>
 <p class="note">Sumber video: <code>app/assets/videolab/galery/</code>. Tambahkan file dan daftarkan di array VIDEOS pada file gallery.html.</p>
 </main>
 <script>
@@ -22,12 +22,18 @@ const statsCache = {};
 let statsDb = null;
 let authUser = null;
 let firestoreApi = null;
-let adminMode = false;
+let adminMode = false;\nlet viewMode = "normal";\nlet videoOrder = VIDEOS.map(item => item.file);\nlet draggedFile = null;\nlet layoutRef = null;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
-const gallery = document.getElementById("gallery");
+const gallery = document.getElementById("gallery");\nconst layoutTools = document.getElementById("layoutTools");\nconst normalViewButton = document.getElementById("normalView");\nconst gridViewButton = document.getElementById("gridView");
 let isAdmin = false;
 function saveSettings(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch {} }
+function orderedVideos(){const rank=new Map(videoOrder.map((file,i)=>[file,i]));return [...VIDEOS].sort((a,b)=>(rank.get(a.file)??9999)-(rank.get(b.file)??9999));}
+function applyViewMode(){gallery.classList.toggle("grid-view",viewMode==="grid");normalViewButton?.classList.toggle("active",viewMode==="normal");gridViewButton?.classList.toggle("active",viewMode==="grid");document.body.classList.toggle("admin-layout",isAdmin);}
+async function saveVideoOrder(){if(!layoutRef||!firestoreApi){alert("Urutan belum dapat disimpan ke server. Periksa koneksi dan izin Firestore.");return;}try{await firestoreApi.setDoc(layoutRef,{order:videoOrder,updatedAt:firestoreApi.serverTimestamp()},{merge:true});}catch(e){console.error("Gagal menyimpan urutan galeri:",e);alert("Urutan belum tersimpan bersama. Periksa Firestore Rules.");}}
+function setupDrag(card,item){if(!isAdmin||viewMode!=="grid")return;card.draggable=true;const handle=card.querySelector(".drag-handle");handle.addEventListener("dragstart",e=>{draggedFile=item.file;card.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",item.file);});card.addEventListener("dragover",e=>{if(!draggedFile)return;e.preventDefault();card.classList.add("drop-target");});card.addEventListener("dragleave",()=>card.classList.remove("drop-target"));card.addEventListener("drop",async e=>{e.preventDefault();card.classList.remove("drop-target");const source=draggedFile||e.dataTransfer.getData("text/plain");draggedFile=null;if(!source||source===item.file)return;const order=orderedVideos().map(v=>v.file);const from=order.indexOf(source),to=order.indexOf(item.file);if(from<0||to<0)return;order.splice(from,1);order.splice(to,0,source);videoOrder=order;render();await saveVideoOrder();});card.addEventListener("dragend",()=>{draggedFile=null;card.classList.remove("dragging");gallery.querySelectorAll(".drop-target").forEach(el=>el.classList.remove("drop-target"));});}
+normalViewButton.addEventListener("click",()=>{viewMode="normal";render();});
+gridViewButton.addEventListener("click",()=>{viewMode="grid";render();});
 function statDocId(file){ return file.replace(/[^a-zA-Z0-9_-]/g, "_"); }
 function getViewerId(){ if(authUser?.uid) return authUser.uid; const key="gmtc-gallery-visitor-id"; let id=localStorage.getItem(key); if(!id){id="visitor_"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"_"+Math.random().toString(36).slice(2));localStorage.setItem(key,id)} return id; }
 async function setupEngagement(item, viewMetric, likeButton){
@@ -83,7 +89,7 @@ function render(){
     const title = pref.title ?? item.title;
     const card = document.createElement("article");
     card.className = "card" + (isHidden ? " hidden-card" : "");
-    const video = document.createElement("video");
+    const dragHandle = document.createElement("div"); dragHandle.className="drag-handle"; dragHandle.textContent="⠿ Geser untuk mengatur urutan";\n    const video = document.createElement("video");
     video.src = BASE + item.file; video.controls = true; video.playsInline = true; video.preload = "metadata";
     const titleEl = document.createElement("div"); titleEl.className = "title"; titleEl.textContent = title;
     const description = document.createElement("div"); description.className = "desc"; description.textContent = pref.description ?? item.description ?? "";
@@ -115,7 +121,7 @@ async function initGallery(){
       import("../firestore.js"),
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
     ]);
-    statsDb = db; firestoreApi = firestore;
+    statsDb = db; firestoreApi = firestore;\n    layoutRef = firestore.doc(db,"videoGalleryConfig","layout");\n    try { const layoutSnap=await firestore.getDoc(layoutRef); if(layoutSnap.exists()&&Array.isArray(layoutSnap.data().order)){const saved=layoutSnap.data().order;videoOrder=[...saved.filter(file=>VIDEOS.some(v=>v.file===file)),...VIDEOS.map(v=>v.file).filter(file=>!saved.includes(file))];} } catch(e) { console.warn("Belum bisa membaca urutan bersama galeri:",e); }
     onAuthStateChanged(auth, async user => {
       authUser = user || null;
       isAdmin = false;
