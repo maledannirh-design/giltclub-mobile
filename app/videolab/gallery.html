@@ -107,6 +107,7 @@ async function initGallery(){
       import("../firestore.js"),
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
     ]);
+    statsDb = db; firestoreApi = firestore;
     onAuthStateChanged(auth, async user => {
       isAdmin = false;
       if (user) {
