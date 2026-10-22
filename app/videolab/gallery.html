@@ -39,13 +39,15 @@ function render(){
     const video = document.createElement("video");
     video.src = BASE + item.file; video.controls = true; video.playsInline = true; video.preload = "metadata";
     const titleEl = document.createElement("div"); titleEl.className = "title"; titleEl.textContent = title;
-    const description = document.createElement("div"); description.className = "desc"; description.textContent = item.description || "";
+    const description = document.createElement("div"); description.className = "desc"; description.textContent = pref.description ?? item.description ?? "";
     const actions = document.createElement("div"); actions.className = "actions";
     const analyse = document.createElement("button"); analyse.textContent = "Analisa Video Lab"; analyse.addEventListener("click", () => openAnalysis(item.file));
     actions.appendChild(analyse);
     if (isAdmin) {
       const edit = document.createElement("button"); edit.textContent = "✎ Edit Title";
       edit.addEventListener("click", () => { const next = prompt("Judul video:", title); if (next === null) return; const clean = next.trim(); if (!clean) { alert("Judul tidak boleh kosong."); return; } settings[item.file] = {...settings[item.file], title: clean}; saveSettings(); render(); });
+      const editDescription = document.createElement("button"); editDescription.textContent = "✎ Edit Deskripsi";
+      editDescription.addEventListener("click", () => { const next = prompt("Deskripsi video:", pref.description ?? item.description ?? ""); if (next === null) return; settings[item.file] = {...settings[item.file], description: next.trim()}; saveSettings(); render(); });
       const toggle = document.createElement("button"); toggle.textContent = isHidden ? "◉ Show Video" : "◉ Hide Video";
       toggle.addEventListener("click", () => { settings[item.file] = {...settings[item.file], hidden: !isHidden}; saveSettings(); render(); });
       actions.append(edit, toggle);
