@@ -14,7 +14,13 @@ const BASE = "../assets/videolab/galery/";
 const VIDEOS = [
   { file: "backhandmechanic.mp4", title: "Backhand Mechanics", description: "Backhand — amati mekanik gerakan dan posisi raket.", hidden: false }
 ];
-const STORAGE_KEY = "gmtc-video-gallery-settings-v1";\nconst VIEW_STORAGE_KEY = "gmtc-video-gallery-viewed-v1";\nconst LIKE_STORAGE_KEY = "gmtc-video-gallery-liked-v1";\nconst statsCache = {};\nlet statsDb = null;\nlet authUser = null;\nlet firestoreApi = null;
+const STORAGE_KEY = "gmtc-video-gallery-settings-v1";
+const VIEW_STORAGE_KEY = "gmtc-video-gallery-viewed-v1";
+const LIKE_STORAGE_KEY = "gmtc-video-gallery-liked-v1";
+const statsCache = {};
+let statsDb = null;
+let authUser = null;
+let firestoreApi = null;
 let adminMode = false;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
