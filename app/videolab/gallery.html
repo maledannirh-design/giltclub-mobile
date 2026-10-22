@@ -22,10 +22,17 @@ const statsCache = {};
 let statsDb = null;
 let authUser = null;
 let firestoreApi = null;
-let adminMode = false;\nlet viewMode = "normal";\nlet videoOrder = VIDEOS.map(item => item.file);\nlet draggedFile = null;\nlet layoutRef = null;
+let adminMode = false;
+let viewMode = "normal";
+let videoOrder = VIDEOS.map(item => item.file);
+let draggedFile = null;
+let layoutRef = null;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
-const gallery = document.getElementById("gallery");\nconst layoutTools = document.getElementById("layoutTools");\nconst normalViewButton = document.getElementById("normalView");\nconst gridViewButton = document.getElementById("gridView");
+const gallery = document.getElementById("gallery");
+const layoutTools = document.getElementById("layoutTools");
+const normalViewButton = document.getElementById("normalView");
+const gridViewButton = document.getElementById("gridView");
 let isAdmin = false;
 function saveSettings(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch {} }
 function orderedVideos(){const rank=new Map(videoOrder.map((file,i)=>[file,i]));return [...VIDEOS].sort((a,b)=>(rank.get(a.file)??9999)-(rank.get(b.file)??9999));}
@@ -77,7 +84,9 @@ async function setupEngagement(item, viewMetric, likeButton){
 function openAnalysis(file){ location.href = "./analysis.html?video=" + encodeURIComponent(BASE + file); }
 function render(){
   gallery.replaceChildren();
-  const visibleItems = VIDEOS.filter(item => isAdmin || !(settings[item.file]?.hidden ?? item.hidden));
+  layoutTools.hidden = !isAdmin;
+  applyViewMode();
+  const visibleItems = orderedVideos().filter(item => isAdmin || !(settings[item.file]?.hidden ?? item.hidden));
   if (!visibleItems.length) {
     const empty = document.createElement("div"); empty.className = "empty";
     empty.textContent = "Belum ada video di galeri.";
@@ -89,7 +98,8 @@ function render(){
     const title = pref.title ?? item.title;
     const card = document.createElement("article");
     card.className = "card" + (isHidden ? " hidden-card" : "");
-    const dragHandle = document.createElement("div"); dragHandle.className="drag-handle"; dragHandle.textContent="⠿ Geser untuk mengatur urutan";\n    const video = document.createElement("video");
+    const dragHandle = document.createElement("div"); dragHandle.className="drag-handle"; dragHandle.textContent="⠿ Geser untuk mengatur urutan";
+    const video = document.createElement("video");
     video.src = BASE + item.file; video.controls = true; video.playsInline = true; video.preload = "metadata";
     const titleEl = document.createElement("div"); titleEl.className = "title"; titleEl.textContent = title;
     const description = document.createElement("div"); description.className = "desc"; description.textContent = pref.description ?? item.description ?? "";
@@ -110,7 +120,8 @@ function render(){
       actions.append(edit, editDescription, toggle);
       if (isHidden) { const badge = document.createElement("div"); badge.className = "badge"; badge.textContent = "Video disembunyikan (hanya terlihat dalam Mode Admin)"; card.appendChild(badge); }
     }
-    card.append(video, titleEl, description, engagement, actions); gallery.appendChild(card);
+    card.append(dragHandle, video, titleEl, description, engagement, actions); gallery.appendChild(card);
+    setupDrag(card,item);
     setupEngagement(item, viewMetric, likeButton);
   }
 }
@@ -121,7 +132,9 @@ async function initGallery(){
       import("../firestore.js"),
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
     ]);
-    statsDb = db; firestoreApi = firestore;\n    layoutRef = firestore.doc(db,"videoGalleryConfig","layout");\n    try { const layoutSnap=await firestore.getDoc(layoutRef); if(layoutSnap.exists()&&Array.isArray(layoutSnap.data().order)){const saved=layoutSnap.data().order;videoOrder=[...saved.filter(file=>VIDEOS.some(v=>v.file===file)),...VIDEOS.map(v=>v.file).filter(file=>!saved.includes(file))];} } catch(e) { console.warn("Belum bisa membaca urutan bersama galeri:",e); }
+    statsDb = db; firestoreApi = firestore;
+    layoutRef = firestore.doc(db,"videoGalleryConfig","layout");
+    try { const layoutSnap=await firestore.getDoc(layoutRef); if(layoutSnap.exists()&&Array.isArray(layoutSnap.data().order)){const saved=layoutSnap.data().order;videoOrder=[...saved.filter(file=>VIDEOS.some(v=>v.file===file)),...VIDEOS.map(v=>v.file).filter(file=>!saved.includes(file))];} } catch(e) { console.warn("Belum bisa membaca urutan bersama galeri:",e); }
     onAuthStateChanged(auth, async user => {
       authUser = user || null;
       isAdmin = false;
