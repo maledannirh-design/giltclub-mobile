@@ -1,47 +1,60 @@
 <!doctype html>
-<html lang="id">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#183b2b">
-<title>Galeri Video — GMTC Video Lab</title>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#183b2b"><title>Galeri Video — GMTC Video Lab</title>
 <style>
-:root{--bg:#f2e8d5;--card:#fff;--ink:#2e5d3a;--muted:#607466;--line:rgba(46,93,58,.18)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:900px;margin:0 auto;padding:14px 12px 30px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}h1{font-size:clamp(24px,5vw,34px);margin:0}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button,a.action{font:inherit;font-weight:650;border:1px solid var(--line);border-radius:11px;background:var(--card);color:inherit;padding:10px 12px;cursor:pointer;text-decoration:none}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;overflow:hidden}.card video{display:block;width:100%;max-height:320px;background:#111;border-radius:10px;object-fit:contain}.desc{white-space:pre-wrap;line-height:1.5;margin:10px 2px 0}.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:20px;line-height:1.5;color:var(--muted)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}
+:root{--bg:#f2e8d5;--card:#fff;--ink:#2e5d3a;--muted:#607466;--line:rgba(46,93,58,.18)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:900px;margin:0 auto;padding:14px 12px 30px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}h1{font-size:clamp(24px,5vw,34px);margin:0}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{font:inherit;font-weight:650;border:1px solid var(--line);border-radius:11px;background:var(--card);color:inherit;padding:10px 12px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;overflow:hidden}.card video{display:block;width:100%;max-height:320px;background:#111;border-radius:10px;object-fit:contain}.title{font-size:18px;font-weight:750;margin:10px 2px 0}.desc{white-space:pre-wrap;line-height:1.5;margin:7px 2px 0}.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:20px;line-height:1.5;color:var(--muted)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}.admin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}.hidden-card{opacity:.72;border-style:dashed}.badge{font-size:12px;color:var(--muted)}
 @media(prefers-color-scheme:dark){:root{--bg:#1f241f;--card:#2a302a;--ink:#e6e1d6;--muted:#a8b3a0;--line:rgba(255,255,255,.12)}}
-</style></head>
-<body><main class="shell">
+</style></head><body><main class="shell">
 <header class="top"><a class="back" href="./index.html">← Video Lab</a><div><h1>Tonton Video Galeri</h1><div class="sub">Koleksi video latihan GMTC</div></div></header>
+<div class="actions"><button id="adminToggle" type="button">⚙ Mode Admin</button></div><div id="adminNote" class="note" hidden>Mode admin untuk mengatur tampilan pada browser ini. Status hide dan perubahan judul disimpan lokal di browser ini, belum mengubah file GitHub untuk pengunjung lain.</div>
 <div id="gallery" class="grid"></div>
-<p class="note">Video galeri dibaca dari folder <code>app/asset/videolab/galery/</code>. Untuk menambahkan video, unggah file ke folder tersebut lalu daftarkan nama file dan deskripsinya di daftar VIDEOS pada file gallery.html.</p>
+<p class="note">Sumber video: <code>app/assets/videolab/galery/</code>. Tambahkan file dan daftarkan di array VIDEOS pada file gallery.html.</p>
 </main>
 <script>
-const BASE = "../asset/videolab/galery/";
-// Tambahkan item baru di daftar ini setelah file video diunggah ke folder BASE.
-// Contoh: { file: "backhand.mp4", description: "Backhand — perhatikan posisi siku saat kontak bola." }
-const VIDEOS = [];
+const BASE = "../assets/videolab/galery/";
+const VIDEOS = [
+  { file: "backhandmechanic.mp4", title: "Backhand Mechanics", description: "Backhand — amati mekanik gerakan dan posisi raket.", hidden: false }
+];
+const STORAGE_KEY = "gmtc-video-gallery-settings-v1";
+let adminMode = false;
+let settings = {};
+try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
 const gallery = document.getElementById("gallery");
+const adminToggle = document.getElementById("adminToggle");
+const adminNote = document.getElementById("adminNote");
+function saveSettings(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch {} }
 function openAnalysis(file){ location.href = "./analysis.html?video=" + encodeURIComponent(BASE + file); }
-if (!VIDEOS.length) {
-  gallery.innerHTML = '<div class="empty">Belum ada video di galeri. Setelah video diunggah ke folder galeri dan didaftarkan di kode, setiap video akan tampil sebagai satu kartu dengan deskripsi di bawahnya.</div>';
-} else {
-  for (const item of VIDEOS) {
+function render(){
+  gallery.replaceChildren();
+  const visibleItems = VIDEOS.filter(item => adminMode || !(settings[item.file]?.hidden ?? item.hidden));
+  if (!visibleItems.length) {
+    const empty = document.createElement("div"); empty.className = "empty";
+    empty.textContent = adminMode ? "Tidak ada video untuk ditampilkan." : "Belum ada video di galeri.";
+    gallery.appendChild(empty); return;
+  }
+  for (const item of visibleItems) {
+    const pref = settings[item.file] || {};
+    const isHidden = pref.hidden ?? item.hidden;
+    const title = pref.title ?? item.title;
     const card = document.createElement("article");
-    card.className = "card";
+    card.className = "card" + (isHidden ? " hidden-card" : "");
     const video = document.createElement("video");
-    video.src = BASE + item.file;
-    video.controls = true;
-    video.playsInline = true;
-    video.preload = "metadata";
-    const description = document.createElement("div");
-    description.className = "desc";
-    description.textContent = item.description || "";
-    const actions = document.createElement("div");
-    actions.className = "actions";
-    const button = document.createElement("button");
-    button.textContent = "Analisa Video Lab";
-    button.addEventListener("click", () => openAnalysis(item.file));
-    actions.appendChild(button);
-    card.append(video, description, actions);
-    gallery.appendChild(card);
+    video.src = BASE + item.file; video.controls = true; video.playsInline = true; video.preload = "metadata";
+    const titleEl = document.createElement("div"); titleEl.className = "title"; titleEl.textContent = title;
+    const description = document.createElement("div"); description.className = "desc"; description.textContent = item.description || "";
+    const actions = document.createElement("div"); actions.className = "actions";
+    const analyse = document.createElement("button"); analyse.textContent = "Analisa Video Lab"; analyse.addEventListener("click", () => openAnalysis(item.file));
+    actions.appendChild(analyse);
+    if (adminMode) {
+      const edit = document.createElement("button"); edit.textContent = "✎ Edit Title";
+      edit.addEventListener("click", () => { const next = prompt("Judul video:", title); if (next === null) return; const clean = next.trim(); if (!clean) { alert("Judul tidak boleh kosong."); return; } settings[item.file] = {...settings[item.file], title: clean}; saveSettings(); render(); });
+      const toggle = document.createElement("button"); toggle.textContent = isHidden ? "◉ Show Video" : "◉ Hide Video";
+      toggle.addEventListener("click", () => { settings[item.file] = {...settings[item.file], hidden: !isHidden}; saveSettings(); render(); });
+      actions.append(edit, toggle);
+      if (isHidden) { const badge = document.createElement("div"); badge.className = "badge"; badge.textContent = "Video disembunyikan (hanya terlihat dalam Mode Admin)"; card.appendChild(badge); }
+    }
+    card.append(video, titleEl, description, actions); gallery.appendChild(card);
   }
 }
+adminToggle.addEventListener("click", () => { adminMode = !adminMode; adminToggle.textContent = adminMode ? "✓ Mode Admin Aktif" : "⚙ Mode Admin"; adminNote.hidden = !adminMode; render(); });
+render();
 </script></body></html>
