@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#183b2b"><title>Galeri Video — GMTC Video Lab</title>
 <style>
-:root{--bg:#f2e8d5;--card:#fff;--ink:#2e5d3a;--muted:#607466;--line:rgba(46,93,58,.18)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:900px;margin:0 auto;padding:14px 12px 30px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}h1{font-size:clamp(24px,5vw,34px);margin:0}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{font:inherit;font-weight:650;border:1px solid var(--line);border-radius:11px;background:var(--card);color:inherit;padding:10px 12px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;overflow:hidden}.card video{display:block;width:100%;max-height:320px;background:#111;border-radius:10px;object-fit:contain}.title{font-size:18px;font-weight:750;margin:10px 2px 0}.desc{white-space:pre-wrap;line-height:1.5;margin:7px 2px 0}.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:20px;line-height:1.5;color:var(--muted)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}.admin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}.hidden-card{opacity:.72;border-style:dashed}.badge{font-size:12px;color:var(--muted)}
+:root{--bg:#f2e8d5;--card:#fff;--ink:#2e5d3a;--muted:#607466;--line:rgba(46,93,58,.18)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.shell{max-width:900px;margin:0 auto;padding:14px 12px 30px}.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.back{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--card);color:inherit;text-decoration:none;font-weight:600}h1{font-size:clamp(24px,5vw,34px);margin:0}.sub{color:var(--muted);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{font:inherit;font-weight:650;border:1px solid var(--line);border-radius:11px;background:var(--card);color:inherit;padding:10px 12px;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;overflow:hidden}.card video{display:block;width:100%;max-height:320px;background:#111;border-radius:10px;object-fit:contain}.title{font-size:18px;font-weight:750;margin:10px 2px 0}.engagement{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:8px 2px 0;font-size:14px;color:var(--muted)}.metric{display:inline-flex;align-items:center;gap:5px}.like-button{padding:5px 9px;border-radius:10px;display:inline-flex;align-items:center;gap:6px}.like-button.liked{color:#e65a68;border-color:#e65a68;background:rgba(230,90,104,.08)}.like-button:disabled{opacity:.7;cursor:default}.desc{white-space:pre-wrap;line-height:1.5;margin:7px 2px 0}.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:20px;line-height:1.5;color:var(--muted)}.note{font-size:12px;color:var(--muted);line-height:1.45;margin:12px 0}.admin{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}.hidden-card{opacity:.72;border-style:dashed}.badge{font-size:12px;color:var(--muted)}
 @media(prefers-color-scheme:dark){:root{--bg:#1f241f;--card:#2a302a;--ink:#e6e1d6;--muted:#a8b3a0;--line:rgba(255,255,255,.12)}}
 </style></head><body><main class="shell">
 <header class="top"><a class="back" href="./index.html">← Video Lab</a><div><h1>Tonton Video Galeri</h1><div class="sub">Koleksi video latihan GMTC</div></div></header>
@@ -14,13 +14,56 @@ const BASE = "../assets/videolab/galery/";
 const VIDEOS = [
   { file: "backhandmechanic.mp4", title: "Backhand Mechanics", description: "Backhand — amati mekanik gerakan dan posisi raket.", hidden: false }
 ];
-const STORAGE_KEY = "gmtc-video-gallery-settings-v1";
+const STORAGE_KEY = "gmtc-video-gallery-settings-v1";\nconst VIEW_STORAGE_KEY = "gmtc-video-gallery-viewed-v1";\nconst LIKE_STORAGE_KEY = "gmtc-video-gallery-liked-v1";\nconst statsCache = {};\nlet statsDb = null;\nlet authUser = null;\nlet firestoreApi = null;
 let adminMode = false;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
 const gallery = document.getElementById("gallery");
 let isAdmin = false;
 function saveSettings(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch {} }
+function statDocId(file){ return file.replace(/[^a-zA-Z0-9_-]/g, "_"); }
+function getViewerId(){ if(authUser?.uid) return authUser.uid; const key="gmtc-gallery-visitor-id"; let id=localStorage.getItem(key); if(!id){id="visitor_"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"_"+Math.random().toString(36).slice(2));localStorage.setItem(key,id)} return id; }
+async function setupEngagement(item, viewMetric, likeButton){
+  const id=statDocId(item.file);
+  if(!statsDb || !firestoreApi){viewMetric.innerHTML="◉ <span>— kali dilihat</span>";likeButton.innerHTML="👍 <span>—</span>";likeButton.disabled=true;return;}
+  const {doc,getDoc,runTransaction,increment,serverTimestamp}=firestoreApi;
+  const ref=doc(statsDb,"videoGalleryStats",id);
+  const viewer=getViewerId();
+  const viewKey=VIEW_STORAGE_KEY+":"+id;
+  try{
+    let snap=await getDoc(ref);
+    let data=snap.exists()?snap.data():{};
+    if(!localStorage.getItem(viewKey)){
+      await runTransaction(statsDb,async tx=>{const s=await tx.get(ref);if(s.exists())tx.update(ref,{views:increment(1),updatedAt:serverTimestamp()});else tx.set(ref,{file:item.file,views:1,likes:0,likedBy:{},updatedAt:serverTimestamp()})});
+      localStorage.setItem(viewKey,"1");
+      snap=await getDoc(ref);data=snap.exists()?snap.data():data;
+    }
+    const likedBy=data.likedBy||{};
+    viewMetric.innerHTML="◉ <span>"+Number(data.views||0).toLocaleString("id-ID")+" kali dilihat</span>";
+    const liked=!!likedBy[viewer];
+    likeButton.classList.toggle("liked",liked);
+    likeButton.innerHTML="👍 <span>"+Number(data.likes||0).toLocaleString("id-ID")+"</span>";
+    likeButton.setAttribute("aria-pressed",String(liked));
+    likeButton.addEventListener("click",async()=>{
+      likeButton.disabled=true;
+      try{
+        await runTransaction(statsDb,async tx=>{
+          const s=await tx.get(ref);
+          const d=s.exists()?s.data():{views:0,likes:0,likedBy:{}};
+          const map={...(d.likedBy||{})};
+          if(map[viewer]) delete map[viewer]; else map[viewer]=true;
+          tx.set(ref,{file:item.file,views:Number(d.views||0),likes:Object.keys(map).length,likedBy:map,updatedAt:serverTimestamp()},{merge:true});
+        });
+        const updated=await getDoc(ref);const d=updated.exists()?updated.data():{};
+        const nowLiked=!!(d.likedBy||{})[viewer];
+        likeButton.classList.toggle("liked",nowLiked);
+        likeButton.innerHTML="👍 <span>"+Number(d.likes||0).toLocaleString("id-ID")+"</span>";
+        likeButton.setAttribute("aria-pressed",String(nowLiked));
+      }catch(err){console.error("Gagal memperbarui like video:",err);alert("Like belum tersimpan. Periksa izin Firestore.");}
+      finally{likeButton.disabled=false;}
+    });
+  }catch(err){console.error("Gagal memuat statistik galeri:",err);viewMetric.innerHTML="◉ <span>— kali dilihat</span>";likeButton.innerHTML="👍 <span>—</span>";likeButton.disabled=true;}
+}
 function openAnalysis(file){ location.href = "./analysis.html?video=" + encodeURIComponent(BASE + file); }
 function render(){
   gallery.replaceChildren();
@@ -53,12 +96,13 @@ function render(){
       actions.append(edit, toggle);
       if (isHidden) { const badge = document.createElement("div"); badge.className = "badge"; badge.textContent = "Video disembunyikan (hanya terlihat dalam Mode Admin)"; card.appendChild(badge); }
     }
-    card.append(video, titleEl, description, actions); gallery.appendChild(card);
+    card.append(video, titleEl, description, engagement, actions); gallery.appendChild(card);
+    setupEngagement(item, viewMetric, likeButton);
   }
 }
 async function initGallery(){
   try {
-    const [{ auth, db }, { doc, getDoc }, { onAuthStateChanged }] = await Promise.all([
+    const [{ auth, db }, firestore, { onAuthStateChanged }] = await Promise.all([
       import("../firebase.js"),
       import("../firestore.js"),
       import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js")
@@ -67,7 +111,7 @@ async function initGallery(){
       isAdmin = false;
       if (user) {
         try {
-          const snap = await getDoc(doc(db, "users", user.uid));
+          const snap = await firestore.doc(db, "users", user.uid).get?.();
           const role = String(snap.exists() ? snap.data().role || "" : "").toUpperCase();
           isAdmin = role === "ADMIN" || role === "SUPERCOACH";
         } catch (error) {
