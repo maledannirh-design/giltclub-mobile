@@ -154,6 +154,8 @@ export async function renderAdmin() {
   <button id="openFlashAdmin" class="admin-btn">Flash Drop</button>
   <button id="openRewardAdmin" class="admin-btn">Reward GP</button>
   <button id="openProductAdmin" class="admin-btn">Store Products</button>
+  <button id="setAllDashboardPublicBtn" class="admin-btn" type="button" style="margin-top:10px;width:100%;">Set All Dashboard Visibility to Public</button>
+  <div id="setAllDashboardPublicStatus" style="font-size:12px;line-height:1.5;margin-top:8px;"></div>
 
   <hr style="margin:30px 0;">
 
@@ -221,6 +223,9 @@ export async function renderAdmin() {
   const productBtn = document.getElementById("openProductAdmin");
   if(productBtn) productBtn.onclick = openProductAdmin;
 
+  const setAllDashboardPublicBtn = document.getElementById("setAllDashboardPublicBtn");
+  if (setAllDashboardPublicBtn) setAllDashboardPublicBtn.onclick = setAllDashboardVisibilityPublic;
+
   const refreshActivitySummaryBtn = document.getElementById("refreshActivitySummaryBtn");
   if (refreshActivitySummaryBtn) refreshActivitySummaryBtn.onclick = refreshActivitySummary;
 
@@ -261,6 +266,37 @@ document.getElementById("loadUsersBtn").onclick = async () => {
   document.getElementById("adjustForm").style.display = "block";
 };
   await initBroadcastUI();
+}
+
+
+async function setAllDashboardVisibilityPublic() {
+  const btn = document.getElementById("setAllDashboardPublicBtn");
+  const status = document.getElementById("setAllDashboardPublicStatus");
+  if (!btn || !status) return;
+  if (!confirm("Ubah Dashboard Visibility semua user menjadi Public? Pengaturan privacy.dashboardVisibility seluruh user akan ditimpa.")) return;
+  btn.disabled = true;
+  status.textContent = "Memuat daftar user...";
+  let updated = 0;
+  try {
+    const usersSnap = await getDocs(collection(db, "users"));
+    const docs = usersSnap.docs;
+    for (let i = 0; i < docs.length; i += 450) {
+      const batch = writeBatch(db);
+      docs.slice(i, i + 450).forEach(userDoc => {
+        batch.update(userDoc.ref, { "privacy.dashboardVisibility": "public" });
+      });
+      await batch.commit();
+      updated += docs.slice(i, i + 450).length;
+      status.textContent = "Berhasil memperbarui " + updated + " dari " + docs.length + " user...";
+    }
+    status.textContent = "Selesai. Dashboard Visibility disetel Public untuk " + updated + " user.";
+  } catch (error) {
+    console.error("Gagal mengatur Dashboard Visibility massal:", error);
+    status.textContent = "Gagal setelah " + updated + " user. Periksa izin Firestore Rules. " + (error.message || "");
+    alert("Perubahan belum tentu selesai untuk semua user. " + updated + " user berhasil diproses sebelum error.");
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 const MASSIVE_SCHEDULE_HEADERS = [
