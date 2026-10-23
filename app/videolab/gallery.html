@@ -7,7 +7,7 @@
 <header class="top"><a class="back" href="./index.html">← Video Lab</a><div><h1>Tonton Video Galeri</h1><div class="sub">Koleksi video latihan GMTC</div></div></header>
 
   
-<div id="layoutTools" class="layout-tools" hidden><button id="normalView" type="button">☰ Normal View</button><button id="gridView" type="button">▦ Grid View</button></div><div id="gallery" class="grid"></div>
+<div id="layoutTools" class="layout-tools" hidden><button id="normalView" type="button">☰ Normal View</button><button id="gridView" type="button">▦ Grid View</button></div><p id="metadataStatus" class="note" role="status" aria-live="polite" hidden></p><div id="gallery" class="grid"></div>
 <p class="note">Sumber video: <code>app/assets/videolab/galery/</code>. Tambahkan file dan daftarkan di array VIDEOS pada file gallery.html.</p>
 </main>
 <script>
@@ -53,6 +53,7 @@ let sharedSettingsReady = false;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
 const gallery = document.getElementById("gallery");
+const metadataStatus = document.getElementById("metadataStatus");
 const layoutTools = document.getElementById("layoutTools");
 const normalViewButton = document.getElementById("normalView");
 const gridViewButton = document.getElementById("gridView");
@@ -62,19 +63,28 @@ function settingsFor(item){ return settings[item.file] || {}; }
 async function saveSharedSettings(){
   if(!isAdmin || !sharedSettingsRef || !firestoreApi) throw new Error("Akses admin atau Firestore belum siap.");
   await firestoreApi.setDoc(sharedSettingsRef,{items:settings,updatedAt:firestoreApi.serverTimestamp(),updatedBy:authUser?.uid||null},{merge:true});
+  const check=await firestoreApi.getDocFromServer(sharedSettingsRef);
+  if(!check.exists() || !check.data()?.items) throw new Error("Data tersimpan tetapi verifikasi server gagal.");
+  sharedSettingsReady=true;
+  if(metadataStatus){metadataStatus.hidden=false;metadataStatus.textContent="Metadata galeri berhasil diverifikasi dari server.";}
 }
 async function loadSharedSettings(){
   if(!sharedSettingsRef || !firestoreApi) return;
   try{
-    const snap=await firestoreApi.getDoc(sharedSettingsRef);
+    const snap=await firestoreApi.getDocFromServer(sharedSettingsRef);
     if(snap.exists()){
       const data=snap.data();
       if(data.items && typeof data.items==="object") settings={...settings,...data.items};
+      sharedSettingsReady=true;
+      if(metadataStatus){metadataStatus.hidden=true;metadataStatus.textContent="";}
+    }else{
+      sharedSettingsReady=false;
+      if(metadataStatus){metadataStatus.hidden=false;metadataStatus.textContent="Metadata galeri belum ditemukan di server. Tampilan mungkin memakai pengaturan lokal."}
     }
-    sharedSettingsReady=true;
   }catch(e){
-    console.error("Gagal memuat metadata galeri bersama:",e);
+    console.error("Gagal memuat metadata galeri dari server:",e);
     sharedSettingsReady=false;
+    if(metadataStatus){metadataStatus.hidden=false;metadataStatus.textContent="Tidak dapat membaca metadata terbaru dari server ("+(e?.code||e?.message||"error")+"). Deskripsi yang tampil mungkin masih lokal/lama."}
   }
 }
 function orderedVideos(){const rank=new Map(videoOrder.map((file,i)=>[file,i]));return [...VIDEOS].sort((a,b)=>(rank.get(a.file)??9999)-(rank.get(b.file)??9999));}
