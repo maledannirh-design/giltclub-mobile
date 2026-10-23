@@ -250,7 +250,7 @@ async function initGallery(){
           console.error("Gagal memeriksa role galeri:", error);
         }
       }
-      if(isAdmin){await loadSharedSettings();}
+      await loadSharedSettings();
       render();
     });
   } catch (error) {
