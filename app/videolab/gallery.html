@@ -214,11 +214,11 @@ function render(){
     const masteryButton=document.createElement("button");masteryButton.type="button";masteryButton.className="mastery-button";masteryButton.textContent="✨ Skill Mastery";masteryButton.addEventListener("click",()=>loadMastery(item));
     if (isAdmin && viewMode === "normal") {
       const edit = document.createElement("button"); edit.textContent = "✎ Edit Title";
-      edit.addEventListener("click", () => { const next = prompt("Judul video:", title); if (next === null) return; const clean = next.trim(); if (!clean) { alert("Judul tidak boleh kosong."); return; } settings[item.file] = {...settings[item.file], title: clean}; saveSettings(); render(); });
+      edit.addEventListener("click", async () => { const next = prompt("Judul video:", title); if (next === null) return; const clean = next.trim(); if (!clean) { alert("Judul tidak boleh kosong."); return; } const previous={...settings};settings[item.file] = {...settings[item.file], title: clean};try{await saveSharedSettings();saveSettings();render();}catch(e){settings=previous;alert("Judul gagal disimpan ke server. Periksa koneksi dan Firestore Rules.");console.error(e)} });
       const editDescription = document.createElement("button"); editDescription.textContent = "✎ Edit Deskripsi";
       editDescription.addEventListener("click", async () => { const next = prompt("Deskripsi video:", pref.description ?? item.description ?? ""); if (next === null) return; const previous={...settings}; settings[item.file] = {...settings[item.file], description: next.trim()}; try{await saveSharedSettings();saveSettings();render();}catch(e){settings=previous;alert("Deskripsi gagal disimpan ke server. Periksa koneksi dan Firestore Rules.");console.error(e)} });
       const toggle = document.createElement("button"); toggle.textContent = isHidden ? "◉ Show Video" : "◉ Hide Video";
-      toggle.addEventListener("click", () => { settings[item.file] = {...settings[item.file], hidden: !isHidden}; saveSettings(); render(); });
+      toggle.addEventListener("click", async () => { const previous={...settings};settings[item.file] = {...settings[item.file], hidden: !isHidden};try{await saveSharedSettings();saveSettings();render();}catch(e){settings=previous;alert("Perubahan gagal disimpan ke server. Periksa Firestore Rules.");console.error(e)} });
       actions.append(edit, editDescription, toggle);
       if (isHidden) { const badge = document.createElement("div"); badge.className = "badge"; badge.textContent = "Video disembunyikan (hanya terlihat dalam Mode Admin)"; card.appendChild(badge); }
     }
@@ -236,6 +236,7 @@ async function initGallery(){
     ]);
     statsDb = db; firestoreApi = firestore;
     layoutRef = firestore.doc(db,"videoGalleryConfig","layout");
+    sharedSettingsRef = firestore.doc(db,"videoGalleryConfig","metadata");
     try { const layoutSnap=await firestore.getDoc(layoutRef); if(layoutSnap.exists()&&Array.isArray(layoutSnap.data().order)){const saved=layoutSnap.data().order;videoOrder=[...saved.filter(file=>VIDEOS.some(v=>v.file===file)),...VIDEOS.map(v=>v.file).filter(file=>!saved.includes(file))];} } catch(e) { console.warn("Belum bisa membaca urutan bersama galeri:",e); }
     onAuthStateChanged(auth, async user => {
       authUser = user || null;
@@ -249,6 +250,7 @@ async function initGallery(){
           console.error("Gagal memeriksa role galeri:", error);
         }
       }
+      if(isAdmin){await loadSharedSettings();}
       render();
     });
   } catch (error) {
