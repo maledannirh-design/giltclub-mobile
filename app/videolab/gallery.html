@@ -36,6 +36,7 @@ const VIDEOS = [
 }
 ];
 const STORAGE_KEY = "gmtc-video-gallery-settings-v1";
+const SHARED_SETTINGS_DOC = "videoGalleryConfig/metadata";
 const VIEW_STORAGE_KEY = "gmtc-video-gallery-viewed-v1";
 const LIKE_STORAGE_KEY = "gmtc-video-gallery-liked-v1";
 const statsCache = {};
@@ -47,6 +48,8 @@ let viewMode = "normal";
 let videoOrder = VIDEOS.map(item => item.file);
 let draggedFile = null;
 let layoutRef = null;
+let sharedSettingsRef = null;
+let sharedSettingsReady = false;
 let settings = {};
 try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {}; } catch { settings = {}; }
 const gallery = document.getElementById("gallery");
@@ -55,6 +58,25 @@ const normalViewButton = document.getElementById("normalView");
 const gridViewButton = document.getElementById("gridView");
 let isAdmin = false;
 function saveSettings(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch {} }
+function settingsFor(item){ return settings[item.file] || {}; }
+async function saveSharedSettings(){
+  if(!isAdmin || !sharedSettingsRef || !firestoreApi) throw new Error("Akses admin atau Firestore belum siap.");
+  await firestoreApi.setDoc(sharedSettingsRef,{items:settings,updatedAt:firestoreApi.serverTimestamp(),updatedBy:authUser?.uid||null},{merge:true});
+}
+async function loadSharedSettings(){
+  if(!sharedSettingsRef || !firestoreApi) return;
+  try{
+    const snap=await firestoreApi.getDoc(sharedSettingsRef);
+    if(snap.exists()){
+      const data=snap.data();
+      if(data.items && typeof data.items==="object") settings={...settings,...data.items};
+    }
+    sharedSettingsReady=true;
+  }catch(e){
+    console.error("Gagal memuat metadata galeri bersama:",e);
+    sharedSettingsReady=false;
+  }
+}
 function orderedVideos(){const rank=new Map(videoOrder.map((file,i)=>[file,i]));return [...VIDEOS].sort((a,b)=>(rank.get(a.file)??9999)-(rank.get(b.file)??9999));}
 function applyViewMode(){gallery.classList.toggle("grid-view",viewMode==="grid");normalViewButton?.classList.toggle("active",viewMode==="normal");gridViewButton?.classList.toggle("active",viewMode==="grid");document.body.classList.toggle("admin-layout",isAdmin);}
 async function saveVideoOrder(){if(!layoutRef||!firestoreApi){alert("Urutan belum dapat disimpan ke server. Periksa koneksi dan izin Firestore.");return;}try{await firestoreApi.setDoc(layoutRef,{order:videoOrder,updatedAt:firestoreApi.serverTimestamp()},{merge:true});}catch(e){console.error("Gagal menyimpan urutan galeri:",e);alert("Urutan belum tersimpan bersama. Periksa Firestore Rules.");}}
@@ -194,7 +216,7 @@ function render(){
       const edit = document.createElement("button"); edit.textContent = "✎ Edit Title";
       edit.addEventListener("click", () => { const next = prompt("Judul video:", title); if (next === null) return; const clean = next.trim(); if (!clean) { alert("Judul tidak boleh kosong."); return; } settings[item.file] = {...settings[item.file], title: clean}; saveSettings(); render(); });
       const editDescription = document.createElement("button"); editDescription.textContent = "✎ Edit Deskripsi";
-      editDescription.addEventListener("click", () => { const next = prompt("Deskripsi video:", pref.description ?? item.description ?? ""); if (next === null) return; settings[item.file] = {...settings[item.file], description: next.trim()}; saveSettings(); render(); });
+      editDescription.addEventListener("click", async () => { const next = prompt("Deskripsi video:", pref.description ?? item.description ?? ""); if (next === null) return; const previous={...settings}; settings[item.file] = {...settings[item.file], description: next.trim()}; try{await saveSharedSettings();saveSettings();render();}catch(e){settings=previous;alert("Deskripsi gagal disimpan ke server. Periksa koneksi dan Firestore Rules.");console.error(e)} });
       const toggle = document.createElement("button"); toggle.textContent = isHidden ? "◉ Show Video" : "◉ Hide Video";
       toggle.addEventListener("click", () => { settings[item.file] = {...settings[item.file], hidden: !isHidden}; saveSettings(); render(); });
       actions.append(edit, editDescription, toggle);
