@@ -373,7 +373,8 @@ function buildSkillHTML(user, skills, userId){
 
 const editable = canEditSkill(currentUser);
 
-  const totalStars = Object.values(skills || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+  const displayedSkills = window.skillEditMode ? (window.tempSkillData || skills || {}) : (skills || {});
+  const totalStars = Object.values(displayedSkills).reduce((sum, value) => sum + Number(value || 0), 0);
 
   let html = `
     <div class="skill-wrapper">
@@ -416,9 +417,9 @@ const editable = canEditSkill(currentUser);
 
     list.forEach(skillKey=>{
 
-      const source = window.skillEditMode 
-        ? window.tempSkillData 
-        : skills;
+      const source = window.skillEditMode
+        ? (window.tempSkillData || skills || {})
+        : (skills || {});
 
       const val = source[skillKey] || 0;
 
@@ -444,7 +445,8 @@ window.enableSkillEdit = function(event){
   if(window.skillEditMode) return;
   window.skillEditMode = true;
 
-  window.tempSkillData = { ...window.currentSkillData };
+  const existing = window.currentSkillData || {};
+  window.tempSkillData = Object.fromEntries(Object.keys(skillLabels).map(key => [key, Number(existing[key] || 0)]));
 
   renderSkillByUserId(window.currentViewedUserId);
 };
