@@ -12,8 +12,7 @@ function ensureCinemaStyles() {
 
 const SEATS = Array.from({ length: 16 }, (_, index) => ({
   id: index + 1,
-  vvip: index < 4,
-  singing: index === 0
+  vvip: index < 4
 }));
 
 let stopPresence = null;
@@ -54,19 +53,29 @@ export function renderCinemaRoom() {
       <div class="cinema-grid">
         <section class="cinema-panel">
           <div class="cinema-panel-head">
-            <h2>🪑 Tempat duduk</h2><span>16 kursi · 4 × 4</span>
+            <h2>🪑 Tempat duduk</h2><span>20 kursi · 16 + 4 khusus</span>
+          </div>
+          <div class="cinema-special-seats">
+            <div class="cinema-special-group singer-seats" aria-label="Kursi penyanyi">
+              <div class="cinema-seat is-special is-singer"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Penyanyi 1</span></div>
+              <div class="cinema-seat is-special is-singer"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Penyanyi 2</span></div>
+            </div>
+            <div class="cinema-special-group admin-seats" aria-label="Kursi moderator dan admin">
+              <div class="cinema-seat is-special is-admin"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Moderator</span></div>
+              <div class="cinema-seat is-special is-admin"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Admin</span></div>
+            </div>
           </div>
           <div class="cinema-stage">🎙 AREA PENYANYI</div>
           <div class="cinema-seats" id="cinemaSeats">
             ${SEATS.map(seat => `
-              <div class="cinema-seat ${seat.vvip ? "is-vvip" : ""} ${seat.singing ? "is-singing" : ""}" aria-label="Kursi ${seat.id}">
-                <span class="seat-icon">${seat.singing ? "🎤" : "💺"}</span>
+              <div class="cinema-seat ${seat.vvip ? "is-vvip" : ""}" aria-label="Kursi ${seat.id}">
+                <span class="seat-icon"><img src="./chair.png" alt="" /></span>
                 <span class="seat-name">Kursi ${String(seat.id).padStart(2, "0")}</span>
-                <span class="seat-state">${seat.singing ? "Contoh penyanyi" : seat.vvip ? "VVIP" : "Kosong"}</span>
+                <span class="seat-state">${seat.vvip ? "VVIP" : "Kosong"}</span>
               </div>
             `).join("")}
           </div>
-          <div class="cinema-legend"><span><b>Emas</b> · kursi VVIP</span><span>🎤 · contoh posisi penyanyi</span></div>
+          <div class="cinema-legend"><span><b>Emas</b> · kursi VVIP</span><span>20 kursi termasuk 4 kursi khusus</span></div>
           <div class="cinema-tools">
             <button type="button" class="cinema-tool" id="cinemaMicButton" disabled>🎙 Mikrofon (tahap audio)</button>
             <button type="button" class="cinema-tool" id="cinemaEffectButton" disabled>✨ Efek suara (tahap audio)</button>
