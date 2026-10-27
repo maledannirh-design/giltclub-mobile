@@ -4748,3 +4748,23 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 .home-profile-left .cinema-only-actions .cinema-room-btn span,.home-profile-right .video-only-actions .videolab-btn span{overflow:hidden;text-overflow:ellipsis;}
 .home-profile-right .leaderboard-btn,.home-profile-right .championclub-btn{width:100%;min-width:0;}
 @media(max-width:380px){.home-header{column-gap:8px;}.home-profile-left .home-profile-identity{gap:6px;}.home-profile-left .home-avatar{flex-basis:36px;}.home-profile-left .home-avatar img,.home-profile-left .home-avatar .avatar-placeholder{width:36px;height:36px;}.home-profile-left .home-username{font-size:13px;}.home-profile-left .home-gpoint{font-size:11px;}.home-profile-left .cinema-only-actions .cinema-room-btn,.home-profile-right .video-only-actions .videolab-btn{font-size:10px;padding:7px 4px;gap:3px;}}
+
+
+/* FINAL HOME PROFILE ALIGNMENT — match the red guide edges */
+.home-header{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;column-gap:12px!important;width:100%;}
+.home-profile-left,.home-profile-right{width:100%;min-width:0;box-sizing:border-box;}
+.home-profile-left .cinema-only-actions{padding-left:0!important;width:100%;flex:0 0 100%;box-sizing:border-box;justify-content:flex-start;}
+.home-profile-left .cinema-only-actions .cinema-room-btn{width:100%;max-width:100%;box-sizing:border-box;justify-content:flex-start!important;text-align:left;padding-left:8px!important;gap:7px;}
+.home-profile-left .cinema-only-actions .cinema-room-btn .fa-film{color:#e7a0bd;text-shadow:0 0 3px #f9d7e5,0 0 7px #d9b45b;animation:cinema-gold-shimmer 1.8s ease-in-out infinite alternate;}
+.home-profile-right{align-items:stretch!important;}
+.home-profile-right .leaderboard-btn,.home-profile-right .championclub-btn{width:100%;box-sizing:border-box;text-align:right;justify-content:flex-end;gap:8px;}
+.home-profile-right .leaderboard-btn i,.home-profile-right .championclub-btn i{margin-right:2px;flex:0 0 auto;}
+.home-profile-right .leaderboard-btn span,.home-profile-right .championclub-btn span{margin-left:0;}
+.home-profile-right .video-only-actions{width:100%;justify-content:flex-end;}
+.home-profile-right .video-only-actions .videolab-btn{width:100%;justify-content:center;}
+@keyframes cinema-gold-shimmer{0%{color:#e7a0bd;text-shadow:0 0 2px #f9d7e5,0 0 4px #d8b75a;filter:brightness(1)}50%{color:#f4c6d8;text-shadow:0 0 5px #fff0f5,0 0 9px #e5c35f;filter:brightness(1.2)}100%{color:#d6ad62;text-shadow:0 0 3px #f7e8b8,0 0 8px #e6b8ce;filter:brightness(1.1)}}
+@media(max-width:380px){
+ .home-header{column-gap:8px!important;}
+ .home-profile-left .cinema-only-actions .cinema-room-btn{font-size:10px;padding-left:6px!important;gap:5px;}
+ .home-profile-right .leaderboard-btn,.home-profile-right .championclub-btn{gap:6px;}
+}
