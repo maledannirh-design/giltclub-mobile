@@ -14,8 +14,28 @@ const SEATS = Array.from({ length: 16 }, (_, index) => ({
   singing: index === 0
 }));
 
+let stopPresence = null;
+
+function startRoomPresence() {
+  const user = window.__giltclubCinemaUser;
+  if (!user?.uid) return;
+  const roomRef = window.__giltclubCinemaRtdbRef;
+  const onDisconnectFn = window.__giltclubCinemaOnDisconnect;
+  const setFn = window.__giltclubCinemaSet;
+  const removeFn = window.__giltclubCinemaRemove;
+  if (!roomRef || !onDisconnectFn || !setFn || !removeFn) return;
+  const presenceRef = roomRef("cinema/rooms/main/presence/" + user.uid);
+  const payload = { uid: user.uid, username: user.displayName || "Member", joinedAt: Date.now() };
+  onDisconnectFn(presenceRef).remove().then(() => setFn(presenceRef, payload)).catch(error => {
+    console.error("Cinema presence setup failed:", error);
+  });
+  stopPresence = () => { removeFn(presenceRef).catch(() => {}); };
+  window.stopCinemaPresence = stopPresence;
+}
+
 export function renderCinemaRoom() {
   ensureCinemaStyles();
+  startRoomPresence();
   const content = document.getElementById("content");
   if (!content) return;
 
