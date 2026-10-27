@@ -92,7 +92,7 @@ content.innerHTML = `
           <i class="fa-solid fa-trophy"></i>
           <span>Champion Club</span>
         </div>
-        <div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div>
+        <div class="home-media-actions"><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div></div>
       </div>
 
     </div>
@@ -172,6 +172,13 @@ content.innerHTML = `
   videoLabButton?.addEventListener("click", openVideoLab);
   videoLabButton?.addEventListener("keydown", event => {
     if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openVideoLab(); }
+  });
+
+  const cinemaRoomButton = document.querySelector(".cinema-room-btn");
+  const openCinemaRoom = () => { if(window.navigate) window.navigate("cinema"); };
+  cinemaRoomButton?.addEventListener("click", openCinemaRoom);
+  cinemaRoomButton?.addEventListener("keydown", event => {
+    if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openCinemaRoom(); }
   });
 
   // Video Lab is an independent static page; no Firebase listeners are added.
