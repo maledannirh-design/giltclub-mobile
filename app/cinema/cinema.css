@@ -221,3 +221,9 @@ body{overflow:hidden;}
     grid-template-rows:minmax(0,33fr) minmax(0,40fr) minmax(0,27fr);
   }
 }
+
+/* Live audience seat state */
+.cinema-page .cinema-seat.audience-seat { cursor:pointer; transition:background .16s ease,border-color .16s ease,opacity .16s ease; }
+.cinema-page .cinema-seat.audience-seat.is-occupied { background:#3a2b2b; border-color:rgba(236,126,126,.72); }
+.cinema-page .cinema-seat.audience-seat.is-mine { background:#263d2b; border-color:#7bd99a; box-shadow:0 0 0 1px rgba(123,217,154,.18); }
+.cinema-page .cinema-seat.audience-seat:focus-visible { outline:2px solid var(--cinema-gold); outline-offset:2px; }
