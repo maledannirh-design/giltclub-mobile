@@ -1,6 +1,6 @@
 import { auth, rtdb } from "../firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue, runTransaction as rtdbRunTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Load CSS as a stylesheet resource; browser modules do not support direct CSS imports.
 function ensureCinemaStyles() {
   const href = new URL("./cinema.css", import.meta.url).href;
@@ -22,6 +22,81 @@ let stopPresence = null;
 let stopPresenceCount = null;
 let stopAuthListener = null;
 
+let stopSeatListener = null;
+let stopSeatDisconnect = null;
+let seatAuthUser = null;
+
+function startSeatSelection() {
+  const seatsRoot = rtdbRef(rtdb, "cinema/rooms/main/seats");
+  stopSeatListener?.();
+  stopSeatListener = rtdbOnValue(seatsRoot, snapshot => {
+    const seats = snapshot.val() || {};
+    document.querySelectorAll(".cinema-seat.audience-seat").forEach(el => {
+      const seatId = el.dataset.seatId;
+      const occupant = seats[seatId];
+      el.classList.toggle("is-occupied", Boolean(occupant));
+      el.classList.toggle("is-mine", Boolean(occupant && seatAuthUser && occupant.uid === seatAuthUser.uid));
+      el.setAttribute("aria-label", occupant
+        ? `Kursi penonton ${seatId.replace("audience-", "")}, ditempati ${occupant.username || "anggota"}`
+        : `Kursi penonton ${seatId.replace("audience-", "")}, kosong`);
+      el.title = occupant
+        ? (occupant.uid === seatAuthUser?.uid ? "Kursi Anda — klik untuk berdiri" : `Diduduki ${occupant.username || "anggota"}`)
+        : "Klik untuk duduk";
+    });
+  }, error => console.warn("Cinema seat listener unavailable:", error?.message || error));
+
+  document.querySelectorAll(".cinema-seat.audience-seat").forEach(el => {
+    if (el.dataset.seatBound === "true") return;
+    el.dataset.seatBound = "true";
+    el.tabIndex = 0;
+    el.setAttribute("role", "button");
+    const chooseSeat = async () => {
+      const user = seatAuthUser;
+      if (!user?.uid) {
+        console.warn("Login diperlukan untuk memilih kursi.");
+        return;
+      }
+      const seatId = el.dataset.seatId;
+      if (!seatId) return;
+      const seatRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
+      try {
+        const result = await rtdbRunTransaction(seatRef, current => {
+          if (current && current.uid !== user.uid) return;
+          if (current && current.uid === user.uid) return null;
+          return {
+            uid: user.uid,
+            username: user.displayName || user.email?.split("@")[0] || "Member",
+            seatedAt: Date.now()
+          };
+        }, { applyLocally: false });
+        if (!result.committed) {
+          console.info("Kursi sudah ditempati anggota lain.");
+          return;
+        }
+        if (result.snapshot.val()) {
+          const seatDisconnectRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
+          await rtdbOnDisconnect(seatDisconnectRef).remove();
+          stopSeatDisconnect?.();
+          stopSeatDisconnect = () => rtdbRemove(seatDisconnectRef).catch(() => {});
+          window.stopCinemaSeat = stopSeatDisconnect;
+        } else {
+          stopSeatDisconnect?.();
+          stopSeatDisconnect = null;
+        }
+      } catch (error) {
+        console.warn("Cinema seat selection failed:", error?.message || error);
+      }
+    };
+    el.addEventListener("click", chooseSeat);
+    el.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        chooseSeat();
+      }
+    });
+  });
+}
+
 function startRoomPresence() {
   const presenceRoot = rtdbRef(rtdb, "cinema/rooms/main/presence");
 
@@ -41,6 +116,7 @@ const count = presenceData && typeof presenceData === "object"
   // Wait for Firebase Auth to resolve before writing a presence record.
   stopAuthListener?.();
   stopAuthListener = onAuthStateChanged(auth, user => {
+    seatAuthUser = user || null;
     stopPresence?.();
     stopPresence = null;
     if (!user?.uid) return;
@@ -95,14 +171,14 @@ export function renderCinemaRoom() {
           </div>
           <div class="cinema-audience-side audience-left" aria-label="Delapan kursi penonton kiri">
             ${SEATS.slice(0,8).map(seat => `
-              <div class="cinema-seat audience-seat ${seat.vvip ? "is-vvip" : ""}" aria-label="Kursi penonton ${seat.id}">
+              <div class="cinema-seat audience-seat ${seat.vvip ? "is-vvip" : ""}" data-seat-id="audience-${seat.id}" aria-label="Kursi penonton ${seat.id}">
                 <span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span>
               </div>
             `).join("")}
           </div>
           <div class="cinema-audience-side audience-right" aria-label="Delapan kursi penonton kanan">
             ${SEATS.slice(8,16).map(seat => `
-              <div class="cinema-seat audience-seat ${seat.vvip ? "is-vvip" : ""}" aria-label="Kursi penonton ${seat.id}">
+              <div class="cinema-seat audience-seat ${seat.vvip ? "is-vvip" : ""}" data-seat-id="audience-${seat.id}" aria-label="Kursi penonton ${seat.id}">
                 <span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span>
               </div>
             `).join("")}
@@ -124,6 +200,7 @@ export function renderCinemaRoom() {
   `;
 
   startRoomPresence();
+  startSeatSelection();
 
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
