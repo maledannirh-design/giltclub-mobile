@@ -142,13 +142,26 @@ function startSeatSelection() {
           seatActionInProgress = false;
           return;
         }
+        const myOtherSeats = Object.entries(seats)
+          .filter(([id, value]) => value?.uid === user.uid && id !== seatId)
+          .map(([id]) => id);
         if (isMine) {
+          // Standing up clears any duplicate stale seats for this same account.
           if (activeSeatDisconnectRef && activeSeatDisconnectRef.toString() === seatRef.toString()) {
             await rtdbOnDisconnect(seatRef).cancel().catch(() => {});
             activeSeatDisconnectRef = null;
             stopSeatDisconnect = null;
           }
           await rtdbRemove(seatRef);
+          for (const oldSeatId of myOtherSeats) {
+            const oldRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + oldSeatId);
+            if (activeSeatDisconnectRef && activeSeatDisconnectRef.toString() === oldRef.toString()) {
+              await rtdbOnDisconnect(oldRef).cancel().catch(() => {});
+              activeSeatDisconnectRef = null;
+              stopSeatDisconnect = null;
+            }
+            await rtdbRemove(oldRef).catch(err => console.warn("Cinema duplicate seat cleanup:", err?.message || err));
+          }
           showCinemaSeatNotice(seatType === "singer" ? "Anda berdiri dari kursi penyanyi." :
             seatType === "moderator" ? "Anda keluar dari kursi moderator." :
             "Anda berdiri dari kursi penonton.");
@@ -176,6 +189,16 @@ function startSeatSelection() {
         if (!result.committed) {
           showCinemaSeatNotice("Kursi sudah terisi anggota lain.");
           return;
+        }
+        // Enforce one seat per UID: remove any older seats only after the new seat is secured.
+        for (const oldSeatId of myOtherSeats) {
+          const oldRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + oldSeatId);
+          if (activeSeatDisconnectRef && activeSeatDisconnectRef.toString() === oldRef.toString()) {
+            await rtdbOnDisconnect(oldRef).cancel().catch(() => {});
+            activeSeatDisconnectRef = null;
+            stopSeatDisconnect = null;
+          }
+          await rtdbRemove(oldRef).catch(err => console.warn("Cinema duplicate seat cleanup:", err?.message || err));
         }
         const seatDisconnectRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
         // Cancel the previous seat's pending disconnect operation before arming the new one.
