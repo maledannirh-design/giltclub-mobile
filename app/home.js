@@ -81,7 +81,8 @@ content.innerHTML = `
             ${userData.gPoint || 0} G-Point
           </div>
         </div>
-        <div class="home-media-actions"><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div></div>
+</div>
+        <div class="home-media-actions cinema-only-actions"><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div></div>
       </div>
 
       <div class="home-profile-right">
@@ -94,6 +95,7 @@ content.innerHTML = `
           <span>Champion Club</span>
         </div>
         
+        <div class="home-media-actions video-only-actions"><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div></div>
       </div>
 
     </div>
