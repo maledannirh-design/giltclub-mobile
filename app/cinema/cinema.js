@@ -53,6 +53,8 @@ function startSeatSelection() {
   stopSeatListener?.();
   stopSeatListener = rtdbOnValue(seatsRoot, snapshot => {
     const seats = snapshot.val() || {};
+    cinemaUserIsSinger = Boolean(seatAuthUser?.uid && ["singer-1", "singer-2"].some(id => seats[id]?.uid === seatAuthUser.uid));
+    window.setCinemaSingerAccess?.(cinemaUserIsSinger);
     document.querySelectorAll(allSeatsSelector).forEach(el => {
       const seatId = el.dataset.seatId;
       const occupant = seats[seatId];
@@ -258,6 +260,11 @@ const count = presenceData && typeof presenceData === "object"
     seatAuthUser = user || null;
     stopPresence?.();
     stopPresence = null;
+    rtdbOnValue(rtdbRef(rtdb, "cinema/rooms/main/seats"), snapshot => {
+      const seats = snapshot.val() || {};
+      cinemaUserIsSinger = Boolean(seatAuthUser?.uid && ["singer-1", "singer-2"].some(id => seats[id]?.uid === seatAuthUser.uid));
+      window.setCinemaSingerAccess?.(cinemaUserIsSinger);
+    }, { onlyOnce: true });
     if (!user?.uid) return;
 
     const presenceRef = rtdbRef(rtdb, "cinema/rooms/main/presence/" + user.uid);
