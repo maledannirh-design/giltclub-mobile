@@ -103,14 +103,19 @@ export function initCinemaVoice() {
         if (!peers.has(peerUid)) await createPeer(peerUid);
         const entry = peers.get(peerUid);
         if (!entry) return;
-        // Simultaneous seating can cause offer glare. Roll back our pending offer
-        // before accepting the other participant's offer, so SDP state stays valid.
-        if (entry.pc.signalingState !== "stable") {
+        // Ignore stale/duplicate offers once a remote description is already active.
+        // If we have our own pending offer, use perfect-negotiation rollback first.
+        if (entry.pc.currentRemoteDescription) return;
+        if (entry.pc.signalingState === "have-local-offer") {
           await entry.pc.setLocalDescription({ type: "rollback" });
+        } else if (entry.pc.signalingState !== "stable") {
+          return;
         }
         await entry.pc.setRemoteDescription(signal.payload);
+        if (entry.pc.signalingState !== "have-remote-offer") return;
         const answer = await entry.pc.createAnswer();
         await entry.pc.setLocalDescription(answer);
+        if (entry.pc.signalingState !== "stable") return;
         await sendSignal(peerUid, "answer", { type: entry.pc.localDescription.type, sdp: entry.pc.localDescription.sdp });
       } else if (signal.type === "answer") {
         const entry = peers.get(peerUid);
