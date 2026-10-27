@@ -109,6 +109,13 @@ export async function navigate(page){
     console.error("Booking listener cleanup failed:", cleanupError);
   }
 
+  if (previousPage === "cinema" && page !== "cinema") {
+    if (window.stopCinemaPresence) {
+      window.stopCinemaPresence();
+      window.stopCinemaPresence = null;
+    }
+  }
+
   currentPage = page;
 
   const content = document.getElementById("content");
