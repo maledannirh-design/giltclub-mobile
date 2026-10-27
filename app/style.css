@@ -4769,3 +4769,23 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
  .home-profile-left .cinema-only-actions .cinema-room-btn{font-size:10px;padding-left:6px!important;gap:5px;}
  .home-profile-right .leaderboard-btn,.home-profile-right .championclub-btn{gap:6px;}
 }
+
+
+/* Cinema capsule appearance only — intentionally does not change layout or sizing */
+.home-profile-left .cinema-only-actions .cinema-room-btn{
+  background:linear-gradient(115deg,#f7c8d9 0%,#f3a9c5 24%,#f8e7a4 48%,#edb2ce 68%,#f4d77c 86%,#f7c8d9 100%);
+  background-size:240% 240%;
+  border:1px solid rgba(205,157,74,.72);
+  border-radius:999px;
+  color:#65445a;
+  box-shadow:0 0 5px rgba(239,184,211,.55),inset 0 0 5px rgba(255,255,255,.7);
+  animation:cinema-capsule-shimmer 3.2s ease-in-out infinite;
+}
+.home-profile-left .cinema-only-actions .cinema-room-btn .fa-film{
+  color:#b45b8b;
+  text-shadow:0 0 3px rgba(255,255,255,.95),0 0 5px rgba(225,183,83,.9);
+}
+@keyframes cinema-capsule-shimmer{
+  0%,100%{background-position:0% 50%;box-shadow:0 0 4px rgba(239,184,211,.45),inset 0 0 4px rgba(255,255,255,.65);}
+  50%{background-position:100% 50%;box-shadow:0 0 9px rgba(229,190,91,.65),0 0 12px rgba(239,184,211,.35),inset 0 0 6px rgba(255,255,255,.8);}
+}
