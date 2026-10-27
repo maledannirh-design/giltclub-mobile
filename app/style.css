@@ -4733,3 +4733,18 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 .home-profile-right .video-only-actions{width:100%;display:flex;justify-content:flex-end;margin-top:0;}
 .home-profile-right .video-only-actions .videolab-btn{width:100%;justify-content:center;}
 @media(max-width:380px){.home-profile-left .cinema-only-actions{padding-left:44px}.home-profile-left .cinema-only-actions .cinema-room-btn{font-size:10px;padding:7px 6px}}
+
+/* HOME PROFILE HEADER — two stable columns */
+.home-header{display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start !important;column-gap:12px;}
+.home-profile-left,.home-profile-right{display:flex;flex-direction:column;align-items:stretch;min-width:0;width:100%;gap:7px;}
+.home-profile-left .home-profile-identity{display:flex;align-items:center;gap:8px;min-width:0;min-height:58px;}
+.home-profile-left .home-avatar{flex:0 0 42px;}
+.home-profile-left .home-avatar img,.home-profile-left .home-avatar .avatar-placeholder{width:42px;height:42px;}
+.home-profile-left .home-user-text{min-width:0;overflow-wrap:anywhere;}
+.home-profile-left .home-username{font-size:14px;line-height:1.25;}
+.home-profile-left .home-gpoint{font-size:12px;line-height:1.3;}
+.home-profile-left .cinema-only-actions,.home-profile-right .video-only-actions{display:flex;width:100%;min-width:0;margin:0;}
+.home-profile-left .cinema-only-actions .cinema-room-btn,.home-profile-right .video-only-actions .videolab-btn{display:flex;width:100%;min-width:0;min-height:36px;align-items:center;justify-content:center;gap:5px;padding:7px 6px;white-space:nowrap;font-size:11px;}
+.home-profile-left .cinema-only-actions .cinema-room-btn span,.home-profile-right .video-only-actions .videolab-btn span{overflow:hidden;text-overflow:ellipsis;}
+.home-profile-right .leaderboard-btn,.home-profile-right .championclub-btn{width:100%;min-width:0;}
+@media(max-width:380px){.home-header{column-gap:8px;}.home-profile-left .home-profile-identity{gap:6px;}.home-profile-left .home-avatar{flex-basis:36px;}.home-profile-left .home-avatar img,.home-profile-left .home-avatar .avatar-placeholder{width:36px;height:36px;}.home-profile-left .home-username{font-size:13px;}.home-profile-left .home-gpoint{font-size:11px;}.home-profile-left .cinema-only-actions .cinema-room-btn,.home-profile-right .video-only-actions .videolab-btn{font-size:10px;padding:7px 4px;gap:3px;}}
