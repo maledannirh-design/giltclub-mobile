@@ -42,14 +42,6 @@ export function renderCinemaRoom() {
 
   content.innerHTML = `
     <section class="cinema-page" aria-label="Giltclub Cinema">
-      <header class="cinema-heading">
-        <div>
-          <h1>🎤 Giltclub Cinema</h1>
-          <p class="cinema-subtitle">Nonton bareng, nyanyi bergantian, ngobrol bersama.</p>
-        </div>
-        <span class="cinema-status">● Room utama · Prototype</span>
-      </header>
-
       <section class="cinema-screen" aria-label="Layar video">
         <div class="cinema-screen-top"><span>▶ LAYAR YOUTUBE</span><span id="cinemaPlaybackLabel">Belum ada video</span></div>
         <div class="cinema-video-placeholder">
@@ -93,7 +85,6 @@ export function renderCinemaRoom() {
           </form>
         </section>
       </div>
-      <p class="cinema-footnote">Tahap awal tampilan saja. Kursi, chat, video, dan audio belum tersambung ke Firebase atau layanan live audio.</p>
     </section>
   `;
 
