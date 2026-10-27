@@ -19,6 +19,8 @@ export function initCinemaVoice() {
   let stopSeats = null;
   let stopIncoming = new Map();
   let peers = new Map();
+  const connecting = new Set();
+  const signalCutoffs = new Map();
   const signalQueues = new Map();
   const pendingCandidates = new Map();
   let sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -86,8 +88,26 @@ export function initCinemaVoice() {
       const remote = event.streams?.[0];
       if (remote) {
         audio.srcObject = remote;
-        audio.play().catch(() => say("Klik layar sekali jika suara belum terdengar."));
+        audio.play().then(() => {
+          say("Audio anggota terhubung.");
+        }).catch(() => say("Klik layar sekali untuk mengaktifkan pemutaran suara."));
+        remote.getAudioTracks().forEach(track => {
+          track.onunmute = () => console.info("Cinema voice: remote audio unmuted", peerUid);
+          track.onmute = () => console.warn("Cinema voice: remote audio muted", peerUid);
+          track.onended = () => console.warn("Cinema voice: remote audio ended", peerUid);
+        });
       }
+    };
+    pc.onconnectionstatechange = () => {
+      console.info("Cinema voice connection:", peerUid, pc.connectionState, pc.iceConnectionState);
+      if (pc.connectionState === "failed") say("Koneksi suara gagal. Jaringan mungkin memerlukan TURN server.");
+      else if (pc.connectionState === "connected") say("Audio anggota terhubung.");
+    };
+    pc.oniceconnectionstatechange = () => {
+      console.info("Cinema voice ICE:", peerUid, pc.iceConnectionState);
+    };
+    pc.onicecandidateerror = event => {
+      console.warn("Cinema voice ICE candidate error:", peerUid, event.errorCode, event.errorText);
     };
     pc.onicecandidate = event => {
       if (event.candidate) sendSignal(peerUid, "candidate", event.candidate.toJSON()).catch(err => console.warn("Voice ICE:", err));
@@ -100,6 +120,7 @@ export function initCinemaVoice() {
   };
   const processSignal = async (peerUid, signal) => {
     if (!signal || !seated || !user?.uid || signal.fromSession === sessionId) return;
+    if (Number(signal.sentAt || 0) < Number(signalCutoffs.get(peerUid) || 0)) return;
     try {
       if (signal.type === "offer") {
         if (!peers.has(peerUid)) await createPeer(peerUid);
@@ -161,8 +182,10 @@ export function initCinemaVoice() {
     }).catch(() => {});
     return current;
   };
-  const connectPeer = async peerUid => {
-    if (!user?.uid || !seated || peerUid === user.uid || stopIncoming.has(peerUid)) return;
+  const connectPeer = async (peerUid, peerSeatedAt = 0, mySeatedAt = 0) => {
+    if (!user?.uid || !seated || peerUid === user.uid || stopIncoming.has(peerUid) || connecting.has(peerUid)) return;
+    connecting.add(peerUid);
+    signalCutoffs.set(peerUid, Math.max(Number(peerSeatedAt || 0), Number(mySeatedAt || 0)));
     try {
       await createPeer(peerUid);
       const incomingRef = signalPath(peerUid, user.uid);
@@ -176,10 +199,14 @@ export function initCinemaVoice() {
     } catch (error) {
       console.warn("Cinema voice start failed:", error?.message || error);
       say(error?.name === "NotAllowedError" ? "Izinkan akses mikrofon di browser." : "Mikrofon belum bisa diaktifkan.");
+    } finally {
+      connecting.delete(peerUid);
     }
   };
   const reconcile = async seats => {
-    const mySeat = Object.values(seats || {}).some(seat => seat?.uid === user?.uid);
+    const mySeatEntry = Object.entries(seats || {}).find(([, seat]) => seat?.uid === user?.uid);
+    const mySeat = Boolean(mySeatEntry);
+    const mySeatedAt = Number(mySeatEntry?.[1]?.seatedAt || 0);
     if (!mySeat) {
       if (seated || localStream || peers.size) await stopAll();
       seated = false;
@@ -198,7 +225,7 @@ export function initCinemaVoice() {
         await ensureMic();
         say("Mikrofon aktif. Anda bisa berbicara.");
         Object.values(seats || {}).forEach(seat => {
-          if (seat?.uid && seat.uid !== user.uid) connectPeer(seat.uid);
+          if (seat?.uid && seat.uid !== user.uid) connectPeer(seat.uid, seat.seatedAt, mySeatedAt);
         });
       } catch (error) {
         console.warn("Cinema microphone permission:", error?.message || error);
@@ -208,10 +235,10 @@ export function initCinemaVoice() {
       }
     } else {
       Object.values(seats || {}).forEach(seat => {
-        if (seat?.uid && seat.uid !== user.uid) connectPeer(seat.uid);
+        if (seat?.uid && seat.uid !== user.uid) connectPeer(seat.uid, seat.seatedAt, mySeatedAt);
       });
       for (const uid of [...peers.keys()]) {
-        if (!Object.values(seats || {}).some(seat => seat?.uid === uid)) stopPeer(uid);
+        if (!Object.values(seats || {}).some(seat => seat?.uid === uid)) { stopPeer(uid); pendingCandidates.delete(uid); signalCutoffs.delete(uid); }
       }
     }
   };
