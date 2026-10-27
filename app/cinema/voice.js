@@ -1,6 +1,6 @@
 import { auth, rtdb } from "../firebase.js";
 import {
-  ref, onValue, push, set, remove, onDisconnect
+  ref, onValue, onChildAdded, push, set, remove, onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -102,8 +102,7 @@ export function initCinemaVoice() {
     if (!signal || !seated || !user?.uid || signal.fromSession === sessionId) return;
     try {
       if (signal.type === "offer") {
-        stopPeer(peerUid);
-        await createPeer(peerUid);
+        if (!peers.has(peerUid)) await createPeer(peerUid);
         const entry = peers.get(peerUid);
         if (!entry) return;
         await entry.pc.setRemoteDescription(signal.payload);
@@ -129,8 +128,8 @@ export function initCinemaVoice() {
     try {
       await createPeer(peerUid);
       const incomingRef = signalPath(peerUid, user.uid);
-      const stop = onValue(incomingRef, snapshot => {
-        snapshot.forEach(child => handleSignal(peerUid, child.val()));
+      const stop = onChildAdded(incomingRef, child => {
+        handleSignal(peerUid, child.val());
       }, error => {
         console.warn("Voice signal listener:", error?.message || error);
         say("Izin koneksi suara belum tersedia di Firebase.");
