@@ -149,24 +149,26 @@ export function initCinemaVoice() {
     };
     pc.onconnectionstatechange = () => {
       console.info("Cinema voice connection:", peerUid, pc.connectionState, pc.iceConnectionState);
-      if (pc.connectionState === "failed") {
-        say("Koneksi suara terputus. Mencoba menyambungkan ulang…");
-        // Remove the stale peer and its signal listener, then renegotiate automatically.
-        // This avoids requiring members to stand up and sit down again.
-        if (reconnectTimers.has(peerUid)) clearTimeout(reconnectTimers.get(peerUid));
+      const state = pc.connectionState;
+      if (state === "failed" || state === "disconnected") {
+        // "disconnected" can be transient, so wait briefly before rebuilding the peer.
+        if (reconnectTimers.has(peerUid)) return;
+        say("Koneksi suara sedang disambungkan ulang…");
         const timer = setTimeout(async () => {
           reconnectTimers.delete(peerUid);
+          const current = peers.get(peerUid);
           const stillSeated = Object.values(latestSeats || {}).some(seat => seat?.uid === peerUid);
-          if (destroyed || !seated || !stillSeated || !user?.uid) return;
+          if (destroyed || !seated || !stillSeated || !user?.uid || !current || current.pc.connectionState === "connected") return;
           stopPeer(peerUid);
           pendingCandidates.delete(peerUid);
           signalCutoffs.delete(peerUid);
+          signalQueues.delete(peerUid);
           const peerSeat = Object.values(latestSeats).find(seat => seat?.uid === peerUid);
           const mySeat = Object.values(latestSeats).find(seat => seat?.uid === user.uid);
           await connectPeer(peerUid, peerSeat?.seatedAt, mySeat?.seatedAt);
-        }, 1200);
+        }, state === "failed" ? 900 : 2500);
         reconnectTimers.set(peerUid, timer);
-      } else if (pc.connectionState === "connected") {
+      } else if (state === "connected") {
         const timer = reconnectTimers.get(peerUid);
         if (timer) clearTimeout(timer);
         reconnectTimers.delete(peerUid);
