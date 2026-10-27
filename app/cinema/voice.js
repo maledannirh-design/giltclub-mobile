@@ -20,6 +20,7 @@ export function initCinemaVoice() {
   let stopIncoming = new Map();
   let peers = new Map();
   const signalQueues = new Map();
+  const pendingCandidates = new Map();
   let sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
   let starting = false;
   let destroyed = false;
@@ -113,6 +114,11 @@ export function initCinemaVoice() {
           return;
         }
         await entry.pc.setRemoteDescription(signal.payload);
+        const queued = pendingCandidates.get(peerUid) || [];
+        pendingCandidates.delete(peerUid);
+        for (const candidate of queued) {
+          try { await entry.pc.addIceCandidate(candidate); } catch (err) { console.warn("Voice queued ICE:", err); }
+        }
         if (entry.pc.signalingState !== "have-remote-offer") return;
         const answer = await entry.pc.createAnswer();
         await entry.pc.setLocalDescription(answer);
@@ -120,11 +126,24 @@ export function initCinemaVoice() {
         await sendSignal(peerUid, "answer", { type: entry.pc.localDescription.type, sdp: entry.pc.localDescription.sdp });
       } else if (signal.type === "answer") {
         const entry = peers.get(peerUid);
-        if (entry && !entry.pc.currentRemoteDescription) await entry.pc.setRemoteDescription(signal.payload);
+        if (entry && !entry.pc.currentRemoteDescription && entry.pc.signalingState === "have-local-offer") {
+          await entry.pc.setRemoteDescription(signal.payload);
+          const queued = pendingCandidates.get(peerUid) || [];
+          pendingCandidates.delete(peerUid);
+          for (const candidate of queued) {
+            try { await entry.pc.addIceCandidate(candidate); } catch (err) { console.warn("Voice queued ICE:", err); }
+          }
+        }
       } else if (signal.type === "candidate") {
         const entry = peers.get(peerUid);
         if (entry && signal.payload) {
-          try { await entry.pc.addIceCandidate(signal.payload); } catch (err) { console.warn("Voice candidate:", err); }
+          if (!entry.pc.remoteDescription) {
+            const queued = pendingCandidates.get(peerUid) || [];
+            queued.push(signal.payload);
+            pendingCandidates.set(peerUid, queued);
+          } else {
+            try { await entry.pc.addIceCandidate(signal.payload); } catch (err) { console.warn("Voice candidate:", err); }
+          }
         }
       }
     } catch (error) {
