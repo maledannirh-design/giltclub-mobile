@@ -1,4 +1,5 @@
 import { auth, db, rtdb } from "../firebase.js";
+import { initCinemaVoice } from "./voice.js";
 import { doc, getDoc } from "../firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue, runTransaction as rtdbRunTransaction, push as rtdbPush, query as rtdbQuery, orderByChild as rtdbOrderByChild, limitToLast as rtdbLimitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -284,6 +285,7 @@ export function renderCinemaRoom() {
           <button class="cinema-chat-tool" id="cinemaEmojiToggle" type="button" aria-label="Buka emoji" title="Emoji">😀</button>
           <button class="cinema-chat-tool" id="cinemaStickerToggle" type="button" aria-label="Buka sticker" title="Sticker">🎟️</button>
           <form class="cinema-chat-form" id="cinemaChatForm">
+            <button class="cinema-voice-mute" id="cinemaVoiceMute" type="button" aria-label="Mikrofon" title="Mic hanya aktif saat duduk" hidden disabled>🎙️</button>
             <input id="cinemaChatInput" type="text" maxlength="300" placeholder="Tulis pesan..." aria-label="Tulis pesan" autocomplete="off" />
             <button class="cinema-button" type="submit">Kirim</button>
           </form>
@@ -296,6 +298,7 @@ export function renderCinemaRoom() {
 
   startRoomPresence();
   startSeatSelection();
+  initCinemaVoice();
 
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
