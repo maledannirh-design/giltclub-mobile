@@ -1,4 +1,5 @@
-import { auth, rtdb } from "../firebase.js";
+import { auth, db, rtdb } from "../firebase.js";
+import { doc, getDoc } from "../firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue, runTransaction as rtdbRunTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Load CSS as a stylesheet resource; browser modules do not support direct CSS imports.
@@ -27,6 +28,22 @@ let stopSeatListener = null;
 let stopSeatDisconnect = null;
 let seatAuthUser = null;
 
+function showCinemaSeatNotice(message) {
+  let notice = document.getElementById("cinemaSeatNotice");
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "cinemaSeatNotice";
+    notice.className = "cinema-seat-notice";
+    notice.setAttribute("role", "status");
+    notice.setAttribute("aria-live", "polite");
+    document.querySelector(".cinema-page")?.appendChild(notice);
+  }
+  notice.textContent = message;
+  notice.classList.add("is-visible");
+  clearTimeout(notice._hideTimer);
+  notice._hideTimer = setTimeout(() => notice.classList.remove("is-visible"), 2600);
+}
+
 function startSeatSelection() {
   const seatsRoot = rtdbRef(rtdb, "cinema/rooms/main/seats");
   stopSeatListener?.();
@@ -35,13 +52,42 @@ function startSeatSelection() {
     document.querySelectorAll(".cinema-seat.audience-seat").forEach(el => {
       const seatId = el.dataset.seatId;
       const occupant = seats[seatId];
+      const icon = el.querySelector(".seat-icon");
+      const chair = icon?.querySelector("img");
+      const isMine = Boolean(occupant && seatAuthUser && occupant.uid === seatAuthUser.uid);
       el.classList.toggle("is-occupied", Boolean(occupant));
-      el.classList.toggle("is-mine", Boolean(occupant && seatAuthUser && occupant.uid === seatAuthUser.uid));
+      el.classList.toggle("is-mine", isMine);
+      if (icon) {
+        let avatar = icon.querySelector(".seat-avatar");
+        if (occupant) {
+          if (!avatar) {
+            avatar = document.createElement("span");
+            avatar.className = "seat-avatar";
+            icon.appendChild(avatar);
+          }
+          avatar.replaceChildren();
+          if (occupant.photoURL) {
+            const img = document.createElement("img");
+            img.className = "seat-avatar-image";
+            img.src = occupant.photoURL;
+            img.alt = "";
+            img.referrerPolicy = "no-referrer";
+            avatar.appendChild(img);
+          } else {
+            avatar.textContent = (occupant.username || "M").trim().slice(0, 1).toUpperCase();
+          }
+          avatar.title = occupant.username || "Anggota";
+          if (chair) chair.hidden = true;
+        } else {
+          avatar?.remove();
+          if (chair) chair.hidden = false;
+        }
+      }
       el.setAttribute("aria-label", occupant
         ? `Kursi penonton ${seatId.replace("audience-", "")}, ditempati ${occupant.username || "anggota"}`
         : `Kursi penonton ${seatId.replace("audience-", "")}, kosong`);
       el.title = occupant
-        ? (occupant.uid === seatAuthUser?.uid ? "Kursi Anda — klik untuk berdiri" : `Diduduki ${occupant.username || "anggota"}`)
+        ? (isMine ? "Kursi Anda — klik untuk berdiri" : `Diduduki ${occupant.username || "anggota"}`)
         : "Klik untuk duduk";
     });
   }, error => console.warn("Cinema seat listener unavailable:", error?.message || error));
@@ -60,31 +106,44 @@ function startSeatSelection() {
       const seatId = el.dataset.seatId;
       if (!seatId) return;
       const seatRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
+      const buttonLabel = el.getAttribute("aria-label") || "kursi";
       try {
+        let profile = {};
+        try {
+          const profileSnap = await getDoc(doc(db, "users", user.uid));
+          if (profileSnap.exists()) profile = profileSnap.data() || {};
+        } catch (profileError) {
+          console.warn("Cinema profile photo unavailable:", profileError?.message || profileError);
+        }
+        const username = profile.username || profile.fullName || user.displayName || user.email?.split("@")[0] || "Member";
         const result = await rtdbRunTransaction(seatRef, current => {
           if (current && current.uid !== user.uid) return;
           if (current && current.uid === user.uid) return null;
           return {
             uid: user.uid,
-            username: user.displayName || user.email?.split("@")[0] || "Member",
+            username,
+            photoURL: profile.photoURL || user.photoURL || null,
             seatedAt: Date.now()
           };
         }, { applyLocally: false });
         if (!result.committed) {
-          console.info("Kursi sudah ditempati anggota lain.");
+          showCinemaSeatNotice("Kursi sudah terisi anggota lain.");
           return;
         }
         if (result.snapshot.val()) {
+          showCinemaSeatNotice("Berhasil duduk di kursi " + seatId.replace("audience-", "") + ".");
           const seatDisconnectRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
           await rtdbOnDisconnect(seatDisconnectRef).remove();
           stopSeatDisconnect?.();
           stopSeatDisconnect = () => rtdbRemove(seatDisconnectRef).catch(() => {});
           window.stopCinemaSeat = stopSeatDisconnect;
         } else {
+          showCinemaSeatNotice("Anda berdiri dari kursi " + seatId.replace("audience-", "") + ".");
           stopSeatDisconnect?.();
           stopSeatDisconnect = null;
         }
       } catch (error) {
+        showCinemaSeatNotice("Belum berhasil memilih kursi. Periksa izin Firebase.");
         console.warn("Cinema seat selection failed:", error?.message || error);
       }
     };
