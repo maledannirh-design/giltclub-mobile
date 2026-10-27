@@ -19,6 +19,7 @@ export function initCinemaVoice() {
   let stopSeats = null;
   let stopIncoming = new Map();
   let peers = new Map();
+  const signalQueues = new Map();
   let sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
   let starting = false;
   let destroyed = false;
@@ -96,7 +97,7 @@ export function initCinemaVoice() {
       await sendSignal(peerUid, "offer", { type: pc.localDescription.type, sdp: pc.localDescription.sdp });
     }
   };
-  const handleSignal = async (peerUid, signal) => {
+  const processSignal = async (peerUid, signal) => {
     if (!signal || !seated || !user?.uid || signal.fromSession === sessionId) return;
     try {
       if (signal.type === "offer") {
@@ -130,6 +131,16 @@ export function initCinemaVoice() {
       console.warn("Cinema voice signaling failed:", error?.message || error);
       say("Koneksi suara belum berhasil. Coba duduk ulang.");
     }
+  };
+  // RTDB child-added callbacks may fire close together; serialize SDP changes per peer.
+  const handleSignal = (peerUid, signal) => {
+    const previous = signalQueues.get(peerUid) || Promise.resolve();
+    const current = previous.catch(() => {}).then(() => processSignal(peerUid, signal));
+    signalQueues.set(peerUid, current);
+    current.finally(() => {
+      if (signalQueues.get(peerUid) === current) signalQueues.delete(peerUid);
+    }).catch(() => {});
+    return current;
   };
   const connectPeer = async peerUid => {
     if (!user?.uid || !seated || peerUid === user.uid || stopIncoming.has(peerUid)) return;
