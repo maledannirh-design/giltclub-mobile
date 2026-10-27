@@ -290,6 +290,7 @@ export function renderCinemaRoom() {
             <button class="cinema-button" type="submit">Kirim</button>
           </form>
         </div>
+        <div class="cinema-voice-status" id="cinemaVoiceStatus" role="status" aria-live="polite">Duduk di kursi untuk mengaktifkan suara.</div>
         <div class="cinema-chat-picker" id="cinemaEmojiPicker" hidden aria-label="Pilih emoji"></div>
         <div class="cinema-chat-picker cinema-sticker-picker" id="cinemaStickerPicker" hidden aria-label="Pilih sticker"></div>
       </section>
