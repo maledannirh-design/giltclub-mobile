@@ -29,7 +29,6 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") dailyLock = false;
 });
 
-
 /* =========================================
    HOME DASHBOARD 
 ========================================= */
