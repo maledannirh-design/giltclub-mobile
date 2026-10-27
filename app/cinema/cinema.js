@@ -318,20 +318,16 @@ export function renderCinemaRoom() {
             <span>🎚️ Mixer Karaoke</span><span class="cinema-mixer-chevron">＋</span>
           </button>
           <div class="cinema-mixer-body" id="cinemaMixerBody" hidden>
-            <label class="cinema-mixer-control"><span>🎙️ Volume suara user <output id="cinemaVoiceVolumeValue">100%</output></span><input id="cinemaVoiceVolume" type="range" min="0" max="100" value="100" step="1" /></label>
-            <label class="cinema-mixer-control"><span>🎵 Volume musik YouTube <output id="cinemaMusicVolumeValue">70%</output></span><input id="cinemaMusicVolume" type="range" min="0" max="100" value="70" step="1" /></label>
+            <p class="cinema-mixer-note" id="cinemaMixerAccessNote">Mixer global dikendalikan dari kursi penyanyi.</p>
+            <label class="cinema-mixer-control"><span>🎙️ Level vokal <output id="cinemaVoiceVolumeValue">100%</output></span><input id="cinemaVoiceVolume" type="range" min="0" max="150" value="100" step="1" /></label>
+            <label class="cinema-mixer-control"><span>🎵 Volume musik <output id="cinemaMusicVolumeValue">70%</output></span><input id="cinemaMusicVolume" type="range" min="0" max="100" value="70" step="1" /></label>
+            <label class="cinema-mixer-control"><span>⏱️ Audio offset / latency <output id="cinemaLatencyValue">0 ms</output></span><input id="cinemaLatency" type="range" min="0" max="500" value="0" step="10" /><small class="cinema-mixer-help">Menunda vokal yang diterima semua anggota untuk membantu sinkronisasi. Tidak menghilangkan delay jaringan.</small></label>
             <button class="cinema-eq-toggle" id="cinemaEqToggle" type="button" aria-expanded="false">🎛️ Equalizer <span>＋</span></button>
             <div class="cinema-eq-body" id="cinemaEqBody" hidden>
-              <div class="cinema-eq-presets" role="group" aria-label="Preset equalizer">
-                <button type="button" data-eq-preset="pop">Pop</button>
-                <button type="button" data-eq-preset="vocal">Vocal</button>
-                <button type="button" data-eq-preset="bass">Bass</button>
-                <button type="button" data-eq-preset="treble">Treble</button>
-              </div>
-              <label class="cinema-mixer-control"><span>Bass <output id="cinemaEqBassValue">0 dB</output></span><input id="cinemaEqBass" type="range" min="-12" max="12" value="0" step="1" /></label>
-              <label class="cinema-mixer-control"><span>Mid <output id="cinemaEqMidValue">0 dB</output></span><input id="cinemaEqMid" type="range" min="-12" max="12" value="0" step="1" /></label>
-              <label class="cinema-mixer-control"><span>Treble <output id="cinemaEqTrebleValue">0 dB</output></span><input id="cinemaEqTreble" type="range" min="-12" max="12" value="0" step="1" /></label>
-              <p class="cinema-mixer-note">Equalizer mengatur suara penyanyi yang diterima. Volume musik hanya mengatur YouTube di perangkat ini.</p>
+              <div class="cinema-eq-presets" role="group" aria-label="Preset equalizer"><button type="button" data-eq-preset="flat">Flat</button><button type="button" data-eq-preset="pop">Pop</button><button type="button" data-eq-preset="vocal">Vocal</button><button type="button" data-eq-preset="bass">Bass</button><button type="button" data-eq-preset="treble">Treble</button></div>
+              <label class="cinema-mixer-control"><span>Preamp <output id="cinemaEqPreampValue">0 dB</output></span><input id="cinemaEqPreamp" type="range" min="-12" max="12" value="0" step="1" /></label>
+              <div class="cinema-eq-bands" role="group" aria-label="Equalizer 10 band"><label class="cinema-eq-band"><input id="cinemaEqBand0" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="32 Hz" /><output id="cinemaEqBand0Value">0</output><span>32</span></label><label class="cinema-eq-band"><input id="cinemaEqBand1" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="64 Hz" /><output id="cinemaEqBand1Value">0</output><span>64</span></label><label class="cinema-eq-band"><input id="cinemaEqBand2" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="125 Hz" /><output id="cinemaEqBand2Value">0</output><span>125</span></label><label class="cinema-eq-band"><input id="cinemaEqBand3" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="250 Hz" /><output id="cinemaEqBand3Value">0</output><span>250</span></label><label class="cinema-eq-band"><input id="cinemaEqBand4" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="500 Hz" /><output id="cinemaEqBand4Value">0</output><span>500</span></label><label class="cinema-eq-band"><input id="cinemaEqBand5" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="1K Hz" /><output id="cinemaEqBand5Value">0</output><span>1K</span></label><label class="cinema-eq-band"><input id="cinemaEqBand6" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="2K Hz" /><output id="cinemaEqBand6Value">0</output><span>2K</span></label><label class="cinema-eq-band"><input id="cinemaEqBand7" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="4K Hz" /><output id="cinemaEqBand7Value">0</output><span>4K</span></label><label class="cinema-eq-band"><input id="cinemaEqBand8" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="8K Hz" /><output id="cinemaEqBand8Value">0</output><span>8K</span></label><label class="cinema-eq-band"><input id="cinemaEqBand9" type="range" min="-12" max="12" value="0" step="1" orient="vertical" aria-label="16K Hz" /><output id="cinemaEqBand9Value">0</output><span>16K</span></label></div>
+              <p class="cinema-mixer-note">Equalizer global diterapkan pada vokal yang diterima semua anggota. Volume speaker/HP pribadi tetap lokal.</p>
             </div>
           </div>
         </section>
@@ -386,55 +382,18 @@ export function renderCinemaRoom() {
   `;
 
 
-  // Local mixer UI: music volume uses the YouTube player API; voice volume is sent to voice.js.
-  const mixerToggle = document.getElementById("cinemaMixerToggle");
-  const mixerBody = document.getElementById("cinemaMixerBody");
-  const eqToggle = document.getElementById("cinemaEqToggle");
-  const eqBody = document.getElementById("cinemaEqBody");
-  mixerToggle?.addEventListener("click", () => {
-    const open = mixerBody.hidden;
-    mixerBody.hidden = !open;
-    mixerToggle.setAttribute("aria-expanded", String(open));
-    mixerToggle.querySelector(".cinema-mixer-chevron").textContent = open ? "−" : "＋";
-  });
-  eqToggle?.addEventListener("click", () => {
-    const open = eqBody.hidden;
-    eqBody.hidden = !open;
-    eqToggle.setAttribute("aria-expanded", String(open));
-    eqToggle.lastElementChild.textContent = open ? "−" : "＋";
-  });
-  const voiceVolume = document.getElementById("cinemaVoiceVolume");
-  const musicVolume = document.getElementById("cinemaMusicVolume");
-  const eqSliders = {
-    bass: document.getElementById("cinemaEqBass"),
-    mid: document.getElementById("cinemaEqMid"),
-    treble: document.getElementById("cinemaEqTreble")
-  };
-  const updateVoiceVolume = () => {
-    document.getElementById("cinemaVoiceVolumeValue").value = voiceVolume.value + "%";
-    window.dispatchEvent(new CustomEvent("cinema:mixer-voice-volume", { detail: { volume: Number(voiceVolume.value) / 100 } }));
-  };
-  const updateMusicVolume = () => {
-    document.getElementById("cinemaMusicVolumeValue").value = musicVolume.value + "%";
-    try { if (youtubePlayerReady && youtubePlayerApi?.setVolume) youtubePlayerApi.setVolume(Number(musicVolume.value)); } catch {}
-  };
-  const updateEq = () => {
-    for (const [key, input] of Object.entries(eqSliders)) document.getElementById("cinemaEq" + key[0].toUpperCase() + key.slice(1) + "Value").value = input.value + " dB";
-    window.dispatchEvent(new CustomEvent("cinema:mixer-eq", { detail: { bass: Number(eqSliders.bass.value), mid: Number(eqSliders.mid.value), treble: Number(eqSliders.treble.value) } }));
-  };
-  voiceVolume?.addEventListener("input", updateVoiceVolume);
-  musicVolume?.addEventListener("input", updateMusicVolume);
-  Object.values(eqSliders).forEach(input => input?.addEventListener("input", updateEq));
-  document.querySelectorAll("[data-eq-preset]").forEach(button => button.addEventListener("click", () => {
-    const presets = { pop: [3, 1, 3], vocal: [1, 4, 2], bass: [6, 0, -1], treble: [-1, 1, 6] };
-    const values = presets[button.dataset.eqPreset];
-    [eqSliders.bass, eqSliders.mid, eqSliders.treble].forEach((input, i) => input.value = values[i]);
-    document.querySelectorAll("[data-eq-preset]").forEach(item => item.classList.toggle("is-active", item === button));
-    updateEq();
-  }));
-  updateVoiceVolume();
-  updateMusicVolume();
-  updateEq();
+  const mixerToggle=document.getElementById("cinemaMixerToggle"),mixerBody=document.getElementById("cinemaMixerBody"),eqToggle=document.getElementById("cinemaEqToggle"),eqBody=document.getElementById("cinemaEqBody");
+  mixerToggle?.addEventListener("click",()=>{const o=mixerBody.hidden;mixerBody.hidden=!o;mixerToggle.setAttribute("aria-expanded",String(o));mixerToggle.querySelector(".cinema-mixer-chevron").textContent=o?"−":"＋";});
+  eqToggle?.addEventListener("click",()=>{const o=eqBody.hidden;eqBody.hidden=!o;eqToggle.setAttribute("aria-expanded",String(o));eqToggle.lastElementChild.textContent=o?"−":"＋";});
+  const voiceVolume=document.getElementById("cinemaVoiceVolume"),musicVolume=document.getElementById("cinemaMusicVolume"),latency=document.getElementById("cinemaLatency"),preamp=document.getElementById("cinemaEqPreamp"),bandInputs=Array.from({length:10},(_,i)=>document.getElementById("cinemaEqBand"+i));
+  const mixerRef=rtdbRef(rtdb,"cinema/rooms/main/mixer");let sharedMixer={voice:100,music:70,latency:0,preamp:0,bands:Array(10).fill(0)},mixerWriteTimer=null,applyingSharedMixer=false;
+  const renderMixer=c=>{applyingSharedMixer=true;sharedMixer={voice:Math.max(0,Math.min(150,Number(c?.voice??100))),music:Math.max(0,Math.min(100,Number(c?.music??70))),latency:Math.max(0,Math.min(500,Number(c?.latency??0))),preamp:Math.max(-12,Math.min(12,Number(c?.preamp??0))),bands:Array.from({length:10},(_,i)=>Math.max(-12,Math.min(12,Number(c?.bands?.[i]??0))))};voiceVolume.value=sharedMixer.voice;musicVolume.value=sharedMixer.music;latency.value=sharedMixer.latency;preamp.value=sharedMixer.preamp;bandInputs.forEach((e,i)=>e.value=sharedMixer.bands[i]);document.getElementById("cinemaVoiceVolumeValue").value=sharedMixer.voice+"%";document.getElementById("cinemaMusicVolumeValue").value=sharedMixer.music+"%";document.getElementById("cinemaLatencyValue").value=sharedMixer.latency+" ms";document.getElementById("cinemaEqPreampValue").value=sharedMixer.preamp+" dB";bandInputs.forEach((e,i)=>document.getElementById("cinemaEqBand"+i+"Value").value=sharedMixer.bands[i]);document.querySelectorAll("[data-eq-preset]").forEach(b=>b.classList.remove("is-active"));window.dispatchEvent(new CustomEvent("cinema:mixer-config",{detail:sharedMixer}));try{if(youtubePlayerReady&&youtubePlayerApi?.setVolume)youtubePlayerApi.setVolume(sharedMixer.music)}catch{}const singer=Boolean(cinemaUserIsSinger&&seatAuthUser?.uid);[voiceVolume,musicVolume,latency,preamp,...bandInputs].forEach(e=>{if(e)e.disabled=!singer});document.getElementById("cinemaMixerAccessNote").textContent=singer?"Anda mengontrol mixer global untuk semua anggota.":"Mixer global dikendalikan dari kursi penyanyi.";applyingSharedMixer=false;};
+  const publishMixer=()=>{if(!cinemaUserIsSinger||!seatAuthUser?.uid||applyingSharedMixer)return;clearTimeout(mixerWriteTimer);mixerWriteTimer=setTimeout(()=>rtdbSet(mixerRef,{voice:Number(voiceVolume.value),music:Number(musicVolume.value),latency:Number(latency.value),preamp:Number(preamp.value),bands:bandInputs.map(e=>Number(e.value)),updatedAt:Date.now(),updatedBy:seatAuthUser.uid}).catch(e=>{console.warn("Cinema shared mixer write failed:",e?.message||e);showCinemaSeatNotice("Mixer gagal disinkronkan. Periksa izin Firebase.")}),120)};
+  const stopMixerListener=rtdbOnValue(mixerRef,s=>renderMixer(s.val()||sharedMixer),e=>console.warn("Cinema mixer listener unavailable:",e?.message||e));
+  [voiceVolume,musicVolume,latency,preamp,...bandInputs].forEach(e=>e?.addEventListener("input",()=>{document.getElementById("cinemaVoiceVolumeValue").value=voiceVolume.value+"%";document.getElementById("cinemaMusicVolumeValue").value=musicVolume.value+"%";document.getElementById("cinemaLatencyValue").value=latency.value+" ms";document.getElementById("cinemaEqPreampValue").value=preamp.value+" dB";bandInputs.forEach((b,i)=>document.getElementById("cinemaEqBand"+i+"Value").value=b.value);publishMixer()}));
+  const presets={flat:{preamp:0,bands:Array(10).fill(0)},pop:{preamp:0,bands:[2,3,1,-1,-2,0,2,3,2,2]},vocal:{preamp:0,bands:[-2,-1,0,2,4,4,3,1,0,-1]},bass:{preamp:-2,bands:[6,5,3,1,0,-1,-2,-2,-1,0]},treble:{preamp:-1,bands:[-2,-1,-1,0,0,1,2,4,5,5]}};
+  document.querySelectorAll("[data-eq-preset]").forEach(b=>b.addEventListener("click",()=>{if(!cinemaUserIsSinger)return;const p=presets[b.dataset.eqPreset];if(!p)return;preamp.value=p.preamp;bandInputs.forEach((e,i)=>e.value=p.bands[i]);document.querySelectorAll("[data-eq-preset]").forEach(x=>x.classList.toggle("is-active",x===b));publishMixer()}));
+  window.addEventListener("pagehide",()=>{stopMixerListener();clearTimeout(mixerWriteTimer)},{once:true});renderMixer(sharedMixer);
 
   startRoomPresence();
   startSeatSelection();
@@ -478,6 +437,7 @@ export function renderCinemaRoom() {
     if (youtubeInput) youtubeInput.placeholder = enabled ? "Cari judul lagu / penyanyi..." : "Duduk di kursi penyanyi untuk mencari";
     if (youtubeLabel && !activeYoutubeId) youtubeLabel.textContent = enabled ? "Kursi penyanyi aktif" : "Duduk di kursi penyanyi untuk mencari lagu";
     if (!enabled && youtubeResults) { youtubeResults.replaceChildren(); youtubeResults.hidden = true; }
+    if (typeof renderMixer === "function") renderMixer(sharedMixer);
     refreshPlaybackUi();
   };
   window.setCinemaSingerAccess(cinemaUserIsSinger);
@@ -523,7 +483,7 @@ export function renderCinemaRoom() {
       const YT = await loadYouTubePlayerApi();
       if (activeYoutubeId !== videoId || !host.isConnected) return;
       youtubePlayerApi = new YT.Player(host, { width: "100%", height: "100%", videoId, playerVars: { playsinline: 1, controls: 0, rel: 0, autoplay: 0, origin: window.location.origin }, events: {
-        onReady: event => { if (activeYoutubeId !== videoId) return; youtubePlayerApi = event.target; youtubePlayerReady = true; refreshPlaybackUi(); if (latestPlaybackState && latestPlaybackState.videoId === videoId) applyPlaybackState(latestPlaybackState); },
+        onReady: event => { if (activeYoutubeId !== videoId) return; youtubePlayerApi = event.target; youtubePlayerReady = true; try { youtubePlayerApi.setVolume(Number(document.getElementById("cinemaMusicVolume")?.value ?? 70)); } catch {} refreshPlaybackUi(); if (latestPlaybackState && latestPlaybackState.videoId === videoId) applyPlaybackState(latestPlaybackState); },
         onStateChange: event => { if (activeYoutubeId !== videoId) return; if (cinemaUserIsSinger && seatAuthUser && seatAuthUser.uid) { if (event.data === YT.PlayerState.PLAYING) writePlayback("playing", true).catch(error => console.warn("Shared playback:", error)); if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) writePlayback("paused", true).catch(error => console.warn("Shared playback:", error)); } refreshPlaybackUi(); },
         onError: event => { if (playbackStatus) playbackStatus.textContent = "Pemutar YouTube gagal (kode " + event.data + ")."; }
       }});
