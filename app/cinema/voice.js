@@ -11,6 +11,25 @@ export function initCinemaVoice() {
   const muteButton = document.getElementById("cinemaVoiceMute");
   if (!muteButton) return () => {};
   const status = document.getElementById("cinemaVoiceStatus");
+  const loopbackButton = document.createElement("button");
+  loopbackButton.id = "cinemaVoiceLoopback";
+  loopbackButton.type = "button";
+  loopbackButton.className = "cinema-voice-loopback";
+  loopbackButton.textContent = "🎧";
+  loopbackButton.title = "Loopback suara sendiri (gunakan headset)";
+  loopbackButton.setAttribute("aria-label", "Loopback suara sendiri");
+  loopbackButton.setAttribute("aria-pressed", "false");
+  loopbackButton.hidden = true;
+  muteButton.insertAdjacentElement("afterend", loopbackButton);
+  const loopbackAudio = document.createElement("audio");
+  loopbackAudio.id = "cinemaVoiceLoopbackAudio";
+  loopbackAudio.autoplay = true;
+  loopbackAudio.playsInline = true;
+  loopbackAudio.volume = 1;
+  loopbackAudio.style.display = "none";
+  document.body.appendChild(loopbackAudio);
+  let loopbackEnabled = false;
+  let isSingerSeat = false;
   let user = auth.currentUser || null;
   let seated = false;
   let muted = false;
@@ -32,6 +51,10 @@ export function initCinemaVoice() {
   const say = message => { if (status) status.textContent = message; };
   const setButton = () => {
     muteButton.hidden = !seated;
+    loopbackButton.hidden = !(seated && isSingerSeat);
+    loopbackButton.disabled = !(seated && isSingerSeat && localStream);
+    loopbackButton.classList.toggle("is-active", loopbackEnabled);
+    loopbackButton.setAttribute("aria-pressed", String(loopbackEnabled));
     muteButton.disabled = !seated;
     muteButton.textContent = muted ? "🔇" : "🎙️";
     muteButton.title = muted ? "Nyalakan mikrofon" : "Matikan mikrofon";
@@ -62,8 +85,12 @@ export function initCinemaVoice() {
     stopIncoming.clear();
     for (const timer of reconnectTimers.values()) clearTimeout(timer);
     reconnectTimers.clear();
+    loopbackEnabled = false;
+    loopbackAudio.pause();
+    loopbackAudio.srcObject = null;
     if (localStream) localStream.getTracks().forEach(track => track.stop());
     localStream = null;
+    setButton();
     // Do not delete the voiceSignals parent here: RTDB rules authorize per-peer paths,
     // and deleting the parent can be denied even when signaling itself is allowed.
     starting = false;
@@ -232,6 +259,13 @@ export function initCinemaVoice() {
   const reconcile = async seats => {
     latestSeats = seats || {};
     const mySeatEntry = Object.entries(seats || {}).find(([, seat]) => seat?.uid === user?.uid);
+    isSingerSeat = Boolean(mySeatEntry && ["singer-1", "singer-2"].includes(mySeatEntry[0]));
+    if (!isSingerSeat && loopbackEnabled) {
+      loopbackEnabled = false;
+      loopbackAudio.pause();
+      loopbackAudio.srcObject = null;
+    }
+    setButton();
     const mySeat = Boolean(mySeatEntry);
     const mySeatedAt = Number(mySeatEntry?.[1]?.seatedAt || 0);
     if (!mySeat) {
@@ -269,6 +303,29 @@ export function initCinemaVoice() {
       }
     }
   };
+  loopbackButton.addEventListener("click", async () => {
+    if (!seated || !isSingerSeat || !localStream) return;
+    loopbackEnabled = !loopbackEnabled;
+    if (loopbackEnabled) {
+      // Local monitoring is intended for headphones to avoid acoustic feedback.
+      loopbackAudio.srcObject = localStream;
+      try {
+        await loopbackAudio.play();
+        say("Loopback aktif. Gunakan headset agar tidak terjadi gema.");
+      } catch (error) {
+        loopbackEnabled = false;
+        loopbackAudio.pause();
+        loopbackAudio.srcObject = null;
+        say("Loopback belum bisa diputar. Ketuk ikon headset lagi.");
+        console.warn("Cinema loopback playback blocked:", error?.message || error);
+      }
+    } else {
+      loopbackAudio.pause();
+      loopbackAudio.srcObject = null;
+      say("Loopback dimatikan.");
+    }
+    setButton();
+  });
   muteButton.addEventListener("click", () => {
     if (!seated || !localStream) return;
     muted = !muted;
@@ -292,6 +349,11 @@ export function initCinemaVoice() {
   });
   const cleanup = () => {
     destroyed = true;
+    loopbackEnabled = false;
+    loopbackAudio.pause();
+    loopbackAudio.srcObject = null;
+    loopbackAudio.remove();
+    loopbackButton.remove();
     stopAuth?.();
     stopSeats?.();
     stopAll();
