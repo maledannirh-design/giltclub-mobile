@@ -48,38 +48,11 @@ export function initCinemaVoice() {
   let destroyed = false;
   let latestSeats = {};
   const reconnectTimers = new Map();
-  let mixerVoiceVolume = 1;
-  let mixerEq = { bass: 0, mid: 0, treble: 0 };
-  let mixerAudioContext = null;
-  const audioGraphs = new Map();
-  const getMixerContext = () => {
-    if (!mixerAudioContext) {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (Ctx) mixerAudioContext = new Ctx();
-    }
-    if (mixerAudioContext?.state === "suspended") mixerAudioContext.resume().catch(() => {});
-    return mixerAudioContext;
-  };
-  const applyEqToGraph = graph => {
-    if (!graph) return;
-    graph.bass.gain.value = mixerEq.bass;
-    graph.mid.gain.value = mixerEq.mid;
-    graph.treble.gain.value = mixerEq.treble;
-  };
-  const onMixerVoiceVolume = event => {
-    mixerVoiceVolume = Math.max(0, Math.min(1, Number(event.detail?.volume ?? 1)));
-    for (const item of peers.values()) if (item.audio) item.audio.volume = mixerVoiceVolume;
-  };
-  const onMixerEq = event => {
-    mixerEq = {
-      bass: Math.max(-12, Math.min(12, Number(event.detail?.bass ?? 0))),
-      mid: Math.max(-12, Math.min(12, Number(event.detail?.mid ?? 0))),
-      treble: Math.max(-12, Math.min(12, Number(event.detail?.treble ?? 0)))
-    };
-    for (const graph of audioGraphs.values()) applyEqToGraph(graph);
-  };
-  window.addEventListener("cinema:mixer-voice-volume", onMixerVoiceVolume);
-  window.addEventListener("cinema:mixer-eq", onMixerEq);
+  let mixerConfig={voice:100,music:70,latency:0,preamp:0,bands:Array(10).fill(0)},mixerAudioContext=null;const audioGraphs=new Map();
+  const getMixerContext=()=>{if(!mixerAudioContext){const Ctx=window.AudioContext||window.webkitAudioContext;if(Ctx)mixerAudioContext=new Ctx()}if(mixerAudioContext?.state==="suspended")mixerAudioContext.resume().catch(()=>{});return mixerAudioContext};
+  const applyMixerToGraph=g=>{if(!g)return;g.delay.delayTime.setTargetAtTime(mixerConfig.latency/1000,g.context.currentTime,.03);g.preamp.gain.setTargetAtTime(Math.pow(10,mixerConfig.preamp/20),g.context.currentTime,.03);g.voiceGain.gain.setTargetAtTime(mixerConfig.voice/100,g.context.currentTime,.03);g.filters.forEach((f,i)=>f.gain.setTargetAtTime(Number(mixerConfig.bands?.[i]||0),g.context.currentTime,.03))};
+  const onMixerConfig=e=>{const c=e.detail||{};mixerConfig={voice:Math.max(0,Math.min(150,Number(c.voice??100))),music:Math.max(0,Math.min(100,Number(c.music??70))),latency:Math.max(0,Math.min(500,Number(c.latency??0))),preamp:Math.max(-12,Math.min(12,Number(c.preamp??0))),bands:Array.from({length:10},(_,i)=>Math.max(-12,Math.min(12,Number(c.bands?.[i]??0))))};for(const item of peers.values())if(item.audio&&!audioGraphs.has(item.uid))item.audio.volume=Math.min(1,mixerConfig.voice/100);for(const g of audioGraphs.values())applyMixerToGraph(g)};
+  window.addEventListener("cinema:mixer-config",onMixerConfig);
 
   const say = message => { if (status) status.textContent = message; };
   const setButton = () => {
@@ -109,7 +82,7 @@ export function initCinemaVoice() {
       item.audio?.remove();
       const graph = audioGraphs.get(uid);
       if (graph) {
-        try { graph.source.disconnect(); graph.bass.disconnect(); graph.mid.disconnect(); graph.treble.disconnect(); graph.gain.disconnect(); } catch {}
+        try { graph.source.disconnect(); graph.delay.disconnect(); graph.preamp.disconnect(); graph.filters.forEach(f=>f.disconnect()); graph.voiceGain.disconnect(); } catch {}
         audioGraphs.delete(uid);
       }
       peers.delete(uid);
@@ -152,7 +125,7 @@ export function initCinemaVoice() {
     audio.style.display = "none";
     audio.volume = mixerVoiceVolume;
     document.body.appendChild(audio);
-    const entry = { pc, audio, remoteSession: null };
+    const entry = { pc, audio, remoteSession: null, uid: peerUid };
     peers.set(peerUid, entry);
     pc.ontrack = event => {
       const remote = event.streams?.[0];
@@ -160,17 +133,7 @@ export function initCinemaVoice() {
         audio.srcObject = remote;
         try {
           const context = getMixerContext();
-          if (context && !audioGraphs.has(peerUid)) {
-            const source = context.createMediaElementSource(audio);
-            const bass = context.createBiquadFilter(); bass.type = "lowshelf"; bass.frequency.value = 160;
-            const mid = context.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 1000; mid.Q.value = 0.8;
-            const treble = context.createBiquadFilter(); treble.type = "highshelf"; treble.frequency.value = 5000;
-            const gain = context.createGain(); gain.gain.value = 1;
-            source.connect(bass); bass.connect(mid); mid.connect(treble); treble.connect(gain); gain.connect(context.destination);
-            const graph = { source, bass, mid, treble, gain };
-            audioGraphs.set(peerUid, graph);
-            applyEqToGraph(graph);
-          }
+          if(context&&!audioGraphs.has(peerUid)){const source=context.createMediaElementSource(audio),delay=context.createDelay(1),preamp=context.createGain();const filters=[32,64,125,250,500,1000,2000,4000,8000,16000].map((hz,i)=>{const f=context.createBiquadFilter();f.type="peaking";f.frequency.value=hz;f.Q.value=i<2?.8:1;return f});const voiceGain=context.createGain();source.connect(delay);delay.connect(preamp);let prev=preamp;for(const f of filters){prev.connect(f);prev=f}prev.connect(voiceGain);voiceGain.connect(context.destination);const graph={context,source,delay,preamp,filters,voiceGain};audioGraphs.set(peerUid,graph);applyMixerToGraph(graph);audio.volume=1}
         } catch (error) {
           console.warn("Cinema mixer EQ unavailable:", error?.message || error);
         }
@@ -404,10 +367,9 @@ export function initCinemaVoice() {
   });
   const cleanup = () => {
     destroyed = true;
-    window.removeEventListener("cinema:mixer-voice-volume", onMixerVoiceVolume);
-    window.removeEventListener("cinema:mixer-eq", onMixerEq);
+    window.removeEventListener("cinema:mixer-config", onMixerConfig);
     for (const graph of audioGraphs.values()) {
-      try { graph.source.disconnect(); graph.bass.disconnect(); graph.mid.disconnect(); graph.treble.disconnect(); graph.gain.disconnect(); } catch {}
+      try { graph.source.disconnect(); graph.delay.disconnect(); graph.preamp.disconnect(); graph.filters.forEach(f=>f.disconnect()); graph.voiceGain.disconnect(); } catch {}
     }
     audioGraphs.clear();
     if (mixerAudioContext) mixerAudioContext.close().catch(() => {});
