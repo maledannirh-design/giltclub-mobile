@@ -28,7 +28,10 @@ function startRoomPresence() {
   // Count every connected room member, whether seated or not.
   stopPresenceCount?.();
   stopPresenceCount = rtdbOnValue(presenceRoot, snapshot => {
-    const count = snapshot.exists() ? snapshot.numChildren() : 0;
+    const presenceData = snapshot.val();
+const count = presenceData && typeof presenceData === "object"
+  ? Object.keys(presenceData).length
+  : 0;
     const title = document.querySelector(".cinema-chat-card .cinema-panel-head h2");
     if (title) title.textContent = `💬 Chat (${count})`;
   }, error => {
