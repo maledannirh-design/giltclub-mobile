@@ -45,10 +45,11 @@ function showCinemaSeatNotice(message) {
 
 function startSeatSelection() {
   const seatsRoot = rtdbRef(rtdb, "cinema/rooms/main/seats");
+  const allSeatsSelector = ".cinema-seat[data-seat-id]";
   stopSeatListener?.();
   stopSeatListener = rtdbOnValue(seatsRoot, snapshot => {
     const seats = snapshot.val() || {};
-    document.querySelectorAll(".cinema-seat.audience-seat").forEach(el => {
+    document.querySelectorAll(allSeatsSelector).forEach(el => {
       const seatId = el.dataset.seatId;
       const occupant = seats[seatId];
       const icon = el.querySelector(".seat-icon");
@@ -82,16 +83,19 @@ function startSeatSelection() {
           if (chair) chair.hidden = false;
         }
       }
+      const label = el.dataset.seatType === "moderator" ? "Moderator"
+        : el.dataset.seatType === "singer" ? "Penyanyi"
+        : "Kursi penonton";
       el.setAttribute("aria-label", occupant
-        ? `Kursi penonton ${seatId.replace("audience-", "")}, ditempati ${occupant.username || "anggota"}`
-        : `Kursi penonton ${seatId.replace("audience-", "")}, kosong`);
+        ? `${label} ${seatId}, ditempati ${occupant.username || "anggota"}`
+        : `${label} ${seatId}, kosong`);
       el.title = occupant
         ? (isMine ? "Kursi Anda — klik untuk berdiri" : `Diduduki ${occupant.username || "anggota"}`)
         : "Klik untuk duduk";
     });
   }, error => console.warn("Cinema seat listener unavailable:", error?.message || error));
 
-  document.querySelectorAll(".cinema-seat.audience-seat").forEach(el => {
+  document.querySelectorAll(allSeatsSelector).forEach(el => {
     if (el.dataset.seatBound === "true") return;
     el.dataset.seatBound = "true";
     el.tabIndex = 0;
@@ -99,14 +103,44 @@ function startSeatSelection() {
     const chooseSeat = async () => {
       const user = seatAuthUser;
       if (!user?.uid) {
-        console.warn("Login diperlukan untuk memilih kursi.");
+        showCinemaSeatNotice("Login dulu untuk menggunakan kursi.");
         return;
       }
       const seatId = el.dataset.seatId;
+      const seatType = el.dataset.seatType || "audience";
       if (!seatId) return;
       const seatRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
-      const buttonLabel = el.getAttribute("aria-label") || "kursi";
       try {
+        const seatsSnap = await new Promise((resolve, reject) => {
+          const stop = rtdbOnValue(seatsRoot, snap => { stop(); resolve(snap); }, reject, { onlyOnce: true });
+        });
+        const seats = seatsSnap.val() || {};
+        const occupant = seats[seatId];
+        const isMine = Boolean(occupant && occupant.uid === user.uid);
+        const isModeratorSeat = ["moderator-1", "moderator-2"].some(id => seats[id]?.uid === user.uid);
+
+        // A moderator currently seated in either moderator chair can kick an audience occupant.
+        if (seatType === "audience" && occupant && !isMine && isModeratorSeat) {
+          const targetName = occupant.username || "anggota";
+          const confirmed = window.confirm(`Kick ${targetName} dari kursi penonton?`);
+          if (!confirmed) return;
+          await rtdbRemove(seatRef);
+          showCinemaSeatNotice(`${targetName} dikeluarkan dari kursi.`);
+          return;
+        }
+
+        if (occupant && !isMine) {
+          showCinemaSeatNotice("Kursi sudah terisi anggota lain.");
+          return;
+        }
+        if (isMine) {
+          await rtdbRemove(seatRef);
+          showCinemaSeatNotice(seatType === "singer" ? "Anda berdiri dari kursi penyanyi." :
+            seatType === "moderator" ? "Anda keluar dari kursi moderator." :
+            "Anda berdiri dari kursi penonton.");
+          return;
+        }
+
         let profile = {};
         try {
           const profileSnap = await getDoc(doc(db, "users", user.uid));
@@ -116,8 +150,7 @@ function startSeatSelection() {
         }
         const username = profile.username || profile.fullName || user.displayName || user.email?.split("@")[0] || "Member";
         const result = await rtdbRunTransaction(seatRef, current => {
-          if (current && current.uid !== user.uid) return;
-          if (current && current.uid === user.uid) return null;
+          if (current) return;
           return {
             uid: user.uid,
             username,
@@ -129,21 +162,17 @@ function startSeatSelection() {
           showCinemaSeatNotice("Kursi sudah terisi anggota lain.");
           return;
         }
-        if (result.snapshot.val()) {
-          showCinemaSeatNotice("Berhasil duduk di kursi " + seatId.replace("audience-", "") + ".");
-          const seatDisconnectRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
-          await rtdbOnDisconnect(seatDisconnectRef).remove();
-          stopSeatDisconnect?.();
-          stopSeatDisconnect = () => rtdbRemove(seatDisconnectRef).catch(() => {});
-          window.stopCinemaSeat = stopSeatDisconnect;
-        } else {
-          showCinemaSeatNotice("Anda berdiri dari kursi " + seatId.replace("audience-", "") + ".");
-          stopSeatDisconnect?.();
-          stopSeatDisconnect = null;
-        }
+        const seatDisconnectRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
+        await rtdbOnDisconnect(seatDisconnectRef).remove();
+        stopSeatDisconnect?.();
+        stopSeatDisconnect = () => rtdbRemove(seatDisconnectRef).catch(() => {});
+        window.stopCinemaSeat = stopSeatDisconnect;
+        showCinemaSeatNotice(seatType === "singer" ? "Berhasil duduk di kursi penyanyi." :
+          seatType === "moderator" ? "Mode moderator aktif selama Anda duduk di kursi ini." :
+          "Berhasil duduk di kursi " + seatId.replace("audience-", "") + ".");
       } catch (error) {
-        showCinemaSeatNotice("Belum berhasil memilih kursi. Periksa izin Firebase.");
-        console.warn("Cinema seat selection failed:", error?.message || error);
+        showCinemaSeatNotice("Aksi kursi gagal. Periksa izin Firebase.");
+        console.warn("Cinema seat action failed:", error?.message || error);
       }
     };
     el.addEventListener("click", chooseSeat);
@@ -221,16 +250,16 @@ export function renderCinemaRoom() {
       <section class="cinema-panel cinema-seating-card cinema-room-card" aria-label="Kursi room">
         <div class="cinema-seat-layout">
           <div class="cinema-special-group singer-seats" aria-label="Kursi penyanyi">
-            <div class="cinema-seat is-special is-singer" aria-label="Penyanyi 1"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
-            <div class="cinema-seat is-special is-singer" aria-label="Penyanyi 2"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
+            <div class="cinema-seat is-special is-singer" data-seat-id="singer-1" data-seat-type="singer" aria-label="Penyanyi 1"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
+            <div class="cinema-seat is-special is-singer" data-seat-id="singer-2" data-seat-type="singer" aria-label="Penyanyi 2"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
           </div>
           <div class="cinema-special-group admin-seats" aria-label="Kursi moderator dan admin">
-            <div class="cinema-seat is-special is-admin" aria-label="Moderator"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
-            <div class="cinema-seat is-special is-admin" aria-label="Admin"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
+            <div class="cinema-seat is-special is-admin" data-seat-id="moderator-1" data-seat-type="moderator" aria-label="Moderator 1"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
+            <div class="cinema-seat is-special is-admin" data-seat-id="moderator-2" data-seat-type="moderator" aria-label="Moderator 2"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span></div>
           </div>
           <div class="cinema-audience-side audience-left" aria-label="Delapan kursi penonton kiri">
             ${SEATS.slice(0,8).map(seat => `
-              <div class="cinema-seat audience-seat ${seat.vvip ? "is-vvip" : ""}" data-seat-id="audience-${seat.id}" aria-label="Kursi penonton ${seat.id}">
+              <div class="cinema-seat audience-seat ${seat.vvip ? "is-vvip" : ""}" data-seat-type="audience" data-seat-id="audience-${seat.id}" aria-label="Kursi penonton ${seat.id}">
                 <span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span>
               </div>
             `).join("")}
