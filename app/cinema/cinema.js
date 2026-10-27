@@ -66,7 +66,6 @@ function startRoomPresence() {
 
 export function renderCinemaRoom() {
   ensureCinemaStyles();
-  startRoomPresence();
   const content = document.getElementById("content");
   if (!content) return;
 
@@ -120,6 +119,8 @@ export function renderCinemaRoom() {
       </section>
     </section>
   `;
+
+  startRoomPresence();
 
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
