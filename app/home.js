@@ -92,7 +92,7 @@ content.innerHTML = `
           <i class="fa-solid fa-trophy"></i>
           <span>Champion Club</span>
         </div>
-        <div class="home-media-actions"><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div></div>
+        <div class="home-media-actions" style="display:flex;flex-direction:row;gap:6px;width:100%"><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div></div>
       </div>
 
     </div>
