@@ -10,6 +10,8 @@ function ensureCinemaStyles() {
   document.head.appendChild(link);
 }
 
+const CHAIR_IMAGE = "data:image/png;base64,CHAIR_B64_PLACEHOLDER";
+
 const SEATS = Array.from({ length: 16 }, (_, index) => ({
   id: index + 1,
   vvip: index < 4
@@ -57,19 +59,19 @@ export function renderCinemaRoom() {
           </div>
           <div class="cinema-special-seats">
             <div class="cinema-special-group singer-seats" aria-label="Kursi penyanyi">
-              <div class="cinema-seat is-special is-singer"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Penyanyi 1</span></div>
-              <div class="cinema-seat is-special is-singer"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Penyanyi 2</span></div>
+              <div class="cinema-seat is-special is-singer"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span><span class="seat-name">Penyanyi 1</span></div>
+              <div class="cinema-seat is-special is-singer"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span><span class="seat-name">Penyanyi 2</span></div>
             </div>
             <div class="cinema-special-group admin-seats" aria-label="Kursi moderator dan admin">
-              <div class="cinema-seat is-special is-admin"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Moderator</span></div>
-              <div class="cinema-seat is-special is-admin"><span class="seat-icon"><img src="./chair.png" alt="" /></span><span class="seat-name">Admin</span></div>
+              <div class="cinema-seat is-special is-admin"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span><span class="seat-name">Moderator</span></div>
+              <div class="cinema-seat is-special is-admin"><span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span><span class="seat-name">Admin</span></div>
             </div>
           </div>
           <div class="cinema-stage">🎙 AREA PENYANYI</div>
           <div class="cinema-seats" id="cinemaSeats">
             ${SEATS.map(seat => `
               <div class="cinema-seat ${seat.vvip ? "is-vvip" : ""}" aria-label="Kursi ${seat.id}">
-                <span class="seat-icon"><img src="./chair.png" alt="" /></span>
+                <span class="seat-icon"><img src="${CHAIR_IMAGE}" alt="" /></span>
                 <span class="seat-name">Kursi ${String(seat.id).padStart(2, "0")}</span>
                 <span class="seat-state">${seat.vvip ? "VVIP" : "Kosong"}</span>
               </div>
