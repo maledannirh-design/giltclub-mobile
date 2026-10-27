@@ -373,8 +373,8 @@ export function renderCinemaRoom() {
       } else if (["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com", "www.youtube-nocookie.com"].includes(url.hostname)) {
         if (url.pathname === "/watch") id = url.searchParams.get("v") || "";
         else {
-          const match = url.pathname.match(/^\\/(?:embed|shorts|live)\\/([A-Za-z0-9_-]{11})/);
-          id = match?.[1] || "";
+          const parts = url.pathname.split("/").filter(Boolean);
+          id = ["embed", "shorts", "live"].includes(parts[0]) ? (parts[1] || "") : "";
         }
       }
       return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
