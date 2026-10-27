@@ -246,3 +246,11 @@ body{overflow:hidden;}
   opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;
 }
 .cinema-page .cinema-seat-notice.is-visible { opacity:1;transform:translate(-50%,0); }
+
+
+/* Interactive special seats: singer and moderator */
+.cinema-page .cinema-seat.is-special[data-seat-id] { cursor:pointer; transition:opacity .16s ease, transform .16s ease; }
+.cinema-page .cinema-seat.is-special[data-seat-id]:focus-visible { outline:2px solid var(--cinema-gold); outline-offset:2px; border-radius:12px; }
+.cinema-page .cinema-seat.is-special[data-seat-id].is-occupied .seat-icon { border:2px solid rgba(236,126,126,.78)!important; }
+.cinema-page .cinema-seat.is-special[data-seat-id].is-mine .seat-icon { border:2px solid #7bd99a!important; box-shadow:0 0 0 1px rgba(123,217,154,.2); }
+.cinema-room-fit .cinema-seat.is-special[data-seat-id] { cursor:pointer; }
