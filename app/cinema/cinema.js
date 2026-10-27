@@ -311,6 +311,7 @@ export function renderCinemaRoom() {
           <strong>Room Karaoke GMTC</strong>
           <p>Tempel link YouTube untuk menampilkan video ke semua anggota room.</p>
         </div>
+        <div class="cinema-shared-playback" id="cinemaSharedPlayback" hidden><button class="cinema-playback-toggle" id="cinemaPlaybackToggle" type="button" disabled>▶ Putar bersama</button><span class="cinema-playback-status" id="cinemaPlaybackStatus">Menunggu pemutar…</span></div>
       </section>
 
       <section class="cinema-panel cinema-seating-card cinema-room-card" aria-label="Kursi room">
