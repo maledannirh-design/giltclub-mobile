@@ -8,16 +8,16 @@
   <style>
     *{box-sizing:border-box}
     body{margin:0;background:#f2e8d5;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#2e5d3a}
-    .cinema-standalone{max-width:1100px;margin:0 auto;padding:12px 14px 28px}
-    .cinema-back{display:inline-flex;align-items:center;gap:6px;margin:0 0 12px;padding:8px 11px;border:1px solid rgba(46,93,58,.18);border-radius:12px;background:#fff;color:#2e5d3a;text-decoration:none;font-size:13px;font-weight:650}
+    .cinema-standalone{max-width:1100px;margin:0 auto;padding:12px 14px 28px;display:flex;flex-direction:column}
+    .cinema-back{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;margin:14px 0 0;padding:8px 11px;border:1px solid rgba(46,93,58,.18);border-radius:12px;background:#fff;color:#2e5d3a;text-decoration:none;font-size:13px;font-weight:650}
     #content{min-width:0}
     @media(max-width:600px){.cinema-standalone{padding:8px 5px 20px}.cinema-back{margin-left:3px}}
   </style>
 </head>
 <body>
   <main class="cinema-standalone">
-    <a class="cinema-back" href="../index.html">← GMTC</a>
     <div id="content"></div>
+    <a class="cinema-back" href="../index.html">← GMTC</a>
   </main>
   <script type="module">
     import { renderCinemaRoom } from "./cinema.js";
