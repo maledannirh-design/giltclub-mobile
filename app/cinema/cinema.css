@@ -396,15 +396,24 @@ body{overflow:hidden;}
     left: calc(100% - 1px);
     top: 50%;
     width: clamp(8px, 3vw, 17px);
-    border-top: 2px dashed rgba(231, 190, 169, .85);
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(231, 190, 169, .95) 0 4px,
+      transparent 4px 6px
+    );
     transform: translateY(-50%);
     pointer-events: none;
   }
-  /* When JS confirms mutual follow, the connector becomes an animated current. */
+  /* Mutual follow: a continuous, softly glowing current moves left to right. */
   .cinema-room-fit .cinema-audience-side .cinema-seat.is-mutual-follow:nth-child(odd)::after {
-    border-top: 2px dashed #f2c7b3;
+    background: linear-gradient(90deg,
+      rgba(242,199,179,.95) 0%,
+      rgba(255,225,190,.95) 50%,
+      rgba(242,199,179,.95) 100%);
+    background-size: 200% 100%;
     animation: cinemaMutualCurrent 850ms linear infinite;
-    filter: drop-shadow(0 0 3px rgba(255, 205, 150, .9));
+    filter: drop-shadow(0 0 2px rgba(255, 205, 150, .95));
   }
 }
 @keyframes cinemaMutualCurrent {
