@@ -1,8 +1,4 @@
-export function renderCinema(){
-  const content = document.getElementById("content");
-
-  content.innerHTML = `
-    <h2>Cinema</h2>
-    <p>Realtime voice room ready.</p>
-  `;
+export async function renderCinema(){
+  const { renderCinemaRoom } = await import("./cinema/cinema.js");
+  renderCinemaRoom();
 }
