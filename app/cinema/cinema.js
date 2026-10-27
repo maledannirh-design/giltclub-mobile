@@ -112,7 +112,7 @@ function startSeatSelection() {
       const seatRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
       try {
         const seatsSnap = await new Promise((resolve, reject) => {
-          const stop = rtdbOnValue(seatsRoot, snap => { stop(); resolve(snap); }, reject, { onlyOnce: true });
+          rtdbOnValue(seatsRoot, resolve, reject, { onlyOnce: true });
         });
         const seats = seatsSnap.val() || {};
         const occupant = seats[seatId];
