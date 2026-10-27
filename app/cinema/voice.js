@@ -103,6 +103,11 @@ export function initCinemaVoice() {
         if (!peers.has(peerUid)) await createPeer(peerUid);
         const entry = peers.get(peerUid);
         if (!entry) return;
+        // Simultaneous seating can cause offer glare. Roll back our pending offer
+        // before accepting the other participant's offer, so SDP state stays valid.
+        if (entry.pc.signalingState !== "stable") {
+          await entry.pc.setLocalDescription({ type: "rollback" });
+        }
         await entry.pc.setRemoteDescription(signal.payload);
         const answer = await entry.pc.createAnswer();
         await entry.pc.setLocalDescription(answer);
