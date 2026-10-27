@@ -79,7 +79,7 @@ content.innerHTML = `
           </div>
         </div>
         <div class="home-media-actions cinema-only-actions">
-          <div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div>
+          <div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-film"></i><span>Bioskop &amp; Karaoke</span></div>
         </div>
       </div>
 
