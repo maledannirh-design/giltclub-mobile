@@ -48,6 +48,38 @@ export function initCinemaVoice() {
   let destroyed = false;
   let latestSeats = {};
   const reconnectTimers = new Map();
+  let mixerVoiceVolume = 1;
+  let mixerEq = { bass: 0, mid: 0, treble: 0 };
+  let mixerAudioContext = null;
+  const audioGraphs = new Map();
+  const getMixerContext = () => {
+    if (!mixerAudioContext) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) mixerAudioContext = new Ctx();
+    }
+    if (mixerAudioContext?.state === "suspended") mixerAudioContext.resume().catch(() => {});
+    return mixerAudioContext;
+  };
+  const applyEqToGraph = graph => {
+    if (!graph) return;
+    graph.bass.gain.value = mixerEq.bass;
+    graph.mid.gain.value = mixerEq.mid;
+    graph.treble.gain.value = mixerEq.treble;
+  };
+  const onMixerVoiceVolume = event => {
+    mixerVoiceVolume = Math.max(0, Math.min(1, Number(event.detail?.volume ?? 1)));
+    for (const item of peers.values()) if (item.audio) item.audio.volume = mixerVoiceVolume;
+  };
+  const onMixerEq = event => {
+    mixerEq = {
+      bass: Math.max(-12, Math.min(12, Number(event.detail?.bass ?? 0))),
+      mid: Math.max(-12, Math.min(12, Number(event.detail?.mid ?? 0))),
+      treble: Math.max(-12, Math.min(12, Number(event.detail?.treble ?? 0)))
+    };
+    for (const graph of audioGraphs.values()) applyEqToGraph(graph);
+  };
+  window.addEventListener("cinema:mixer-voice-volume", onMixerVoiceVolume);
+  window.addEventListener("cinema:mixer-eq", onMixerEq);
 
   const say = message => { if (status) status.textContent = message; };
   const setButton = () => {
@@ -75,6 +107,11 @@ export function initCinemaVoice() {
       item.pc.ontrack = null;
       item.pc.close();
       item.audio?.remove();
+      const graph = audioGraphs.get(uid);
+      if (graph) {
+        try { graph.source.disconnect(); graph.bass.disconnect(); graph.mid.disconnect(); graph.treble.disconnect(); graph.gain.disconnect(); } catch {}
+        audioGraphs.delete(uid);
+      }
       peers.delete(uid);
     }
     const stop = stopIncoming.get(uid);
@@ -113,6 +150,7 @@ export function initCinemaVoice() {
     audio.playsInline = true;
     audio.setAttribute("aria-label", "Suara anggota room");
     audio.style.display = "none";
+    audio.volume = mixerVoiceVolume;
     document.body.appendChild(audio);
     const entry = { pc, audio, remoteSession: null };
     peers.set(peerUid, entry);
@@ -120,6 +158,22 @@ export function initCinemaVoice() {
       const remote = event.streams?.[0];
       if (remote) {
         audio.srcObject = remote;
+        try {
+          const context = getMixerContext();
+          if (context && !audioGraphs.has(peerUid)) {
+            const source = context.createMediaElementSource(audio);
+            const bass = context.createBiquadFilter(); bass.type = "lowshelf"; bass.frequency.value = 160;
+            const mid = context.createBiquadFilter(); mid.type = "peaking"; mid.frequency.value = 1000; mid.Q.value = 0.8;
+            const treble = context.createBiquadFilter(); treble.type = "highshelf"; treble.frequency.value = 5000;
+            const gain = context.createGain(); gain.gain.value = 1;
+            source.connect(bass); bass.connect(mid); mid.connect(treble); treble.connect(gain); gain.connect(context.destination);
+            const graph = { source, bass, mid, treble, gain };
+            audioGraphs.set(peerUid, graph);
+            applyEqToGraph(graph);
+          }
+        } catch (error) {
+          console.warn("Cinema mixer EQ unavailable:", error?.message || error);
+        }
         audio.play().then(() => {
           say("Audio anggota terhubung.");
         }).catch(() => say("Klik layar sekali untuk mengaktifkan pemutaran suara."));
@@ -350,6 +404,13 @@ export function initCinemaVoice() {
   });
   const cleanup = () => {
     destroyed = true;
+    window.removeEventListener("cinema:mixer-voice-volume", onMixerVoiceVolume);
+    window.removeEventListener("cinema:mixer-eq", onMixerEq);
+    for (const graph of audioGraphs.values()) {
+      try { graph.source.disconnect(); graph.bass.disconnect(); graph.mid.disconnect(); graph.treble.disconnect(); graph.gain.disconnect(); } catch {}
+    }
+    audioGraphs.clear();
+    if (mixerAudioContext) mixerAudioContext.close().catch(() => {});
     loopbackEnabled = false;
     loopbackAudio.pause();
     loopbackAudio.srcObject = null;
