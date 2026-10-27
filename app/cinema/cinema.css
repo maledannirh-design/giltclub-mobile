@@ -323,3 +323,39 @@ body{overflow:hidden;}
 .cinema-room-fit .cinema-playback-toggle{flex:0 0 auto;border:0;border-radius:8px;padding:7px 10px;background:#e3c565;color:#182018;font-size:11px;font-weight:750;cursor:pointer;}
 .cinema-room-fit .cinema-playback-toggle:disabled{opacity:.55;cursor:not-allowed;}
 .cinema-room-fit .cinema-playback-status{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+
+/* Mobile: reduce ONLY the audience seating card and audience seats by 25%.
+   The space released is shared by the movie and chat cards. Special seats stay unchanged. */
+@media (max-width: 700px) {
+  .cinema-page.cinema-room-fit {
+    grid-template-rows: minmax(0, 40.5fr) minmax(0, 28.5fr) minmax(0, 31fr);
+  }
+  .cinema-room-fit .cinema-seating-card {
+    padding: 6px !important;
+  }
+  .cinema-room-fit .cinema-audience-side {
+    row-gap: 0 !important;
+  }
+  .cinema-room-fit .cinema-audience-side .cinema-seat .seat-icon {
+    width: 75% !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+  .cinema-room-fit .cinema-audience-side .cinema-seat .seat-icon img {
+    width: 52% !important;
+    height: 52% !important;
+    max-width: 52% !important;
+    max-height: 52% !important;
+  }
+  .cinema-room-fit .cinema-audience-side .cinema-seat .seat-avatar {
+    width: 100%;
+    height: 100%;
+    font-size: 11px;
+  }
+}
+@media (max-width: 380px) {
+  .cinema-page.cinema-room-fit {
+    grid-template-rows: minmax(0, 40.5fr) minmax(0, 28.5fr) minmax(0, 31fr);
+  }
+}
