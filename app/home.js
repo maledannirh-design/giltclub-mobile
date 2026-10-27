@@ -20,6 +20,7 @@ window.stopHomeListeners = function(){
 let dailyLock = false;
 let broadcastStarted = false;
 
+
 // Reset the scan guard when the app is restored after cancelling the camera.
 // Mobile browsers may restore the previous page from the back-forward cache.
 window.addEventListener("pageshow", () => {
