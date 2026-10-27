@@ -1,4 +1,5 @@
-import { auth, db } from "./firebase.js";
+import { auth, db, rtdb } from "./firebase.js";
+import { ref as rtdbRef, onValue as rtdbOnValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
   doc,
   getDoc
@@ -92,7 +93,7 @@ content.innerHTML = `
           <i class="fa-solid fa-trophy"></i>
           <span>Champion Club</span>
         </div>
-        <div class="home-media-actions" style="display:flex;flex-direction:row;gap:6px;width:100%"><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div></div>
+        <div class="home-media-actions" style="display:flex;flex-direction:row;gap:6px;width:100%"><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke (… Members)</span></div><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div></div>
       </div>
 
     </div>
@@ -173,6 +174,20 @@ content.innerHTML = `
   videoLabButton?.addEventListener("keydown", event => {
     if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openVideoLab(); }
   });
+
+  // Live room occupancy badge (presence is written by the Cinema page).
+  const cinemaCountButton = document.querySelector(".cinema-room-btn");
+  if (window.stopCinemaCountListener) window.stopCinemaCountListener();
+  const stopCinemaCountListener = rtdbOnValue(rtdbRef(rtdb, "cinema/rooms/main/presence"), snapshot => {
+    const count = snapshot.size;
+    const label = cinemaCountButton?.querySelector("span");
+    if (label) label.textContent = `Bioskop & Karaoke (${count} ${count === 1 ? "Member" : "Members"})`;
+  }, error => {
+    console.error("Cinema presence count failed:", error);
+    const label = cinemaCountButton?.querySelector("span");
+    if (label) label.textContent = "Bioskop & Karaoke";
+  });
+  window.stopCinemaCountListener = stopCinemaCountListener;
 
   const cinemaRoomButton = document.querySelector(".cinema-room-btn");
   const openCinemaRoom = () => { if(window.navigate) window.navigate("cinema"); };
