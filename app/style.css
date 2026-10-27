@@ -4694,6 +4694,10 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 
 
 /* ================= VIDEO LAB + CINEMA LAUNCHERS ================= */
+.home-profile-right .home-media-actions{justify-content:space-between;align-items:center;}
+.home-profile-right .home-media-actions .cinema-room-btn{flex:0 1 auto;margin-right:auto;}
+.home-profile-right .home-media-actions .videolab-btn:not(.cinema-room-btn){flex:0 0 auto;margin-left:auto;}
+
 .home-profile-right .home-media-actions{display:flex;gap:7px;width:100%;}
 .home-profile-right .home-media-actions .videolab-btn{flex:1;min-width:0;padding:8px 7px;white-space:nowrap;}
 .home-profile-right .home-media-actions .videolab-btn span{overflow:hidden;text-overflow:ellipsis;}
