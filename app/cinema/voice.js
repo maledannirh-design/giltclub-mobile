@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 const ROOM = "cinema/rooms/main";
 const ICE = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
 
+
 export function initCinemaVoice() {
   const muteButton = document.getElementById("cinemaVoiceMute");
   if (!muteButton) return () => {};
