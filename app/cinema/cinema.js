@@ -276,7 +276,7 @@ export function renderCinemaRoom() {
       </section>
 
       <section class="cinema-panel cinema-chat-card cinema-room-card" aria-label="Chat room">
-        <div class="cinema-panel-head"><h2>💬 Chat</h2><a class="cinema-back-inline" href="../index.html">← GMTC</a></div>
+        <div class="cinema-panel-head"><h2>💬 Chat</h2><div class="cinema-chat-head-actions"><button class="cinema-clean-chat-btn" id="cinemaCleanChatBtn" type="button" hidden>🧹 Clean Chat</button><a class="cinema-back-inline" href="../index.html">← GMTC</a></div></div>
         <div class="cinema-chat-log" id="cinemaChatLog" aria-live="polite">
           <div class="cinema-chat-note">Memuat chat...</div>
         </div>
@@ -355,7 +355,66 @@ export function renderCinemaRoom() {
     stickerPicker.hidden = !open;
   });
 
+  const cleanChatButton = document.getElementById("cinemaCleanChatBtn");
+  let chatRoleCheckedForUid = null;
+  let canCleanChat = false;
+
+  const checkCleanChatAccess = async user => {
+    if (!cleanChatButton || !user?.uid) {
+      if (cleanChatButton) cleanChatButton.hidden = true;
+      canCleanChat = false;
+      chatRoleCheckedForUid = null;
+      return;
+    }
+    if (chatRoleCheckedForUid === user.uid) {
+      cleanChatButton.hidden = !canCleanChat;
+      return;
+    }
+    chatRoleCheckedForUid = user.uid;
+    canCleanChat = false;
+    cleanChatButton.hidden = true;
+    try {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const role = userSnap.exists() ? String(userSnap.data()?.role || "").toUpperCase() : "";
+      canCleanChat = role === "ADMIN" || role === "SUPERCOACH";
+      cleanChatButton.hidden = !canCleanChat;
+    } catch (error) {
+      console.warn("Cinema chat role check failed:", error?.message || error);
+      cleanChatButton.hidden = true;
+    }
+  };
+
+  checkCleanChatAccess(seatAuthUser);
+  onAuthStateChanged(auth, user => {
+    chatRoleCheckedForUid = null;
+    checkCleanChatAccess(user);
+  });
+
   const messagesRef = rtdbRef(rtdb, "cinema/rooms/main/messages");
+  cleanChatButton?.addEventListener("click", async () => {
+    const user = seatAuthUser;
+    await checkCleanChatAccess(user);
+    if (!canCleanChat || !user?.uid) {
+      showCinemaSeatNotice("Fitur Clean Chat hanya untuk Admin dan Supercoach.");
+      return;
+    }
+    const confirmed = window.confirm("Hapus SELURUH riwayat chat dan sticker GMTC? Tindakan ini tidak bisa dibatalkan.");
+    if (!confirmed) return;
+    cleanChatButton.disabled = true;
+    const oldLabel = cleanChatButton.textContent;
+    cleanChatButton.textContent = "Menghapus...";
+    try {
+      await rtdbRemove(messagesRef);
+      showCinemaSeatNotice("Seluruh chat berhasil dibersihkan.");
+    } catch (error) {
+      showCinemaSeatNotice("Clean Chat ditolak Firebase. Izin hapus khusus Admin/Supercoach belum dikonfigurasi.");
+      console.warn("Cinema clean chat failed:", error?.message || error);
+    } finally {
+      cleanChatButton.disabled = false;
+      cleanChatButton.textContent = oldLabel;
+    }
+  });
+
   const recentMessagesQuery = rtdbQuery(messagesRef, rtdbOrderByChild("sentAt"), rtdbLimitToLast(100));
 
   stopChatListener?.();
