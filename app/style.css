@@ -4789,3 +4789,15 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
   0%,100%{background-position:0% 50%;box-shadow:0 0 4px rgba(239,184,211,.45),inset 0 0 4px rgba(255,255,255,.65);}
   50%{background-position:100% 50%;box-shadow:0 0 9px rgba(229,190,91,.65),0 0 12px rgba(239,184,211,.35),inset 0 0 6px rgba(255,255,255,.8);}
 }
+
+
+/* Requested final typography-only adjustment for Cinema capsule */
+.home-profile-left .cinema-only-actions .cinema-room-btn{
+  font-size:12px;
+  font-weight:700;
+  align-items:center;
+}
+.home-profile-left .cinema-only-actions .cinema-room-btn span{
+  font-weight:700;
+  line-height:1;
+}
