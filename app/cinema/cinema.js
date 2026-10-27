@@ -280,10 +280,16 @@ export function renderCinemaRoom() {
         <div class="cinema-chat-log" id="cinemaChatLog" aria-live="polite">
           <div class="cinema-chat-note">Memuat chat...</div>
         </div>
-        <form class="cinema-chat-form" id="cinemaChatForm">
-          <input id="cinemaChatInput" type="text" maxlength="300" placeholder="Tulis pesan..." aria-label="Tulis pesan" autocomplete="off" />
-          <button class="cinema-button" type="submit">Kirim</button>
-        </form>
+        <div class="cinema-chat-tools">
+          <button class="cinema-chat-tool" id="cinemaEmojiToggle" type="button" aria-label="Buka emoji" title="Emoji">😀</button>
+          <button class="cinema-chat-tool" id="cinemaStickerToggle" type="button" aria-label="Buka sticker" title="Sticker">🎟️</button>
+          <form class="cinema-chat-form" id="cinemaChatForm">
+            <input id="cinemaChatInput" type="text" maxlength="300" placeholder="Tulis pesan..." aria-label="Tulis pesan" autocomplete="off" />
+            <button class="cinema-button" type="submit">Kirim</button>
+          </form>
+        </div>
+        <div class="cinema-chat-picker" id="cinemaEmojiPicker" hidden aria-label="Pilih emoji"></div>
+        <div class="cinema-chat-picker cinema-sticker-picker" id="cinemaStickerPicker" hidden aria-label="Pilih sticker"></div>
       </section>
     </section>
   `;
@@ -294,6 +300,61 @@ export function renderCinemaRoom() {
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
   const log = document.getElementById("cinemaChatLog");
+  const emojiToggle = document.getElementById("cinemaEmojiToggle");
+  const stickerToggle = document.getElementById("cinemaStickerToggle");
+  const emojiPicker = document.getElementById("cinemaEmojiPicker");
+  const stickerPicker = document.getElementById("cinemaStickerPicker");
+  const emojiChoices = ["😂","🤣","😍","🥹","😭","😎","👏","🙏","❤️","🔥","👍","🎾","💪","🥳","😅","🤝"];
+  const stickerChoices = ["😂","🤣","😍","🥹","😭","😎","👏","❤️","🔥","🎾","💪","🥳"];
+  const emojiImageUrl = emoji => "https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/svg/" +
+    Array.from(emoji).map(char => char.codePointAt(0).toString(16)).filter(code => code !== "fe0f").join("-") + ".svg";
+  const closePickers = () => {
+    if (emojiPicker) emojiPicker.hidden = true;
+    if (stickerPicker) stickerPicker.hidden = true;
+  };
+  emojiChoices.forEach(emoji => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "cinema-emoji-choice";
+    button.textContent = emoji;
+    button.setAttribute("aria-label", "Tambahkan " + emoji);
+    button.addEventListener("click", () => {
+      if (!input) return;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+      input.focus();
+      input.setSelectionRange(start + emoji.length, start + emoji.length);
+      closePickers();
+    });
+    emojiPicker?.appendChild(button);
+  });
+  stickerChoices.forEach(emoji => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "cinema-sticker-choice";
+    button.title = "Kirim sticker " + emoji;
+    const img = document.createElement("img");
+    img.src = emojiImageUrl(emoji);
+    img.alt = emoji;
+    img.loading = "lazy";
+    button.appendChild(img);
+    button.addEventListener("click", () => sendSticker(emoji));
+    stickerPicker?.appendChild(button);
+  });
+  emojiToggle?.addEventListener("click", () => {
+    if (!emojiPicker || !stickerPicker) return;
+    const open = emojiPicker.hidden;
+    closePickers();
+    emojiPicker.hidden = !open;
+  });
+  stickerToggle?.addEventListener("click", () => {
+    if (!emojiPicker || !stickerPicker) return;
+    const open = stickerPicker.hidden;
+    closePickers();
+    stickerPicker.hidden = !open;
+  });
+
   const messagesRef = rtdbRef(rtdb, "cinema/rooms/main/messages");
   const recentMessagesQuery = rtdbQuery(messagesRef, rtdbOrderByChild("sentAt"), rtdbLimitToLast(100));
 
@@ -320,9 +381,19 @@ export function renderCinemaRoom() {
       line.className = "cinema-chat-line";
       const name = document.createElement("strong");
       name.textContent = (message.username || "Member") + ": ";
-      const body = document.createElement("span");
-      body.textContent = message.text;
-      line.append(name, body);
+      if (message.type === "sticker" && typeof message.sticker === "string") {
+        const sticker = document.createElement("img");
+        sticker.className = "cinema-chat-sticker";
+        sticker.src = emojiImageUrl(message.sticker);
+        sticker.alt = message.sticker;
+        sticker.loading = "lazy";
+        line.classList.add("has-sticker");
+        line.append(name, sticker);
+      } else {
+        const body = document.createElement("span");
+        body.textContent = message.text;
+        line.append(name, body);
+      }
       log.appendChild(line);
     });
     log.scrollTop = log.scrollHeight;
@@ -337,15 +408,52 @@ export function renderCinemaRoom() {
     }
   });
 
+  let cachedChatUsername = null;
+  const sendChatPayload = async payload => {
+    const user = seatAuthUser;
+    if (!user?.uid) {
+      showCinemaSeatNotice("Login dulu untuk mengirim chat.");
+      return false;
+    }
+    try {
+      if (!cachedChatUsername) {
+        let profile = {};
+        try {
+          const profileSnap = await getDoc(doc(db, "users", user.uid));
+          if (profileSnap.exists()) profile = profileSnap.data() || {};
+        } catch (profileError) {
+          console.warn("Cinema chat profile unavailable:", profileError?.message || profileError);
+        }
+        cachedChatUsername = profile.username || profile.fullName || user.displayName || user.email?.split("@")[0] || "Member";
+      }
+      await rtdbSet(rtdbPush(messagesRef), {
+        uid: user.uid,
+        username: cachedChatUsername,
+        ...payload,
+        sentAt: Date.now()
+      });
+      return true;
+    } catch (error) {
+      showCinemaSeatNotice("Pesan gagal dikirim. Periksa izin Firebase.");
+      console.warn("Cinema chat send failed:", error?.message || error);
+      return false;
+    }
+  };
+  const sendSticker = async emoji => {
+    const buttons = stickerPicker?.querySelectorAll("button");
+    buttons?.forEach(button => button.disabled = true);
+    try {
+      await sendChatPayload({ type: "sticker", sticker: emoji, text: emoji });
+      closePickers();
+    } finally {
+      buttons?.forEach(button => button.disabled = false);
+    }
+  };
+
   form?.addEventListener("submit", async event => {
     event.preventDefault();
     const message = input?.value?.trim();
-    const user = seatAuthUser;
     if (!message || !log) return;
-    if (!user?.uid) {
-      showCinemaSeatNotice("Login dulu untuk mengirim chat.");
-      return;
-    }
     if (message.length > 300) {
       showCinemaSeatNotice("Pesan maksimal 300 karakter.");
       return;
@@ -353,24 +461,11 @@ export function renderCinemaRoom() {
     const sendButton = form.querySelector('button[type="submit"]');
     if (sendButton) sendButton.disabled = true;
     try {
-      let profile = {};
-      try {
-        const profileSnap = await getDoc(doc(db, "users", user.uid));
-        if (profileSnap.exists()) profile = profileSnap.data() || {};
-      } catch (profileError) {
-        console.warn("Cinema chat profile unavailable:", profileError?.message || profileError);
+      const sent = await sendChatPayload({ text: message, type: "text" });
+      if (sent) {
+        input.value = "";
+        closePickers();
       }
-      const username = profile.username || profile.fullName || user.displayName || user.email?.split("@")[0] || "Member";
-      await rtdbSet(rtdbPush(messagesRef), {
-        uid: user.uid,
-        username,
-        text: message,
-        sentAt: Date.now()
-      });
-      input.value = "";
-    } catch (error) {
-      showCinemaSeatNotice("Pesan gagal dikirim. Periksa izin Firebase.");
-      console.warn("Cinema chat send failed:", error?.message || error);
     } finally {
       if (sendButton) sendButton.disabled = false;
       input?.focus();
