@@ -1,7 +1,7 @@
 import { auth, db, rtdb } from "../firebase.js";
 import { doc, getDoc } from "../firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue, runTransaction as rtdbRunTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue, runTransaction as rtdbRunTransaction, push as rtdbPush, query as rtdbQuery, orderByChild as rtdbOrderByChild, limitToLast as rtdbLimitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Load CSS as a stylesheet resource; browser modules do not support direct CSS imports.
 function ensureCinemaStyles() {
   const href = new URL("./cinema.css", import.meta.url).href;
@@ -24,6 +24,7 @@ let stopPresenceCount = null;
 let stopAuthListener = null;
 
 let stopSeatListener = null;
+let stopChatListener = null;
 let stopSeatDisconnect = null;
 let seatAuthUser = null;
 
@@ -277,7 +278,7 @@ export function renderCinemaRoom() {
       <section class="cinema-panel cinema-chat-card cinema-room-card" aria-label="Chat room">
         <div class="cinema-panel-head"><h2>💬 Chat</h2><a class="cinema-back-inline" href="../index.html">← GMTC</a></div>
         <div class="cinema-chat-log" id="cinemaChatLog" aria-live="polite">
-          <div class="cinema-chat-line"><strong>GMTC:</strong> Selamat datang 🎶</div>
+          <div class="cinema-chat-note">Memuat chat...</div>
         </div>
         <form class="cinema-chat-form" id="cinemaChatForm">
           <input id="cinemaChatInput" type="text" maxlength="300" placeholder="Tulis pesan..." aria-label="Tulis pesan" autocomplete="off" />
@@ -293,18 +294,86 @@ export function renderCinemaRoom() {
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
   const log = document.getElementById("cinemaChatLog");
+  const messagesRef = rtdbRef(rtdb, "cinema/rooms/main/messages");
+  const recentMessagesQuery = rtdbQuery(messagesRef, rtdbOrderByChild("sentAt"), rtdbLimitToLast(100));
 
-  form?.addEventListener("submit", event => {
+  stopChatListener?.();
+  stopChatListener = rtdbOnValue(recentMessagesQuery, snapshot => {
+    if (!log) return;
+    const messages = [];
+    snapshot.forEach(child => {
+      const value = child.val();
+      if (value && typeof value.text === "string") {
+        messages.push({ id: child.key, ...value });
+      }
+    });
+    messages.sort((a, b) => (Number(a.sentAt) || 0) - (Number(b.sentAt) || 0));
+    log.replaceChildren();
+    if (!messages.length) {
+      const note = document.createElement("div");
+      note.className = "cinema-chat-note";
+      note.textContent = "Belum ada pesan. Mulai obrolan 🎶";
+      log.appendChild(note);
+    }
+    messages.forEach(message => {
+      const line = document.createElement("div");
+      line.className = "cinema-chat-line";
+      const name = document.createElement("strong");
+      name.textContent = (message.username || "Member") + ": ";
+      const body = document.createElement("span");
+      body.textContent = message.text;
+      line.append(name, body);
+      log.appendChild(line);
+    });
+    log.scrollTop = log.scrollHeight;
+  }, error => {
+    console.warn("Cinema chat listener unavailable:", error?.message || error);
+    if (log) {
+      log.replaceChildren();
+      const note = document.createElement("div");
+      note.className = "cinema-chat-note";
+      note.textContent = "Chat belum dapat dimuat. Periksa izin Firebase.";
+      log.appendChild(note);
+    }
+  });
+
+  form?.addEventListener("submit", async event => {
     event.preventDefault();
     const message = input?.value?.trim();
+    const user = seatAuthUser;
     if (!message || !log) return;
-    const line = document.createElement("div");
-    line.className = "cinema-chat-line";
-    const name = document.createElement("strong");
-    name.textContent = "Anda: ";
-    line.append(name, document.createTextNode(message));
-    log.appendChild(line);
-    log.scrollTop = log.scrollHeight;
-    input.value = "";
+    if (!user?.uid) {
+      showCinemaSeatNotice("Login dulu untuk mengirim chat.");
+      return;
+    }
+    if (message.length > 300) {
+      showCinemaSeatNotice("Pesan maksimal 300 karakter.");
+      return;
+    }
+    const sendButton = form.querySelector('button[type="submit"]');
+    if (sendButton) sendButton.disabled = true;
+    try {
+      let profile = {};
+      try {
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        if (profileSnap.exists()) profile = profileSnap.data() || {};
+      } catch (profileError) {
+        console.warn("Cinema chat profile unavailable:", profileError?.message || profileError);
+      }
+      const username = profile.username || profile.fullName || user.displayName || user.email?.split("@")[0] || "Member";
+      await rtdbSet(rtdbPush(messagesRef), {
+        uid: user.uid,
+        username,
+        text: message,
+        sentAt: Date.now()
+      });
+      input.value = "";
+    } catch (error) {
+      showCinemaSeatNotice("Pesan gagal dikirim. Periksa izin Firebase.");
+      console.warn("Cinema chat send failed:", error?.message || error);
+    } finally {
+      if (sendButton) sendButton.disabled = false;
+      input?.focus();
+    }
   });
 }
