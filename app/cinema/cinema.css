@@ -421,3 +421,27 @@ body{overflow:hidden;}
   50% { opacity: 1; }
   100% { background-position: 100% 0; opacity: .65; }
 }
+
+
+/* Singer-only local microphone loopback control, beside the mute button. */
+.cinema-room-fit .cinema-voice-loopback[hidden] { display: none !important; }
+.cinema-room-fit .cinema-voice-loopback {
+  flex: 0 0 31px;
+  width: 31px;
+  height: 31px;
+  padding: 0;
+  border-radius: 9px;
+  border: 1px solid rgba(227,197,101,.42);
+  background: rgba(255,255,255,.07);
+  color: #f3f0e7;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  cursor: pointer;
+}
+.cinema-room-fit .cinema-voice-loopback.is-active {
+  background: rgba(38,61,43,.95);
+  border-color: #7bd99a;
+  box-shadow: 0 0 0 1px rgba(123,217,154,.25);
+}
+.cinema-room-fit .cinema-voice-loopback:disabled { opacity: .5; cursor: not-allowed; }
