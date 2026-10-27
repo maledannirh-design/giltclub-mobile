@@ -254,3 +254,17 @@ body{overflow:hidden;}
 .cinema-page .cinema-seat.is-special[data-seat-id].is-occupied .seat-icon { border:2px solid rgba(236,126,126,.78)!important; }
 .cinema-page .cinema-seat.is-special[data-seat-id].is-mine .seat-icon { border:2px solid #7bd99a!important; box-shadow:0 0 0 1px rgba(123,217,154,.2); }
 .cinema-room-fit .cinema-seat.is-special[data-seat-id] { cursor:pointer; }
+
+
+/* Realtime chat emoji and sticker controls */
+.cinema-room-fit .cinema-chat-tools{display:flex;align-items:center;gap:5px;flex:0 0 auto;min-width:0;}
+.cinema-room-fit .cinema-chat-tools .cinema-chat-form{flex:1;min-width:0;}
+.cinema-room-fit .cinema-chat-tool{flex:0 0 auto;width:31px;height:31px;border:1px solid rgba(227,197,101,.35);border-radius:9px;background:rgba(255,255,255,.07);color:inherit;font-size:18px;display:grid;place-items:center;cursor:pointer;padding:0;}
+.cinema-room-fit .cinema-chat-picker[hidden]{display:none!important;}
+.cinema-room-fit .cinema-chat-picker{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;padding:6px;border-radius:10px;background:rgba(10,15,12,.96);border:1px solid rgba(227,197,101,.22);max-height:96px;overflow:auto;flex:0 0 auto;}
+.cinema-room-fit .cinema-emoji-choice,.cinema-room-fit .cinema-sticker-choice{border:0;background:rgba(255,255,255,.07);border-radius:8px;min-width:0;min-height:29px;display:grid;place-items:center;cursor:pointer;padding:3px;}
+.cinema-room-fit .cinema-emoji-choice{font-size:20px;}
+.cinema-room-fit .cinema-sticker-choice img{width:30px;height:30px;object-fit:contain;}
+.cinema-room-fit .cinema-chat-line.has-sticker{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.cinema-room-fit .cinema-chat-sticker{width:54px;height:54px;object-fit:contain;vertical-align:middle;}
+@media(max-width:380px){.cinema-room-fit .cinema-chat-picker{grid-template-columns:repeat(6,minmax(0,1fr));}.cinema-room-fit .cinema-chat-tool{width:28px;height:30px;}}
