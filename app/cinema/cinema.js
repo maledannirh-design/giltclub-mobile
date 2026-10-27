@@ -290,11 +290,18 @@ export function renderCinemaRoom() {
   content.innerHTML = `
     <section class="cinema-page cinema-room-fit" aria-label="Cinema room">
       <section class="cinema-screen cinema-room-card" aria-label="Layar YouTube">
-        <div class="cinema-screen-top"><span>▶ YOUTUBE</span><span id="cinemaPlaybackLabel">Belum ada video</span></div>
-        <div class="cinema-video-placeholder">
+        <div class="cinema-screen-top">
+          <span>▶ KARAOKE GMTC</span>
+          <span id="cinemaPlaybackLabel">Pilih video bersama</span>
+        </div>
+        <form class="cinema-youtube-controls" id="cinemaYoutubeForm" aria-label="Pilih video YouTube">
+          <input id="cinemaYoutubeUrl" type="url" inputmode="url" placeholder="Tempel link YouTube..." aria-label="Link video YouTube" autocomplete="url" maxlength="500" />
+          <button class="cinema-youtube-load" type="submit">Putar</button>
+        </form>
+        <div class="cinema-video-placeholder" id="cinemaYoutubePlayer">
           <span class="cinema-play-icon" aria-hidden="true">▶</span>
-          <strong>Layar YouTube akan tampil di sini</strong>
-          <p>Integrasi YouTube akan dihubungkan pada tahap berikutnya.</p>
+          <strong>Room Karaoke GMTC</strong>
+          <p>Tempel link YouTube untuk menampilkan video ke semua anggota room.</p>
         </div>
       </section>
 
@@ -349,6 +356,96 @@ export function renderCinemaRoom() {
   startRoomPresence();
   startSeatSelection();
   initCinemaVoice();
+
+  // Shared YouTube selection: everyone in the room receives the same video ID.
+  const youtubeForm = document.getElementById("cinemaYoutubeForm");
+  const youtubeInput = document.getElementById("cinemaYoutubeUrl");
+  const youtubePlayer = document.getElementById("cinemaYoutubePlayer");
+  const youtubeLabel = document.getElementById("cinemaPlaybackLabel");
+  const youtubeStateRef = rtdbRef(rtdb, "cinema/rooms/main/youtube");
+  let activeYoutubeId = null;
+  const parseYoutubeId = raw => {
+    try {
+      const url = new URL(String(raw || "").trim());
+      let id = "";
+      if (url.hostname === "youtu.be" || url.hostname.endsWith(".youtu.be")) {
+        id = url.pathname.split("/").filter(Boolean)[0] || "";
+      } else if (["youtube.com", "www.youtube.com", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com", "www.youtube-nocookie.com"].includes(url.hostname)) {
+        if (url.pathname === "/watch") id = url.searchParams.get("v") || "";
+        else {
+          const match = url.pathname.match(/^\\/(?:embed|shorts|live)\\/([A-Za-z0-9_-]{11})/);
+          id = match?.[1] || "";
+        }
+      }
+      return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+    } catch {
+      return null;
+    }
+  };
+  const renderYoutube = videoId => {
+    if (!youtubePlayer) return;
+    if (!videoId) {
+      activeYoutubeId = null;
+      youtubePlayer.classList.remove("has-youtube-video");
+      youtubePlayer.replaceChildren();
+      const icon = document.createElement("span");
+      icon.className = "cinema-play-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = "▶";
+      const title = document.createElement("strong");
+      title.textContent = "Room Karaoke GMTC";
+      const note = document.createElement("p");
+      note.textContent = "Tempel link YouTube untuk menampilkan video ke semua anggota room.";
+      youtubePlayer.append(icon, title, note);
+      if (youtubeLabel) youtubeLabel.textContent = "Pilih video bersama";
+      return;
+    }
+    if (activeYoutubeId === videoId && youtubePlayer.querySelector("iframe")) return;
+    activeYoutubeId = videoId;
+    youtubePlayer.classList.add("has-youtube-video");
+    youtubePlayer.replaceChildren();
+    const frame = document.createElement("iframe");
+    frame.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(videoId) + "?playsinline=1&autoplay=1&rel=0";
+    frame.title = "Video YouTube bersama — GMTC Karaoke";
+    frame.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    frame.referrerPolicy = "strict-origin-when-cross-origin";
+    frame.allowFullscreen = true;
+    frame.loading = "eager";
+    youtubePlayer.appendChild(frame);
+    if (youtubeLabel) youtubeLabel.textContent = "Video room aktif";
+  };
+  youtubeForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const user = seatAuthUser;
+    if (!user?.uid) {
+      showCinemaSeatNotice("Login dulu untuk memilih video karaoke.");
+      return;
+    }
+    const videoId = parseYoutubeId(youtubeInput?.value);
+    if (!videoId) {
+      showCinemaSeatNotice("Link YouTube tidak dikenali. Gunakan link video biasa, Shorts, atau youtu.be.");
+      return;
+    }
+    const button = youtubeForm.querySelector('button[type="submit"]');
+    if (button) { button.disabled = true; button.textContent = "Memuat…"; }
+    try {
+      await rtdbSet(youtubeStateRef, { videoId, updatedAt: Date.now(), updatedBy: user.uid });
+      showCinemaSeatNotice("Video dikirim ke room karaoke GMTC.");
+    } catch (error) {
+      showCinemaSeatNotice("Video gagal dibagikan. Periksa izin Firebase RTDB.");
+      console.warn("Cinema YouTube update failed:", error?.message || error);
+    } finally {
+      if (button) { button.disabled = false; button.textContent = "Putar"; }
+    }
+  });
+  const stopYoutubeListener = rtdbOnValue(youtubeStateRef, snapshot => {
+    const state = snapshot.val();
+    renderYoutube(typeof state?.videoId === "string" ? state.videoId : null);
+  }, error => {
+    console.warn("Cinema YouTube listener unavailable:", error?.message || error);
+    if (youtubeLabel) youtubeLabel.textContent = "Izin YouTube belum aktif";
+  });
+  window.addEventListener("pagehide", () => stopYoutubeListener(), { once: true });
 
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
