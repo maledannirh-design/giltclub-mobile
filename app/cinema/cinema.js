@@ -313,6 +313,28 @@ export function renderCinemaRoom() {
           <p>Tempel link YouTube untuk menampilkan video ke semua anggota room.</p>
         </div>
         <div class="cinema-shared-playback" id="cinemaSharedPlayback" hidden><button class="cinema-playback-toggle" id="cinemaPlaybackToggle" type="button" disabled>▶ Putar bersama</button><span class="cinema-playback-status" id="cinemaPlaybackStatus">Menunggu pemutar…</span></div>
+        <section class="cinema-mixer-card" id="cinemaMixerCard" aria-label="Mixer karaoke">
+          <button class="cinema-mixer-heading" id="cinemaMixerToggle" type="button" aria-expanded="false">
+            <span>🎚️ Mixer Karaoke</span><span class="cinema-mixer-chevron">＋</span>
+          </button>
+          <div class="cinema-mixer-body" id="cinemaMixerBody" hidden>
+            <label class="cinema-mixer-control"><span>🎙️ Volume suara user <output id="cinemaVoiceVolumeValue">100%</output></span><input id="cinemaVoiceVolume" type="range" min="0" max="100" value="100" step="1" /></label>
+            <label class="cinema-mixer-control"><span>🎵 Volume musik YouTube <output id="cinemaMusicVolumeValue">70%</output></span><input id="cinemaMusicVolume" type="range" min="0" max="100" value="70" step="1" /></label>
+            <button class="cinema-eq-toggle" id="cinemaEqToggle" type="button" aria-expanded="false">🎛️ Equalizer <span>＋</span></button>
+            <div class="cinema-eq-body" id="cinemaEqBody" hidden>
+              <div class="cinema-eq-presets" role="group" aria-label="Preset equalizer">
+                <button type="button" data-eq-preset="pop">Pop</button>
+                <button type="button" data-eq-preset="vocal">Vocal</button>
+                <button type="button" data-eq-preset="bass">Bass</button>
+                <button type="button" data-eq-preset="treble">Treble</button>
+              </div>
+              <label class="cinema-mixer-control"><span>Bass <output id="cinemaEqBassValue">0 dB</output></span><input id="cinemaEqBass" type="range" min="-12" max="12" value="0" step="1" /></label>
+              <label class="cinema-mixer-control"><span>Mid <output id="cinemaEqMidValue">0 dB</output></span><input id="cinemaEqMid" type="range" min="-12" max="12" value="0" step="1" /></label>
+              <label class="cinema-mixer-control"><span>Treble <output id="cinemaEqTrebleValue">0 dB</output></span><input id="cinemaEqTreble" type="range" min="-12" max="12" value="0" step="1" /></label>
+              <p class="cinema-mixer-note">Equalizer mengatur suara penyanyi yang diterima. Volume musik hanya mengatur YouTube di perangkat ini.</p>
+            </div>
+          </div>
+        </section>
       </section>
 
       <section class="cinema-panel cinema-seating-card cinema-room-card" aria-label="Kursi room">
@@ -362,6 +384,57 @@ export function renderCinemaRoom() {
       </section>
     </section>
   `;
+
+
+  // Local mixer UI: music volume uses the YouTube player API; voice volume is sent to voice.js.
+  const mixerToggle = document.getElementById("cinemaMixerToggle");
+  const mixerBody = document.getElementById("cinemaMixerBody");
+  const eqToggle = document.getElementById("cinemaEqToggle");
+  const eqBody = document.getElementById("cinemaEqBody");
+  mixerToggle?.addEventListener("click", () => {
+    const open = mixerBody.hidden;
+    mixerBody.hidden = !open;
+    mixerToggle.setAttribute("aria-expanded", String(open));
+    mixerToggle.querySelector(".cinema-mixer-chevron").textContent = open ? "−" : "＋";
+  });
+  eqToggle?.addEventListener("click", () => {
+    const open = eqBody.hidden;
+    eqBody.hidden = !open;
+    eqToggle.setAttribute("aria-expanded", String(open));
+    eqToggle.lastElementChild.textContent = open ? "−" : "＋";
+  });
+  const voiceVolume = document.getElementById("cinemaVoiceVolume");
+  const musicVolume = document.getElementById("cinemaMusicVolume");
+  const eqSliders = {
+    bass: document.getElementById("cinemaEqBass"),
+    mid: document.getElementById("cinemaEqMid"),
+    treble: document.getElementById("cinemaEqTreble")
+  };
+  const updateVoiceVolume = () => {
+    document.getElementById("cinemaVoiceVolumeValue").value = voiceVolume.value + "%";
+    window.dispatchEvent(new CustomEvent("cinema:mixer-voice-volume", { detail: { volume: Number(voiceVolume.value) / 100 } }));
+  };
+  const updateMusicVolume = () => {
+    document.getElementById("cinemaMusicVolumeValue").value = musicVolume.value + "%";
+    try { if (youtubePlayerReady && youtubePlayerApi?.setVolume) youtubePlayerApi.setVolume(Number(musicVolume.value)); } catch {}
+  };
+  const updateEq = () => {
+    for (const [key, input] of Object.entries(eqSliders)) document.getElementById("cinemaEq" + key[0].toUpperCase() + key.slice(1) + "Value").value = input.value + " dB";
+    window.dispatchEvent(new CustomEvent("cinema:mixer-eq", { detail: { bass: Number(eqSliders.bass.value), mid: Number(eqSliders.mid.value), treble: Number(eqSliders.treble.value) } }));
+  };
+  voiceVolume?.addEventListener("input", updateVoiceVolume);
+  musicVolume?.addEventListener("input", updateMusicVolume);
+  Object.values(eqSliders).forEach(input => input?.addEventListener("input", updateEq));
+  document.querySelectorAll("[data-eq-preset]").forEach(button => button.addEventListener("click", () => {
+    const presets = { pop: [3, 1, 3], vocal: [1, 4, 2], bass: [6, 0, -1], treble: [-1, 1, 6] };
+    const values = presets[button.dataset.eqPreset];
+    [eqSliders.bass, eqSliders.mid, eqSliders.treble].forEach((input, i) => input.value = values[i]);
+    document.querySelectorAll("[data-eq-preset]").forEach(item => item.classList.toggle("is-active", item === button));
+    updateEq();
+  }));
+  updateVoiceVolume();
+  updateMusicVolume();
+  updateEq();
 
   startRoomPresence();
   startSeatSelection();
