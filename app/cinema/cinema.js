@@ -417,7 +417,7 @@ export function renderCinemaRoom() {
   initCinemaVoice();
 
   // YouTube Data API browser key must be restricted to GMTC domains and YouTube Data API v3.
-  const YOUTUBE_DATA_API_KEY = "PASTE_RESTRICTED_YOUTUBE_DATA_API_KEY_HERE";
+  const YOUTUBE_DATA_API_KEY = "AIzaSyC9kHP8u58_bd_tVu9cVvSNUrM_Njg-TbA";
   const youtubeForm = document.getElementById("cinemaYoutubeForm");
   const youtubeInput = document.getElementById("cinemaYoutubeQuery");
   const youtubeSearchButton = document.getElementById("cinemaYoutubeSearchBtn");
