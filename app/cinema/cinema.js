@@ -27,6 +27,8 @@ let stopAuthListener = null;
 let stopSeatListener = null;
 let stopChatListener = null;
 let stopSeatDisconnect = null;
+let activeSeatDisconnectRef = null;
+let seatActionInProgress = false;
 let seatAuthUser = null;
 
 function showCinemaSeatNotice(message) {
@@ -103,14 +105,17 @@ function startSeatSelection() {
     el.tabIndex = 0;
     el.setAttribute("role", "button");
     const chooseSeat = async () => {
+      if (seatActionInProgress) return;
+      seatActionInProgress = true;
       const user = seatAuthUser;
       if (!user?.uid) {
         showCinemaSeatNotice("Login dulu untuk menggunakan kursi.");
+        seatActionInProgress = false;
         return;
       }
       const seatId = el.dataset.seatId;
       const seatType = el.dataset.seatType || "audience";
-      if (!seatId) return;
+      if (!seatId) { seatActionInProgress = false; return; }
       const seatRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
       try {
         const seatsSnap = await new Promise((resolve, reject) => {
@@ -125,21 +130,29 @@ function startSeatSelection() {
         if (seatType === "audience" && occupant && !isMine && isModeratorSeat) {
           const targetName = occupant.username || "anggota";
           const confirmed = window.confirm(`Kick ${targetName} dari kursi penonton?`);
-          if (!confirmed) return;
+          if (!confirmed) { seatActionInProgress = false; return; }
           await rtdbRemove(seatRef);
           showCinemaSeatNotice(`${targetName} dikeluarkan dari kursi.`);
+          seatActionInProgress = false;
           return;
         }
 
         if (occupant && !isMine) {
           showCinemaSeatNotice("Kursi sudah terisi anggota lain.");
+          seatActionInProgress = false;
           return;
         }
         if (isMine) {
+          if (activeSeatDisconnectRef && activeSeatDisconnectRef.toString() === seatRef.toString()) {
+            await rtdbOnDisconnect(seatRef).cancel().catch(() => {});
+            activeSeatDisconnectRef = null;
+            stopSeatDisconnect = null;
+          }
           await rtdbRemove(seatRef);
           showCinemaSeatNotice(seatType === "singer" ? "Anda berdiri dari kursi penyanyi." :
             seatType === "moderator" ? "Anda keluar dari kursi moderator." :
             "Anda berdiri dari kursi penonton.");
+          seatActionInProgress = false;
           return;
         }
 
@@ -165,9 +178,20 @@ function startSeatSelection() {
           return;
         }
         const seatDisconnectRef = rtdbRef(rtdb, "cinema/rooms/main/seats/" + seatId);
+        // Cancel the previous seat's pending disconnect operation before arming the new one.
+        if (activeSeatDisconnectRef && activeSeatDisconnectRef.toString() !== seatDisconnectRef.toString()) {
+          await rtdbOnDisconnect(activeSeatDisconnectRef).cancel().catch(() => {});
+        }
         await rtdbOnDisconnect(seatDisconnectRef).remove();
-        stopSeatDisconnect?.();
-        stopSeatDisconnect = () => rtdbRemove(seatDisconnectRef).catch(() => {});
+        activeSeatDisconnectRef = seatDisconnectRef;
+        stopSeatDisconnect = async () => {
+          if (activeSeatDisconnectRef) {
+            const currentRef = activeSeatDisconnectRef;
+            activeSeatDisconnectRef = null;
+            await rtdbOnDisconnect(currentRef).cancel().catch(() => {});
+            await rtdbRemove(currentRef).catch(() => {});
+          }
+        };
         window.stopCinemaSeat = stopSeatDisconnect;
         showCinemaSeatNotice(seatType === "singer" ? "Berhasil duduk di kursi penyanyi." :
           seatType === "moderator" ? "Mode moderator aktif selama Anda duduk di kursi ini." :
@@ -175,6 +199,8 @@ function startSeatSelection() {
       } catch (error) {
         showCinemaSeatNotice("Aksi kursi gagal. Periksa izin Firebase.");
         console.warn("Cinema seat action failed:", error?.message || error);
+      } finally {
+        seatActionInProgress = false;
       }
     };
     el.addEventListener("click", chooseSeat);
