@@ -26,6 +26,8 @@ export function initCinemaVoice() {
   let sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
   let starting = false;
   let destroyed = false;
+  let latestSeats = {};
+  const reconnectTimers = new Map();
 
   const say = message => { if (status) status.textContent = message; };
   const setButton = () => {
@@ -58,6 +60,8 @@ export function initCinemaVoice() {
     for (const uid of [...peers.keys()]) stopPeer(uid);
     for (const stop of stopIncoming.values()) stop();
     stopIncoming.clear();
+    for (const timer of reconnectTimers.values()) clearTimeout(timer);
+    reconnectTimers.clear();
     if (localStream) localStream.getTracks().forEach(track => track.stop());
     localStream = null;
     // Do not delete the voiceSignals parent here: RTDB rules authorize per-peer paths,
@@ -100,8 +104,29 @@ export function initCinemaVoice() {
     };
     pc.onconnectionstatechange = () => {
       console.info("Cinema voice connection:", peerUid, pc.connectionState, pc.iceConnectionState);
-      if (pc.connectionState === "failed") say("Koneksi suara gagal. Jaringan mungkin memerlukan TURN server.");
-      else if (pc.connectionState === "connected") say("Audio anggota terhubung.");
+      if (pc.connectionState === "failed") {
+        say("Koneksi suara terputus. Mencoba menyambungkan ulang…");
+        // Remove the stale peer and its signal listener, then renegotiate automatically.
+        // This avoids requiring members to stand up and sit down again.
+        if (reconnectTimers.has(peerUid)) clearTimeout(reconnectTimers.get(peerUid));
+        const timer = setTimeout(async () => {
+          reconnectTimers.delete(peerUid);
+          const stillSeated = Object.values(latestSeats || {}).some(seat => seat?.uid === peerUid);
+          if (destroyed || !seated || !stillSeated || !user?.uid) return;
+          stopPeer(peerUid);
+          pendingCandidates.delete(peerUid);
+          signalCutoffs.delete(peerUid);
+          const peerSeat = Object.values(latestSeats).find(seat => seat?.uid === peerUid);
+          const mySeat = Object.values(latestSeats).find(seat => seat?.uid === user.uid);
+          await connectPeer(peerUid, peerSeat?.seatedAt, mySeat?.seatedAt);
+        }, 1200);
+        reconnectTimers.set(peerUid, timer);
+      } else if (pc.connectionState === "connected") {
+        const timer = reconnectTimers.get(peerUid);
+        if (timer) clearTimeout(timer);
+        reconnectTimers.delete(peerUid);
+        say("Audio anggota terhubung.");
+      }
     };
     pc.oniceconnectionstatechange = () => {
       console.info("Cinema voice ICE:", peerUid, pc.iceConnectionState);
@@ -182,6 +207,7 @@ export function initCinemaVoice() {
     }).catch(() => {});
     return current;
   };
+  // voice reconnect after failed connection is handled by pc.connectionStatechange.
   const connectPeer = async (peerUid, peerSeatedAt = 0, mySeatedAt = 0) => {
     if (!user?.uid || !seated || peerUid === user.uid || stopIncoming.has(peerUid) || connecting.has(peerUid)) return;
     connecting.add(peerUid);
@@ -204,6 +230,7 @@ export function initCinemaVoice() {
     }
   };
   const reconcile = async seats => {
+    latestSeats = seats || {};
     const mySeatEntry = Object.entries(seats || {}).find(([, seat]) => seat?.uid === user?.uid);
     const mySeat = Boolean(mySeatEntry);
     const mySeatedAt = Number(mySeatEntry?.[1]?.seatedAt || 0);
