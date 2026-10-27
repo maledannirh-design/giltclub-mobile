@@ -18,6 +18,7 @@ const SEATS = Array.from({ length: 16 }, (_, index) => ({
   vvip: index < 4
 }));
 
+
 let stopPresence = null;
 let stopPresenceCount = null;
 let stopAuthListener = null;
