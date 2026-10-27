@@ -123,7 +123,7 @@ export function initCinemaVoice() {
     audio.playsInline = true;
     audio.setAttribute("aria-label", "Suara anggota room");
     audio.style.display = "none";
-    audio.volume = mixerVoiceVolume;
+    audio.volume = 1; // Remote audio level is applied in the Web Audio mixer graph.
     document.body.appendChild(audio);
     const entry = { pc, audio, remoteSession: null, uid: peerUid };
     peers.set(peerUid, entry);
