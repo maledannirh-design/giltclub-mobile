@@ -1,5 +1,6 @@
 import { auth, rtdb } from "../firebase.js";
-import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect, onValue as rtdbOnValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Load CSS as a stylesheet resource; browser modules do not support direct CSS imports.
 function ensureCinemaStyles() {
   const href = new URL("./cinema.css", import.meta.url).href;
@@ -18,21 +19,49 @@ const SEATS = Array.from({ length: 16 }, (_, index) => ({
 }));
 
 let stopPresence = null;
+let stopPresenceCount = null;
+let stopAuthListener = null;
 
 function startRoomPresence() {
-  const user = auth.currentUser;
-  if (!user?.uid) return;
-  const presenceRef = rtdbRef(rtdb, "cinema/rooms/main/presence/" + user.uid);
-  const payload = {
-    uid: user.uid,
-    username: user.displayName || "Member",
-    joinedAt: Date.now()
-  };
-  rtdbOnDisconnect(presenceRef).remove()
-    .then(() => rtdbSet(presenceRef, payload))
-    .catch(error => console.error("Cinema presence setup failed:", error));
-  stopPresence = () => rtdbRemove(presenceRef).catch(() => {});
-  window.stopCinemaPresence = stopPresence;
+  const presenceRoot = rtdbRef(rtdb, "cinema/rooms/main/presence");
+
+  // Count every connected room member, whether seated or not.
+  stopPresenceCount?.();
+  stopPresenceCount = rtdbOnValue(presenceRoot, snapshot => {
+    const count = snapshot.exists() ? snapshot.numChildren() : 0;
+    const title = document.querySelector(".cinema-chat-card .cinema-panel-head h2");
+    if (title) title.textContent = `💬 Chat (${count})`;
+  }, error => {
+    console.warn("Cinema presence count unavailable:", error?.message || error);
+  });
+
+  // Wait for Firebase Auth to resolve before writing a presence record.
+  stopAuthListener?.();
+  stopAuthListener = onAuthStateChanged(auth, user => {
+    stopPresence?.();
+    stopPresence = null;
+    if (!user?.uid) return;
+
+    const presenceRef = rtdbRef(rtdb, "cinema/rooms/main/presence/" + user.uid);
+    const payload = {
+      uid: user.uid,
+      username: user.displayName || user.email?.split("@")[0] || "Member",
+      joinedAt: Date.now()
+    };
+
+    rtdbOnDisconnect(presenceRef).remove()
+      .then(() => rtdbSet(presenceRef, payload))
+      .catch(error => console.warn("Cinema presence setup failed:", error?.message || error));
+
+    stopPresence = () => rtdbRemove(presenceRef).catch(() => {});
+    window.stopCinemaPresence = stopPresence;
+  });
+
+  window.addEventListener("pagehide", () => {
+    stopPresence?.();
+    stopPresenceCount?.();
+    stopAuthListener?.();
+  }, { once: true });
 }
 
 export function renderCinemaRoom() {
