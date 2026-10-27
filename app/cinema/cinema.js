@@ -374,57 +374,109 @@ export function renderCinemaRoom() {
   const youtubeResults = document.getElementById("cinemaYoutubeResults");
   const youtubePlayer = document.getElementById("cinemaYoutubePlayer");
   const youtubeLabel = document.getElementById("cinemaPlaybackLabel");
-  const youtubeStateRef = rtdbRef(rtdb, "cinema/rooms/main/youtube");
-  let activeYoutubeId = null;
 
+  const youtubeStateRef = rtdbRef(rtdb, "cinema/rooms/main/youtube");
+  const playbackRef = rtdbRef(rtdb, "cinema/rooms/main/youtubePlayback");
+  const playbackWrap = document.getElementById("cinemaSharedPlayback");
+  const playbackToggle = document.getElementById("cinemaPlaybackToggle");
+  const playbackStatus = document.getElementById("cinemaPlaybackStatus");
+  let activeYoutubeId = null, youtubePlayerApi = null, youtubePlayerReady = false;
+  let latestPlaybackState = null, lastCommandAt = 0, syncTimer = null, playerApiPromise = null;
+  const loadYouTubePlayerApi = () => {
+    if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+    if (playerApiPromise) return playerApiPromise;
+    playerApiPromise = new Promise((resolve, reject) => {
+      window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+      let script = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+      if (!script) { script = document.createElement("script"); script.src = "https://www.youtube.com/iframe_api"; script.async = true; script.onerror = () => reject(new Error("YouTube API gagal")); document.head.appendChild(script); }
+    });
+    return playerApiPromise;
+  };
+  const refreshPlaybackUi = () => {
+    const allowed = Boolean(cinemaUserIsSinger && seatAuthUser && seatAuthUser.uid && youtubePlayerReady);
+    if (playbackToggle) { playbackToggle.disabled = !allowed; playbackToggle.textContent = latestPlaybackState && latestPlaybackState.state === "playing" ? "Ⅱ Pause bersama" : "▶ Putar bersama"; }
+    if (playbackStatus) playbackStatus.textContent = allowed ? "Kursi penyanyi mengontrol semua perangkat" : "Kontrol bersama tersedia untuk kursi penyanyi";
+  };
   window.setCinemaSingerAccess = allowed => {
-    const enabled = Boolean(allowed && seatAuthUser?.uid);
+    const enabled = Boolean(allowed && seatAuthUser && seatAuthUser.uid);
     if (youtubeInput) youtubeInput.disabled = !enabled;
     if (youtubeSearchButton) youtubeSearchButton.disabled = !enabled;
     if (youtubeInput) youtubeInput.placeholder = enabled ? "Cari judul lagu / penyanyi..." : "Duduk di kursi penyanyi untuk mencari";
     if (youtubeLabel && !activeYoutubeId) youtubeLabel.textContent = enabled ? "Kursi penyanyi aktif" : "Duduk di kursi penyanyi untuk mencari lagu";
     if (!enabled && youtubeResults) { youtubeResults.replaceChildren(); youtubeResults.hidden = true; }
+    refreshPlaybackUi();
   };
   window.setCinemaSingerAccess(cinemaUserIsSinger);
-
-  const renderYoutube = videoId => {
-    if (!youtubePlayer) return;
-    if (!videoId) {
-      activeYoutubeId = null;
-      youtubePlayer.classList.remove("has-youtube-video");
-      youtubePlayer.replaceChildren();
-      const icon = document.createElement("span");
-      icon.className = "cinema-play-icon"; icon.setAttribute("aria-hidden", "true"); icon.textContent = "▶";
-      const title = document.createElement("strong"); title.textContent = "Room Karaoke GMTC";
-      const note = document.createElement("p"); note.textContent = "Duduk di kursi penyanyi untuk mencari lagu YouTube.";
-      youtubePlayer.append(icon, title, note);
-      if (youtubeLabel) youtubeLabel.textContent = cinemaUserIsSinger ? "Kursi penyanyi aktif" : "Pilih video bersama";
+  const writePlayback = async (state, command) => {
+    if (!seatAuthUser || !seatAuthUser.uid || !cinemaUserIsSinger || !activeYoutubeId) return;
+    const now = Date.now(), position = youtubePlayerApi && youtubePlayerReady ? Number(youtubePlayerApi.getCurrentTime() || 0) : Number(latestPlaybackState && latestPlaybackState.position || 0);
+    await rtdbSet(playbackRef, { videoId: activeYoutubeId, state, position: Math.max(0, position), syncAt: now, commandAt: command ? now : Number(latestPlaybackState && latestPlaybackState.commandAt || 0), updatedAt: now, updatedBy: seatAuthUser.uid });
+  };
+  const applyPlaybackState = state => {
+    if (!youtubePlayerReady || !youtubePlayerApi || !state || state.videoId !== activeYoutubeId || !window.YT) return;
+    const commandAt = Number(state.commandAt || 0);
+    if (commandAt && commandAt !== lastCommandAt) {
+      lastCommandAt = commandAt;
+      try { youtubePlayerApi.seekTo(Math.max(0, Number(state.position || 0)), true); } catch {}
+      if (state.state === "playing") youtubePlayerApi.playVideo(); else youtubePlayerApi.pauseVideo();
       return;
     }
-    if (activeYoutubeId === videoId && youtubePlayer.querySelector("iframe")) return;
-    activeYoutubeId = videoId;
-    youtubePlayer.classList.add("has-youtube-video"); youtubePlayer.replaceChildren();
-    const frame = document.createElement("iframe");
-    frame.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(videoId) + "?playsinline=1&autoplay=1&controls=1&rel=0&enablejsapi=1&origin=" + encodeURIComponent(window.location.origin);
-    frame.title = "Video YouTube bersama — GMTC Karaoke";
-    frame.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    frame.referrerPolicy = "strict-origin-when-cross-origin"; frame.allowFullscreen = true; frame.loading = "eager";
-    youtubePlayer.appendChild(frame);
-    if (youtubeLabel) youtubeLabel.textContent = "Video dipilih bersama";
+    const expected = Number(state.position || 0) + (state.state === "playing" ? Math.max(0, Date.now() - Number(state.syncAt || Date.now())) / 1000 : 0);
+    if (Math.abs(expected - Number(youtubePlayerApi.getCurrentTime() || 0)) > 3) { try { youtubePlayerApi.seekTo(expected, true); } catch {} }
+    if (state.state === "playing" && youtubePlayerApi.getPlayerState() !== window.YT.PlayerState.PLAYING) youtubePlayerApi.playVideo();
+    if (state.state !== "playing" && youtubePlayerApi.getPlayerState() === window.YT.PlayerState.PLAYING) youtubePlayerApi.pauseVideo();
   };
-
+  const renderYoutube = async (videoId, title) => {
+    if (!youtubePlayer) return;
+    if (!videoId) {
+      activeYoutubeId = null; youtubePlayerReady = false;
+      if (youtubePlayerApi && youtubePlayerApi.destroy) youtubePlayerApi.destroy();
+      youtubePlayerApi = null; youtubePlayer.classList.remove("has-youtube-video"); youtubePlayer.replaceChildren();
+      const icon = document.createElement("span"); icon.className = "cinema-play-icon"; icon.textContent = "▶";
+      const heading = document.createElement("strong"); heading.textContent = "Room Karaoke GMTC";
+      const note = document.createElement("p"); note.textContent = "Duduk di kursi penyanyi untuk mencari lagu YouTube.";
+      youtubePlayer.append(icon, heading, note); if (playbackWrap) playbackWrap.hidden = true; refreshPlaybackUi(); return;
+    }
+    if (activeYoutubeId === videoId && youtubePlayerApi) return;
+    activeYoutubeId = videoId; youtubePlayerReady = false;
+    if (youtubePlayerApi && youtubePlayerApi.destroy) youtubePlayerApi.destroy();
+    youtubePlayerApi = null; youtubePlayer.classList.add("has-youtube-video"); youtubePlayer.replaceChildren();
+    const host = document.createElement("div"); host.id = "cinemaYoutubeFrameHost"; host.className = "cinema-youtube-frame-host"; youtubePlayer.appendChild(host);
+    if (playbackWrap) playbackWrap.hidden = false;
+    if (youtubeLabel && title) youtubeLabel.textContent = String(title).slice(0, 70);
+    refreshPlaybackUi();
+    try {
+      const YT = await loadYouTubePlayerApi();
+      if (activeYoutubeId !== videoId || !host.isConnected) return;
+      youtubePlayerApi = new YT.Player(host, { width: "100%", height: "100%", videoId, playerVars: { playsinline: 1, controls: 0, rel: 0, autoplay: 0, origin: window.location.origin }, events: {
+        onReady: event => { if (activeYoutubeId !== videoId) return; youtubePlayerApi = event.target; youtubePlayerReady = true; refreshPlaybackUi(); if (latestPlaybackState && latestPlaybackState.videoId === videoId) applyPlaybackState(latestPlaybackState); },
+        onStateChange: event => { if (activeYoutubeId !== videoId) return; if (cinemaUserIsSinger && seatAuthUser && seatAuthUser.uid) { if (event.data === YT.PlayerState.PLAYING) writePlayback("playing", true).catch(error => console.warn("Shared playback:", error)); if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) writePlayback("paused", true).catch(error => console.warn("Shared playback:", error)); } refreshPlaybackUi(); },
+        onError: event => { if (playbackStatus) playbackStatus.textContent = "Pemutar YouTube gagal (kode " + event.data + ")."; }
+      }});
+    } catch (error) { console.warn("YouTube Player API:", error); if (playbackStatus) playbackStatus.textContent = "Pemutar gagal dimuat. Muat ulang halaman."; }
+  };
   const chooseYoutubeVideo = async (videoId, title) => {
     const user = seatAuthUser;
-    if (!user?.uid || !cinemaUserIsSinger) { showCinemaSeatNotice("Hanya anggota yang duduk di kursi penyanyi yang boleh memilih lagu."); return; }
+    if (!user || !user.uid || !cinemaUserIsSinger) { showCinemaSeatNotice("Hanya anggota yang duduk di kursi penyanyi yang boleh memilih lagu."); return; }
     try {
-      await rtdbSet(youtubeStateRef, { videoId, title: String(title || "").slice(0, 200), updatedAt: Date.now(), updatedBy: user.uid });
+      const now = Date.now();
+      await rtdbSet(youtubeStateRef, { videoId, title: String(title || "").slice(0, 200), updatedAt: now, updatedBy: user.uid });
+      await rtdbSet(playbackRef, { videoId, state: "playing", position: 0, syncAt: now, commandAt: now, updatedAt: now, updatedBy: user.uid });
       if (youtubeResults) youtubeResults.hidden = true;
       showCinemaSeatNotice("Lagu dibagikan ke seluruh room GMTC.");
-    } catch (error) {
-      showCinemaSeatNotice("Pemilihan lagu ditolak Firebase. Izin kursi penyanyi perlu diperiksa.");
-      console.warn("Cinema YouTube update failed:", error?.message || error);
-    }
+    } catch (error) { showCinemaSeatNotice("Pemilihan lagu ditolak Firebase. Izin kursi penyanyi perlu diperiksa."); console.warn("Cinema YouTube update failed:", error && error.message || error); }
   };
+  playbackToggle && playbackToggle.addEventListener("click", async () => {
+    if (!cinemaUserIsSinger || !seatAuthUser || !seatAuthUser.uid || !youtubePlayerReady || !youtubePlayerApi) return;
+    try { if (youtubePlayerApi.getPlayerState() === window.YT.PlayerState.PLAYING) { youtubePlayerApi.pauseVideo(); await writePlayback("paused", true); } else { youtubePlayerApi.playVideo(); await writePlayback("playing", true); } }
+    catch (error) { console.warn("Shared playback command:", error); }
+  });
+  const stopPlaybackListener = rtdbOnValue(playbackRef, snapshot => { latestPlaybackState = snapshot.val(); applyPlaybackState(latestPlaybackState); refreshPlaybackUi(); }, error => console.warn("Shared playback listener:", error));
+  syncTimer = window.setInterval(() => {
+    if (!cinemaUserIsSinger || !seatAuthUser || !seatAuthUser.uid || !youtubePlayerReady || !activeYoutubeId || !youtubePlayerApi || !window.YT || youtubePlayerApi.getPlayerState() !== window.YT.PlayerState.PLAYING) return;
+    const now = Date.now(), position = Number(youtubePlayerApi.getCurrentTime() || 0);
+    rtdbSet(playbackRef, { videoId: activeYoutubeId, state: "playing", position, syncAt: now, commandAt: Number(latestPlaybackState && latestPlaybackState.commandAt || 0), updatedAt: now, updatedBy: seatAuthUser.uid }).catch(error => console.warn("Playback heartbeat:", error));
+  }, 8000);
 
   const searchYoutube = async query => {
     if (!seatAuthUser?.uid || !cinemaUserIsSinger) { showCinemaSeatNotice("Duduk di kursi penyanyi dulu untuk mencari lagu."); return; }
@@ -466,12 +518,13 @@ export function renderCinemaRoom() {
     }
   };
   youtubeForm?.addEventListener("submit", async event => { event.preventDefault(); await searchYoutube(youtubeInput?.value || ""); });
+
   const stopYoutubeListener = rtdbOnValue(youtubeStateRef, snapshot => {
     const state = snapshot.val();
-    renderYoutube(typeof state?.videoId === "string" ? state.videoId : null);
+    renderYoutube(typeof state?.videoId === "string" ? state.videoId : null, state?.title || "").catch(error => console.warn("Cinema YouTube render:", error));
     if (youtubeLabel && state?.title && state?.videoId) youtubeLabel.textContent = String(state.title).slice(0, 70);
   }, error => { console.warn("Cinema YouTube listener unavailable:", error?.message || error); if (youtubeLabel) youtubeLabel.textContent = "Izin YouTube belum aktif"; });
-  window.addEventListener("pagehide", () => { stopYoutubeListener(); if (window.setCinemaSingerAccess) delete window.setCinemaSingerAccess; }, { once: true });
+  window.addEventListener("pagehide", () => { stopYoutubeListener(); stopPlaybackListener(); if (syncTimer) window.clearInterval(syncTimer); if (youtubePlayerApi && youtubePlayerApi.destroy) youtubePlayerApi.destroy(); if (window.setCinemaSingerAccess) delete window.setCinemaSingerAccess; }, { once: true });
 
   const form = document.getElementById("cinemaChatForm");
   const input = document.getElementById("cinemaChatInput");
