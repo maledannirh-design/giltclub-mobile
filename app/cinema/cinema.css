@@ -374,3 +374,41 @@ body{overflow:hidden;}
     grid-template-rows: minmax(0, 40.5fr) minmax(0, 28.5fr) minmax(0, 31fr);
   }
 }
+
+
+/* Cinema Room mobile: hide redundant shared playback strip; YouTube's own controls remain. */
+.cinema-room-fit .cinema-shared-playback {
+  display: none !important;
+}
+
+/* Audience pairs: short dashed connector between the two seats in each row. */
+@media (max-width: 700px) {
+  .cinema-room-fit .cinema-audience-side {
+    column-gap: 0 !important;
+  }
+  .cinema-room-fit .cinema-audience-side .cinema-seat {
+    position: relative;
+    overflow: visible;
+  }
+  .cinema-room-fit .cinema-audience-side .cinema-seat:nth-child(odd)::after {
+    content: "";
+    position: absolute;
+    left: calc(100% - 1px);
+    top: 50%;
+    width: clamp(8px, 3vw, 17px);
+    border-top: 2px dashed rgba(231, 190, 169, .85);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  /* When JS confirms mutual follow, the connector becomes an animated current. */
+  .cinema-room-fit .cinema-audience-side .cinema-seat.is-mutual-follow:nth-child(odd)::after {
+    border-top: 2px dashed #f2c7b3;
+    animation: cinemaMutualCurrent 850ms linear infinite;
+    filter: drop-shadow(0 0 3px rgba(255, 205, 150, .9));
+  }
+}
+@keyframes cinemaMutualCurrent {
+  0% { background-position: 0 0; opacity: .45; }
+  50% { opacity: 1; }
+  100% { background-position: 100% 0; opacity: .65; }
+}
