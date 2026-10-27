@@ -325,8 +325,7 @@ body{overflow:hidden;}
 .cinema-room-fit .cinema-playback-status{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 
-/* Mobile: reduce ONLY the audience seating card and audience seats by 25%.
-   The space released is shared by the movie and chat cards. Special seats stay unchanged. */
+/* Mobile: compact the seating card and keep every seat icon at 75% of its original size. */
 @media (max-width: 700px) {
   .cinema-page.cinema-room-fit {
     grid-template-rows: minmax(0, 40.5fr) minmax(0, 28.5fr) minmax(0, 31fr);
@@ -334,23 +333,39 @@ body{overflow:hidden;}
   .cinema-room-fit .cinema-seating-card {
     padding: 6px !important;
   }
+  .cinema-room-fit .cinema-seat-layout {
+    gap: 2px 10px !important;
+  }
   .cinema-room-fit .cinema-audience-side {
     row-gap: 0 !important;
+    column-gap: 4px !important;
   }
+  /* Explicit pixel/viewport sizing prevents percentage-width collapse on occupied seats. */
+  .cinema-room-fit .cinema-seat .seat-icon,
   .cinema-room-fit .cinema-audience-side .cinema-seat .seat-icon {
-    width: 75% !important;
-    height: auto !important;
+    width: clamp(26px, 5.25vh, 40px) !important;
+    height: clamp(26px, 5.25vh, 40px) !important;
+    min-width: clamp(26px, 5.25vh, 40px) !important;
+    min-height: clamp(26px, 5.25vh, 40px) !important;
     aspect-ratio: 1 / 1 !important;
+    flex: 0 0 auto !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
   }
-  .cinema-room-fit .cinema-audience-side .cinema-seat .seat-icon img {
+  .cinema-room-fit .cinema-seat .seat-icon img {
     width: 52% !important;
     height: 52% !important;
     max-width: 52% !important;
     max-height: 52% !important;
   }
-  .cinema-room-fit .cinema-audience-side .cinema-seat .seat-avatar {
-    width: 100%;
-    height: 100%;
+  .cinema-room-fit .cinema-seat .seat-icon .seat-avatar {
+    display: grid !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    border-radius: 50% !important;
+    box-sizing: border-box !important;
     font-size: 11px;
   }
 }
