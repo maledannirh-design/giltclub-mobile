@@ -1,3 +1,5 @@
+import { auth, rtdb } from "../firebase.js";
+import { ref as rtdbRef, set as rtdbSet, remove as rtdbRemove, onDisconnect as rtdbOnDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 // Load CSS as a stylesheet resource; browser modules do not support direct CSS imports.
 function ensureCinemaStyles() {
   const href = new URL("./cinema.css", import.meta.url).href;
@@ -17,19 +19,18 @@ const SEATS = Array.from({ length: 16 }, (_, index) => ({
 let stopPresence = null;
 
 function startRoomPresence() {
-  const user = window.__giltclubCinemaUser;
+  const user = auth.currentUser;
   if (!user?.uid) return;
-  const roomRef = window.__giltclubCinemaRtdbRef;
-  const onDisconnectFn = window.__giltclubCinemaOnDisconnect;
-  const setFn = window.__giltclubCinemaSet;
-  const removeFn = window.__giltclubCinemaRemove;
-  if (!roomRef || !onDisconnectFn || !setFn || !removeFn) return;
-  const presenceRef = roomRef("cinema/rooms/main/presence/" + user.uid);
-  const payload = { uid: user.uid, username: user.displayName || "Member", joinedAt: Date.now() };
-  onDisconnectFn(presenceRef).remove().then(() => setFn(presenceRef, payload)).catch(error => {
-    console.error("Cinema presence setup failed:", error);
-  });
-  stopPresence = () => { removeFn(presenceRef).catch(() => {}); };
+  const presenceRef = rtdbRef(rtdb, "cinema/rooms/main/presence/" + user.uid);
+  const payload = {
+    uid: user.uid,
+    username: user.displayName || "Member",
+    joinedAt: Date.now()
+  };
+  rtdbOnDisconnect(presenceRef).remove()
+    .then(() => rtdbSet(presenceRef, payload))
+    .catch(error => console.error("Cinema presence setup failed:", error));
+  stopPresence = () => rtdbRemove(presenceRef).catch(() => {});
   window.stopCinemaPresence = stopPresence;
 }
 
