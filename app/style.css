@@ -4712,3 +4712,15 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 }
 .home-profile-right .videolab-btn:active{transform:scale(.97);background:var(--color-highlight)}
 .home-profile-right .videolab-btn:focus-visible{outline:2px solid var(--color-highlight);outline-offset:2px}
+
+
+/* Home profile: launchers below member name and G-Point */
+.home-header{align-items:flex-start;gap:8px;}
+.home-profile-left{flex:1 1 52%;min-width:0;align-items:flex-start;gap:8px;}
+.home-profile-left .home-avatar{flex:0 0 auto;margin-top:2px;}
+.home-profile-left .home-user-text{flex:1;min-width:0;}
+.home-profile-left .home-media-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;}
+.home-profile-left .home-media-actions .videolab-btn{width:100%;min-width:0;min-height:34px;justify-content:flex-start;padding:7px 8px;white-space:nowrap;font-size:11px;}
+.home-profile-left .home-media-actions .videolab-btn span{overflow:hidden;text-overflow:ellipsis;}
+.home-profile-right{flex:0 0 48%;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:5px;}
+@media(max-width:380px){.home-profile-left{flex-basis:53%;gap:6px}.home-profile-left .home-avatar img,.home-profile-left .avatar-placeholder{width:38px;height:38px}.home-profile-right{flex-basis:47%}.home-profile-left .home-media-actions .videolab-btn{font-size:10px;padding:7px 5px;gap:4px}}
