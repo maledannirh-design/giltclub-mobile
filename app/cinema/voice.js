@@ -1,6 +1,6 @@
 import { auth, rtdb } from "../firebase.js";
 import {
-  ref, onValue, onChildAdded, push, set, remove, onDisconnect
+  ref, onValue, onChildAdded, push, set, remove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -56,10 +56,8 @@ export function initCinemaVoice() {
     stopIncoming.clear();
     if (localStream) localStream.getTracks().forEach(track => track.stop());
     localStream = null;
-    if (user?.uid) {
-      await remove(ref(rtdb, `${ROOM}/voiceSignals/${user.uid}`)).catch(() => {});
-      await remove(ref(rtdb, `${ROOM}/voicePeers/${user.uid}`)).catch(() => {});
-    }
+    // Do not delete the voiceSignals parent here: RTDB rules authorize per-peer paths,
+    // and deleting the parent can be denied even when signaling itself is allowed.
     starting = false;
   };
   const ensureMic = async () => {
@@ -158,9 +156,6 @@ export function initCinemaVoice() {
       starting = true;
       try {
         await ensureMic();
-        const peerRef = ref(rtdb, `${ROOM}/voicePeers/${user.uid}`);
-        await set(peerRef, { uid: user.uid, sessionId, seatedAt: Date.now() });
-        await onDisconnect(peerRef).remove();
         say("Mikrofon aktif. Anda bisa berbicara.");
         Object.values(seats || {}).forEach(seat => {
           if (seat?.uid && seat.uid !== user.uid) connectPeer(seat.uid);
