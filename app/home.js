@@ -185,7 +185,7 @@ content.innerHTML = `
   window.stopCinemaCountListener = stopCinemaCountListener;
 
   const cinemaRoomButton = document.querySelector(".cinema-room-btn");
-  const openCinemaRoom = () => { if(window.navigate) window.navigate("cinema"); };
+  const openCinemaRoom = () => { window.location.href = new URL("./cinema/", import.meta.url).href; };
   cinemaRoomButton?.addEventListener("click", openCinemaRoom);
   cinemaRoomButton?.addEventListener("keydown", event => {
     if(event.key === "Enter" || event.key === " "){ event.preventDefault(); openCinemaRoom(); }
