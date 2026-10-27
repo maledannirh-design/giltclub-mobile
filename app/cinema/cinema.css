@@ -445,3 +445,80 @@ body{overflow:hidden;}
   box-shadow: 0 0 0 1px rgba(123,217,154,.25);
 }
 .cinema-room-fit .cinema-voice-loopback:disabled { opacity: .5; cursor: not-allowed; }
+
+
+/* Karaoke mixer card */
+.cinema-room-fit .cinema-mixer-card {
+  margin-top: 10px;
+  border: 1px solid rgba(227,197,101,.24);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(12,19,14,.82);
+}
+.cinema-room-fit .cinema-mixer-heading,
+.cinema-room-fit .cinema-eq-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  color: #f3f0e7;
+  background: rgba(255,255,255,.045);
+  padding: 11px 13px;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+.cinema-room-fit .cinema-mixer-chevron { color: #e3c565; }
+.cinema-room-fit .cinema-mixer-body { padding: 10px 13px 13px; }
+.cinema-room-fit .cinema-mixer-body[hidden],
+.cinema-room-fit .cinema-eq-body[hidden] { display: none !important; }
+.cinema-room-fit .cinema-mixer-control {
+  display: block;
+  margin: 8px 0 13px;
+  color: #e8e9e1;
+  font-size: 12px;
+}
+.cinema-room-fit .cinema-mixer-control > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.cinema-room-fit .cinema-mixer-control output { color: #e3c565; font-variant-numeric: tabular-nums; }
+.cinema-room-fit .cinema-mixer-control input[type="range"] {
+  display: block;
+  width: 100%;
+  accent-color: #e3c565;
+  cursor: pointer;
+}
+.cinema-room-fit .cinema-eq-toggle {
+  border: 1px solid rgba(227,197,101,.2);
+  border-radius: 9px;
+  margin-top: 4px;
+}
+.cinema-room-fit .cinema-eq-body { padding-top: 9px; }
+.cinema-room-fit .cinema-eq-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 6px;
+  margin: 2px 0 12px;
+}
+.cinema-room-fit .cinema-eq-presets button {
+  min-width: 0;
+  border: 1px solid rgba(227,197,101,.28);
+  border-radius: 8px;
+  padding: 8px 3px;
+  color: #f3f0e7;
+  background: rgba(255,255,255,.05);
+  font-size: 12px;
+  cursor: pointer;
+}
+.cinema-room-fit .cinema-eq-presets button.is-active {
+  color: #171b13;
+  background: #e3c565;
+  border-color: #e3c565;
+}
+.cinema-room-fit .cinema-mixer-note { color: #aab5a9; font-size: 11px; line-height: 1.45; margin: 8px 0 0; }
