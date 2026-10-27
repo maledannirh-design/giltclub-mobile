@@ -174,9 +174,11 @@ content.innerHTML = `
   const stopCinemaCountListener = rtdbOnValue(rtdbRef(rtdb, "cinema/rooms/main/presence"), snapshot => {
     const count = snapshot.size;
     const label = cinemaCountButton?.querySelector("span");
-    if (label) label.textContent = `Bioskop & Karaoke (${count} ${count === 1 ? "Member" : "Members"})`;
+    if (label) label.textContent = `Bioskop & Karaoke (${count})`;
   }, error => {
-    console.error("Cinema presence count failed:", error);
+    // Realtime Database Rules may deny presence reads until access is configured.
+    // Avoid a red console error on the home page before Cinema is opened.
+    if (error?.code !== "PERMISSION_DENIED") console.warn("Cinema member count unavailable:", error?.message || error);
     const label = cinemaCountButton?.querySelector("span");
     if (label) label.textContent = "Bioskop & Karaoke";
   });
