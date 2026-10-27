@@ -64,43 +64,35 @@ content.innerHTML = `
     <div class="home-header">
 
       <div class="home-profile-left">
-        <div class="home-avatar">
-          ${
-            userData.photoURL
-              ? `<img src="${userData.photoURL}" />`
-              : `<div class="avatar-placeholder">👤</div>`
-          }
-        </div>
-
-        <div class="home-user-text">
-          <div class="home-username">
-            ${userData.username || "User"}
+        <div class="home-profile-identity">
+          <div class="home-avatar">
+            ${
+              userData.photoURL
+                ? `<img src="${userData.photoURL}" />`
+                : `<div class="avatar-placeholder">👤</div>`
+            }
           </div>
-
-          <div class="home-gpoint">
-            ${userData.gPoint || 0} G-Point
+          <div class="home-user-text">
+            <div class="home-username">${userData.username || "User"}</div>
+            <div class="home-gpoint">${userData.gPoint || 0} G-Point</div>
           </div>
         </div>
-</div>
-        <div class="home-media-actions cinema-only-actions"><div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div></div>
+        <div class="home-media-actions cinema-only-actions">
+          <div class="videolab-btn cinema-room-btn" role="button" tabindex="0" aria-label="Buka Bioskop dan Karaoke"><i class="fa-solid fa-microphone-lines"></i><span>Bioskop &amp; Karaoke</span></div>
+        </div>
       </div>
 
       <div class="home-profile-right">
-        <div class="leaderboard-btn">
-          <i class="fa-solid fa-crown"></i>
-          <span>Leaderboard</span>
+        <div class="leaderboard-btn"><i class="fa-solid fa-crown"></i><span>Leaderboard</span></div>
+        <div class="championclub-btn"><i class="fa-solid fa-trophy"></i><span>Champion Club</span></div>
+        <div class="home-media-actions video-only-actions">
+          <div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div>
         </div>
-        <div class="championclub-btn">
-          <i class="fa-solid fa-trophy"></i>
-          <span>Champion Club</span>
-        </div>
-        
-        <div class="home-media-actions video-only-actions"><div class="videolab-btn" role="button" tabindex="0" aria-label="Buka Video Lab"><i class="fa-solid fa-film"></i><span>Video Lab</span></div></div>
       </div>
 
     </div>
 
-    ${await renderPromoCarousel()}
+        ${await renderPromoCarousel()}
 
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
