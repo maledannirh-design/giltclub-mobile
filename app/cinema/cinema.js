@@ -1,4 +1,12 @@
-import "./cinema.css";
+// Load CSS as a stylesheet resource; browser modules do not support direct CSS imports.
+function ensureCinemaStyles() {
+  const href = new URL("./cinema.css", import.meta.url).href;
+  if ([...document.querySelectorAll("link[rel=stylesheet]")].some(link => link.href === href)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
 
 const SEATS = Array.from({ length: 16 }, (_, index) => ({
   id: index + 1,
@@ -7,6 +15,7 @@ const SEATS = Array.from({ length: 16 }, (_, index) => ({
 }));
 
 export function renderCinemaRoom() {
+  ensureCinemaStyles();
   const content = document.getElementById("content");
   if (!content) return;
 
