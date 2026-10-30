@@ -173,7 +173,8 @@ case "skill":
 
   const userData = userSnap.data();
 
-  if(userData.membership !== "VVIP"){
+  // Promo access: MEMBER and VVIP memberships can open the Skill Dashboard.
+  if(!["MEMBER", "VVIP"].includes(String(userData.membership || "").toUpperCase())){
     await (await import("./skill.js")).renderSkill();
     document.body.classList.add("dashboard-gate-open");
     showDashboardVvipGate();
