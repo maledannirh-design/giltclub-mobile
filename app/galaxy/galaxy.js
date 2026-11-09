@@ -188,7 +188,7 @@ function finishPointer(event){
 canvas.addEventListener("pointerup",finishPointer);
 canvas.addEventListener("pointercancel",event=>{if(state.pointer.id===event.pointerId){state.pointer.active=false;state.pointer.id=null;}});
 document.getElementById("startButton").addEventListener("click",()=>{
-  document.documentElement.requestFullscreen?.().catch(()=>{});
+  try { const fullscreenRequest=document.documentElement.requestFullscreen?.(); fullscreenRequest?.catch(()=>{}); } catch {}
   resetGame();
 });
 document.getElementById("restartButton").addEventListener("click",resetGame);
