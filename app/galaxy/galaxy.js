@@ -9,7 +9,7 @@ const criticalNotice = document.getElementById("criticalNotice");
 
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
-  score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0,
+  score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
   ship: { x: 0, y: 0, radius: 19 },
   bullets: [], meteors: [], particles: [], stars: [],
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -35,7 +35,8 @@ resize();
 
 function resetGame(){
   state.running=true;state.gameOver=false;state.score=0;state.hits=0;
-  state.lastHitAt=0;state.spawnAt=0;state.bullets=[];state.meteors=[];state.particles=[];
+  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.bullets=[];state.meteors=[];state.particles=[];
+  state.pointer.active=false;state.pointer.id=null;
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
   scoreEl.textContent="000000";livesEl.textContent="♥ ♥ ♥";
   livesEl.setAttribute("aria-label","3 lives");
@@ -48,7 +49,7 @@ function resetGame(){
 
 function fire(){
   if(!state.running)return;
-  state.bullets.push({x:state.ship.x,y:state.ship.y-22,vy:-Math.max(520,state.height*.95),r:3.2});
+  state.bullets.push({x:state.ship.x,y:state.ship.y-30,vy:-Math.max(520,state.height*.95),r:3.2});
 }
 
 function spawnMeteor(){
@@ -100,11 +101,73 @@ function drawShip(now){
   const {x,y,radius:r}=state.ship;
   const flashing=now-state.lastHitAt<800;
   if(flashing&&Math.floor(now/90)%2===0)return;
-  ctx.save();ctx.translate(x,y);
-  ctx.shadowBlur=18;ctx.shadowColor="#55dfff";
-  ctx.fillStyle="#8beaff";ctx.beginPath();ctx.moveTo(0,-r-8);ctx.lineTo(r*.72,r);ctx.lineTo(0,r*.55);ctx.lineTo(-r*.72,r);ctx.closePath();ctx.fill();
-  ctx.shadowBlur=0;ctx.fillStyle="#e9fbff";ctx.beginPath();ctx.moveTo(0,-r+1);ctx.lineTo(4,5);ctx.lineTo(-4,5);ctx.closePath();ctx.fill();
-  ctx.fillStyle="#ffb45d";ctx.beginPath();ctx.moveTo(-5,r-1);ctx.lineTo(0,r+12+Math.random()*5);ctx.lineTo(5,r-1);ctx.closePath();ctx.fill();
+  ctx.save();
+  ctx.translate(x,y);
+
+  // Main hull: pointed sci-fi fighter silhouette.
+  ctx.shadowBlur=20;
+  ctx.shadowColor="#48dfff";
+  const hull=ctx.createLinearGradient(0,-r-12,0,r+10);
+  hull.addColorStop(0,"#f2fdff");
+  hull.addColorStop(.42,"#76dff5");
+  hull.addColorStop(1,"#23618f");
+  ctx.fillStyle=hull;
+  ctx.beginPath();
+  ctx.moveTo(0,-r-13);
+  ctx.lineTo(r*.34,-r*.12);
+  ctx.lineTo(r*1.18,r*.72);
+  ctx.lineTo(r*.98,r*.9);
+  ctx.lineTo(r*.27,r*.62);
+  ctx.lineTo(0,r*1.08);
+  ctx.lineTo(-r*.27,r*.62);
+  ctx.lineTo(-r*.98,r*.9);
+  ctx.lineTo(-r*1.18,r*.72);
+  ctx.lineTo(-r*.34,-r*.12);
+  ctx.closePath();
+  ctx.fill();
+
+  // Dark central fuselage and cockpit.
+  ctx.shadowBlur=0;
+  ctx.fillStyle="#173b68";
+  ctx.beginPath();
+  ctx.moveTo(0,-r-7);
+  ctx.lineTo(r*.24,r*.56);
+  ctx.lineTo(0,r*.82);
+  ctx.lineTo(-r*.24,r*.56);
+  ctx.closePath();
+  ctx.fill();
+
+  const cockpit=ctx.createLinearGradient(-5,-r*.55,5,r*.35);
+  cockpit.addColorStop(0,"#ffffff");
+  cockpit.addColorStop(.45,"#9ff6ff");
+  cockpit.addColorStop(1,"#2588d2");
+  ctx.fillStyle=cockpit;
+  ctx.beginPath();
+  ctx.ellipse(0,-r*.22,r*.19,r*.43,0,0,Math.PI*2);
+  ctx.fill();
+
+  // Wing highlights and weapon hardpoints.
+  ctx.strokeStyle="#d8fbff";
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(-r*.32,r*.15);ctx.lineTo(-r*.88,r*.68);
+  ctx.moveTo(r*.32,r*.15);ctx.lineTo(r*.88,r*.68);
+  ctx.stroke();
+  ctx.fillStyle="#ffcf75";
+  ctx.fillRect(-r*.91,r*.48,3,7);
+  ctx.fillRect(r*.91-3,r*.48,3,7);
+
+  // Twin engine exhausts.
+  for(const side of [-1,1]){
+    const ex=side*r*.48;
+    ctx.fillStyle="#ffb45d";
+    ctx.shadowBlur=12;ctx.shadowColor="#ff8a45";
+    ctx.beginPath();
+    ctx.moveTo(ex-2,r*.69);
+    ctx.lineTo(ex,r+12+Math.random()*5);
+    ctx.lineTo(ex+2,r*.69);
+    ctx.closePath();ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -121,6 +184,11 @@ function drawMeteor(m){
 }
 
 function update(dt,now){
+  // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
+  if(state.pointer.active && now>=state.nextFireAt){
+    fire();
+    state.nextFireAt=now+170;
+  }
   if(now>=state.spawnAt){spawnMeteor();state.spawnAt=now+Math.max(420,1250-state.score*.12);}
   for(const b of state.bullets)b.y+=b.vy*dt;
   state.bullets=state.bullets.filter(b=>b.y>-20);
@@ -170,8 +238,11 @@ canvas.addEventListener("pointerdown",event=>{
   const rect=canvas.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
   const dx=x-state.ship.x,dy=y-state.ship.y;
   if(dx*dx+dy*dy>(state.ship.radius+28)**2)return;
+  event.preventDefault();
   state.pointer={active:true,id:event.pointerId,startX:x,startY:y,moved:false,lastX:x,lastY:y};
   canvas.setPointerCapture?.(event.pointerId);
+  fire(); // Peluru pertama langsung keluar pada sentuhan pertama.
+  state.nextFireAt=performance.now()+170;
 });
 canvas.addEventListener("pointermove",event=>{
   const p=state.pointer;if(!p.active||p.id!==event.pointerId)return;
@@ -182,7 +253,6 @@ canvas.addEventListener("pointermove",event=>{
 });
 function finishPointer(event){
   const p=state.pointer;if(!p.active||p.id!==event.pointerId)return;
-  if(!p.moved)fire();
   state.pointer.active=false;state.pointer.id=null;
 }
 canvas.addEventListener("pointerup",finishPointer);
