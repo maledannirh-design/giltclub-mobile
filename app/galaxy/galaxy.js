@@ -12,7 +12,7 @@ const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
   stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossBullets: [], stageMessageUntil: 0,
-  ship: { x: 0, y: 0, radius: 54 },
+  ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
 };
@@ -25,7 +25,7 @@ function resize(){
   canvas.height = Math.round(rect.height * state.dpr);
   ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
   if(!state.ship.x){ state.ship.x = state.width/2; state.ship.y = state.height*.82; }
-  state.ship.x = Math.max(78,Math.min(state.width-78,state.ship.x));
+  state.ship.x = Math.max(40,Math.min(state.width-40,state.ship.x));
   state.ship.y = Math.max(100,Math.min(state.height-88,state.ship.y));
   state.stars = Array.from({length:Math.max(45,Math.round(state.width*state.height/9000))},()=>({
     x:Math.random()*state.width,y:Math.random()*state.height,
@@ -42,9 +42,43 @@ function initSound(){
 }
 function playTone(kind){
   if(!state.audio||!state.soundReady)return;
-  const ac=state.audio,t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);
-  if(kind==="shot"){o.type="triangle";o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(260,t+.075);g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+.085);o.start(t);o.stop(t+.09);}
-  else{o.type="sawtooth";o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(42,t+.28);g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);o.start(t);o.stop(t+.31);}
+  const ac=state.audio,t=ac.currentTime;
+  if(kind==="danger"){
+    // Three urgent rising warning pulses followed by a low alert.
+    [0,.22,.44].forEach((offset,index)=>{
+      const osc=ac.createOscillator(),gain=ac.createGain();
+      osc.type="sawtooth";osc.frequency.setValueAtTime(index===2?880:620,t+offset);
+      osc.frequency.exponentialRampToValueAtTime(index===2?430:330,t+offset+.18);
+      gain.gain.setValueAtTime(.0001,t+offset);gain.gain.linearRampToValueAtTime(.075,t+offset+.025);
+      gain.gain.exponentialRampToValueAtTime(.0001,t+offset+.2);
+      osc.connect(gain);gain.connect(ac.destination);osc.start(t+offset);osc.stop(t+offset+.21);
+    });
+    const low=ac.createOscillator(),lg=ac.createGain();low.type="triangle";
+    low.frequency.setValueAtTime(190,t+.72);low.frequency.exponentialRampToValueAtTime(95,t+1.08);
+    lg.gain.setValueAtTime(.0001,t+.72);lg.gain.linearRampToValueAtTime(.09,t+.78);lg.gain.exponentialRampToValueAtTime(.0001,t+1.12);
+    low.connect(lg);lg.connect(ac.destination);low.start(t+.72);low.stop(t+1.13);
+    return;
+  }
+  if(kind==="shot"){
+    // Bright, crisp laser snap with a short high-frequency transient.
+    const osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();
+    osc.type="square";osc.frequency.setValueAtTime(1180,t);osc.frequency.exponentialRampToValueAtTime(360,t+.095);
+    filter.type="lowpass";filter.frequency.setValueAtTime(3200,t);filter.frequency.exponentialRampToValueAtTime(900,t+.1);
+    gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.052,t+.006);gain.gain.exponentialRampToValueAtTime(.0001,t+.115);
+    osc.connect(filter);filter.connect(gain);gain.connect(ac.destination);osc.start(t);osc.stop(t+.12);
+    return;
+  }
+  // Brittle rock fracture: filtered noise crack plus a low, short impact.
+  const length=Math.floor(ac.sampleRate*.32),buffer=ac.createBuffer(1,length,ac.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<length;i++){const decay=1-i/length;data[i]=(Math.random()*2-1)*decay*decay;}
+  const noise=ac.createBufferSource(),band=ac.createBiquadFilter(),ng=ac.createGain();
+  noise.buffer=buffer;band.type="bandpass";band.frequency.setValueAtTime(1250,t);band.Q.value=.7;
+  ng.gain.setValueAtTime(.0001,t);ng.gain.linearRampToValueAtTime(.13,t+.012);ng.gain.exponentialRampToValueAtTime(.0001,t+.29);
+  noise.connect(band);band.connect(ng);ng.connect(ac.destination);noise.start(t);noise.stop(t+.3);
+  const thump=ac.createOscillator(),tg=ac.createGain();thump.type="triangle";
+  thump.frequency.setValueAtTime(125,t);thump.frequency.exponentialRampToValueAtTime(38,t+.18);
+  tg.gain.setValueAtTime(.0001,t);tg.gain.linearRampToValueAtTime(.09,t+.008);tg.gain.exponentialRampToValueAtTime(.0001,t+.2);
+  thump.connect(tg);tg.connect(ac.destination);thump.start(t);thump.stop(t+.21);
 }
 function showStageMessage(title,copy,duration=2500){stageBannerTitle.textContent=title;stageBannerCopy.textContent=copy;stageBanner.classList.remove("hidden");state.stageMessageUntil=performance.now()+duration;}
 function resetGame(){
@@ -89,6 +123,7 @@ function beginBoss(){
   const hp=42+state.stage*18;
   state.boss={x:state.width/2,y:-90,r:Math.min(76,state.width*.19),hp,maxHp:hp,age:0,nextShot:performance.now()+1300,phase:0};
   bossHud.classList.remove("hidden");updateBossHud();
+  playTone("danger");
   showStageMessage("⚠ BOSS INCOMING","METEOR TITAN — DESTROY THE ENERGY CORE",2300);
 }
 function updateBossHud(){if(!state.boss)return;bossHealthFill.style.width=Math.max(0,state.boss.hp/state.boss.maxHp*100)+"%";bossHealthText.textContent=Math.max(0,state.boss.hp)+" / "+state.boss.maxHp;}
@@ -242,7 +277,7 @@ canvas.addEventListener("pointermove",event=>{
   const p=state.pointer;if(!p.active||p.id!==event.pointerId)return;
   const rect=canvas.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
   if(Math.hypot(x-p.startX,y-p.startY)>8)p.moved=true;
-  if(p.moved){state.ship.x=Math.max(78,Math.min(state.width-78,x));state.ship.y=Math.max(100,Math.min(state.height-88,y));}
+  if(p.moved){state.ship.x=Math.max(40,Math.min(state.width-40,x));state.ship.y=Math.max(100,Math.min(state.height-88,y));}
   p.lastX=x;p.lastY=y;
 });
 function finishPointer(event){
