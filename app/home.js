@@ -94,14 +94,28 @@ content.innerHTML = `
         ${await renderPromoCarousel()}
 
     <!-- GMTC GALAXY GAME ENTRY -->
-    <a class="home-galaxy-card" href="./galaxy/" aria-label="Buka GMTC Galaxy Game">
-      <div class="home-galaxy-icon">🚀</div>
+    <div class="home-galaxy-card" aria-label="GMTC Galaxy Game">
+      <div class="home-galaxy-icon" aria-hidden="true">
+        <svg viewBox="0 0 72 72">
+          <defs><linearGradient id="galaxyShipMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".48" stop-color="#8cecff"/><stop offset="1" stop-color="#3974b9"/></linearGradient></defs>
+          <path d="M36 5 C43 12 48 22 49 32 L64 45 L60 54 L45 48 L41 62 L36 67 L31 62 L27 48 L12 54 L8 45 L23 32 C24 22 29 12 36 5Z" fill="url(#galaxyShipMetal)" stroke="#d8faff" stroke-width="2"/>
+          <path d="M36 15 C40 24 40 36 36 48 C32 36 32 24 36 15Z" fill="#173b68"/>
+          <path d="M36 18 C39 25 39 31 36 36 C33 31 33 25 36 18Z" fill="#bafaff"/>
+          <path d="M16 47 L28 42 L25 49 L13 52Z M56 47 L44 42 L47 49 L59 52Z" fill="#f6d36b"/>
+          <path d="M31 61 L36 70 L41 61" fill="none" stroke="#ffb45d" stroke-width="3" stroke-linecap="round"/>
+          <text x="36" y="45" text-anchor="middle" font-size="6.5" font-weight="900" fill="#fff2b5">GMTC</text>
+        </svg>
+      </div>
       <div class="home-galaxy-copy">
         <strong>GMTC GALAXY</strong>
         <span>Play. Survive. Become a Legend.</span>
+        <small>Get Free GP and swap with Real Reward</small>
       </div>
-      <span class="home-galaxy-arrow">PLAY&nbsp; ›</span>
-    </a>
+      <div class="home-galaxy-actions">
+        <a class="home-galaxy-play" href="./galaxy/">PLAY&nbsp; ›</a>
+        <button class="home-galaxy-leaderboard" type="button"><i class="fa-solid fa-crown"></i> LEADERBOARD</button>
+      </div>
+    </div>
 
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
@@ -156,6 +170,9 @@ content.innerHTML = `
   // =============================
   // NAVIGATION BUTTON
   // =============================
+  document.querySelector(".home-galaxy-leaderboard")
+    ?.addEventListener("click", ()=>window.navigate?.("leaderboard"));
+
   document.querySelector(".leaderboard-btn")
     ?.addEventListener("click", ()=>{
       if (window.navigate) {
