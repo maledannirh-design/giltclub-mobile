@@ -8,10 +8,20 @@ const gameOverOverlay = document.getElementById("gameOverOverlay");
 const criticalNotice = document.getElementById("criticalNotice");
 const stageLabel=document.getElementById("stageLabel"),bossHud=document.getElementById("bossHud"),bossHealthFill=document.getElementById("bossHealthFill"),bossHealthText=document.getElementById("bossHealthText"),stageBanner=document.getElementById("stageBanner"),stageBannerTitle=document.getElementById("stageBannerTitle"),stageBannerCopy=document.getElementById("stageBannerCopy");
 
+const WEAPONS = [
+{name:"SINGLE SHOT",cadence:170,damage:1,pattern:[0],color:"#c8f8ff",radius:4},
+{name:"DOUBLE SHOT",cadence:170,damage:1,pattern:[-10,10],color:"#b9f8ff",radius:4},
+{name:"TRIPLE SHOT",cadence:170,damage:1,pattern:[-15,0,15],color:"#9ff5ff",radius:4},
+{name:"RAPID FIRE",cadence:90,damage:1,pattern:[0],color:"#ffe08a",radius:3.5},
+{name:"PLASMA CANNON",cadence:240,damage:3,pattern:[0],color:"#ffb86b",radius:8},
+{name:"HOMING MISSILE",cadence:330,damage:4,pattern:[-9,9],color:"#ff8da8",radius:6,homing:true},
+{name:"GALAXY DESTROYER",cadence:190,damage:4,pattern:[-24,-12,0,12,24],color:"#d7b7ff",radius:6}
+];
+function loadTrialWeaponLevel(){try{return Math.max(1,Math.min(7,Number(localStorage.getItem("gmtcGalaxyTrialWeaponLevel"))||1));}catch{return 1;}}
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
-  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossBullets: [], stageMessageUntil: 0,
+  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossBullets: [], stageMessageUntil: 0, weaponLevel: loadTrialWeaponLevel(),
   ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -81,13 +91,15 @@ function playTone(kind){
   thump.connect(tg);tg.connect(ac.destination);thump.start(t);thump.stop(t+.21);
 }
 function showStageMessage(title,copy,duration=2500){stageBannerTitle.textContent=title;stageBannerCopy.textContent=copy;stageBanner.classList.remove("hidden");state.stageMessageUntil=performance.now()+duration;}
+function updateWeaponHud(){const w=WEAPONS[state.weaponLevel-1];weaponLabel.textContent="WEAPON LV."+state.weaponLevel+" · "+w.name;}
+function unlockWeaponForStage(completedStage){const level=Math.min(7,completedStage+1);if(level<=state.weaponLevel)return false;state.weaponLevel=level;try{localStorage.setItem("gmtcGalaxyTrialWeaponLevel",String(level));}catch{}updateWeaponHud();return true;}
 function resetGame(){
   state.running=true;state.gameOver=false;state.score=0;state.hits=0;
   state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossBullets=[];state.stageMessageUntil=0;
   state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.bullets=[];state.meteors=[];state.particles=[];
   state.pointer.active=false;state.pointer.id=null;
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
-  scoreEl.textContent="000000";livesEl.textContent="♥ ♥ ♥";stageLabel.textContent="STAGE 1 · METEOR FIELD";bossHud.classList.add("hidden");stageBanner.classList.add("hidden");
+  scoreEl.textContent="000000";livesEl.textContent="♥ ♥ ♥";stageLabel.textContent="STAGE 1 · METEOR FIELD";bossHud.classList.add("hidden");stageBanner.classList.add("hidden");updateWeaponHud();
   livesEl.setAttribute("aria-label","3 lives");
   criticalNotice.classList.add("hidden");
   gameOverOverlay.classList.add("hidden");
@@ -98,7 +110,12 @@ function resetGame(){
 
 function fire(){
   if(!state.running)return;
-  state.bullets.push({x:state.ship.x,y:state.ship.y-76,vy:-Math.max(520,state.height*.95),r:4});playTone("shot");
+  const w=WEAPONS[state.weaponLevel-1], muzzleY=state.ship.y-39, speed=Math.max(520,state.height*.95);
+  for(const offset of w.pattern){
+    const spread=w.pattern.length>1?offset*.018:0;
+    state.bullets.push({x:state.ship.x+offset,y:muzzleY,vx:spread*speed,vy:-speed,r:w.radius,damage:w.damage,color:w.color,homing:!!w.homing,kind:state.weaponLevel});
+  }
+  playTone("shot");
 }
 
 function spawnMeteor(){if(state.boss||state.stageMessageUntil>performance.now())return;
@@ -131,10 +148,13 @@ function defeatBoss(){
   const b=state.boss;if(!b)return;burst(b.x,b.y,"#7cecff",70);playTone("explosion");
   state.score+=250+state.stage*50;scoreEl.textContent=String(state.score).padStart(6,"0");
   state.boss=null;state.bossBullets=[];bossHud.classList.add("hidden");
+  const defeatedStage=state.stage;
+  const weaponUnlocked=unlockWeaponForStage(defeatedStage);
   state.stage++;state.stageKills=0;state.stageQuota=12+Math.min(8,(state.stage-1)*2);state.meteors=[];state.bullets=[];
   stageLabel.textContent="STAGE "+state.stage+" · DEEP SPACE";
-  showStageMessage("STAGE "+state.stage+" UNLOCKED","SELAMAT! ANDA MEMASUKI STAGE "+state.stage,3200);
-  state.spawnAt=performance.now()+3400;
+  showStageMessage("STAGE "+state.stage+" UNLOCKED","SELAMAT! ANDA MEMASUKI STAGE "+state.stage,2500);
+  if(weaponUnlocked){window.setTimeout(()=>{if(!state.gameOver)showStageMessage("WEAPON UPGRADED!","LEVEL "+state.weaponLevel+" · "+WEAPONS[state.weaponLevel-1].name,2600);},2600);}
+  state.spawnAt=performance.now()+(weaponUnlocked?5500:2800);
 }
 function drawBoss(b,now){
   ctx.save();ctx.translate(b.x,b.y);ctx.scale(1+Math.sin(now/180)*.035,1+Math.sin(now/180)*.035);
@@ -208,7 +228,7 @@ function update(dt,now){
   // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
   if(state.pointer.active && now>=state.nextFireAt){
     fire();
-    state.nextFireAt=now+170;
+    state.nextFireAt=now+WEAPONS[state.weaponLevel-1].cadence;
   }
   if(state.stageMessageUntil&&now>=state.stageMessageUntil){stageBanner.classList.add("hidden");state.stageMessageUntil=0;}
   if(state.boss){
@@ -216,8 +236,15 @@ function update(dt,now){
     if(now>=b.nextShot){const dx=state.ship.x-b.x,dy=state.ship.y-b.y,len=Math.hypot(dx,dy)||1;state.bossBullets.push({x:b.x,y:b.y+b.r*.65,vx:dx/len*180,vy:dy/len*180,r:8});b.nextShot=now+Math.max(650,1150-state.stage*35);}
     for(let i=state.bossBullets.length-1;i>=0;i--){const q=state.bossBullets[i];q.x+=q.vx*dt;q.y+=q.vy*dt;const dx=q.x-state.ship.x,dy=q.y-state.ship.y;if(dx*dx+dy*dy<(q.r+state.ship.radius*.5)**2){state.bossBullets.splice(i,1);damageShip(now);}else if(q.y>state.height+20||q.x<-20||q.x>state.width+20)state.bossBullets.splice(i,1);}
   }else if(now>=state.spawnAt){spawnMeteor();state.spawnAt=now+Math.max(420,1250-state.score*.12);}
-  for(const b of state.bullets)b.y+=b.vy*dt;
-  if(state.boss){const boss=state.boss;for(let j=state.bullets.length-1;j>=0;j--){const q=state.bullets[j],dx=q.x-boss.x,dy=q.y-boss.y;if(dx*dx+dy*dy<(boss.r+q.r)**2){state.bullets.splice(j,1);boss.hp--;if(boss.hp<=0){defeatBoss();break;}}}updateBossHud();}
+  for(const b of state.bullets){
+    if(b.homing){
+      let target=state.boss;
+      if(!target&&state.meteors.length)target=state.meteors.reduce((best,m)=>!best||Math.hypot(m.x-b.x,m.y-b.y)<Math.hypot(best.x-b.x,best.y-b.y)?m:best,null);
+      if(target){const dx=target.x-b.x,dy=target.y-b.y,len=Math.hypot(dx,dy)||1,speed=Math.max(520,state.height*.95);b.vx+=(dx/len*speed-b.vx)*Math.min(1,dt*3.5);b.vy+=(dy/len*speed-b.vy)*Math.min(1,dt*3.5);}
+    }
+    b.x+=b.vx*dt;b.y+=b.vy*dt;
+  }
+  if(state.boss){const boss=state.boss;for(let j=state.bullets.length-1;j>=0;j--){const q=state.bullets[j],dx=q.x-boss.x,dy=q.y-boss.y;if(dx*dx+dy*dy<(boss.r+q.r)**2){state.bullets.splice(j,1);boss.hp-=q.damage||1;if(boss.hp<=0){defeatBoss();break;}}}updateBossHud();}
   state.bullets=state.bullets.filter(b=>b.y>-20);
   for(const m of state.meteors){m.x+=m.vx*dt;m.y+=m.vy*dt;m.angle+=m.spin*dt;if(m.x<m.r||m.x>state.width-m.r)m.vx*=-1;}
   for(let i=state.meteors.length-1;i>=0;i--){
@@ -226,7 +253,7 @@ function update(dt,now){
     for(let j=state.bullets.length-1;j>=0;j--){
       const b=state.bullets[j],dx=b.x-m.x,dy=b.y-m.y;
       if(dx*dx+dy*dy<(m.r+b.r)*(m.r+b.r)){
-        state.bullets.splice(j,1);m.hp--;
+        state.bullets.splice(j,1);m.hp-=b.damage||1;
         if(m.hp<=0){
           state.score+=m.type==="small"?10:m.type==="medium"?25:50;state.stageKills++;playTone("explosion");
           scoreEl.textContent=String(state.score).padStart(6,"0");
@@ -246,7 +273,10 @@ function update(dt,now){
 
 function render(now,dt){
   drawBackground(dt);
-  for(const b of state.bullets){ctx.save();ctx.shadowBlur=12;ctx.shadowColor="#66e5ff";ctx.fillStyle="#c8f8ff";ctx.fillRect(b.x-2,b.y-10,4,15);ctx.restore();}
+  for(const b of state.bullets){ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
+    if(b.kind===5){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.72,b.r*1.5,0,0,Math.PI*2);ctx.fill();}
+    else if(b.kind===6){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
+    else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);ctx.restore();}
   for(const m of state.meteors)drawMeteor(m);
   if(state.boss)drawBoss(state.boss,now);
   for(const q of state.bossBullets){ctx.save();ctx.shadowBlur=14;ctx.shadowColor="#ff5c91";ctx.fillStyle="#ff9bb8";ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,Math.PI*2);ctx.fill();ctx.restore();}
@@ -293,5 +323,6 @@ document.getElementById("startButton").addEventListener("click",()=>{
 });
 document.getElementById("restartButton").addEventListener("click",()=>{initSound();resetGame();});
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;endGame();}});
+updateWeaponHud();
 drawBackground(0);
 drawShip(0);
