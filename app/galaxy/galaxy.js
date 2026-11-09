@@ -25,8 +25,8 @@ function resize(){
   canvas.height = Math.round(rect.height * state.dpr);
   ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
   if(!state.ship.x){ state.ship.x = state.width/2; state.ship.y = state.height*.82; }
-  state.ship.x = Math.max(24,Math.min(state.width-24,state.ship.x));
-  state.ship.y = Math.max(100,Math.min(state.height-55,state.ship.y));
+  state.ship.x = Math.max(78,Math.min(state.width-78,state.ship.x));
+  state.ship.y = Math.max(100,Math.min(state.height-88,state.ship.y));
   state.stars = Array.from({length:Math.max(45,Math.round(state.width*state.height/9000))},()=>({
     x:Math.random()*state.width,y:Math.random()*state.height,
     r:Math.random()*1.4+.3,a:Math.random()*.55+.2,s:Math.random()*17+8
@@ -151,7 +151,7 @@ function drawShip(now){
   ctx.fillStyle="#4eabc9";ctx.beginPath();ctx.moveTo(-r*.32,-r*.18);ctx.lineTo(-r*1.08,r*.48);ctx.lineTo(-r*.52,r*.4);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(r*.32,-r*.18);ctx.lineTo(r*1.08,r*.48);ctx.lineTo(r*.52,r*.4);ctx.closePath();ctx.fill();
   const cockpit=ctx.createLinearGradient(-8,-r*.55,8,r*.35);cockpit.addColorStop(0,"#fff");cockpit.addColorStop(.4,"#a8faff");cockpit.addColorStop(1,"#247ac1");
   ctx.fillStyle=cockpit;ctx.beginPath();ctx.ellipse(0,-r*.28,r*.2,r*.42,0,0,Math.PI*2);ctx.fill();
-  ctx.save();ctx.translate(0,r*.38);ctx.rotate(-Math.PI/2);ctx.fillStyle="#fff2b5";ctx.font="900 12px system-ui,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowBlur=8;ctx.shadowColor="#f5d36b";ctx.fillText("GMTC",0,0);ctx.restore();
+  ctx.save();ctx.translate(0,r*.35);ctx.fillStyle="#fff2b5";ctx.font="900 10px system-ui,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.shadowBlur=8;ctx.shadowColor="#f5d36b";ctx.fillText("GMTC",0,0);ctx.restore();
   ctx.strokeStyle="#d8fbff";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-r*.38,r*.08);ctx.lineTo(-r*1.05,r*.62);ctx.moveTo(r*.38,r*.08);ctx.lineTo(r*1.05,r*.62);ctx.stroke();
   for(const side of [-1,1]){const ex=side*r*.56;ctx.fillStyle="#ffb45d";ctx.shadowBlur=18;ctx.shadowColor="#ff8a45";ctx.beginPath();ctx.moveTo(ex-4,r*.78);ctx.lineTo(ex,r+24+Math.random()*8);ctx.lineTo(ex+4,r*.78);ctx.closePath();ctx.fill();ctx.fillStyle="#d8fbff";ctx.fillRect(ex-5,r*.67,10,7);}
   ctx.restore();
@@ -242,7 +242,7 @@ canvas.addEventListener("pointermove",event=>{
   const p=state.pointer;if(!p.active||p.id!==event.pointerId)return;
   const rect=canvas.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
   if(Math.hypot(x-p.startX,y-p.startY)>8)p.moved=true;
-  if(p.moved){state.ship.x=Math.max(22,Math.min(state.width-22,x));state.ship.y=Math.max(105,Math.min(state.height-45,y));}
+  if(p.moved){state.ship.x=Math.max(78,Math.min(state.width-78,x));state.ship.y=Math.max(100,Math.min(state.height-88,y));}
   p.lastX=x;p.lastY=y;
 });
 function finishPointer(event){
