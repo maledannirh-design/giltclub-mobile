@@ -6,6 +6,7 @@ const finalScoreEl = document.getElementById("finalScore");
 const startOverlay = document.getElementById("startOverlay");
 const gameOverOverlay = document.getElementById("gameOverOverlay");
 const criticalNotice = document.getElementById("criticalNotice");
+const weaponLabel = document.getElementById("weaponLabel");
 const stageLabel=document.getElementById("stageLabel"),bossHud=document.getElementById("bossHud"),bossHealthFill=document.getElementById("bossHealthFill"),bossHealthText=document.getElementById("bossHealthText"),stageBanner=document.getElementById("stageBanner"),stageBannerTitle=document.getElementById("stageBannerTitle"),stageBannerCopy=document.getElementById("stageBannerCopy");
 
 const WEAPONS = [
