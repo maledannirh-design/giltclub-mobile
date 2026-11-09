@@ -93,6 +93,16 @@ content.innerHTML = `
 
         ${await renderPromoCarousel()}
 
+    <!-- GMTC GALAXY GAME ENTRY -->
+    <a class="home-galaxy-card" href="./galaxy/" aria-label="Buka GMTC Galaxy Game">
+      <div class="home-galaxy-icon">🚀</div>
+      <div class="home-galaxy-copy">
+        <strong>GMTC GALAXY</strong>
+        <span>Play. Survive. Become a Legend.</span>
+      </div>
+      <span class="home-galaxy-arrow">PLAY&nbsp; ›</span>
+    </a>
+
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
     <div class="daily-card">

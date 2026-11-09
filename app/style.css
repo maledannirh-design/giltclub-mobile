@@ -4829,3 +4829,25 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
   .home-profile-left .cinema-only-actions .cinema-room-btn{gap:3px;padding-left:4px!important;padding-right:4px!important;}
   .home-profile-left .cinema-only-actions .cinema-room-btn span{font-size:clamp(7px, 2.3vw, 9px);letter-spacing:-.35px;}
 }
+
+
+/* ================= GMTC GALAXY HOME ENTRY ================= */
+.home-galaxy-card{
+  display:flex;align-items:center;gap:12px;
+  margin:14px 0 16px;padding:14px 15px;
+  min-height:78px;border-radius:18px;
+  color:#f8fafc;text-decoration:none;
+  background:linear-gradient(110deg,#101b3b,#172e57 58%,#26365d);
+  border:1px solid rgba(227,197,101,.38);
+  box-shadow:0 8px 22px rgba(15,23,42,.16);
+}
+.home-galaxy-icon{
+  width:46px;height:46px;flex:0 0 46px;
+  display:grid;place-items:center;border-radius:14px;
+  background:rgba(255,255,255,.1);font-size:25px;
+}
+.home-galaxy-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.home-galaxy-copy strong{font-size:14px;letter-spacing:1.2px;color:#f6d36b}
+.home-galaxy-copy span{font-size:10px;color:#d4def2}
+.home-galaxy-arrow{font-size:10px;font-weight:900;letter-spacing:1px;color:#101827;background:#f6d36b;border-radius:12px;padding:9px 10px;white-space:nowrap}
+.home-galaxy-card:active{transform:scale(.99)}
