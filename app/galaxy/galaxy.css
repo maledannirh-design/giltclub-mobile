@@ -24,3 +24,13 @@ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavi
 .game-secondary{display:block;margin-top:15px;color:#c4d5f6;text-decoration:none;font-size:11px;letter-spacing:1px}
 .critical-notice{position:absolute;z-index:3;top:calc(env(safe-area-inset-top) + 94px);left:50%;transform:translateX(-50%);color:#ff7189;font-size:11px;font-weight:900;letter-spacing:2px;text-shadow:0 0 12px #f23b65}
 @media (min-aspect-ratio:10/16){.overlay-panel{max-height:90dvh;overflow:auto}}
+
+.boss-hud{position:absolute;z-index:3;top:calc(env(safe-area-inset-top) + 92px);left:12%;width:76%;pointer-events:none}
+.boss-name{display:flex;justify-content:space-between;gap:8px;color:#ffb2c5;font-size:9px;font-weight:900;letter-spacing:1.2px;margin-bottom:6px;text-shadow:0 0 10px #ff477d}
+.boss-name span{color:#fff}
+.boss-health-track{height:8px;border:1px solid rgba(255,170,190,.55);border-radius:20px;background:rgba(30,5,20,.75);overflow:hidden}
+.boss-health-fill{height:100%;width:100%;border-radius:20px;background:linear-gradient(90deg,#ff477d,#ffb45d);box-shadow:0 0 12px #ff477d;transition:width .12s linear}
+.stage-banner{position:absolute;z-index:4;left:7%;right:7%;top:42%;padding:20px 14px;text-align:center;border-top:1px solid rgba(111,224,255,.7);border-bottom:1px solid rgba(111,224,255,.7);background:linear-gradient(90deg,rgba(5,12,32,0),rgba(7,18,44,.94),rgba(5,12,32,0));pointer-events:none;animation:stagePulse .35s ease-out}
+.stage-banner-title{color:#ffe08a;font-weight:1000;font-size:clamp(22px,7vw,34px);letter-spacing:2px;text-shadow:0 0 18px rgba(255,197,88,.45)}
+.stage-banner-copy{margin-top:7px;color:#e6f7ff;font-size:11px;font-weight:800;letter-spacing:1.3px}
+@keyframes stagePulse{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
