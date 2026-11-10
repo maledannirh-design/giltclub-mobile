@@ -13,16 +13,17 @@ const WEAPONS = [
 {name:"SINGLE SHOT",cadence:170,damage:1,pattern:[0],color:"#c8f8ff",radius:4},
 {name:"DOUBLE SHOT",cadence:170,damage:1,pattern:[-10,10],color:"#b9f8ff",radius:4},
 {name:"TRIPLE SHOT",cadence:170,damage:1,pattern:[-15,0,15],color:"#9ff5ff",radius:4},
+{name:"FLAME BURST",cadence:360,damage:2,pattern:[-24,-16,-8,0,8,16,24],color:"#ff8a35",radius:6,flame:true},
 {name:"RAPID FIRE",cadence:90,damage:1,pattern:[0],color:"#ffe08a",radius:3.5},
 {name:"PLASMA CANNON",cadence:240,damage:3,pattern:[0],color:"#ffb86b",radius:8},
 {name:"HOMING MISSILE",cadence:330,damage:4,pattern:[-9,9],color:"#ff8da8",radius:6,homing:true},
 {name:"GALAXY DESTROYER",cadence:190,damage:4,pattern:[-24,-12,0,12,24],color:"#d7b7ff",radius:6}
 ];
-function loadTrialWeaponLevel(){try{return Math.max(1,Math.min(7,Number(localStorage.getItem("gmtcGalaxyTrialWeaponLevel"))||1));}catch{return 1;}}
+function loadTrialWeaponLevel(){try{return Math.max(1,Math.min(8,Number(localStorage.getItem("gmtcGalaxyTrialWeaponLevel"))||1));}catch{return 1;}}
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
-  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossBullets: [], stageMessageUntil: 0, weaponLevel: loadTrialWeaponLevel(),
+  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: loadTrialWeaponLevel(), loopActive:false,
   ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -93,10 +94,10 @@ function playTone(kind){
 }
 function showStageMessage(title,copy,duration=2500){stageBannerTitle.textContent=title;stageBannerCopy.textContent=copy;stageBanner.classList.remove("hidden");state.stageMessageUntil=performance.now()+duration;}
 function updateWeaponHud(){const w=WEAPONS[state.weaponLevel-1];weaponLabel.textContent="WEAPON LV."+state.weaponLevel+" · "+w.name;}
-function unlockWeaponForStage(completedStage){const level=Math.min(7,completedStage+1);if(level<=state.weaponLevel)return false;state.weaponLevel=level;try{localStorage.setItem("gmtcGalaxyTrialWeaponLevel",String(level));}catch{}updateWeaponHud();return true;}
+function unlockWeaponForStage(completedStage){const level=Math.min(8,completedStage+1);if(level<=state.weaponLevel)return false;state.weaponLevel=level;try{localStorage.setItem("gmtcGalaxyTrialWeaponLevel",String(level));}catch{}updateWeaponHud();return true;}
 function resetGame(){
   state.running=true;state.gameOver=false;state.score=0;state.hits=0;
-  state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossBullets=[];state.stageMessageUntil=0;
+  state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossTriggered=false;state.bossBullets=[];state.stageMessageUntil=0;
   state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.bullets=[];state.meteors=[];state.particles=[];
   state.pointer.active=false;state.pointer.id=null;
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
@@ -106,16 +107,22 @@ function resetGame(){
   gameOverOverlay.classList.add("hidden");
   startOverlay.classList.add("hidden");
   state.lastFrame=performance.now();
-  requestAnimationFrame(loop);
+  if(!state.loopActive){state.loopActive=true;requestAnimationFrame(loop);}
 }
 
 function fire(){
   if(!state.running)return;
-  const w=WEAPONS[state.weaponLevel-1], muzzleY=state.ship.y-39, speed=Math.max(520,state.height*.95);
-  for(const offset of w.pattern){
-    const spread=w.pattern.length>1?offset*.018:0;
-    state.bullets.push({x:state.ship.x+offset,y:muzzleY,vx:spread*speed,vy:-speed,r:w.radius,damage:w.damage,color:w.color,homing:!!w.homing,kind:state.weaponLevel});
+  const muzzleY=state.ship.y-39,speed=Math.max(520,state.height*.95);
+  // Every unlocked weapon remains active; newer weapons add a layer instead of replacing old ones.
+  for(let level=1;level<=state.weaponLevel;level++){
+    const w=WEAPONS[level-1];
+    for(const offset of w.pattern){
+      const spread=w.pattern.length>1?offset*.018:0;
+      state.bullets.push({x:state.ship.x+offset,y:muzzleY,vx:spread*speed,vy:-speed,r:w.radius,damage:w.damage,color:w.color,homing:!!w.homing,flame:!!w.flame,kind:level});
+    }
   }
+  // Hard cap prevents runaway projectile growth on smaller devices.
+  if(state.bullets.length>180)state.bullets.splice(0,state.bullets.length-180);
   playTone("shot");
 }
 
@@ -137,6 +144,8 @@ function burst(x,y,color,count=12){
 
 
 function beginBoss(){
+  if(state.boss||state.bossTriggered||state.gameOver)return;
+  state.bossTriggered=true;
   state.meteors.length=0;state.bullets.length=0;
   const hp=42+state.stage*18;
   state.boss={x:state.width/2,y:-90,r:Math.min(76,state.width*.19),hp,maxHp:hp,age:0,nextShot:performance.now()+1300,phase:0};
@@ -148,7 +157,7 @@ function updateBossHud(){if(!state.boss)return;bossHealthFill.style.width=Math.m
 function defeatBoss(){
   const b=state.boss;if(!b)return;burst(b.x,b.y,"#7cecff",70);playTone("explosion");
   state.score+=250+state.stage*50;scoreEl.textContent=String(state.score).padStart(6,"0");
-  state.boss=null;state.bossBullets=[];bossHud.classList.add("hidden");
+  state.boss=null;state.bossTriggered=false;state.bossBullets=[];bossHud.classList.add("hidden");
   const defeatedStage=state.stage;
   const weaponUnlocked=unlockWeaponForStage(defeatedStage);
   state.stage++;state.stageKills=0;state.stageQuota=12+Math.min(8,(state.stage-1)*2);state.meteors=[];state.bullets=[];
@@ -179,8 +188,39 @@ function damageShip(now){
   if(state.hits>=4)endGame();
 }
 
+function saveGalaxyRun(){
+  try{
+    const key="gmtcGalaxyTrialLeaderboard";
+    const rows=JSON.parse(localStorage.getItem(key)||"[]");
+    rows.push({score:state.score,stage:state.stage,at:Date.now()});
+    rows.sort((a,b)=>b.score-a.score||b.stage-a.stage||a.at-b.at);
+    localStorage.setItem(key,JSON.stringify(rows.slice(0,20)));
+  }catch(error){console.warn("Galaxy local leaderboard unavailable",error);}
+}
+function renderGalaxyLeaderboard(){
+  const modal=document.getElementById("galaxyLeaderboard");
+  if(!modal)return;
+  let rows=[];
+  try{rows=JSON.parse(localStorage.getItem("gmtcGalaxyTrialLeaderboard")||"[]");}catch{}
+  const bestScore=rows.reduce((v,r)=>Math.max(v,Number(r.score)||0),0);
+  const bestStage=rows.reduce((v,r)=>Math.max(v,Number(r.stage)||0),1);
+  document.getElementById("galaxyBestScore").textContent=bestScore.toLocaleString("id-ID");
+  document.getElementById("galaxyBestStage").textContent="STAGE "+bestStage;
+  const list=document.getElementById("galaxyLeaderboardRows");
+  list.replaceChildren();
+  if(!rows.length){const p=document.createElement("p");p.className="leaderboard-empty";p.textContent="Belum ada skor. Mainkan misi pertama untuk mengisi leaderboard.";list.appendChild(p);}
+  rows.slice(0,10).forEach((r,i)=>{
+    const item=document.createElement("div");item.className="galaxy-rank-row";
+    const rank=document.createElement("strong");rank.textContent=String(i+1).padStart(2,"0");
+    const stage=document.createElement("span");stage.textContent="STAGE "+r.stage;
+    const score=document.createElement("b");score.textContent=Number(r.score||0).toLocaleString("id-ID");
+    item.append(rank,stage,score);list.appendChild(item);
+  });
+  modal.classList.remove("hidden");
+}
 function endGame(){
   state.running=false;state.gameOver=true;
+  saveGalaxyRun();
   finalScoreEl.textContent=state.score.toLocaleString("id-ID");
   gameOverOverlay.classList.remove("hidden");
 }
@@ -229,7 +269,7 @@ function update(dt,now){
   // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
   if(state.pointer.active && now>=state.nextFireAt){
     fire();
-    state.nextFireAt=now+WEAPONS[state.weaponLevel-1].cadence;
+    state.nextFireAt=now+Math.min(...WEAPONS.slice(0,state.weaponLevel).map(w=>w.cadence));
   }
   if(state.stageMessageUntil&&now>=state.stageMessageUntil){stageBanner.classList.add("hidden");state.stageMessageUntil=0;}
   if(state.boss){
@@ -275,8 +315,9 @@ function update(dt,now){
 function render(now,dt){
   drawBackground(dt);
   for(const b of state.bullets){ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
-    if(b.kind===5){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.72,b.r*1.5,0,0,Math.PI*2);ctx.fill();}
-    else if(b.kind===6){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
+    if(b.flame){ctx.beginPath();ctx.moveTo(b.x,b.y-13);ctx.quadraticCurveTo(b.x+b.r*1.4,b.y-2,b.x,b.y+8);ctx.quadraticCurveTo(b.x-b.r*1.4,b.y-2,b.x,b.y-13);ctx.fill();}
+    else if(b.kind===6){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.72,b.r*1.5,0,0,Math.PI*2);ctx.fill();}
+    else if(b.kind===7){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
     else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);ctx.restore();}
   for(const m of state.meteors)drawMeteor(m);
   if(state.boss)drawBoss(state.boss,now);
@@ -287,10 +328,10 @@ function render(now,dt){
 }
 
 function loop(now){
-  if(!state.running)return;
+  if(!state.running){state.loopActive=false;return;}
   const dt=Math.min(.033,(now-state.lastFrame)/1000||0);state.lastFrame=now;
   update(dt,now);render(now,dt);
-  if(state.running)requestAnimationFrame(loop);
+  if(state.running)requestAnimationFrame(loop);else state.loopActive=false;
 }
 
 canvas.addEventListener("pointerdown",event=>{
@@ -323,6 +364,11 @@ document.getElementById("startButton").addEventListener("click",()=>{
   resetGame();
 });
 document.getElementById("restartButton").addEventListener("click",()=>{initSound();resetGame();});
+document.getElementById("openLeaderboardButton")?.addEventListener("click",renderGalaxyLeaderboard);
+document.getElementById("openLeaderboardFromGameOver")?.addEventListener("click",renderGalaxyLeaderboard);
+document.getElementById("closeGalaxyLeaderboard")?.addEventListener("click",()=>document.getElementById("galaxyLeaderboard")?.classList.add("hidden"));
+document.getElementById("galaxyLeaderboard")?.addEventListener("click",event=>{if(event.target.id==="galaxyLeaderboard")event.currentTarget.classList.add("hidden");});
+if(new URLSearchParams(location.search).get("leaderboard")==="1")renderGalaxyLeaderboard();
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;endGame();}});
 updateWeaponHud();
 drawBackground(0);
