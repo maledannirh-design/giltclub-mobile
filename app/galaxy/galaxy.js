@@ -224,7 +224,7 @@ function listenGalaxyLeaderboard(){
     list.textContent="Leaderboard live belum dapat diakses. Periksa izin Firestore.";
   });
 }
-async function saveGalaxyRun(){
+async async function saveGalaxyRun(){
   if(!galaxyUser){pendingGalaxyRun={score:state.score,stage:state.stage};return;}
   try{
     const ref=doc(db,"galaxyLeaderboard",galaxyUser.uid);
