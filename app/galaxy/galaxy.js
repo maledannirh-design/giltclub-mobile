@@ -269,7 +269,7 @@ function update(dt,now){
   // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
   if(state.pointer.active && now>=state.nextFireAt){
     fire();
-    state.nextFireAt=now+WEAPONS[state.weaponLevel-1].cadence;
+    state.nextFireAt=now+Math.min(...WEAPONS.slice(0,state.weaponLevel).map(w=>w.cadence));
   }
   if(state.stageMessageUntil&&now>=state.stageMessageUntil){stageBanner.classList.add("hidden");state.stageMessageUntil=0;}
   if(state.boss){
@@ -315,8 +315,9 @@ function update(dt,now){
 function render(now,dt){
   drawBackground(dt);
   for(const b of state.bullets){ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
-    if(b.kind===5){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.72,b.r*1.5,0,0,Math.PI*2);ctx.fill();}
-    else if(b.kind===6){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
+    if(b.flame){ctx.beginPath();ctx.moveTo(b.x,b.y-13);ctx.quadraticCurveTo(b.x+b.r*1.4,b.y-2,b.x,b.y+8);ctx.quadraticCurveTo(b.x-b.r*1.4,b.y-2,b.x,b.y-13);ctx.fill();}
+    else if(b.kind===6){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.72,b.r*1.5,0,0,Math.PI*2);ctx.fill();}
+    else if(b.kind===7){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
     else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);ctx.restore();}
   for(const m of state.meteors)drawMeteor(m);
   if(state.boss)drawBoss(state.boss,now);
