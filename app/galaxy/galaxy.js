@@ -446,8 +446,8 @@ canvas.addEventListener("pointerdown",event=>{
   event.preventDefault();
   state.pointer={active:true,id:event.pointerId,startX:x,startY:y,moved:false,lastX:x,lastY:y};
   canvas.setPointerCapture?.(event.pointerId);
-  fire(); // Peluru pertama langsung keluar pada sentuhan pertama.
-  state.nextFireAt=performance.now()+170;fire(performance.now(),true);
+  fire(performance.now(),true); // Semua senjata aktif langsung menembak saat sentuhan pertama.
+  state.nextFireAt=performance.now()+170;
 });
 canvas.addEventListener("pointermove",event=>{
   const p=state.pointer;if(!p.active||p.id!==event.pointerId)return;
