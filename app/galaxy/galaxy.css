@@ -21,7 +21,9 @@ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavi
 .game-primary:active{transform:scale(.98)}
 .prototype-note{font-size:9px;letter-spacing:1px;color:#7587aa;margin:17px 0 0}
 .result-score{margin:20px 0;padding:13px;border-radius:12px;background:rgba(255,255,255,.06);color:#aabbdc;font-size:10px;letter-spacing:1.5px}.result-score strong{display:block;color:var(--gold);font-size:30px;margin-top:4px}
-.game-secondary{display:block;margin-top:15px;color:#c4d5f6;text-decoration:none;font-size:11px;letter-spacing:1px}
+.game-secondary{display:block;margin-top:15px;padding:0;border:0;background:transparent;color:#c4d5f6;text-decoration:none;font-family:inherit;font-size:11px;letter-spacing:1px;cursor:pointer}
+.game-secondary:disabled{opacity:.55;cursor:default}
+.game-primary.is-saved{background:linear-gradient(100deg,#75d6a2,#b4f4c9);color:#10251a}
 .critical-notice{position:absolute;z-index:3;top:calc(env(safe-area-inset-top) + 94px);left:50%;transform:translateX(-50%);color:#ff7189;font-size:11px;font-weight:900;letter-spacing:2px;text-shadow:0 0 12px #f23b65}
 @media (min-aspect-ratio:10/16){.overlay-panel{max-height:90dvh;overflow:auto}}
 
