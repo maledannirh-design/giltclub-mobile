@@ -1,5 +1,5 @@
 import { db, auth } from "../firebase.js";
-import { collection, doc, getDoc, getDocs, query, orderBy, limit, onSnapshot, setDoc, serverTimestamp } from "../firestore.js";
+import { collection, doc, getDoc, getDocs, query, orderBy, limit, setDoc, serverTimestamp } from "../firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
@@ -22,7 +22,7 @@ const WEAPONS = [
 {name:"HOMING MISSILE",cadence:330,damage:4,pattern:[-9,9],color:"#ff8da8",radius:6,homing:true},
 {name:"GALAXY DESTROYER",cadence:190,damage:4,pattern:[-24,-12,0,12,24],color:"#d7b7ff",radius:6}
 ];
-let galaxyUser=null, galaxyLeaderboardUnsubscribe=null, pendingGalaxyRun=null, ownGalaxyRecord={bestScore:0,bestStage:1};
+let galaxyUser=null, ownGalaxyRecord={bestScore:0,bestStage:1}, achievementSaved=false;
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
@@ -197,10 +197,10 @@ function paintGalaxyLeaderboard(rows=[]){
   const list=document.getElementById("galaxyLeaderboardRows");
   list.replaceChildren();
   if(!galaxyUser){
-    const p=document.createElement("p");p.className="leaderboard-empty";p.textContent="Silakan masuk ke akun GMTC untuk melihat leaderboard live.";list.appendChild(p);return;
+    const p=document.createElement("p");p.className="leaderboard-empty";p.textContent="Silakan masuk ke akun GMTC untuk melihat leaderboard.";list.appendChild(p);return;
   }
   if(!rows.length){
-    const p=document.createElement("p");p.className="leaderboard-empty";p.textContent="Belum ada catatan permainan. Jadilah pemain pertama!";list.appendChild(p);return;
+    const p=document.createElement("p");p.className="leaderboard-empty";p.textContent="Belum ada achievement tersimpan. Jadilah pemain pertama!";list.appendChild(p);return;
   }
   rows.forEach((r,i)=>{
     const item=document.createElement("div");item.className="galaxy-rank-row";
@@ -210,22 +210,27 @@ function paintGalaxyLeaderboard(rows=[]){
     item.append(rank,stage,score);list.appendChild(item);
   });
 }
-function listenGalaxyLeaderboard(){
-  if(galaxyLeaderboardUnsubscribe){galaxyLeaderboardUnsubscribe();galaxyLeaderboardUnsubscribe=null;}
+async function loadGalaxyLeaderboard(){
+  const list=document.getElementById("galaxyLeaderboardRows");
   if(!galaxyUser){paintGalaxyLeaderboard([]);return;}
-  const q=query(collection(db,"galaxyLeaderboard"),orderBy("bestScore","desc"),limit(20));
-  galaxyLeaderboardUnsubscribe=onSnapshot(q,snap=>{
+  list.textContent="Memuat leaderboard...";
+  try{
+    const q=query(collection(db,"galaxyLeaderboard"),orderBy("bestScore","desc"),limit(20));
+    const snap=await getDocs(q);
     const rows=snap.docs.map(d=>({uid:d.id,...d.data()}));
     rows.sort((a,b)=>(Number(b.bestScore)||0)-(Number(a.bestScore)||0)||(Number(b.bestStage)||0)-(Number(a.bestStage)||0));
+    const own=rows.find(r=>r.uid===galaxyUser.uid);
+    if(own)ownGalaxyRecord={bestScore:Number(own.bestScore)||0,bestStage:Number(own.bestStage)||1};
     paintGalaxyLeaderboard(rows);
-  },error=>{
-    console.error("Galaxy leaderboard listener:",error);
-    const list=document.getElementById("galaxyLeaderboardRows");
-    list.textContent="Leaderboard live belum dapat diakses. Periksa izin Firestore.";
-  });
+  }catch(error){
+    console.error("Galaxy leaderboard read failed:",error);
+    list.textContent="Leaderboard belum dapat diakses. Periksa izin Firestore.";
+  }
 }
-async async function saveGalaxyRun(){
-  if(!galaxyUser){pendingGalaxyRun={score:state.score,stage:state.stage};return;}
+async function saveGalaxyRun(){
+  if(!galaxyUser){alert("Silakan masuk ke akun GMTC sebelum menyimpan achievement.");return false;}
+  const saveButton=document.getElementById("saveAchievementButton");
+  if(saveButton){saveButton.disabled=true;saveButton.textContent="SAVING...";}
   try{
     const ref=doc(db,"galaxyLeaderboard",galaxyUser.uid);
     const [oldSnap,userSnap]=await Promise.all([
@@ -243,22 +248,27 @@ async async function saveGalaxyRun(){
       bestScore:ownGalaxyRecord.bestScore,bestStage:ownGalaxyRecord.bestStage,
       updatedAt:serverTimestamp()
     },{merge:true});
-  }catch(error){console.error("Galaxy score save failed:",error);}
+    achievementSaved=true;
+    if(saveButton){saveButton.textContent="ACHIEVEMENT SAVED ✓";saveButton.classList.add("is-saved");}
+    return true;
+  }catch(error){
+    console.error("Galaxy achievement save failed:",error);
+    if(saveButton){saveButton.disabled=false;saveButton.textContent="SAVE ACHIEVEMENT";}
+    alert("Achievement belum berhasil disimpan. Silakan coba lagi.");
+    return false;
+  }
 }
 function renderGalaxyLeaderboard(){
   const modal=document.getElementById("galaxyLeaderboard");
   if(!modal)return;
   modal.classList.remove("hidden");
-  if(galaxyUser){
-    getDoc(doc(db,"galaxyLeaderboard",galaxyUser.uid)).then(s=>{
-      if(s.exists()){const d=s.data();ownGalaxyRecord={bestScore:Number(d.bestScore)||0,bestStage:Number(d.bestStage)||1};}
-      paintGalaxyLeaderboard();
-    }).catch(()=>paintGalaxyLeaderboard());
-  }else paintGalaxyLeaderboard([]);
+  loadGalaxyLeaderboard();
 }
 function endGame(){
   state.running=false;state.gameOver=true;
-  saveGalaxyRun();
+  achievementSaved=false;
+  const saveButton=document.getElementById("saveAchievementButton");
+  if(saveButton){saveButton.disabled=false;saveButton.textContent="SAVE ACHIEVEMENT";saveButton.classList.remove("is-saved");}
   finalScoreEl.textContent=state.score.toLocaleString("id-ID");
   gameOverOverlay.classList.remove("hidden");
 }
@@ -402,20 +412,13 @@ document.getElementById("startButton").addEventListener("click",()=>{
   resetGame();
 });
 document.getElementById("restartButton").addEventListener("click",()=>{initSound();resetGame();});
+document.getElementById("saveAchievementButton")?.addEventListener("click",saveGalaxyRun);
 document.getElementById("openLeaderboardButton")?.addEventListener("click",renderGalaxyLeaderboard);
 document.getElementById("openLeaderboardFromGameOver")?.addEventListener("click",renderGalaxyLeaderboard);
 document.getElementById("closeGalaxyLeaderboard")?.addEventListener("click",()=>document.getElementById("galaxyLeaderboard")?.classList.add("hidden"));
 document.getElementById("galaxyLeaderboard")?.addEventListener("click",event=>{if(event.target.id==="galaxyLeaderboard")event.currentTarget.classList.add("hidden");});
-if(new URLSearchParams(location.search).get("leaderboard")==="1")renderGalaxyLeaderboard();
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;endGame();}});
-onAuthStateChanged(auth,user=>{
-  galaxyUser=user||null;
-  listenGalaxyLeaderboard();
-  if(user&&pendingGalaxyRun){
-    const run=pendingGalaxyRun;pendingGalaxyRun=null;
-    saveGalaxyRun();
-  }
-});
+onAuthStateChanged(auth,user=>{galaxyUser=user||null;});
 updateWeaponHud();
 drawBackground(0);
 drawShip(0);
