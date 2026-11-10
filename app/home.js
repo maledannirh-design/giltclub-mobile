@@ -171,7 +171,7 @@ content.innerHTML = `
   // NAVIGATION BUTTON
   // =============================
   document.querySelector(".home-galaxy-leaderboard")
-    ?.addEventListener("click", ()=>window.navigate?.("leaderboard"));
+    ?.addEventListener("click", ()=>{ window.location.href = new URL("./galaxy/?leaderboard=1", import.meta.url).href; });
 
   document.querySelector(".leaderboard-btn")
     ?.addEventListener("click", ()=>{
