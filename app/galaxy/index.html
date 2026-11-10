@@ -35,6 +35,7 @@
         <h1>READY, PILOT?</h1>
         <p class="overlay-copy">Sentuh pesawat untuk menembak. Tahan dan geser pesawat untuk bergerak.</p>
         <button id="startButton" class="game-primary">START MISSION</button>
+        <button id="openLeaderboardButton" class="game-secondary" type="button">GALAXY LEADERBOARD</button>
         <p class="prototype-note">GALAXY MISSION · STAGE 1</p>
       </div>
     </section>
@@ -46,11 +47,24 @@
         <p class="overlay-copy">Pesawat telah hancur.</p>
         <div class="result-score">FINAL SCORE <strong id="finalScore">0</strong></div>
         <button id="restartButton" class="game-primary">RESTART · FREE</button>
+        <button id="openLeaderboardFromGameOver" class="game-secondary" type="button">VIEW LEADERBOARD</button>
         <a class="game-secondary" href="../index.html">KEMBALI KE GMTC</a>
         <p class="prototype-note">TRIAL MODE · WEAPON PROGRESS SAVED ON THIS DEVICE</p>
       </div>
     </section>
 
+    <section id="galaxyLeaderboard" class="game-overlay hidden" aria-label="Galaxy leaderboard">
+      <div class="overlay-panel leaderboard-panel">
+        <button id="closeGalaxyLeaderboard" class="leaderboard-close" type="button" aria-label="Close leaderboard">×</button>
+        <div class="game-logo">GALAXY <span>LEADERBOARD</span></div>
+        <div class="leaderboard-best">
+          <div><small>HIGH SCORE</small><strong id="galaxyBestScore">0</strong></div>
+          <div><small>HIGHEST STAGE</small><strong id="galaxyBestStage">STAGE 1</strong></div>
+        </div>
+        <div id="galaxyLeaderboardRows" class="galaxy-leaderboard-rows"></div>
+        <p class="prototype-note">TRIAL LEADERBOARD · SAVED ON THIS DEVICE</p>
+      </div>
+    </section>
     <div id="criticalNotice" class="critical-notice hidden">LAST CHANCE</div>
   </main>
   <script type="module" src="./galaxy.js"></script>
