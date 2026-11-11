@@ -113,7 +113,7 @@ function emitProjectile({x,y,damage=1,color="#c8f8ff",radius=4,kind=1,homing=fal
 function emitFlame(x,y){
   state.bullets.push({x,y,originX:x,phase:Math.random()*Math.PI*2,age:0,life:.34,r:12,damage:1.4,color:"#ff8a35",flame:true,kind:8});
 }
-function fireWeapon(level){
+function fireWeapon(level,part="all"){
   const y=state.ship.y-39,wing=state.ship.radius*.92,left=state.ship.x-wing,right=state.ship.x+wing;
   const triple=(opts)=>[-15,0,15].forEach(offset=>emitProjectile({x:state.ship.x+offset,y,...opts}));
   if(level===1&&state.weaponLevel===1)emitProjectile({x:state.ship.x,y,kind:1});
@@ -122,8 +122,8 @@ function fireWeapon(level){
   if(level===4&&state.weaponLevel===4)triple({kind:3,color:"#9ff5ff"});
   if(level===5&&state.weaponLevel===5)triple({kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true});
   if(level===6&&state.weaponLevel===6){
-    emitProjectile({x:state.ship.x,y,kind:6,color:"#fff0a8",radius:9,damage:3,plasma:true});
-    [left,right].forEach(x=>emitProjectile({x,y,kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true}));
+    if(part==="centre")emitProjectile({x:state.ship.x,y,kind:6,color:"#fff0a8",radius:9,damage:3,plasma:true});
+    if(part==="wings")[left,right].forEach(x=>emitProjectile({x,y,kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true}));
   }
   if(level===7&&state.weaponLevel>=7)triple({kind:7,color:"#ffcf83",radius:8,damage:3,plasma:true});
   if(level===8&&state.weaponLevel>=5){
@@ -137,20 +137,20 @@ function fireWeapon(level){
 function fire(now=performance.now(),immediate=false){
   if(!state.running)return;
   const active=[];
-  const add=(level,cadence,key=String(level))=>active.push({level,cadence,key});
+  const add=(level,cadence,key=String(level),part="all")=>active.push({level,cadence,key,part});
   if(state.weaponLevel===1)add(1,170);
   if(state.weaponLevel===2)add(2,170);
   if(state.weaponLevel===3)add(3,170);
   if(state.weaponLevel===4)add(4,85);
   if(state.weaponLevel===5)add(5,210);
-  if(state.weaponLevel===6){add(6,85,"6-centre");add(6,220,"6-wings");}
+  if(state.weaponLevel===6){add(6,85,"6-centre","centre");add(6,220,"6-wings","wings");}
   if(state.weaponLevel>=7)add(7,85);
   if(state.weaponLevel>=5)add(8,360);
   if(state.weaponLevel>=9)add(9,170);
   if(state.weaponLevel>=10)add(10,520);
   if(state.weaponLevel>=11)add(11,210);
   for(const w of active)if(immediate||now>=(state.weaponNextFireAt[w.key]||0)){
-    fireWeapon(w.level);state.weaponNextFireAt[w.key]=now+w.cadence;
+    fireWeapon(w.level,w.part);state.weaponNextFireAt[w.key]=now+w.cadence;
   }
   if(state.bullets.length>150)state.bullets.splice(0,state.bullets.length-150);
 }
