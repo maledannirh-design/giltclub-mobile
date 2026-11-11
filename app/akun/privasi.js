@@ -24,11 +24,12 @@ export async function renderPrivasi(){
     console.error("Load privacy error:", err);
   }
 
-  const privacy = userData.privacy || {
+  const privacy = {
     showOnlineStatus: true,
     dashboardVisibility: "public",
-    showNameInBooking: false,
-    chatPermission: "all"
+    showNameInBooking: true,
+    chatPermission: "all",
+    ...(userData.privacy || {})
   };
 
   content.innerHTML = `
