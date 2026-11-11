@@ -121,12 +121,15 @@ function fireWeapon(level){
   if(level===3&&state.weaponLevel===3)triple({kind:3,color:"#9ff5ff"});
   if(level===4&&state.weaponLevel===4)triple({kind:3,color:"#9ff5ff"});
   if(level===5&&state.weaponLevel===5)triple({kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true});
-  if(level===6&&state.weaponLevel>=6){
+  if(level===6&&state.weaponLevel===6){
     emitProjectile({x:state.ship.x,y,kind:6,color:"#fff0a8",radius:9,damage:3,plasma:true});
     [left,right].forEach(x=>emitProjectile({x,y,kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true}));
   }
   if(level===7&&state.weaponLevel>=7)triple({kind:7,color:"#ffcf83",radius:8,damage:3,plasma:true});
-  if(level===8&&state.weaponLevel>=8)[left,right].forEach(x=>emitFlame(x,y-4));
+  if(level===8&&state.weaponLevel>=5){
+    if(state.weaponLevel>=8)[left,right].forEach(x=>emitFlame(x,y-4));
+    else emitFlame(state.ship.x,y-4);
+  }
   if(level===9&&state.weaponLevel>=9)[state.ship.x-state.ship.radius*1.28,state.ship.x+state.ship.radius*1.28].forEach(x=>emitProjectile({x,y:y+10,kind:9,color:"#39bfff",radius:8,damage:3,laser:true}));
   if(level===10&&state.weaponLevel>=10)[left,right].forEach(x=>emitProjectile({x,y,kind:10,color:"#ff668e",radius:7,damage:5,homing:true}));
   if(level===11&&state.weaponLevel>=11)[-.32,.32].forEach(angle=>emitProjectile({x:state.ship.x,y,kind:11,color:"#e8f5ff",radius:4,damage:1,angle}));
@@ -140,7 +143,7 @@ function fire(now=performance.now(),immediate=false){
   if(state.weaponLevel===3)add(3,170);
   if(state.weaponLevel===4)add(4,85);
   if(state.weaponLevel===5)add(5,210);
-  if(state.weaponLevel>=6){add(6,85);add(6,220,"6-wings");}
+  if(state.weaponLevel===6){add(6,85,"6-centre");add(6,220,"6-wings");}
   if(state.weaponLevel>=7)add(7,85);
   if(state.weaponLevel>=5)add(8,360);
   if(state.weaponLevel>=9)add(9,170);
