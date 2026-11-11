@@ -19,7 +19,7 @@ let galaxyUser=null, ownGalaxyRecord={bestScore:0,bestStage:1}, achievementSaved
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
-  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, testWeaponLevel: null, weaponNextFireAt: {}, loopActive:false, paused:false,
+  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, testWeaponLevel: null, weaponNextFireAt: {}, flameCycleAt: 0, electricNextAt: 0, loopActive:false, paused:false,
   ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -67,6 +67,22 @@ function playTone(kind){
     low.connect(lg);lg.connect(ac.destination);low.start(t+.72);low.stop(t+1.13);
     return;
   }
+  if(kind==="flame"){
+    const osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();
+    osc.type="sawtooth";osc.frequency.setValueAtTime(72,t);osc.frequency.linearRampToValueAtTime(96,t+2.8);
+    filter.type="lowpass";filter.frequency.value=420;
+    gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.055,t+.12);gain.gain.setValueAtTime(.045,t+2.7);gain.gain.exponentialRampToValueAtTime(.0001,t+3);
+    osc.connect(filter);filter.connect(gain);gain.connect(ac.destination);osc.start(t);osc.stop(t+3);
+    return;
+  }
+  if(kind==="electric"){
+    const osc=ac.createOscillator(),gain=ac.createGain(),mod=ac.createOscillator(),modGain=ac.createGain();
+    osc.type="sawtooth";osc.frequency.setValueAtTime(780,t);osc.frequency.exponentialRampToValueAtTime(240,t+.24);
+    mod.type="square";mod.frequency.value=38;modGain.gain.value=170;mod.connect(modGain);modGain.connect(osc.frequency);
+    gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.045,t+.015);gain.gain.exponentialRampToValueAtTime(.0001,t+.32);
+    osc.connect(gain);gain.connect(ac.destination);osc.start(t);mod.start(t);osc.stop(t+.34);mod.stop(t+.34);
+    return;
+  }
   if(kind==="shot"){
     // Bright, crisp laser snap with a short high-frequency transient.
     const osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();
@@ -94,7 +110,7 @@ function unlockWeaponForStage(completedStage){const level=Math.min(11,completedS
 function resetGame(){
   state.running=true;state.paused=false;state.gameOver=false;state.score=0;state.hits=0;
   state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossTriggered=false;state.bossBullets=[];state.stageMessageUntil=0;state.weaponLevel=state.testWeaponLevel||1;
-  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.weaponNextFireAt={};state.bullets=[];state.meteors=[];state.particles=[];
+  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.weaponNextFireAt={};state.flameCycleAt=performance.now();state.electricNextAt=performance.now();state.bullets=[];state.meteors=[];state.particles=[];
   state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.add("hidden");
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
   scoreEl.textContent="000000";livesEl.textContent="♥ ♥ ♥";stageLabel.textContent="STAGE 1 · METEOR FIELD";bossHud.classList.add("hidden");stageBanner.classList.add("hidden");updateWeaponHud();
@@ -111,7 +127,7 @@ function emitProjectile({x,y,damage=1,color="#c8f8ff",radius=4,kind=1,homing=fal
   state.bullets.push({x,y,vx:Math.sin(angle)*speed,vy:-Math.cos(angle)*speed,r:radius,damage,color,homing,laser,plasma,kind});
 }
 function emitFlame(x,y){
-  state.bullets.push({x,y,originX:x,phase:Math.random()*Math.PI*2,age:0,life:.9,r:12,damage:1.4,color:"#ff8a35",flame:true,kind:8});
+  state.bullets.push({x,y,originX:x,phase:Math.random()*Math.PI*2,age:0,life:.12,r:12,damage:1.4,color:"#ff8a35",flame:true,kind:8});
 }
 function fireWeapon(level,part="all"){
   const y=state.ship.y-39,wing=state.ship.radius*.92,left=state.ship.x-wing,right=state.ship.x+wing;
@@ -130,7 +146,7 @@ function fireWeapon(level,part="all"){
     if(state.weaponLevel>=8)[left,right].forEach(x=>emitFlame(x,y-4));
     else emitFlame(state.ship.x,y-4);
   }
-  if(level===9&&state.weaponLevel>=9)[state.ship.x-state.ship.radius*1.28,state.ship.x+state.ship.radius*1.28].forEach(x=>emitProjectile({x,y:y+10,kind:9,color:"#39bfff",radius:8,damage:3,laser:true}));
+  if(level===9&&state.weaponLevel>=9)[state.ship.x-state.ship.radius*1.28,state.ship.x+state.ship.radius*1.28].forEach(x=>emitProjectile({x,y:y+10,kind:9,color:"#39bfff",radius:5,damage:3,laser:true}));
   if(level===10&&state.weaponLevel>=10)[left,right].forEach(x=>emitProjectile({x,y,kind:10,color:"#ff668e",radius:7,damage:5,homing:true}));
   if(level===11&&state.weaponLevel>=11)[-.32,.32].forEach(angle=>emitProjectile({x:state.ship.x,y,kind:11,color:"#e8f5ff",radius:4,damage:1,angle}));
 }
@@ -141,12 +157,12 @@ function fire(now=performance.now(),immediate=false){
   if(state.weaponLevel===1)add(1,170);
   if(state.weaponLevel===2)add(2,170);
   if(state.weaponLevel===3)add(3,170);
-  if(state.weaponLevel===4)add(4,85);
+  if(state.weaponLevel===4)add(4,170);
   if(state.weaponLevel===5)add(5,210);
   if(state.weaponLevel===6){add(6,85,"6-centre","centre");add(6,220,"6-wings","wings");}
-  if(state.weaponLevel>=7)add(7,85);
+  if(state.weaponLevel>=7)add(7,170);
   if(state.weaponLevel>=5)add(8,360);
-  if(state.weaponLevel>=9)add(9,170);
+  if(state.weaponLevel>=9)add(9,1500);
   if(state.weaponLevel>=10)add(10,520);
   if(state.weaponLevel>=11)add(11,210);
   let fired=false;
@@ -342,6 +358,17 @@ function drawMeteor(m){
 function update(dt,now){
   // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
   if(state.pointer.active)fire(now,false);
+  const flameUnlocked=state.weaponLevel>=5;
+  const flamePhase=flameUnlocked?((now-state.flameCycleAt)%5000):0;
+  const flameActive=flameUnlocked&&flamePhase<3000;
+  if(flameActive&&state.pointer.active&&Math.floor(flamePhase/100)!==Math.floor((flamePhase-dt*1000)/100)){
+    const flameXs=state.weaponLevel>=8?[state.ship.x-state.ship.radius*.92,state.ship.x+state.ship.radius*.92]:[state.ship.x];
+    for(const x of flameXs)emitFlame(x,state.ship.y-39);
+  }
+  if(flameUnlocked&&flamePhase<dt*1000&&state.pointer.active)playTone("flame");
+  if(state.weaponLevel>=9&&state.pointer.active&&now>=state.electricNextAt){
+    fireWeapon(9);state.electricNextAt=now+1500;playTone("electric");
+  }
   if(state.stageMessageUntil&&now>=state.stageMessageUntil){stageBanner.classList.add("hidden");state.stageMessageUntil=0;}
   if(state.boss){
     const b=state.boss;b.age+=dt;b.phase+=dt;b.x=state.width/2+Math.sin(b.phase*.62)*Math.max(0,state.width*.25-b.r*.3);b.y=Math.min(state.height*.19,b.y+62*dt);
@@ -349,10 +376,7 @@ function update(dt,now){
     for(let i=state.bossBullets.length-1;i>=0;i--){const q=state.bossBullets[i];q.x+=q.vx*dt;q.y+=q.vy*dt;const dx=q.x-state.ship.x,dy=q.y-state.ship.y;if(dx*dx+dy*dy<(q.r+state.ship.radius*.5)**2){state.bossBullets.splice(i,1);damageShip(now);}else if(q.y>state.height+20||q.x<-20||q.x>state.width+20)state.bossBullets.splice(i,1);}
   }else if(now>=state.spawnAt){spawnMeteor();state.spawnAt=now+Math.max(420,1250-state.score*.12);}
   for(const b of state.bullets){
-    if(b.flame){
-      b.age+=dt;b.y-=Math.max(125,state.height*.24)*dt;b.x=b.originX+Math.sin(b.age*25+b.phase)*9;
-      continue;
-    }
+    if(b.flame){b.age+=dt;b.y-=Math.max(125,state.height*.24)*dt;b.x=b.originX+Math.sin(b.age*25+b.phase)*9;continue;}
     if(b.homing){
       let target=state.boss;
       if(!target&&state.meteors.length)target=state.meteors.reduce((best,m)=>!best||Math.hypot(m.x-b.x,m.y-b.y)<Math.hypot(best.x-b.x,best.y-b.y)?m:best,null);
@@ -392,18 +416,23 @@ function render(now,dt){
   for(const b of state.bullets){
     ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
     if(b.flame){
-      const fade=Math.max(0,1-b.age/b.life);ctx.globalAlpha=fade*.9;
-      for(let puff=0;puff<8;puff++){
-        const px=b.x+Math.sin(b.age*27+puff*1.15)*5,py=b.y+puff*5,pr=b.r*(.38+puff*.095);
-        const fire=ctx.createRadialGradient(px-pr*.2,py-pr*.2,1,px,py,pr*1.3);
-        fire.addColorStop(0,"rgba(255,255,220,.98)");fire.addColorStop(.28,"rgba(255,210,75,.98)");fire.addColorStop(.65,"rgba(255,85,18,.82)");fire.addColorStop(1,"rgba(95,20,5,0)");
-        ctx.fillStyle=fire;ctx.beginPath();ctx.arc(px,py,pr*1.3,0,Math.PI*2);ctx.fill();
+      const fade=Math.max(0,1-b.age/b.life);ctx.globalAlpha=fade*.85;
+      const length=state.ship.radius*4,baseY=b.y;
+      for(let puff=0;puff<14;puff++){
+        const progress=puff/13,py=baseY-progress*length;
+        const spread=(4+progress*state.ship.radius*.42);
+        const px=b.x+Math.sin(b.age*19+puff*1.25+b.phase)*spread*.35;
+        const pr=state.ship.radius*(.12+progress*.23);
+        const fire=ctx.createRadialGradient(px-pr*.2,py,1,px,py,pr*1.6);
+        fire.addColorStop(0,"rgba(255,255,225,.98)");fire.addColorStop(.25,"rgba(255,214,80,.98)");fire.addColorStop(.63,"rgba(255,82,15,.86)");fire.addColorStop(1,"rgba(90,18,4,0)");
+        ctx.fillStyle=fire;ctx.beginPath();ctx.ellipse(px,py,pr*1.15,pr*1.8,0,0,Math.PI*2);ctx.fill();
       }
     }else if(b.laser){
-      const beam=ctx.createLinearGradient(b.x,b.y-58,b.x,b.y+16);
-      beam.addColorStop(0,"rgba(255,255,255,0)");beam.addColorStop(.18,"#53caff");beam.addColorStop(.48,"#ffffff");beam.addColorStop(.78,"#167fff");beam.addColorStop(1,"rgba(55,170,255,0)");
-      ctx.fillStyle=beam;ctx.shadowBlur=30;ctx.fillRect(b.x-b.r*.48,b.y-58,b.r*.96,76);
-      ctx.strokeStyle="rgba(175,245,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y-58);ctx.lineTo(b.x+Math.sin(now/34+b.x)*4,b.y+18);ctx.stroke();
+      const beamLength=state.ship.radius*2;
+      ctx.shadowBlur=20;ctx.shadowColor="#38bfff";ctx.strokeStyle="#45caff";ctx.lineWidth=3;ctx.beginPath();
+      ctx.moveTo(b.x,b.y+beamLength*.5);
+      for(let step=1;step<=7;step++){const yy=b.y+beamLength*.5-step*(beamLength/7);ctx.lineTo(b.x+Math.sin(now/23+step*2.4+b.x)*5,yy);}
+      ctx.stroke();ctx.strokeStyle="#e8fbff";ctx.lineWidth=1.1;ctx.stroke();
     }else if(b.homing){
       ctx.beginPath();ctx.moveTo(b.x,b.y-12);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();
       ctx.fillStyle="#ffcf9b";ctx.fillRect(b.x-2,b.y+4,4,8);
@@ -413,6 +442,22 @@ function render(now,dt){
       ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(b.x,b.y,b.r,b.r*1.75,0,0,Math.PI*2);ctx.fill();
     }else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);
     ctx.restore();
+  }
+  const flamePhase=state.weaponLevel>=5?((now-state.flameCycleAt)%5000):5000;
+  if(state.pointer.active&&flamePhase<3000){
+    const flameXs=state.weaponLevel>=8?[state.ship.x-state.ship.radius*.92,state.ship.x+state.ship.radius*.92]:[state.ship.x];
+    for(const flameX of flameXs){
+      ctx.save();ctx.globalAlpha=.92;ctx.shadowBlur=24;ctx.shadowColor="#ff7028";
+      for(let puff=0;puff<18;puff++){
+        const progress=puff/17,py=state.ship.y-state.ship.radius-8-progress*state.ship.radius*4;
+        const sway=Math.sin(now/42+puff*1.7+flameX)*state.ship.radius*.22;
+        const width=state.ship.radius*(.12+progress*.26)*(0.75+Math.sin(now/55+puff)*.2);
+        const grad=ctx.createRadialGradient(flameX+sway,py,1,flameX+sway,py,width*1.8);
+        grad.addColorStop(0,"rgba(255,255,220,.98)");grad.addColorStop(.28,"rgba(255,220,90,.96)");grad.addColorStop(.68,"rgba(255,94,22,.84)");grad.addColorStop(1,"rgba(95,20,5,0)");
+        ctx.fillStyle=grad;ctx.beginPath();ctx.ellipse(flameX+sway,py,width,width*1.65,0,0,Math.PI*2);ctx.fill();
+      }
+      ctx.restore();
+    }
   }
   for(const m of state.meteors)drawMeteor(m);
   if(state.boss)drawBoss(state.boss,now);
