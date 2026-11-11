@@ -12,7 +12,7 @@
     <canvas id="gameCanvas" aria-label="GMTC Galaxy gameplay"></canvas>
 
     <header class="game-hud">
-      <a class="game-exit" href="../index.html" aria-label="Kembali ke GMTC">✕</a>
+      <button class="game-exit" id="pauseGameButton" type="button" aria-label="Pause game">✕</button>
       <div class="hud-left">
         <div class="hud-label">GMTC GALAXY</div>
         <div id="stageLabel" class="hud-stage">STAGE 0 · PROTOTYPE</div>
@@ -53,9 +53,13 @@
     <section id="pauseOverlay" class="game-overlay hidden">
       <div class="overlay-panel">
         <div class="game-logo">MISSION <span>PAUSED</span></div>
-        <h1>WELCOME BACK, PILOT</h1>
-        <p class="overlay-copy">Permainan dijeda sementara. Progress kamu tetap aman.</p>
-        <button id="resumeButton" class="game-primary" type="button">RESUME MISSION</button>
+        <h1>GAME PAUSED</h1>
+        <p class="overlay-copy">Progress permainan ditahan sementara.</p>
+        <div class="pause-progress"><span>STAGE <strong id="pauseStageValue">1</strong></span><span>SCORE <strong id="pauseScoreValue">0</strong></span></div>
+        <button id="saveProgressButton" class="game-primary" type="button">SAVE PROGRESS</button>
+        <a class="game-secondary pause-exit-link" href="../index.html">EXIT GAME · BACK TO GMTC</a>
+        <button id="resumeButton" class="game-secondary pause-resume" type="button">CONTINUE / BACK TO GAME</button>
+        <small id="pauseSaveNote" class="pause-save-note">Save progress menyimpan score dan stage terbaik ke achievement.</small>
       </div>
     </section>
     <section id="gameOverOverlay" class="game-overlay hidden">
