@@ -518,6 +518,7 @@ document.getElementById("saveProgressButton")?.addEventListener("click",async()=
   const button=document.getElementById("saveProgressButton"),note=document.getElementById("pauseSaveNote");
   if(button){button.disabled=true;button.textContent="SAVING...";}
   const saved=await saveGalaxyRun("saveProgressButton");
+  if(!saved&&button){button.disabled=false;button.textContent="SAVE PROGRESS";}
   if(note)note.textContent=saved?"Progress terbaik berhasil disimpan.":"Progress belum tersimpan. Silakan coba lagi.";
 });
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running)pauseGame();});
