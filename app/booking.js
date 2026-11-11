@@ -609,10 +609,9 @@ async function openSessionPopup(dateStr) {
         const isPrivilegedViewer =
           ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
           bookingData.userId === currentUser?.uid;
-        const shouldHideName = !isPrivilegedViewer && (
-          bookingData.isAnonymous === true ||
-          memberProfile.privacy?.showNameInBooking === false
-        );
+        const shouldHideName =
+          !isPrivilegedViewer &&
+          memberProfile.privacy?.showNameInBooking === false;
 
         const resolvedName = shouldHideName
           ? "Anonymous"
@@ -2355,7 +2354,6 @@ async function openMatchesPage(scheduleId){
       const userId = data.userId;
       const profile = bookedUserProfiles.get(userId) || {};
       const shouldHideName =
-        data.isAnonymous === true ||
         profile.privacy?.showNameInBooking === false;
 
       const name = shouldHideName
