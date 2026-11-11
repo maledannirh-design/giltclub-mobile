@@ -111,7 +111,7 @@ function emitProjectile({x,y,damage=1,color="#c8f8ff",radius=4,kind=1,homing=fal
   state.bullets.push({x,y,vx:Math.sin(angle)*speed,vy:-Math.cos(angle)*speed,r:radius,damage,color,homing,laser,plasma,kind});
 }
 function emitFlame(x,y){
-  state.bullets.push({x,y,originX:x,phase:Math.random()*Math.PI*2,age:0,life:.34,r:12,damage:1.4,color:"#ff8a35",flame:true,kind:8});
+  state.bullets.push({x,y,originX:x,phase:Math.random()*Math.PI*2,age:0,life:.9,r:12,damage:1.4,color:"#ff8a35",flame:true,kind:8});
 }
 function fireWeapon(level,part="all"){
   const y=state.ship.y-39,wing=state.ship.radius*.92,left=state.ship.x-wing,right=state.ship.x+wing;
@@ -387,27 +387,36 @@ function update(dt,now){
 
 function render(now,dt){
   drawBackground(dt);
-  for(const b of state.bullets){ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
+  for(const b of state.bullets){
+    ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
     if(b.flame){
-      const fade=Math.max(0,1-b.age/b.life);ctx.globalAlpha=fade*.72;
-      for(let puff=0;puff<4;puff++){const px=b.x+Math.sin(b.age*22+puff*1.7)*7,py=b.y+puff*9,pr=b.r*(.45+puff*.16);
-        const smoke=ctx.createRadialGradient(px-pr*.25,py-pr*.25,1,px,py,pr*1.5);
-        smoke.addColorStop(0,"rgba(255,226,170,.95)");smoke.addColorStop(.35,"rgba(255,126,48,.72)");smoke.addColorStop(1,"rgba(92,45,35,0)");
-        ctx.fillStyle=smoke;ctx.beginPath();ctx.arc(px,py,pr*1.5,0,Math.PI*2);ctx.fill();}
-    }
-    else if(b.laser){
-      const beam=ctx.createLinearGradient(b.x,b.y-38,b.x,b.y+12);beam.addColorStop(0,"rgba(255,255,255,.95)");beam.addColorStop(.35,b.color);beam.addColorStop(1,"rgba(150,80,255,.15)");
-      ctx.fillStyle=beam;ctx.shadowBlur=24;ctx.fillRect(b.x-b.r*.55,b.y-42,b.r*1.1,58);
-    }
-    else if(b.kind===6){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.9,b.r*1.8,0,0,Math.PI*2);ctx.fill();}
-    else if(b.kind===7){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
-    else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);ctx.restore();}
+      const fade=Math.max(0,1-b.age/b.life);ctx.globalAlpha=fade*.9;
+      for(let puff=0;puff<8;puff++){
+        const px=b.x+Math.sin(b.age*27+puff*1.15)*5,py=b.y+puff*5,pr=b.r*(.38+puff*.095);
+        const fire=ctx.createRadialGradient(px-pr*.2,py-pr*.2,1,px,py,pr*1.3);
+        fire.addColorStop(0,"rgba(255,255,220,.98)");fire.addColorStop(.28,"rgba(255,210,75,.98)");fire.addColorStop(.65,"rgba(255,85,18,.82)");fire.addColorStop(1,"rgba(95,20,5,0)");
+        ctx.fillStyle=fire;ctx.beginPath();ctx.arc(px,py,pr*1.3,0,Math.PI*2);ctx.fill();
+      }
+    }else if(b.laser){
+      const beam=ctx.createLinearGradient(b.x,b.y-58,b.x,b.y+16);
+      beam.addColorStop(0,"rgba(255,255,255,0)");beam.addColorStop(.18,"#53caff");beam.addColorStop(.48,"#ffffff");beam.addColorStop(.78,"#167fff");beam.addColorStop(1,"rgba(55,170,255,0)");
+      ctx.fillStyle=beam;ctx.shadowBlur=30;ctx.fillRect(b.x-b.r*.48,b.y-58,b.r*.96,76);
+      ctx.strokeStyle="rgba(175,245,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y-58);ctx.lineTo(b.x+Math.sin(now/34+b.x)*4,b.y+18);ctx.stroke();
+    }else if(b.homing){
+      ctx.beginPath();ctx.moveTo(b.x,b.y-12);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#ffcf9b";ctx.fillRect(b.x-2,b.y+4,4,8);
+    }else if(b.plasma){
+      const g=ctx.createRadialGradient(b.x-b.r*.2,b.y-b.r*.5,1,b.x,b.y,b.r*1.8);
+      g.addColorStop(0,"#fffbd0");g.addColorStop(.35,b.color);g.addColorStop(1,"rgba(255,130,70,0)");
+      ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(b.x,b.y,b.r,b.r*1.75,0,0,Math.PI*2);ctx.fill();
+    }else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);
+    ctx.restore();
+  }
   for(const m of state.meteors)drawMeteor(m);
   if(state.boss)drawBoss(state.boss,now);
   for(const q of state.bossBullets){ctx.save();ctx.shadowBlur=14;ctx.shadowColor="#ff5c91";ctx.fillStyle="#ff9bb8";ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,Math.PI*2);ctx.fill();ctx.restore();}
   for(const p of state.particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
-  ctx.globalAlpha=1;
-  drawShip(now);
+  ctx.globalAlpha=1;drawShip(now);
 }
 
 function loop(now){
