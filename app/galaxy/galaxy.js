@@ -153,10 +153,10 @@ function fire(now=performance.now(),immediate=false){
   if(state.weaponLevel===1)add(1,170);
   if(state.weaponLevel===2)add(2,170);
   if(state.weaponLevel===3)add(3,170);
-  if(state.weaponLevel===4)add(4,170);
+  if(state.weaponLevel===4)add(4,85);
   if(state.weaponLevel===5)add(5,210);
   if(state.weaponLevel===6){add(6,85,"6-centre","centre");add(6,220,"6-wings","wings");}
-  if(state.weaponLevel>=7)add(7,170);
+  if(state.weaponLevel>=7)add(7,85);
 
 
   if(state.weaponLevel>=10)add(10,520);
