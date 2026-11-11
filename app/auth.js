@@ -103,7 +103,7 @@ export async function register(
       privacy: {
         showOnlineStatus: false,
         dashboardVisibility: "private",
-        showNameInBooking: false,
+        showNameInBooking: true,
         chatPermission: "followers"
       },
 
