@@ -157,8 +157,8 @@ function fire(now=performance.now(),immediate=false){
   if(state.weaponLevel===5)add(5,210);
   if(state.weaponLevel===6){add(6,85,"6-centre","centre");add(6,220,"6-wings","wings");}
   if(state.weaponLevel>=7)add(7,170);
-  if(state.weaponLevel>=5)add(8,360);
-  if(state.weaponLevel>=9)add(9,1500);
+
+
   if(state.weaponLevel>=10)add(10,520);
   if(state.weaponLevel>=11)add(11,210);
   let fired=false;
@@ -265,7 +265,7 @@ async function loadGalaxyLeaderboard(){
     list.textContent="Leaderboard belum dapat diakses. Periksa izin Firestore.";
   }
 }
-async function saveGalaxyRun(){
+async function saveGalaxyRun(buttonId="saveAchievementButton"){
   if(!galaxyUser){alert("Silakan masuk ke akun GMTC sebelum menyimpan achievement.");return false;}
   const saveButton=document.getElementById(buttonId);
   if(saveButton){saveButton.disabled=true;saveButton.textContent="SAVING...";}
@@ -428,17 +428,7 @@ function render(now,dt){
   for(const b of state.bullets){
     ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
     if(b.flame){
-      const fade=Math.max(0,1-b.age/b.life);ctx.globalAlpha=fade*.85;
-      const length=state.ship.radius*4,baseY=b.y;
-      for(let puff=0;puff<14;puff++){
-        const progress=puff/13,py=baseY-progress*length;
-        const spread=(4+progress*state.ship.radius*.42);
-        const px=b.x+Math.sin(b.age*19+puff*1.25+b.phase)*spread*.35;
-        const pr=state.ship.radius*(.12+progress*.23);
-        const fire=ctx.createRadialGradient(px-pr*.2,py,1,px,py,pr*1.6);
-        fire.addColorStop(0,"rgba(255,255,225,.98)");fire.addColorStop(.25,"rgba(255,214,80,.98)");fire.addColorStop(.63,"rgba(255,82,15,.86)");fire.addColorStop(1,"rgba(90,18,4,0)");
-        ctx.fillStyle=fire;ctx.beginPath();ctx.ellipse(px,py,pr*1.15,pr*1.8,0,0,Math.PI*2);ctx.fill();
-      }
+      // Flame hitboxes are invisible; the continuous jet is drawn from the ship below.
     }else if(b.laser){
       const beamLength=state.ship.radius*2;
       ctx.shadowBlur=20;ctx.shadowColor="#38bfff";ctx.strokeStyle="#45caff";ctx.lineWidth=3;ctx.beginPath();
