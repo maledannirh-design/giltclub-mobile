@@ -13,20 +13,13 @@ const weaponLabel = document.getElementById("weaponLabel");
 const stageLabel=document.getElementById("stageLabel"),bossHud=document.getElementById("bossHud"),bossHealthFill=document.getElementById("bossHealthFill"),bossHealthText=document.getElementById("bossHealthText"),stageBanner=document.getElementById("stageBanner"),stageBannerTitle=document.getElementById("stageBannerTitle"),stageBannerCopy=document.getElementById("stageBannerCopy");
 
 const WEAPONS = [
-{name:"SINGLE SHOT",cadence:170,damage:1,pattern:[0],color:"#c8f8ff",radius:4},
-{name:"DOUBLE SHOT",cadence:170,damage:1,pattern:[-10,10],color:"#b9f8ff",radius:4},
-{name:"TRIPLE SHOT",cadence:170,damage:1,pattern:[-15,0,15],color:"#9ff5ff",radius:4},
-{name:"FLAME BURST",cadence:360,damage:2,pattern:[-24,-16,-8,0,8,16,24],color:"#ff8a35",radius:6,flame:true},
-{name:"RAPID FIRE",cadence:90,damage:1,pattern:[0],color:"#ffe08a",radius:3.5},
-{name:"PLASMA CANNON",cadence:240,damage:3,pattern:[0],color:"#ffb86b",radius:8},
-{name:"HOMING MISSILE",cadence:330,damage:4,pattern:[-9,9],color:"#ff8da8",radius:6,homing:true},
-{name:"GALAXY DESTROYER",cadence:190,damage:4,pattern:[-24,-12,0,12,24],color:"#d7b7ff",radius:6}
+{name:"SINGLE SHOT"},{name:"DOUBLE SHOT"},{name:"TRIPLE SHOT"},{name:"RAPID TRIPLE"},{name:"TRIPLE PLASMA"},{name:"CENTRE RAPID PLASMA"},{name:"TRIPLE RAPID PLASMA"},{name:"DUAL FLAME"},{name:"TWIN ELECTRIC LASER"},{name:"HOMING ROCKET"},{name:"WIDE SPREAD"}
 ];
 let galaxyUser=null, ownGalaxyRecord={bestScore:0,bestStage:1}, achievementSaved=false;
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
-  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, loopActive:false,
+  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, weaponNextFireAt: {}, loopActive:false, paused:false,
   ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -97,12 +90,12 @@ function playTone(kind){
 }
 function showStageMessage(title,copy,duration=2500){stageBannerTitle.textContent=title;stageBannerCopy.textContent=copy;stageBanner.classList.remove("hidden");state.stageMessageUntil=performance.now()+duration;}
 function updateWeaponHud(){const w=WEAPONS[state.weaponLevel-1];weaponLabel.textContent="WEAPON LV."+state.weaponLevel+" · "+w.name;}
-function unlockWeaponForStage(completedStage){const level=Math.min(8,completedStage+1);if(level<=state.weaponLevel)return false;state.weaponLevel=level;updateWeaponHud();return true;}
+function unlockWeaponForStage(completedStage){const level=Math.min(11,completedStage+1);if(level<=state.weaponLevel)return false;state.weaponLevel=level;updateWeaponHud();return true;}
 function resetGame(){
-  state.running=true;state.gameOver=false;state.score=0;state.hits=0;
+  state.running=true;state.paused=false;state.gameOver=false;state.score=0;state.hits=0;
   state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossTriggered=false;state.bossBullets=[];state.stageMessageUntil=0;state.weaponLevel=1;
-  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.bullets=[];state.meteors=[];state.particles=[];
-  state.pointer.active=false;state.pointer.id=null;
+  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.weaponNextFireAt={};state.bullets=[];state.meteors=[];state.particles=[];
+  state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.add("hidden");
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
   scoreEl.textContent="000000";livesEl.textContent="♥ ♥ ♥";stageLabel.textContent="STAGE 1 · METEOR FIELD";bossHud.classList.add("hidden");stageBanner.classList.add("hidden");updateWeaponHud();
   livesEl.setAttribute("aria-label","3 lives");
@@ -113,20 +106,53 @@ function resetGame(){
   if(!state.loopActive){state.loopActive=true;requestAnimationFrame(loop);}
 }
 
-function fire(){
-  if(!state.running)return;
-  const muzzleY=state.ship.y-39,speed=Math.max(520,state.height*.95);
-  // Every unlocked weapon remains active; newer weapons add a layer instead of replacing old ones.
-  for(let level=1;level<=state.weaponLevel;level++){
-    const w=WEAPONS[level-1];
-    for(const offset of w.pattern){
-      const spread=w.pattern.length>1?offset*.018:0;
-      state.bullets.push({x:state.ship.x+offset,y:muzzleY,vx:spread*speed,vy:-speed,r:w.radius,damage:w.damage,color:w.color,homing:!!w.homing,flame:!!w.flame,kind:level});
-    }
+function emitProjectile({x,y,damage=1,color="#c8f8ff",radius=4,kind=1,homing=false,laser=false,plasma=false,angle=0}){
+  const speed=Math.max(520,state.height*.95);
+  state.bullets.push({x,y,vx:Math.sin(angle)*speed,vy:-Math.cos(angle)*speed,r:radius,damage,color,homing,laser,plasma,kind});
+}
+function emitFlame(x,y){
+  state.bullets.push({x,y,originX:x,phase:Math.random()*Math.PI*2,age:0,life:.9,r:12,damage:1.4,color:"#ff8a35",flame:true,kind:8});
+}
+function fireWeapon(level,part="all"){
+  const y=state.ship.y-39,wing=state.ship.radius*.92,left=state.ship.x-wing,right=state.ship.x+wing;
+  const triple=(opts)=>[-15,0,15].forEach(offset=>emitProjectile({x:state.ship.x+offset,y,...opts}));
+  if(level===1&&state.weaponLevel===1)emitProjectile({x:state.ship.x,y,kind:1});
+  if(level===2&&state.weaponLevel===2)[left,right].forEach(x=>emitProjectile({x,y,kind:2,color:"#b9f8ff"}));
+  if(level===3&&state.weaponLevel===3)triple({kind:3,color:"#9ff5ff"});
+  if(level===4&&state.weaponLevel===4)triple({kind:3,color:"#9ff5ff"});
+  if(level===5&&state.weaponLevel===5)triple({kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true});
+  if(level===6&&state.weaponLevel===6){
+    if(part==="centre")emitProjectile({x:state.ship.x,y,kind:6,color:"#fff0a8",radius:9,damage:3,plasma:true});
+    if(part==="wings")[left,right].forEach(x=>emitProjectile({x,y,kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true}));
   }
-  // Hard cap prevents runaway projectile growth on smaller devices.
-  if(state.bullets.length>180)state.bullets.splice(0,state.bullets.length-180);
-  playTone("shot");
+  if(level===7&&state.weaponLevel>=7)triple({kind:7,color:"#ffcf83",radius:8,damage:3,plasma:true});
+  if(level===8&&state.weaponLevel>=5){
+    if(state.weaponLevel>=8)[left,right].forEach(x=>emitFlame(x,y-4));
+    else emitFlame(state.ship.x,y-4);
+  }
+  if(level===9&&state.weaponLevel>=9)[state.ship.x-state.ship.radius*1.28,state.ship.x+state.ship.radius*1.28].forEach(x=>emitProjectile({x,y:y+10,kind:9,color:"#39bfff",radius:8,damage:3,laser:true}));
+  if(level===10&&state.weaponLevel>=10)[left,right].forEach(x=>emitProjectile({x,y,kind:10,color:"#ff668e",radius:7,damage:5,homing:true}));
+  if(level===11&&state.weaponLevel>=11)[-.32,.32].forEach(angle=>emitProjectile({x:state.ship.x,y,kind:11,color:"#e8f5ff",radius:4,damage:1,angle}));
+}
+function fire(now=performance.now(),immediate=false){
+  if(!state.running)return;
+  const active=[];
+  const add=(level,cadence,key=String(level),part="all")=>active.push({level,cadence,key,part});
+  if(state.weaponLevel===1)add(1,170);
+  if(state.weaponLevel===2)add(2,170);
+  if(state.weaponLevel===3)add(3,170);
+  if(state.weaponLevel===4)add(4,85);
+  if(state.weaponLevel===5)add(5,210);
+  if(state.weaponLevel===6){add(6,85,"6-centre","centre");add(6,220,"6-wings","wings");}
+  if(state.weaponLevel>=7)add(7,85);
+  if(state.weaponLevel>=5)add(8,360);
+  if(state.weaponLevel>=9)add(9,170);
+  if(state.weaponLevel>=10)add(10,520);
+  if(state.weaponLevel>=11)add(11,210);
+  for(const w of active)if(immediate||now>=(state.weaponNextFireAt[w.key]||0)){
+    fireWeapon(w.level,w.part);state.weaponNextFireAt[w.key]=now+w.cadence;
+  }
+  if(state.bullets.length>150)state.bullets.splice(0,state.bullets.length-150);
 }
 
 function spawnMeteor(){if(state.boss||state.stageMessageUntil>performance.now())return;
@@ -150,8 +176,8 @@ function beginBoss(){
   if(state.boss||state.bossTriggered||state.gameOver)return;
   state.bossTriggered=true;
   state.meteors.length=0;state.bullets.length=0;
-  const hp=42+state.stage*18;
-  state.boss={x:state.width/2,y:-90,r:Math.min(76,state.width*.19),hp,maxHp:hp,age:0,nextShot:performance.now()+1300,phase:0};
+  const hp=260+state.stage*95;
+  state.boss={x:state.width/2,y:-125,r:Math.min(100,state.width*.27),hp,maxHp:hp,age:0,nextShot:performance.now()+1050,phase:0};
   bossHud.classList.remove("hidden");updateBossHud();
   playTone("danger");
   showStageMessage("⚠ BOSS INCOMING","METEOR TITAN — DESTROY THE ENERGY CORE",2300);
@@ -170,16 +196,14 @@ function defeatBoss(){
   state.spawnAt=performance.now()+(weaponUnlocked?5500:2800);
 }
 function drawBoss(b,now){
-  ctx.save();ctx.translate(b.x,b.y);ctx.scale(1+Math.sin(now/180)*.035,1+Math.sin(now/180)*.035);
-  ctx.shadowBlur=35;ctx.shadowColor="#ff4d8d";
-  const core=ctx.createRadialGradient(-b.r*.22,-b.r*.28,4,0,0,b.r);
-  core.addColorStop(0,"#fff2c5");core.addColorStop(.22,"#ffbd65");core.addColorStop(.62,"#a94742");core.addColorStop(1,"#341b35");
-  ctx.fillStyle=core;ctx.beginPath();ctx.arc(0,0,b.r,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;ctx.strokeStyle="#ff9e78";ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(0,0,b.r*1.28,b.r*.48,Math.sin(now/650)*.22,0,Math.PI*2);ctx.stroke();
-  for(let i=0;i<9;i++){const a=i/9*Math.PI*2+now/1700;ctx.fillStyle="#693944";ctx.beginPath();ctx.moveTo(Math.cos(a)*b.r*.72,Math.sin(a)*b.r*.72);ctx.lineTo(Math.cos(a-.16)*b.r*1.45,Math.sin(a-.16)*b.r*1.45);ctx.lineTo(Math.cos(a+.16)*b.r*1.45,Math.sin(a+.16)*b.r*1.45);ctx.closePath();ctx.fill();}
-  ctx.fillStyle="#fff0b2";ctx.shadowBlur=22;ctx.shadowColor="#ffb347";ctx.beginPath();ctx.arc(0,0,b.r*.3,0,Math.PI*2);ctx.fill();ctx.restore();
+  ctx.save();ctx.translate(b.x,b.y);ctx.scale(1+Math.sin(now/260)*.018,1);
+  const r=b.r;ctx.shadowBlur=30;ctx.shadowColor="#ff426f";
+  const hull=ctx.createLinearGradient(0,-r,0,r);hull.addColorStop(0,"#ffd0dd");hull.addColorStop(.25,"#a84a72");hull.addColorStop(.7,"#542b65");hull.addColorStop(1,"#171a3e");
+  ctx.fillStyle=hull;ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r*.22,-r*.28);ctx.lineTo(r*1.48,r*.42);ctx.lineTo(r*1.25,r*.68);ctx.lineTo(r*.42,r*.48);ctx.lineTo(r*.22,r*.92);ctx.lineTo(0,r*1.08);ctx.lineTo(-r*.22,r*.92);ctx.lineTo(-r*.42,r*.48);ctx.lineTo(-r*1.25,r*.68);ctx.lineTo(-r*1.48,r*.42);ctx.lineTo(-r*.22,-r*.28);ctx.closePath();ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle="#251c48";ctx.beginPath();ctx.moveTo(0,-r*.72);ctx.lineTo(r*.25,r*.7);ctx.lineTo(0,r*.9);ctx.lineTo(-r*.25,r*.7);ctx.closePath();ctx.fill();
+  for(const side of [-1,1]){ctx.fillStyle="#ff668c";ctx.shadowBlur=18;ctx.shadowColor="#ff315f";ctx.beginPath();ctx.ellipse(side*r*.72,r*.43,r*.13,r*.09,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#ffca78";ctx.beginPath();ctx.arc(side*r*.24,-r*.12,r*.09,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle="#fff0b2";ctx.shadowBlur=20;ctx.shadowColor="#ffb347";ctx.beginPath();ctx.ellipse(0,-r*.32,r*.11,r*.2,0,0,Math.PI*2);ctx.fill();ctx.restore();
 }
-
 function damageShip(now){
   if(now-state.lastHitAt<1250)return;
   state.lastHitAt=now;state.hits++;
@@ -315,17 +339,18 @@ function drawMeteor(m){
 
 function update(dt,now){
   // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
-  if(state.pointer.active && now>=state.nextFireAt){
-    fire();
-    state.nextFireAt=now+Math.min(...WEAPONS.slice(0,state.weaponLevel).map(w=>w.cadence));
-  }
+  if(state.pointer.active)fire(now,false);
   if(state.stageMessageUntil&&now>=state.stageMessageUntil){stageBanner.classList.add("hidden");state.stageMessageUntil=0;}
   if(state.boss){
-    const b=state.boss;b.age+=dt;b.phase+=dt;b.x=state.width/2+Math.sin(b.phase*.8)*Math.max(0,state.width*.29-b.r*.25);b.y=Math.min(state.height*.22,b.y+90*dt);
-    if(now>=b.nextShot){const dx=state.ship.x-b.x,dy=state.ship.y-b.y,len=Math.hypot(dx,dy)||1;state.bossBullets.push({x:b.x,y:b.y+b.r*.65,vx:dx/len*180,vy:dy/len*180,r:8});b.nextShot=now+Math.max(650,1150-state.stage*35);}
+    const b=state.boss;b.age+=dt;b.phase+=dt;b.x=state.width/2+Math.sin(b.phase*.62)*Math.max(0,state.width*.25-b.r*.3);b.y=Math.min(state.height*.19,b.y+62*dt);
+    if(now>=b.nextShot){const dx=state.ship.x-b.x,dy=state.ship.y-b.y,len=Math.hypot(dx,dy)||1,base=Math.atan2(dy,dx);for(const spread of (state.stage>=5?[-.28,0,.28]:[-.16,.16])){const angle=base+spread;state.bossBullets.push({x:b.x,y:b.y+b.r*.58,vx:Math.cos(angle)*245,vy:Math.sin(angle)*245,r:9});}b.nextShot=now+Math.max(470,900-state.stage*28);}
     for(let i=state.bossBullets.length-1;i>=0;i--){const q=state.bossBullets[i];q.x+=q.vx*dt;q.y+=q.vy*dt;const dx=q.x-state.ship.x,dy=q.y-state.ship.y;if(dx*dx+dy*dy<(q.r+state.ship.radius*.5)**2){state.bossBullets.splice(i,1);damageShip(now);}else if(q.y>state.height+20||q.x<-20||q.x>state.width+20)state.bossBullets.splice(i,1);}
   }else if(now>=state.spawnAt){spawnMeteor();state.spawnAt=now+Math.max(420,1250-state.score*.12);}
   for(const b of state.bullets){
+    if(b.flame){
+      b.age+=dt;b.y-=Math.max(125,state.height*.24)*dt;b.x=b.originX+Math.sin(b.age*25+b.phase)*9;
+      continue;
+    }
     if(b.homing){
       let target=state.boss;
       if(!target&&state.meteors.length)target=state.meteors.reduce((best,m)=>!best||Math.hypot(m.x-b.x,m.y-b.y)<Math.hypot(best.x-b.x,best.y-b.y)?m:best,null);
@@ -334,7 +359,7 @@ function update(dt,now){
     b.x+=b.vx*dt;b.y+=b.vy*dt;
   }
   if(state.boss){const boss=state.boss;for(let j=state.bullets.length-1;j>=0;j--){const q=state.bullets[j],dx=q.x-boss.x,dy=q.y-boss.y;if(dx*dx+dy*dy<(boss.r+q.r)**2){state.bullets.splice(j,1);boss.hp-=q.damage||1;if(boss.hp<=0){defeatBoss();break;}}}updateBossHud();}
-  state.bullets=state.bullets.filter(b=>b.y>-20);
+  state.bullets=state.bullets.filter(b=>b.flame?b.age<b.life:b.y>-70);
   for(const m of state.meteors){m.x+=m.vx*dt;m.y+=m.vy*dt;m.angle+=m.spin*dt;if(m.x<m.r||m.x>state.width-m.r)m.vx*=-1;}
   for(let i=state.meteors.length-1;i>=0;i--){
     const m=state.meteors[i];
@@ -362,17 +387,36 @@ function update(dt,now){
 
 function render(now,dt){
   drawBackground(dt);
-  for(const b of state.bullets){ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
-    if(b.flame){ctx.beginPath();ctx.moveTo(b.x,b.y-13);ctx.quadraticCurveTo(b.x+b.r*1.4,b.y-2,b.x,b.y+8);ctx.quadraticCurveTo(b.x-b.r*1.4,b.y-2,b.x,b.y-13);ctx.fill();}
-    else if(b.kind===6){ctx.beginPath();ctx.ellipse(b.x,b.y,b.r*.72,b.r*1.5,0,0,Math.PI*2);ctx.fill();}
-    else if(b.kind===7){ctx.beginPath();ctx.moveTo(b.x,b.y-9);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();}
-    else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);ctx.restore();}
+  for(const b of state.bullets){
+    ctx.save();ctx.shadowBlur=b.kind>=5?18:12;ctx.shadowColor=b.color;ctx.fillStyle=b.color;
+    if(b.flame){
+      const fade=Math.max(0,1-b.age/b.life);ctx.globalAlpha=fade*.9;
+      for(let puff=0;puff<8;puff++){
+        const px=b.x+Math.sin(b.age*27+puff*1.15)*5,py=b.y+puff*5,pr=b.r*(.38+puff*.095);
+        const fire=ctx.createRadialGradient(px-pr*.2,py-pr*.2,1,px,py,pr*1.3);
+        fire.addColorStop(0,"rgba(255,255,220,.98)");fire.addColorStop(.28,"rgba(255,210,75,.98)");fire.addColorStop(.65,"rgba(255,85,18,.82)");fire.addColorStop(1,"rgba(95,20,5,0)");
+        ctx.fillStyle=fire;ctx.beginPath();ctx.arc(px,py,pr*1.3,0,Math.PI*2);ctx.fill();
+      }
+    }else if(b.laser){
+      const beam=ctx.createLinearGradient(b.x,b.y-58,b.x,b.y+16);
+      beam.addColorStop(0,"rgba(255,255,255,0)");beam.addColorStop(.18,"#53caff");beam.addColorStop(.48,"#ffffff");beam.addColorStop(.78,"#167fff");beam.addColorStop(1,"rgba(55,170,255,0)");
+      ctx.fillStyle=beam;ctx.shadowBlur=30;ctx.fillRect(b.x-b.r*.48,b.y-58,b.r*.96,76);
+      ctx.strokeStyle="rgba(175,245,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(b.x,b.y-58);ctx.lineTo(b.x+Math.sin(now/34+b.x)*4,b.y+18);ctx.stroke();
+    }else if(b.homing){
+      ctx.beginPath();ctx.moveTo(b.x,b.y-12);ctx.lineTo(b.x+b.r,b.y+5);ctx.lineTo(b.x,b.y+2);ctx.lineTo(b.x-b.r,b.y+5);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#ffcf9b";ctx.fillRect(b.x-2,b.y+4,4,8);
+    }else if(b.plasma){
+      const g=ctx.createRadialGradient(b.x-b.r*.2,b.y-b.r*.5,1,b.x,b.y,b.r*1.8);
+      g.addColorStop(0,"#fffbd0");g.addColorStop(.35,b.color);g.addColorStop(1,"rgba(255,130,70,0)");
+      ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(b.x,b.y,b.r,b.r*1.75,0,0,Math.PI*2);ctx.fill();
+    }else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);
+    ctx.restore();
+  }
   for(const m of state.meteors)drawMeteor(m);
   if(state.boss)drawBoss(state.boss,now);
   for(const q of state.bossBullets){ctx.save();ctx.shadowBlur=14;ctx.shadowColor="#ff5c91";ctx.fillStyle="#ff9bb8";ctx.beginPath();ctx.arc(q.x,q.y,q.r,0,Math.PI*2);ctx.fill();ctx.restore();}
   for(const p of state.particles){ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();}
-  ctx.globalAlpha=1;
-  drawShip(now);
+  ctx.globalAlpha=1;drawShip(now);
 }
 
 function loop(now){
@@ -390,7 +434,7 @@ canvas.addEventListener("pointerdown",event=>{
   event.preventDefault();
   state.pointer={active:true,id:event.pointerId,startX:x,startY:y,moved:false,lastX:x,lastY:y};
   canvas.setPointerCapture?.(event.pointerId);
-  fire(); // Peluru pertama langsung keluar pada sentuhan pertama.
+  fire(performance.now(),true); // Semua senjata aktif langsung menembak saat sentuhan pertama.
   state.nextFireAt=performance.now()+170;
 });
 canvas.addEventListener("pointermove",event=>{
@@ -417,7 +461,8 @@ document.getElementById("openLeaderboardButton")?.addEventListener("click",rende
 document.getElementById("openLeaderboardFromGameOver")?.addEventListener("click",renderGalaxyLeaderboard);
 document.getElementById("closeGalaxyLeaderboard")?.addEventListener("click",()=>document.getElementById("galaxyLeaderboard")?.classList.add("hidden"));
 document.getElementById("galaxyLeaderboard")?.addEventListener("click",event=>{if(event.target.id==="galaxyLeaderboard")event.currentTarget.classList.add("hidden");});
-document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;endGame();}});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;state.paused=true;state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.remove("hidden");}});
+document.getElementById("resumeButton")?.addEventListener("click",()=>{if(state.gameOver)return;state.paused=false;state.running=true;document.getElementById("pauseOverlay")?.classList.add("hidden");state.lastFrame=performance.now();if(!state.loopActive){state.loopActive=true;requestAnimationFrame(loop);}});
 onAuthStateChanged(auth,user=>{galaxyUser=user||null;});
 updateWeaponHud();
 drawBackground(0);

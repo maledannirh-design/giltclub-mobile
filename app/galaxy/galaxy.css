@@ -50,3 +50,7 @@ body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavi
 .galaxy-leaderboard-rows{display:grid;gap:7px;text-align:left}
 .galaxy-rank-row{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:rgba(255,255,255,.06);color:#dbeaff;font-size:13px}
 .galaxy-rank-row strong{color:#ffcf77}.galaxy-rank-row b{color:#fff}.leaderboard-empty{font-size:12px;color:#a9bbd3;line-height:1.5}
+
+/* Pause overlay */
+#pauseOverlay{z-index:8}
+#pauseOverlay .overlay-panel{border-color:rgba(101,220,255,.42)}
