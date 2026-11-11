@@ -34,6 +34,16 @@
         <div class="ship-preview">✦ GMTC FIGHTER ✦</div>
         <h1>READY, PILOT?</h1>
         <p class="overlay-copy">Sentuh pesawat untuk menembak. Tahan dan geser pesawat untuk bergerak.</p>
+        <div id="adminWeaponTest" class="admin-weapon-test hidden">
+          <div class="admin-weapon-title">ADMIN / SUPERCOACH · WEAPON TEST</div>
+          <div class="admin-weapon-controls">
+            <select id="testWeaponSelect" aria-label="Pilih level senjata">
+              <option value="1">LEVEL 1 — SINGLE SHOT</option><option value="2">LEVEL 2 — DOUBLE SHOT</option><option value="3">LEVEL 3 — TRIPLE SHOT</option><option value="4">LEVEL 4 — RAPID TRIPLE</option><option value="5">LEVEL 5 — TRIPLE PLASMA</option><option value="6">LEVEL 6 — CENTRE RAPID PLASMA</option><option value="7">LEVEL 7 — TRIPLE RAPID PLASMA</option><option value="8">LEVEL 8 — DUAL FLAME</option><option value="9">LEVEL 9 — TWIN ELECTRIC LASER</option><option value="10">LEVEL 10 — HOMING ROCKET</option><option value="11">LEVEL 11 — WIDE SPREAD</option>
+            </select>
+            <button id="applyTestWeaponButton" type="button">SET WEAPON</button>
+          </div>
+          <small id="testWeaponNote">Pilih level untuk menguji loadout. Hanya akun Admin dan Supercoach.</small>
+        </div>
         <button id="startButton" class="game-primary">START MISSION</button>
         <button id="openLeaderboardButton" class="game-secondary" type="button">GALAXY LEADERBOARD</button>
         <p class="prototype-note">GALAXY MISSION · STAGE 1</p>

@@ -15,11 +15,11 @@ const stageLabel=document.getElementById("stageLabel"),bossHud=document.getEleme
 const WEAPONS = [
 {name:"SINGLE SHOT"},{name:"DOUBLE SHOT"},{name:"TRIPLE SHOT"},{name:"RAPID TRIPLE"},{name:"TRIPLE PLASMA"},{name:"CENTRE RAPID PLASMA"},{name:"TRIPLE RAPID PLASMA"},{name:"DUAL FLAME"},{name:"TWIN ELECTRIC LASER"},{name:"HOMING ROCKET"},{name:"WIDE SPREAD"}
 ];
-let galaxyUser=null, ownGalaxyRecord={bestScore:0,bestStage:1}, achievementSaved=false;
+let galaxyUser=null, ownGalaxyRecord={bestScore:0,bestStage:1}, achievementSaved=false, galaxyTester=false;
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
-  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, weaponNextFireAt: {}, loopActive:false, paused:false,
+  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, testWeaponLevel: null, weaponNextFireAt: {}, loopActive:false, paused:false,
   ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -93,7 +93,7 @@ function updateWeaponHud(){const w=WEAPONS[state.weaponLevel-1];weaponLabel.text
 function unlockWeaponForStage(completedStage){const level=Math.min(11,completedStage+1);if(level<=state.weaponLevel)return false;state.weaponLevel=level;updateWeaponHud();return true;}
 function resetGame(){
   state.running=true;state.paused=false;state.gameOver=false;state.score=0;state.hits=0;
-  state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossTriggered=false;state.bossBullets=[];state.stageMessageUntil=0;state.weaponLevel=1;
+  state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossTriggered=false;state.bossBullets=[];state.stageMessageUntil=0;state.weaponLevel=state.testWeaponLevel||1;
   state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.weaponNextFireAt={};state.bullets=[];state.meteors=[];state.particles=[];
   state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.add("hidden");
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
@@ -149,10 +149,12 @@ function fire(now=performance.now(),immediate=false){
   if(state.weaponLevel>=9)add(9,170);
   if(state.weaponLevel>=10)add(10,520);
   if(state.weaponLevel>=11)add(11,210);
+  let fired=false;
   for(const w of active)if(immediate||now>=(state.weaponNextFireAt[w.key]||0)){
-    fireWeapon(w.level,w.part);state.weaponNextFireAt[w.key]=now+w.cadence;
+    fireWeapon(w.level,w.part);state.weaponNextFireAt[w.key]=now+w.cadence;fired=true;
   }
   if(state.bullets.length>150)state.bullets.splice(0,state.bullets.length-150);
+  if(fired)playTone("shot");
 }
 
 function spawnMeteor(){if(state.boss||state.stageMessageUntil>performance.now())return;
@@ -434,6 +436,8 @@ canvas.addEventListener("pointerdown",event=>{
   event.preventDefault();
   state.pointer={active:true,id:event.pointerId,startX:x,startY:y,moved:false,lastX:x,lastY:y};
   canvas.setPointerCapture?.(event.pointerId);
+  if(!state.audio)initSound();
+  if(state.audio?.state==="suspended")state.audio.resume().catch(()=>{});
   fire(performance.now(),true); // Semua senjata aktif langsung menembak saat sentuhan pertama.
   state.nextFireAt=performance.now()+170;
 });
@@ -452,6 +456,7 @@ canvas.addEventListener("pointerup",finishPointer);
 canvas.addEventListener("pointercancel",event=>{if(state.pointer.id===event.pointerId){state.pointer.active=false;state.pointer.id=null;}});
 document.getElementById("startButton").addEventListener("click",()=>{
   initSound();
+  if(state.audio?.state==="suspended")state.audio.resume().catch(()=>{});
   try { const fullscreenRequest=document.documentElement.requestFullscreen?.(); fullscreenRequest?.catch(()=>{}); } catch {}
   resetGame();
 });
@@ -463,7 +468,30 @@ document.getElementById("closeGalaxyLeaderboard")?.addEventListener("click",()=>
 document.getElementById("galaxyLeaderboard")?.addEventListener("click",event=>{if(event.target.id==="galaxyLeaderboard")event.currentTarget.classList.add("hidden");});
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;state.paused=true;state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.remove("hidden");}});
 document.getElementById("resumeButton")?.addEventListener("click",()=>{if(state.gameOver)return;state.paused=false;state.running=true;document.getElementById("pauseOverlay")?.classList.add("hidden");state.lastFrame=performance.now();if(!state.loopActive){state.loopActive=true;requestAnimationFrame(loop);}});
-onAuthStateChanged(auth,user=>{galaxyUser=user||null;});
+onAuthStateChanged(auth,async user=>{
+  galaxyUser=user||null;galaxyTester=false;
+  const testPanel=document.getElementById("adminWeaponTest");
+  if(!user){testPanel?.classList.add("hidden");return;}
+  try{
+    // One profile read on authentication only; no realtime listener.
+    const profileSnap=await getDoc(doc(db,"users",user.uid));
+    const role=String(profileSnap.exists()?profileSnap.data().role||"": "").trim().toUpperCase();
+    galaxyTester=role==="ADMIN"||role==="SUPERCOACH";
+    testPanel?.classList.toggle("hidden",!galaxyTester);
+  }catch(error){
+    console.warn("Galaxy tester role check unavailable:",error);
+    testPanel?.classList.add("hidden");
+  }
+});
+document.getElementById("applyTestWeaponButton")?.addEventListener("click",()=>{
+  if(!galaxyTester||state.running)return;
+  const picker=document.getElementById("testWeaponSelect");
+  const selected=Math.max(1,Math.min(11,Number(picker?.value)||1));
+  state.testWeaponLevel=selected;state.weaponLevel=selected;state.weaponNextFireAt={};
+  updateWeaponHud();
+  const note=document.getElementById("testWeaponNote");
+  if(note)note.textContent="TEST LOADOUT READY · LEVEL "+selected;
+});
 updateWeaponHud();
 drawBackground(0);
 drawShip(0);
