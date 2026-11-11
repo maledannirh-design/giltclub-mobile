@@ -560,6 +560,27 @@ async function openSessionPopup(dateStr) {
     }
   }
 
+  // Ambil profil tiap pemilik booking satu kali; privacy selalu mengikuti data user terbaru.
+  const bookingUserIds = [...new Set(
+    [...bookingsBySchedule.values()]
+      .flat()
+      .map(item => item.data.userId)
+      .filter(Boolean)
+  )];
+  const memberProfiles = new Map();
+  const memberProfileResults = await Promise.all(
+    bookingUserIds.map(async uid => {
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
+        return [uid, snap.exists() ? snap.data() : null];
+      } catch (error) {
+        console.error("Failed to load booking member privacy:", uid, error);
+        return [uid, null];
+      }
+    })
+  );
+  memberProfileResults.forEach(([uid, data]) => memberProfiles.set(uid, data));
+
   let html = `
     <div class="popup-overlay">
       <div class="popup-card premium-popup">
@@ -583,32 +604,35 @@ async function openSessionPopup(dateStr) {
       for (const bookingItem of activeBookings) {
 
         const bookingData = bookingItem.data;
+        const memberProfile = memberProfiles.get(bookingData.userId) || {};
 
         const isPrivilegedViewer =
           ["ADMIN","SUPERCOACH"].includes(currentUserRole) ||
           bookingData.userId === currentUser?.uid;
+        const shouldHideName = !isPrivilegedViewer && (
+          bookingData.isAnonymous === true ||
+          memberProfile.privacy?.showNameInBooking === false
+        );
 
-        let resolvedName;
-
-        if (bookingData.isAnonymous && !isPrivilegedViewer) {
-          resolvedName = "Anonymous";
-        } else {
-          resolvedName =
+        const resolvedName = shouldHideName
+          ? "Anonymous"
+          : memberProfile.usernameID ||
+            memberProfile.username ||
+            memberProfile.fullName ||
             bookingData.displayName ||
             bookingData.usernameID ||
             bookingData.fullName ||
             bookingData.username ||
             "Member";
-        }
 
         members.push({
           userId: bookingData.userId,
           slotIndex: Number.isInteger(bookingData.slotIndex) ? bookingData.slotIndex : null,
           username: resolvedName,
           avatarInitial: resolvedName.charAt(0).toUpperCase(),
-          photoURL: bookingData.isAnonymous && !isPrivilegedViewer
+          photoURL: shouldHideName
             ? null
-            : bookingData.photoURL || null,
+            : memberProfile.photoURL || bookingData.photoURL || null,
         });
 
       }
@@ -2309,24 +2333,37 @@ async function openMatchesPage(scheduleId){
   // ===============================
   if(!["ADMIN","SUPERCOACH"].includes(currentUserRole)){
 
-    players = await Promise.all(
-      snap.docs.map(async d=>{
-        const data = d.data();
-        const userId = data.userId;
-
-        let name = "Member";
-
-        try{
-          const userSnap = await getDoc(doc(db,"users",userId));
-          if(userSnap.exists()){
-            const u = userSnap.data();
-            name = u.usernameID || u.username || u.fullName || "Member";
-          }
-        }catch(e){}
-
-        return { id:userId, name };
+    const bookedUserIds = [...new Set(
+      snap.docs.map(d => d.data().userId).filter(Boolean)
+    )];
+    const bookedUserProfiles = new Map();
+    const profileResults = await Promise.all(
+      bookedUserIds.map(async uid => {
+        try {
+          const userSnap = await getDoc(doc(db, "users", uid));
+          return [uid, userSnap.exists() ? userSnap.data() : null];
+        } catch(e) {
+          console.error("Failed to load match player privacy:", uid, e);
+          return [uid, null];
+        }
       })
     );
+    profileResults.forEach(([uid, data]) => bookedUserProfiles.set(uid, data));
+
+    players = snap.docs.map(d => {
+      const data = d.data();
+      const userId = data.userId;
+      const profile = bookedUserProfiles.get(userId) || {};
+      const shouldHideName =
+        data.isAnonymous === true ||
+        profile.privacy?.showNameInBooking === false;
+
+      const name = shouldHideName
+        ? "Anonymous"
+        : profile.usernameID || profile.username || profile.fullName || "Member";
+
+      return { id: userId, name };
+    });
 
   }
 
