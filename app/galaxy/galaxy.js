@@ -19,7 +19,7 @@ let galaxyUser=null, ownGalaxyRecord={bestScore:0,bestStage:1}, achievementSaved
 const state = {
   width: 0, height: 0, dpr: 1, running: false, gameOver: false,
   score: 0, hits: 0, lastHitAt: 0, lastFrame: 0, spawnAt: 0, nextFireAt: 0,
-  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, testWeaponLevel: null, weaponNextFireAt: {}, flameCycleAt: 0, electricNextAt: 0, loopActive:false, paused:false,
+  stage: 1, stageKills: 0, stageQuota: 12, boss: null, bossTriggered: false, bossBullets: [], stageMessageUntil: 0, weaponLevel: 1, testWeaponLevel: null, weaponNextFireAt: {}, flameCycleAt: 0, flameHitboxAt: 0, electricNextAt: 0, loopActive:false, paused:false,
   ship: { x: 0, y: 0, radius: 27 },
   bullets: [], meteors: [], particles: [], stars: [], audio: null, soundReady: false,
   pointer: { active: false, id: null, startX: 0, startY: 0, moved: false, lastX: 0, lastY: 0 }
@@ -110,7 +110,7 @@ function unlockWeaponForStage(completedStage){const level=Math.min(11,completedS
 function resetGame(){
   state.running=true;state.paused=false;state.gameOver=false;state.score=0;state.hits=0;
   state.stage=1;state.stageKills=0;state.stageQuota=12;state.boss=null;state.bossTriggered=false;state.bossBullets=[];state.stageMessageUntil=0;state.weaponLevel=state.testWeaponLevel||1;
-  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.weaponNextFireAt={};state.flameCycleAt=performance.now();state.electricNextAt=performance.now();state.bullets=[];state.meteors=[];state.particles=[];
+  state.lastHitAt=0;state.spawnAt=0;state.nextFireAt=0;state.weaponNextFireAt={};state.flameCycleAt=0;state.flameHitboxAt=0;state.electricNextAt=performance.now();state.bullets=[];state.meteors=[];state.particles=[];
   state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.add("hidden");
   state.ship.x=state.width/2;state.ship.y=state.height*.82;
   scoreEl.textContent="000000";livesEl.textContent="♥ ♥ ♥";stageLabel.textContent="STAGE 1 · METEOR FIELD";bossHud.classList.add("hidden");stageBanner.classList.add("hidden");updateWeaponHud();
@@ -142,10 +142,6 @@ function fireWeapon(level,part="all"){
     if(part==="wings")[left,right].forEach(x=>emitProjectile({x,y,kind:5,color:"#ffb86b",radius:8,damage:3,plasma:true}));
   }
   if(level===7&&state.weaponLevel>=7)triple({kind:7,color:"#ffcf83",radius:8,damage:3,plasma:true});
-  if(level===8&&state.weaponLevel>=5){
-    if(state.weaponLevel>=8)[left,right].forEach(x=>emitFlame(x,y-4));
-    else emitFlame(state.ship.x,y-4);
-  }
   if(level===9&&state.weaponLevel>=9)[state.ship.x-state.ship.radius*1.28,state.ship.x+state.ship.radius*1.28].forEach(x=>emitProjectile({x,y:y+10,kind:9,color:"#39bfff",radius:5,damage:3,laser:true}));
   if(level===10&&state.weaponLevel>=10)[left,right].forEach(x=>emitProjectile({x,y,kind:10,color:"#ff668e",radius:7,damage:5,homing:true}));
   if(level===11&&state.weaponLevel>=11)[-.32,.32].forEach(angle=>emitProjectile({x:state.ship.x,y,kind:11,color:"#e8f5ff",radius:4,damage:1,angle}));
@@ -271,7 +267,7 @@ async function loadGalaxyLeaderboard(){
 }
 async function saveGalaxyRun(){
   if(!galaxyUser){alert("Silakan masuk ke akun GMTC sebelum menyimpan achievement.");return false;}
-  const saveButton=document.getElementById("saveAchievementButton");
+  const saveButton=document.getElementById(buttonId);
   if(saveButton){saveButton.disabled=true;saveButton.textContent="SAVING...";}
   try{
     const ref=doc(db,"galaxyLeaderboard",galaxyUser.uid);
@@ -291,11 +287,11 @@ async function saveGalaxyRun(){
       updatedAt:serverTimestamp()
     },{merge:true});
     achievementSaved=true;
-    if(saveButton){saveButton.textContent="ACHIEVEMENT SAVED ✓";saveButton.classList.add("is-saved");}
+    if(saveButton){saveButton.textContent=buttonId==="saveProgressButton"?"PROGRESS SAVED ✓":"ACHIEVEMENT SAVED ✓";saveButton.classList.add("is-saved");}
     return true;
   }catch(error){
     console.error("Galaxy achievement save failed:",error);
-    if(saveButton){saveButton.disabled=false;saveButton.textContent="SAVE ACHIEVEMENT";}
+    if(saveButton){saveButton.disabled=false;saveButton.textContent=buttonId==="saveProgressButton"?"SAVE PROGRESS":"SAVE ACHIEVEMENT";}
     alert("Achievement belum berhasil disimpan. Silakan coba lagi.");
     return false;
   }
@@ -305,6 +301,18 @@ function renderGalaxyLeaderboard(){
   if(!modal)return;
   modal.classList.remove("hidden");
   loadGalaxyLeaderboard();
+}
+function pauseGame(){
+  if(!state.running||state.gameOver)return;
+  state.running=false;state.paused=true;state.pointer.active=false;state.pointer.id=null;
+  const stage=document.getElementById("pauseStageValue"),score=document.getElementById("pauseScoreValue");
+  if(stage)stage.textContent=String(state.stage);
+  if(score)score.textContent=state.score.toLocaleString("id-ID");
+  const save=document.getElementById("saveProgressButton");
+  if(save){save.disabled=false;save.textContent="SAVE PROGRESS";save.classList.remove("is-saved");}
+  const note=document.getElementById("pauseSaveNote");
+  if(note)note.textContent="Simpan score dan stage terbaik ke achievement GMTC.";
+  document.getElementById("pauseOverlay")?.classList.remove("hidden");
 }
 function endGame(){
   state.running=false;state.gameOver=true;
@@ -359,13 +367,17 @@ function update(dt,now){
   // Hold-to-fire: tembakan otomatis selama jari masih menahan pesawat.
   if(state.pointer.active)fire(now,false);
   const flameUnlocked=state.weaponLevel>=5;
-  const flamePhase=flameUnlocked?((now-state.flameCycleAt)%5000):0;
-  const flameActive=flameUnlocked&&flamePhase<3000;
-  if(flameActive&&state.pointer.active&&Math.floor(flamePhase/100)!==Math.floor((flamePhase-dt*1000)/100)){
-    const flameXs=state.weaponLevel>=8?[state.ship.x-state.ship.radius*.92,state.ship.x+state.ship.radius*.92]:[state.ship.x];
-    for(const x of flameXs)emitFlame(x,state.ship.y-39);
+  if(!state.pointer.active)state.flameCycleAt=0;
+  if(flameUnlocked&&state.pointer.active){
+    if(!state.flameCycleAt){state.flameCycleAt=now;state.flameHitboxAt=0;playTone("flame");}
+    let flamePhase=(now-state.flameCycleAt)%5000;
+    if(flamePhase<dt*1000&&now-state.flameCycleAt>dt*1000)playTone("flame");
+    if(flamePhase<3000&&now>=state.flameHitboxAt){
+      const flameXs=state.weaponLevel>=8?[state.ship.x-state.ship.radius*.92,state.ship.x+state.ship.radius*.92]:[state.ship.x];
+      for(const x of flameXs)emitFlame(x,state.ship.y-39);
+      state.flameHitboxAt=now+100;
+    }
   }
-  if(flameUnlocked&&flamePhase<dt*1000&&state.pointer.active)playTone("flame");
   if(state.weaponLevel>=9&&state.pointer.active&&now>=state.electricNextAt){
     fireWeapon(9);state.electricNextAt=now+1500;playTone("electric");
   }
@@ -443,7 +455,7 @@ function render(now,dt){
     }else ctx.fillRect(b.x-b.r/2,b.y-10,b.r,15);
     ctx.restore();
   }
-  const flamePhase=state.weaponLevel>=5?((now-state.flameCycleAt)%5000):5000;
+  const flamePhase=state.weaponLevel>=5&&state.flameCycleAt?((now-state.flameCycleAt)%5000):5000;
   if(state.pointer.active&&flamePhase<3000){
     const flameXs=state.weaponLevel>=8?[state.ship.x-state.ship.radius*.92,state.ship.x+state.ship.radius*.92]:[state.ship.x];
     for(const flameX of flameXs){
@@ -511,7 +523,14 @@ document.getElementById("openLeaderboardButton")?.addEventListener("click",rende
 document.getElementById("openLeaderboardFromGameOver")?.addEventListener("click",renderGalaxyLeaderboard);
 document.getElementById("closeGalaxyLeaderboard")?.addEventListener("click",()=>document.getElementById("galaxyLeaderboard")?.classList.add("hidden"));
 document.getElementById("galaxyLeaderboard")?.addEventListener("click",event=>{if(event.target.id==="galaxyLeaderboard")event.currentTarget.classList.add("hidden");});
-document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running){state.running=false;state.paused=true;state.pointer.active=false;state.pointer.id=null;document.getElementById("pauseOverlay")?.classList.remove("hidden");}});
+document.getElementById("pauseGameButton")?.addEventListener("click",pauseGame);
+document.getElementById("saveProgressButton")?.addEventListener("click",async()=>{
+  const button=document.getElementById("saveProgressButton"),note=document.getElementById("pauseSaveNote");
+  if(button){button.disabled=true;button.textContent="SAVING...";}
+  const saved=await saveGalaxyRun("saveProgressButton");
+  if(note)note.textContent=saved?"Progress terbaik berhasil disimpan.":"Progress belum tersimpan. Silakan coba lagi.";
+});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.running)pauseGame();});
 document.getElementById("resumeButton")?.addEventListener("click",()=>{if(state.gameOver)return;state.paused=false;state.running=true;document.getElementById("pauseOverlay")?.classList.add("hidden");state.lastFrame=performance.now();if(!state.loopActive){state.loopActive=true;requestAnimationFrame(loop);}});
 onAuthStateChanged(auth,async user=>{
   galaxyUser=user||null;galaxyTester=false;
