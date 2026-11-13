@@ -22,6 +22,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.28;ba
 .cell.reel-stop{animation:reel-stop .2s cubic-bezier(.18,.9,.3,1.25)}
 @keyframes reel-stop{0%{transform:translateY(-14px) scaleY(1.12);filter:brightness(2)}65%{transform:translateY(3px) scaleY(.94)}100%{transform:translateY(0) scaleY(1);filter:brightness(1)}}
 
+ 
 /* Zeus cascade impact, symbol shatter and falling refill */
 .cell.breaking{z-index:3;animation:symbol-shatter .42s ease-in forwards;box-shadow:0 0 22px #fff4a8,0 0 34px #71cfff,inset 0 0 18px #fff}
 @keyframes symbol-shatter{0%{opacity:1;transform:scale(1) rotate(0);filter:brightness(1.4)}35%{opacity:1;transform:scale(1.18) rotate(8deg);filter:brightness(2.8)}100%{opacity:0;transform:scale(.18) rotate(-28deg);filter:brightness(3)}}
