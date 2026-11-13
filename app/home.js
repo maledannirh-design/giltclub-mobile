@@ -117,6 +117,19 @@ content.innerHTML = `
       </div>
     </div>
 
+    <!-- GMTC ZEUS OLYMPUS GAME ENTRY -->
+    <a class="home-zeus-card" href="./zeus/" aria-label="Play GMTC Zeus Olympus">
+      <span class="home-zeus-lightning home-zeus-lightning-one" aria-hidden="true">ϟ</span>
+      <span class="home-zeus-lightning home-zeus-lightning-two" aria-hidden="true">ϟ</span>
+      <span class="home-zeus-content">
+        <strong>ZEUS <em>OLYMPUS</em></strong>
+        <span>THE POWER OF OLYMPUS</span>
+        <small>Spin. Trigger the storm. Claim your treasure.</small>
+      </span>
+      <span class="home-zeus-play">PLAY&nbsp; ›</span>
+      <span class="home-zeus-flash" aria-hidden="true"></span>
+    </a>
+
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
     <div class="daily-card">
