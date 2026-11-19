@@ -45,8 +45,9 @@ export function renderMemberCard(userData){
   const fullName = userData.fullName || "MEMBER";
   const memberCode = userData.memberCode || "-";
 
-  const hasMemberCard = Boolean(userData.memberCode);
-  const qrImage = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=2&data=https%3A%2F%2Fgiltclub.my.id%2F";
+  const backCardUrl = userData.membership === "VVIP"
+    ? "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/vvip_card_back.png"
+    : "https://raw.githubusercontent.com/maledannirh-design/giltclub-mobile/main/app/image/card/member_card_back.png";
 
   return `
     <div class="membership-card-flip" data-card-flip>
@@ -63,13 +64,12 @@ export function renderMemberCard(userData){
           </div>
         </div>
         <div class="membership-card-face membership-card-back">
-          <div class="membership-card-back-heading">GMTC DAILY CHECK-IN</div>
-          <div class="membership-card-back-subtitle">Scan QR untuk Check-In Harian</div>
-          ${hasMemberCard
-            ? `<img class="membership-card-qr" src="${qrImage}" alt="QR Daily Check-In GMTC" loading="eager"/>`
-            : `<div class="membership-card-qr-placeholder">QR tersedia untuk member terdaftar</div>`
-          }
-          <div class="membership-card-back-footer">GIRL IN LOVE TENNIS COMMUNITY</div>
+          <img
+            class="wallet-member-back-img"
+            src="${backCardUrl}"
+            alt="Bagian belakang kartu member GMTC"
+            loading="eager"
+          />
         </div>
       </div>
       <div class="membership-card-flip-hint">Geser atau sentuh kartu untuk membalik</div>
