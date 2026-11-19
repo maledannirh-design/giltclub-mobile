@@ -15,6 +15,59 @@ import { resolveMemberCard, renderMemberCard } from "./utils.js";
 
 import { requestTransactionPin, validateTransactionPin } from "./pinTrx.js";
 
+
+/* =========================================
+   MEMBER CARD FLIP INTERACTION
+========================================= */
+function bindMemberCardFlip(root){
+  const card = root?.querySelector("[data-card-flip]");
+  if(!card || card.dataset.flipBound === "true") return;
+  card.dataset.flipBound = "true";
+
+  let startX = 0;
+  let startY = 0;
+  let pointerMoved = false;
+  let suppressClick = false;
+
+  const toggle = () => card.classList.toggle("is-flipped");
+
+  card.addEventListener("pointerdown", event => {
+    startX = event.clientX;
+    startY = event.clientY;
+    pointerMoved = false;
+  });
+
+  card.addEventListener("pointerup", event => {
+    const deltaX = event.clientX - startX;
+    const deltaY = event.clientY - startY;
+    if(Math.abs(deltaX) > 38 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15){
+      pointerMoved = true;
+      suppressClick = true;
+      toggle();
+    }
+  });
+
+  card.addEventListener("click", event => {
+    if(suppressClick){
+      suppressClick = false;
+      event.preventDefault();
+      return;
+    }
+    if(!pointerMoved) toggle();
+    pointerMoved = false;
+  });
+
+  card.setAttribute("role","button");
+  card.setAttribute("tabindex","0");
+  card.setAttribute("aria-label","Balik kartu member untuk melihat QR Daily Check-In");
+  card.addEventListener("keydown", event => {
+    if(event.key === "Enter" || event.key === " "){
+      event.preventDefault();
+      toggle();
+    }
+  });
+}
+
 export async function renderWallet(skipPin = false){
 
   const content = document.getElementById("content");
@@ -47,6 +100,7 @@ export async function renderWallet(skipPin = false){
           </div>
         </div>
       </div>`;
+    bindMemberCardFlip(document.getElementById("guestWalletBigCard"));
     window.openWalletGuestAccess=()=>document.getElementById("walletGuestAccessOverlay")?.classList.add("show");
     window.closeWalletGuestAccess=()=>document.getElementById("walletGuestAccessOverlay")?.classList.remove("show");
     document.querySelectorAll(".guest-wallet-protected").forEach(el=>el.addEventListener("click",()=>window.openWalletGuestAccess()));
@@ -133,6 +187,7 @@ if (!skipPin) {
     // =============================
     const walletBigCard = document.getElementById("walletBigCard");
     walletBigCard.innerHTML = renderMemberCard(userData);
+    bindMemberCardFlip(walletBigCard);
 
     // =============================
     // TOGGLE SALDO
