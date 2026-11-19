@@ -45,17 +45,34 @@ export function renderMemberCard(userData){
   const fullName = userData.fullName || "MEMBER";
   const memberCode = userData.memberCode || "-";
 
+  const hasMemberCard = Boolean(userData.memberCode);
+  const qrImage = "https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=2&data=https%3A%2F%2Fgiltclub.my.id%2F";
+
   return `
-    <div class="membership-card">
-      <img src="${templateUrl}" class="wallet-member-big-img"/>
-      <div class="wallet-member-overlay">
-        <div class="wallet-member-name">
-          ${fullName.toUpperCase()}
+    <div class="membership-card-flip" data-card-flip>
+      <div class="membership-card-inner">
+        <div class="membership-card-face membership-card-front">
+          <img src="${templateUrl}" class="wallet-member-big-img" alt="Kartu member GMTC"/>
+          <div class="wallet-member-overlay">
+            <div class="wallet-member-name">
+              ${fullName.toUpperCase()}
+            </div>
+            <div class="wallet-member-code">
+              ${memberCode}
+            </div>
+          </div>
         </div>
-        <div class="wallet-member-code">
-          ${memberCode}
+        <div class="membership-card-face membership-card-back">
+          <div class="membership-card-back-heading">GMTC DAILY CHECK-IN</div>
+          <div class="membership-card-back-subtitle">Scan QR untuk Check-In Harian</div>
+          ${hasMemberCard
+            ? `<img class="membership-card-qr" src="${qrImage}" alt="QR Daily Check-In GMTC" loading="eager"/>`
+            : `<div class="membership-card-qr-placeholder">QR tersedia untuk member terdaftar</div>`
+          }
+          <div class="membership-card-back-footer">GIRL IN LOVE TENNIS COMMUNITY</div>
         </div>
       </div>
+      <div class="membership-card-flip-hint">Geser atau sentuh kartu untuk membalik</div>
     </div>
   `;
 }
