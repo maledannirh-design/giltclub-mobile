@@ -84,13 +84,9 @@ async function fallingDraw(previousGrid,removedPositions){
   for(let row=0;row<gapCount;row++){const sym=randomSymbol(.01,.0025);next[row][col]=sym;newCells.push({row,col,sym})}
   await wait(95);
  }
- await wait(500);grid=next.map(row=>row.map(()=>-1));draw();
- for(let col=0;col<COLS;col++){
-  const columnCells=newCells.filter(x=>x.col===col).sort((a,b)=>b.row-a.row);
-  for(const item of columnCells){grid[item.row][col]=item.sym;const el=root.children[item.row*COLS+col];appendSymbolArtwork(el,item.sym,"symbol-drop-in");if(item.sym>=10){el.classList.add("electric-hit");setTimeout(()=>el.classList.remove("electric-hit"),850)}if(item.sym===8||item.sym>=10)triggerSymbolEffect(el,item.sym);sound(300+col*55,.055,"triangle");await wait(115)}
-  await wait(75);
- }
- await wait(180);[...root.children].forEach(el=>{el.classList.remove("symbol-drop-in");el.style.transform="";el.style.transition="";el.style.zIndex=""});
+ await wait(500);grid=next;draw();
+ for(let col=0;col<COLS;col++){for(const item of newCells.filter(x=>x.col===col)){const el=root.children[item.row*COLS+col];if(el){el.classList.add("symbol-entry");el.style.animationDelay=(item.row*35)+"ms";if(item.sym>=10){el.classList.add("electric-hit");setTimeout(()=>el.classList.remove("electric-hit"),850)}if(item.sym===8||item.sym>=10)triggerSymbolEffect(el,item.sym)}}await wait(90)}
+ await wait(360);[...root.children].forEach(el=>{el.classList.remove("symbol-entry");el.style.animationDelay="";el.style.transform="";el.style.transition="";el.style.zIndex=""});
 }
 async function zeusStrike(){const machine=document.querySelector(".machine");machine.classList.remove("zeus-strike");void machine.offsetWidth;machine.classList.add("zeus-strike");sound(95,.32,"sawtooth");await wait(380);machine.classList.remove("zeus-strike")}
 function updateMultiplier(value,bump=false){const el=$("multiplierValue");el.textContent=value+"×";el.classList.remove("multiplier-pop");if(bump){void el.offsetWidth;el.classList.add("multiplier-pop")}const formula=$("winFormula");if(formula&&value>0)formula.textContent="Akumulasi multiplier ×"+value;}
