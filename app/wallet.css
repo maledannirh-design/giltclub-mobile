@@ -499,3 +499,106 @@ body.light .ledger-filter button:hover{
     transform:translateY(0);
   }
 }
+
+
+/* ===============================
+   FLIPPABLE MEMBER CARD + DAILY QR
+================================ */
+.membership-card-flip{
+  width:100%;
+  max-width:360px;
+  margin:16px auto 8px;
+  perspective:1200px;
+  touch-action:pan-y;
+  -webkit-tap-highlight-color:transparent;
+  cursor:pointer;
+}
+.membership-card-inner{
+  position:relative;
+  width:100%;
+  transform-style:preserve-3d;
+  transition:transform .68s cubic-bezier(.2,.75,.25,1);
+}
+.membership-card-flip.is-flipped .membership-card-inner{
+  transform:rotateY(180deg);
+}
+.membership-card-face{
+  width:100%;
+  border-radius:22px;
+  overflow:hidden;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+.membership-card-front{
+  position:relative;
+  z-index:1;
+}
+.membership-card-front .wallet-member-big-img{
+  width:100%;
+  display:block;
+  border-radius:22px;
+}
+.membership-card-back{
+  position:absolute;
+  inset:0;
+  transform:rotateY(180deg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(5px,2vw,10px);
+  padding:clamp(10px,3vw,18px);
+  box-sizing:border-box;
+  color:#f7e8b0;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 38%,rgba(212,175,55,.18),transparent 48%),
+    linear-gradient(145deg,#102d24,#071b17 65%,#173b2d);
+  border:1px solid rgba(212,175,55,.65);
+}
+.membership-card-back-heading{
+  font-size:clamp(11px,3.4vw,16px);
+  font-weight:800;
+  letter-spacing:1.3px;
+}
+.membership-card-back-subtitle{
+  font-size:clamp(9px,2.5vw,12px);
+  color:#fff8df;
+}
+.membership-card-qr{
+  display:block;
+  width:clamp(112px,39vw,178px);
+  height:clamp(112px,39vw,178px);
+  object-fit:contain;
+  padding:6px;
+  border-radius:12px;
+  background:#fff;
+  box-sizing:border-box;
+}
+.membership-card-qr-placeholder{
+  width:clamp(112px,39vw,178px);
+  height:clamp(112px,39vw,178px);
+  display:grid;
+  place-items:center;
+  padding:12px;
+  box-sizing:border-box;
+  border-radius:12px;
+  background:#fff;
+  color:#315342;
+  font-size:11px;
+}
+.membership-card-back-footer{
+  font-size:clamp(7px,2vw,9px);
+  letter-spacing:1.2px;
+  color:#d7c58c;
+}
+.membership-card-flip-hint{
+  margin-top:8px;
+  text-align:center;
+  font-size:11px;
+  color:var(--color-text-secondary,#8a8a80);
+  opacity:.8;
+}
+@media (prefers-reduced-motion:reduce){
+  .membership-card-inner{transition:none;}
+}
