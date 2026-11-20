@@ -65,11 +65,13 @@ body{padding:env(safe-area-inset-top) 7px env(safe-area-inset-bottom);overflow:h
 .exchange-cancel{border:1px solid #79658e;background:#241a31;color:#e9ddf5}
 .exchange-confirm{border:1px solid #ffe3a0;background:linear-gradient(#ffe9a8,#c88732);color:#29182a}
 .exchange-dialog-actions button:disabled,.exchange-qty-row button:disabled{opacity:.35}
+.coin-wallet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-width:570px;margin:-4px auto 0;width:100%}.coin-wallet-item{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border:1px solid #94734d;border-radius:10px;background:linear-gradient(145deg,#30203e,#171020);font-size:10px;color:#e9d9f5}.coin-wallet-item strong{font-size:12px;color:#ffe39a;font-variant-numeric:tabular-nums}.coin-wallet-item.gold strong{color:#ffd66b}.coin-wallet-item.silver strong{color:#d9e2f0}.exchange-warning{margin-top:8px;color:#ffb8a8;font-size:11px;font-weight:800}
 </style>
 </head>
 <body>
 <main class="game">
 <header class="top"><a class="back" href="../index.html">‹ TERAS GMTC</a><div class="brand">GMTC<small>GMTC - OLYMPUS GAME</small></div><div class="balance-stack"><div class="balance balance-gp"><span>SALDO GP</span><div><strong id="gpBalance">1,000</strong><i class="gp-coin" aria-label="GP coin">P</i></div></div><div class="balance balance-gc"><span>SALDO G-CREDIT</span><div><strong id="balance">10,000</strong><i class="gc-coin" aria-label="G-Credit coin">G</i></div></div></div></header>
+<section class="coin-wallet" aria-label="Game currency balances"><div class="coin-wallet-item gold"><span>🟡 GOLD COIN</span><strong id="goldCoinsBalance">0</strong></div><div class="coin-wallet-item silver"><span>⚪ SILVER COIN</span><strong id="silverCoinsBalance">0</strong></div></section>
 <section class="hero"><div class="lightning"></div></section><section class="slot-hud"><div class="hud-box total-hud"><span>TOTAL KEMENANGAN · LIVE</span><strong id="currentWin"></strong><small id="winFormula"></small><div class="floating-multiplier"><span>TOTAL PENGALI</span><strong id="multiplierValue">0×</strong></div></div></section><section class="machine"><div id="reels" class="reels" aria-live="polite"></div><div id="status" class="status">PILIH MODE, LALU TEKAN SPIN</div></section>
 <section class="section compact-controls"><div class="play-layout"><section class="symbol-history-card"><div class="history-head"><strong>WIN HISTORY</strong><span>SIMBOL · TOTAL GC</span></div><div id="history" class="symbol-history-list"><div class="history-empty">Belum ada kombinasi menang</div></div></section><section class="spin-control-card"><button id="bgmToggle" class="bgm-toggle" type="button" aria-pressed="false">♫ MUSIC: OFF</button><select id="modeSelect" class="mode-select" aria-label="Mode permainan"><option value="normal">⚡ Normal · 1× BET</option><option value="lucky">🍀 Lucky · 1.2× BET</option><option value="free">🎁 Free Spins · 0 available</option></select><div class="bet-row"><button id="betDown" class="small-btn">−</button><div><small>BET</small><strong id="bet">10 GC</strong></div><button id="betUp" class="small-btn">+</button></div><div class="multi-row"><span>MULTI SPIN</span><button id="multiDown" class="small-btn">◀</button><strong id="multiCount">1×</strong><button id="multiUp" class="small-btn">▶</button><small id="multiProgress" class="multi-progress">SIAP</small></div><div class="spin-actions"><button id="spin" class="spin" aria-label="Spin">⚡</button><button id="stopMulti" class="small-btn" style="display:none">STOP</button></div></section></div><section class="exchange-booth"><img class="exchange-art" src="./assets/exchange-booth.webp" alt="GMTC Exchange — loket penukaran chip"><img class="exchange-woman" id="exchangeWoman" src="./assets/exchange-woman-idle.webp" alt="" aria-hidden="true"><img class="exchange-fire exchange-fire-left" src="./assets/exchange-fire.webp" alt="" aria-hidden="true"><img class="exchange-fire exchange-fire-right" src="./assets/exchange-fire.webp" alt="" aria-hidden="true"><div class="exchange-offers"><button class="exchange-offer" id="offerFree" aria-label="10 GP ditukar menjadi 15 Free Spins">10 GP ke 15 Free Spins</button><button class="exchange-offer" id="offerBulk" aria-label="10 GP ditukar menjadi 200 G-Credit">10 GP ke 200 G-Credit</button><button class="exchange-offer" id="offerGold" aria-label="75 GC ditukar menjadi 1 Gold Coin">75 GC ke 1 Gold Coin</button><button class="exchange-offer" id="offerSilver" aria-label="100 GC ditukar menjadi 5 Silver Coins">100 GC ke 5 Silver Coins</button></div></section></section>
 </main>
@@ -152,7 +154,7 @@ function maxFreeBatch(){return freeSpins>=5?Math.min(100,Math.floor(freeSpins/5)
 function normalizeMultiCount(){if(mode==="free"){const cap=maxFreeBatch();if(freeSpins>=5){multiCount=multiCount===1?1:Math.max(5,Math.min(multiCount,cap));if(multiCount>1&&multiCount%5)multiCount=Math.floor(multiCount/5)*5}else multiCount=1}else multiCount=multiCount===1?1:Math.max(5,Math.min(100,Math.round(multiCount/5)*5))}
 function renderSymbolHistory(data){const host=$("history");const entries=Object.entries(data).map(([sym,v])=>({sym:Number(sym),...v})).sort((a,b)=>b.payout-a.payout);host.innerHTML=entries.length?entries.map(x=>'<div class="history-row"><img src="./assets/'+SYMBOLS[x.sym].img+'" alt=""><span class="symbol-count">'+x.count+'×</span><strong class="symbol-payout">+'+x.payout.toLocaleString("en-US")+' GC</strong></div>').join(""):'<div class="history-empty">Belum ada kombinasi menang</div>'}
 let exchangeMoodTimer=0;function setExchangeMood(mood="idle",duration=1800){const el=$("exchangeWoman");if(!el)return;clearTimeout(exchangeMoodTimer);const files={idle:"exchange-woman-idle.webp",surprised:"exchange-woman-surprised.webp",happy:"exchange-woman-happy.webp"},next="./assets/"+files[mood],current=el.getAttribute("src");if(current!==next){el.setAttribute("src",next)}el.classList.remove("mood-surprised","mood-happy");if(mood!=="idle"){void el.offsetWidth;el.classList.add("mood-"+mood)}if(mood!=="idle")exchangeMoodTimer=setTimeout(()=>setExchangeMood("idle",0),duration)}
-function updateUI(){$("balance").textContent=balance.toLocaleString("en-US");$("gpBalance").textContent=gpBalance.toLocaleString("en-US");$("bet").textContent=bet+" GC";$("modeSelect").value=mode;$("modeSelect").querySelector('option[value="free"]').textContent="🎁 Free Spins · "+freeSpins+" available";$("multiCount").textContent=multiCount+"×";const progress=$("multiProgress");if(freeBatchRunning||mode==="free"&&busy){progress.textContent="SISA "+freeSpins+"× FREE SPIN";progress.classList.add("free-spin-remaining")}else if(busy&&multiRemaining>0){progress.textContent="SISA "+multiRemaining+"× "+(mode==="lucky"?"LUCKY":"NORMAL")+" SPIN";progress.classList.remove("free-spin-remaining")}else{progress.textContent="";progress.classList.remove("free-spin-remaining")} $("multiDown").disabled=busy||multiCount<=1;$("multiUp").disabled=busy||(mode==="free"?multiCount>=maxFreeBatch():multiCount>=100)}
+function updateUI(){$("balance").textContent=balance.toLocaleString("en-US");$("gpBalance").textContent=gpBalance.toLocaleString("en-US");$("goldCoinsBalance").textContent=goldCoins.toLocaleString("en-US");$("silverCoinsBalance").textContent=silverCoins.toLocaleString("en-US");$("bet").textContent=bet+" GC";$("modeSelect").value=mode;$("modeSelect").querySelector('option[value="free"]').textContent="🎁 Free Spins · "+freeSpins+" available";$("multiCount").textContent=multiCount+"×";const progress=$("multiProgress");if(freeBatchRunning||mode==="free"&&busy){progress.textContent="SISA "+freeSpins+"× FREE SPIN";progress.classList.add("free-spin-remaining")}else if(busy&&multiRemaining>0){progress.textContent="SISA "+multiRemaining+"× "+(mode==="lucky"?"LUCKY":"NORMAL")+" SPIN";progress.classList.remove("free-spin-remaining")}else{progress.textContent="";progress.classList.remove("free-spin-remaining")} $("multiDown").disabled=busy||multiCount<=1;$("multiUp").disabled=busy||(mode==="free"?multiCount>=maxFreeBatch():multiCount>=100)}
 function modal(title,copy,icon="⚡"){$("resultTitle").textContent=title;$("resultCopy").textContent=copy;$("modalIcon").textContent=icon;$("resultModal").classList.add("show")}
 async function showScatterBonus(amount,retrigger){setBgmScene("free");setExchangeMood("happy",3200);const overlay=$("scatterBonus");$("scatterBonusTitle").textContent=retrigger?"SCATTER RETRIGGER!":"ANDA MENDAPATKAN";$("scatterBonusCount").textContent="+"+amount+" FREE SPINS!";overlay.classList.add("active");overlay.setAttribute("aria-hidden","false");playCinematicWhoosh();await wait(650);playVoice(retrigger?"again":"free_spins",.96);await wait(2150);overlay.classList.remove("active");overlay.setAttribute("aria-hidden","true");await wait(250)}
 async function showWinCelebration(streak,total,heading=null){const ratio=total/Math.max(1,bet);let tier="sensational",title="SENSATIONAL!",icon="✨";if(ratio>=30){tier="epic_win";title="EPIC WIN!";icon="🏆"}else if(ratio>=15){tier="mega_win";title="MEGA WIN!";icon="👑"}else if(ratio>=5){tier="big_win";title="BIG WIN!";icon="💎"}playSfx("win_celebration",.72);playVoice(tier,.96);$("modalIcon").textContent=icon;$("resultTitle").textContent=heading||title;$("winAmount").textContent=Math.round(total).toLocaleString("en-US")+" GC";const modal=$("resultModal");modal.classList.remove("show");void modal.offsetWidth;modal.classList.add("show");await wait(3000);modal.classList.remove("show");await wait(180)}
@@ -192,7 +194,7 @@ async function spendGPFromAccount(amount){
   const snap=await tx.get(userRef);
   if(!snap.exists())throw new Error("Data akun GMTC tidak ditemukan");
   const current=Math.max(0,Number(snap.data().gPoint)||0);
-  if(current<amount)throw new Error("Saldo GP tidak mencukupi");
+  if(current<amount)throw new Error("GP_TIDAK_CUKUP");
   const next=current-amount;
   tx.update(userRef,{gPoint:next});
   return next;
@@ -229,7 +231,7 @@ function updateExchangeDialog(){
  $("exchangeConfirm").disabled=exchangeQty<1||exchangeMax<1;
  const cost=exchangeQty*cfg.cost,reward=exchangeQty*cfg.reward;
  $("exchangeSummary").innerHTML="Total biaya: <strong>"+cost.toLocaleString("en-US")+" "+cfg.currency+"</strong><br>Yang didapat: <strong>"+reward.toLocaleString("en-US")+" "+cfg.rewardName+"</strong><br>Saldo setelah transaksi: <strong>"+Math.max(0,(cfg.currency==="GP"?gpBalance:balance)-cost).toLocaleString("en-US")+" "+cfg.currency+"</strong>";
- if(exchangeMax<1)$("exchangeSummary").innerHTML="Saldo "+cfg.currency+" tidak mencukupi untuk membeli paket ini.";
+ if(exchangeMax<1)$("exchangeSummary").innerHTML="<span class=\"exchange-warning\">SALDO "+cfg.currency+" TIDAK CUKUP. MINIMUM "+cfg.cost+" "+cfg.currency+".</span>";
 }
 function closeExchangeDialog(){
  $("exchangeDialog").classList.remove("show");
@@ -259,7 +261,8 @@ async function confirmExchange(){
   exchangeNotice("PEMBELIAN BERHASIL · "+reward.toLocaleString("en-US")+" "+cfg.rewardName+" DITAMBAHKAN · "+qty+" PAKET");
  }catch(error){
   $("exchangeConfirm").disabled=false;
-  setStatus(error.message||"TRANSAKSI GAGAL");
+  if(error.message==="GP_TIDAK_CUKUP"){$("exchangeSummary").innerHTML="<span class=\"exchange-warning\">GP TIDAK CUKUP. Saldo GP bro kurang untuk transaksi ini.</span>";setStatus("GP TIDAK CUKUP · SILAKAN TOP UP / KUMPULKAN GP");}
+  else setStatus(error.message||"TRANSAKSI GAGAL");
  }
 }
 $("exchangeConfirm").addEventListener("click",confirmExchange);
@@ -300,7 +303,7 @@ async function saveGameState(){
  const payload={gc:Math.max(0,Number(balance)||0),freeSpins:Math.max(0,Math.floor(Number(freeSpins)||0)),goldCoins:Math.max(0,Math.floor(Number(goldCoins)||0)),silverCoins:Math.max(0,Math.floor(Number(silverCoins)||0)),spins:Math.max(0,Math.floor(Number(spins)||0)),updatedAt:new Date()};
  saveInFlight=setDoc(zeusAccountRef(),payload,{merge:true});
  try{await saveInFlight;}
- catch(error){console.error("Zeus Firestore save failed:",error);setStatus("PENYIMPANAN ZEUS GAGAL · PERIKSA KONEKSI");}
+ catch(error){console.error("Zeus Firestore save failed:",error);setStatus("PENYIMPANAN ZEUS GAGAL · PERIKSA KONEKSI");return false;}
  finally{
   saveInFlight=null;
   if(saveAgain){saveAgain=false;return saveGameState();}
@@ -308,6 +311,8 @@ async function saveGameState(){
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")void saveGameState()});
 window.addEventListener("pagehide",()=>{void saveGameState()});
+const backLink=document.querySelector(".back");
+if(backLink)backLink.addEventListener("click",async event=>{event.preventDefault();if(busy){setStatus("SELESAIKAN PUTARAN TERLEBIH DAHULU");return}backLink.style.pointerEvents="none";backLink.textContent="MENYIMPAN...";try{const saved=await saveGameState();if(saved===false)throw new Error("SAVE_FAILED");window.location.href=backLink.href}catch(error){backLink.style.pointerEvents="auto";backLink.textContent="‹ TERAS GMTC";setStatus("GAGAL MENYIMPAN · COBA KEMBALI")}});
 async function initializeZeusAccount(){
  try{
   currentUser=await waitForAuth();
