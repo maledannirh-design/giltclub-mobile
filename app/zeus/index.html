@@ -114,7 +114,7 @@ function showWinCelebration(streak,total){const tiers=[{title:"GOOD!",icon:"✨"
 function setMode(m){mode=m;if(m==="free")multiCount=Math.min(multiCount,maxFreeBatch());$("modeSelect").value=m;const labels={normal:"PILIHAN: NORMAL SPIN · 1× BET",lucky:"LUCKY SPIN · 1,2× BET",free:"FREE SPINS · "+freeSpins+" TERSISA"};setStatus(labels[m]);$("spin").textContent="⚡";updateUI();updateButtons()}
 $("modeSelect").addEventListener("change",()=>{if(!busy)setMode($("modeSelect").value)});
 function costFor(m){return m==="lucky"?Math.round(bet*1.2):m==="free"?0:bet}
-function updateButtons(){const disabled=busy;$("buyFreeSpins").disabled=disabled||balance<bet*12;$("spin").disabled=disabled;$("betDown").disabled=disabled;$("betUp").disabled=disabled;$("multiDown").disabled=disabled||(mode==="free"?multiCount<=1:multiCount<=5);$("multiUp").disabled=disabled||(mode==="free"?multiCount>=maxFreeBatch():multiCount>=100);}
+function updateButtons(){const disabled=busy;$("spin").disabled=disabled;$("betDown").disabled=disabled;$("betUp").disabled=disabled;$("multiDown").disabled=disabled||multiCount<=1;$("multiUp").disabled=disabled||(mode==="free"?multiCount>=maxFreeBatch():multiCount>=100);}
 async function runSingleSpin(kind){
  const isFree=kind==="free";if(isFree&&freeSpins<=0){setStatus("BELUM ADA FREE SPINS · DAPATKAN DARI SCATTER");return false}
  const cost=costFor(kind);if(!isFree&&balance<cost){setStatus("DEMO GC TIDAK CUKUP · MULTI SPIN DIHENTIKAN");return false}
