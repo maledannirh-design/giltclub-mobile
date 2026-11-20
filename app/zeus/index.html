@@ -303,7 +303,7 @@ async function saveGameState(){
  const payload={gc:Math.max(0,Number(balance)||0),freeSpins:Math.max(0,Math.floor(Number(freeSpins)||0)),goldCoins:Math.max(0,Math.floor(Number(goldCoins)||0)),silverCoins:Math.max(0,Math.floor(Number(silverCoins)||0)),spins:Math.max(0,Math.floor(Number(spins)||0)),updatedAt:new Date()};
  saveInFlight=setDoc(zeusAccountRef(),payload,{merge:true});
  try{await saveInFlight;}
- catch(error){console.error("Zeus Firestore save failed:",error);setStatus("PENYIMPANAN ZEUS GAGAL · PERIKSA KONEKSI");}
+ catch(error){console.error("Zeus Firestore save failed:",error);setStatus("PENYIMPANAN ZEUS GAGAL · PERIKSA KONEKSI");return false;}
  finally{
   saveInFlight=null;
   if(saveAgain){saveAgain=false;return saveGameState();}
@@ -312,7 +312,7 @@ async function saveGameState(){
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")void saveGameState()});
 window.addEventListener("pagehide",()=>{void saveGameState()});
 const backLink=document.querySelector(".back");
-if(backLink)backLink.addEventListener("click",async event=>{event.preventDefault();if(busy){setStatus("SELESAIKAN PUTARAN TERLEBIH DAHULU");return}backLink.style.pointerEvents="none";backLink.textContent="MENYIMPAN...";try{await saveGameState();window.location.href=backLink.href}catch(error){backLink.style.pointerEvents="auto";backLink.textContent="‹ TERAS GMTC";setStatus("GAGAL MENYIMPAN · COBA KEMBALI")}});
+if(backLink)backLink.addEventListener("click",async event=>{event.preventDefault();if(busy){setStatus("SELESAIKAN PUTARAN TERLEBIH DAHULU");return}backLink.style.pointerEvents="none";backLink.textContent="MENYIMPAN...";try{const saved=await saveGameState();if(saved===false)throw new Error("SAVE_FAILED");window.location.href=backLink.href}catch(error){backLink.style.pointerEvents="auto";backLink.textContent="‹ TERAS GMTC";setStatus("GAGAL MENYIMPAN · COBA KEMBALI")}});
 async function initializeZeusAccount(){
  try{
   currentUser=await waitForAuth();
