@@ -787,8 +787,11 @@ if((s.sportType || "tennis") !== "tennis"){
   <div class="member-wrapper slot locked-slot"
        data-schedule="${s.id}"
        data-index="${i}">
-    <div class="member-avatar">
-      <div class="avatar-initial">🔒</div>
+    <div class="member-avatar locked-avatar">
+      <svg class="locked-avatar-silhouette" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="16" r="9" fill="currentColor"></circle>
+        <path d="M7 41c1.8-9.2 8.2-14 17-14s15.2 4.8 17 14" fill="currentColor"></path>
+      </svg>
     </div>
     <div class="member-name">${locked.label || "Locked"}</div>
   </div>
