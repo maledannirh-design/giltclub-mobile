@@ -72,21 +72,21 @@ function draw(wins=[]){const root=$("reels");root.innerHTML="";for(let r=0;r<ROW
 function appendSymbolArtwork(el,sym,animationClass=""){if(!el||sym<0)return;el.classList.toggle("scatter",sym===8);el.classList.toggle("wild",sym===9);el.classList.toggle("multiplier",sym>=10);const img=document.createElement("img");img.className="symbol-art";img.src="./assets/"+SYMBOLS[sym].img;img.alt=SYMBOLS[sym].n;img.draggable=false;el.append(img);if(animationClass)el.classList.add(animationClass)}
 function triggerSymbolEffect(el,sym){if(!el)return;if(sym>=10){const fx=document.createElement("span");fx.className="symbol-vfx bolt";el.append(fx)}else if(sym===8){const fx=document.createElement("span");fx.className="symbol-vfx storm";el.append(fx)}}
 function animateMultiplierToHud(item){const cell=$("reels").children[item.r*COLS+item.c],target=$("multiplierValue");if(!cell||!target)return;const img=cell.querySelector("img");if(!img)return;const a=img.getBoundingClientRect(),b=target.getBoundingClientRect(),fly=document.createElement("img");fly.src=img.src;fly.alt="";fly.className="multiplier-fly";fly.style.left=a.left+"px";fly.style.top=a.top+"px";fly.style.width=a.width+"px";fly.style.height=a.height+"px";document.body.append(fly);const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2);const anim=fly.animate([{transform:"translate(0,0) scale(1)",opacity:1},{transform:"translate("+dx+"px,"+dy+"px) scale(.22)",opacity:.15}],{duration:680,easing:"cubic-bezier(.2,.8,.25,1)",fill:"forwards"});anim.onfinish=()=>fly.remove()}
-async function animateReels(finalGrid){const root=$("reels"),old=[...root.children];for(let col=0;col<COLS;col++){for(let row=ROWS-1;row>=0;row--){const el=old[row*COLS+col];if(el)el.classList.add("column-drain")}await wait(100)}await wait(280);grid=Array.from({length:ROWS},()=>Array(COLS).fill(-1));draw();for(let col=0;col<COLS;col++){for(let row=ROWS-1;row>=0;row--){const sym=finalGrid[row][col],index=row*COLS+col,el=root.children[index];grid[row][col]=sym;appendSymbolArtwork(el,sym,"symbol-drop-in");if(sym>=10){el.classList.add("electric-hit");setTimeout(()=>el.classList.remove("electric-hit"),850)}if(sym===8||sym>=10)triggerSymbolEffect(el,sym);await wait(105)}sound(260+col*75,.1,"triangle");await wait(100)}}
+async function animateReels(finalGrid){const root=$("reels"),old=[...root.children];for(let col=0;col<COLS;col++){for(let row=ROWS-1;row>=0;row--){const el=old[row*COLS+col];if(el)el.classList.add("column-drain")}await wait(100)}await wait(280);grid=Array.from({length:ROWS},()=>Array(COLS).fill(-1));draw();for(let col=0;col<COLS;col++){for(let row=0;row<ROWS;row++){const sym=finalGrid[row][col],index=row*COLS+col,el=root.children[index];grid[row][col]=sym;appendSymbolArtwork(el,sym,"symbol-drop-in");if(sym>=10){el.classList.add("electric-hit");setTimeout(()=>el.classList.remove("electric-hit"),850)}if(sym===8||sym>=10)triggerSymbolEffect(el,sym)}sound(260+col*75,.1,"triangle");await wait(100)}await wait(420);[...root.children].forEach(el=>el.classList.remove("symbol-drop-in"))}
 function shatterCells(positions){const cells=[...$("reels").children];for(const pos of positions){const [r,col]=pos.split(":").map(Number),el=cells[r*COLS+col];if(!el)continue;const rect=el.getBoundingClientRect(),host=$("reels").getBoundingClientRect();el.classList.add("breaking");for(let i=0;i<5;i++){const spark=document.createElement("i");spark.className="shatter-spark";spark.style.left=(rect.left-host.left+rect.width/2)+"px";spark.style.top=(rect.top-host.top+rect.height/2)+"px";spark.style.setProperty("--dx",((Math.random()-.5)*75)+"px");spark.style.setProperty("--dy",((Math.random()-.5)*75)+"px");$("reels").append(spark);setTimeout(()=>spark.remove(),520)}}}
 async function fallingDraw(previousGrid,removedPositions){
- const root=$("reels"),oldCells=[...root.children],removed=new Set(removedPositions),next=Array.from({length:ROWS},()=>Array(COLS).fill(-1)),newCells=[];
+ const root=$("reels"),removed=new Set(removedPositions),next=Array.from({length:ROWS},()=>Array(COLS).fill(-1));
  for(let col=0;col<COLS;col++){
-  const survivors=[];
-  for(let row=ROWS-1;row>=0;row--){const pos=row+":"+col;if(previousGrid[row][col]>=0&&!removed.has(pos))survivors.push({sym:previousGrid[row][col],from:row})}
-  const gapCount=ROWS-survivors.length;
-  survivors.forEach((item,index)=>{const to=ROWS-1-index;next[to][col]=item.sym;const el=oldCells[item.from*COLS+col];if(el){el.style.transition="transform .48s cubic-bezier(.18,.75,.25,1)";el.style.transform="translateY("+((to-item.from)*100)+"%)";el.style.zIndex="2"}});
-  for(let row=0;row<gapCount;row++){const sym=randomSymbol(.01,.0025);next[row][col]=sym;newCells.push({row,col,sym})}
-  await wait(95);
+  const survivors=[];for(let row=ROWS-1;row>=0;row--){const pos=row+":"+col;if(previousGrid[row][col]>=0&&!removed.has(pos))survivors.push(previousGrid[row][col])}
+  const gapCount=ROWS-survivors.length;for(let row=ROWS-1,index=0;index<survivors.length;row--,index++)next[row][col]=survivors[index];
+  for(let row=0;row<gapCount;row++)next[row][col]=randomSymbol(.01,.0025);
  }
- await wait(500);grid=next;draw();
- for(let col=0;col<COLS;col++){for(const item of newCells.filter(x=>x.col===col)){const el=root.children[item.row*COLS+col];if(el){el.classList.add("symbol-entry");el.style.animationDelay=(item.row*35)+"ms";if(item.sym>=10){el.classList.add("electric-hit");setTimeout(()=>el.classList.remove("electric-hit"),850)}if(item.sym===8||item.sym>=10)triggerSymbolEffect(el,item.sym)}}await wait(90)}
- await wait(360);[...root.children].forEach(el=>{el.classList.remove("symbol-entry");el.style.animationDelay="";el.style.transform="";el.style.transition="";el.style.zIndex=""});
+ grid=Array.from({length:ROWS},()=>Array(COLS).fill(-1));draw();
+ for(let col=0;col<COLS;col++){
+  for(let row=0;row<ROWS;row++){const sym=next[row][col];grid[row][col]=sym;const el=root.children[row*COLS+col];appendSymbolArtwork(el,sym,"symbol-drop-in");if(sym>=10){el.classList.add("electric-hit");setTimeout(()=>el.classList.remove("electric-hit"),850)}if(sym===8||sym>=10)triggerSymbolEffect(el,sym)}
+  sound(300+col*55,.07,"triangle");await wait(105);
+ }
+ await wait(430);[...root.children].forEach(el=>el.classList.remove("symbol-drop-in"));
 }
 async function zeusStrike(){const machine=document.querySelector(".machine");machine.classList.remove("zeus-strike");void machine.offsetWidth;machine.classList.add("zeus-strike");sound(95,.32,"sawtooth");await wait(380);machine.classList.remove("zeus-strike")}
 function updateMultiplier(value,bump=false){const el=$("multiplierValue");el.textContent=value+"×";el.classList.remove("multiplier-pop");if(bump){void el.offsetWidth;el.classList.add("multiplier-pop")}const formula=$("winFormula");if(formula&&value>0)formula.textContent="Akumulasi multiplier ×"+value;}
@@ -140,7 +140,7 @@ async function play(){if(busy)return;if(mode==="free"&&freeSpins<=0){setStatus("
 $("spin").addEventListener("click",play);$("stopMulti").addEventListener("click",()=>{stopRequested=true;$("stopMulti").disabled=true;setStatus("STOP DIMINTA · MENYELESAIKAN PUTARAN SAAT INI...")});
 $("multiDown").addEventListener("click",()=>{if(!busy){multiCount=mode==="free"?(freeSpins<5?Math.max(1,multiCount-1):Math.max(5,multiCount-5)):Math.max(5,multiCount-5);updateUI();updateButtons();sound(300,.05)}});$("multiUp").addEventListener("click",()=>{if(!busy){multiCount=mode==="free"?(freeSpins<5?Math.min(freeSpins,multiCount+1):Math.min(maxFreeBatch(),multiCount+5)):Math.min(100,multiCount+5);updateUI();updateButtons();sound(420,.05)}});
 $("betDown").addEventListener("click",()=>{if(!busy){bet=Math.max(10,bet-10);updateUI()}});$("betUp").addEventListener("click",()=>{if(!busy){bet=Math.min(500,bet+10);updateUI()}});
-$("closeResult").addEventListener("click",()=>{$("resultModal").classList.remove("show")});
+
 grid=makeGrid();draw();updateUI();setMode("normal");updateButtons();
 </script>
 </body>
