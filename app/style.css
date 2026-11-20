@@ -4887,3 +4887,9 @@ body.dashboard-gate-open .header{filter:blur(2px);-webkit-filter:blur(2px);}
 .game-world-coming span{font-size:clamp(9px,2.8vw,11px);font-weight:1000;line-height:1.25;color:#fff8dc;text-shadow:0 1px 2px rgba(70,35,10,.8)}
 @media(max-width:360px){.home-game-world-banner{padding:10px 8px}.game-world-role{min-height:126px;padding:8px 5px}.game-world-role small{font-size:9px}.game-world-coming span{letter-spacing:-.2px}}
 @media(prefers-reduced-motion:reduce){.home-game-world-banner *{animation:none!important;transition:none!important}}
+
+
+/* GMTC GAME WORLD — use the supplied finished artwork as one responsive banner */
+.home-game-world-banner{display:block;width:100%;margin:0 0 17px;padding:0;overflow:hidden;border:0;border-radius:18px;background:transparent;box-shadow:0 7px 18px rgba(99,83,35,.2);line-height:0}
+.home-game-world-banner img{display:block;width:100%;height:auto;max-width:100%;object-fit:contain;border-radius:inherit}
+@media(max-width:380px){.home-game-world-banner{border-radius:14px;margin-bottom:13px}}
