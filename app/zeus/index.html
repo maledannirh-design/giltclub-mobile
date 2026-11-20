@@ -60,10 +60,14 @@ body{padding:env(safe-area-inset-top) 7px env(safe-area-inset-bottom);overflow:h
 <div id="scatterBonus" class="scatter-bonus" aria-hidden="true"><div class="scatter-storm"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="scatter-bonus-copy"><span>ZEUS BONUS</span><strong id="scatterBonusTitle">ANDA MENDAPATKAN</strong><b id="scatterBonusCount">15 FREE SPINS!</b></div></div>
 <div id="coinRain" class="coin-rain" aria-hidden="true"></div>
 <div id="resultModal" class="modal win-overlay"><div class="win-celebration"><h2 class="sensational-title">SENSATIONAL !!</h2><div class="wing-stage"><span class="wing wing-left"><svg viewBox="0 0 200 120" aria-hidden="true"><path d="M198 57C171 20 133 7 96 13 61 18 32 8 8 1 12 24 28 42 58 49 35 53 17 45 3 36 8 63 30 79 63 79 42 87 28 82 17 75 29 103 61 113 98 101 141 88 174 73 198 70Z" fill="#eeeaff" stroke="#c7c0df" stroke-width="2"/><path d="M193 59C154 43 119 37 76 39M192 72C151 61 113 58 59 65M174 83C139 77 104 78 69 88M146 94C121 91 101 96 83 103" fill="none" stroke="#b9b0d2" stroke-width="7" stroke-linecap="round"/><path d="M181 48C150 25 116 20 83 23M163 58C132 42 102 38 71 43" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></span><div class="win-emblem" id="modalIcon">✨</div><span class="wing wing-right"><svg viewBox="0 0 200 120" aria-hidden="true"><path d="M198 57C171 20 133 7 96 13 61 18 32 8 8 1 12 24 28 42 58 49 35 53 17 45 3 36 8 63 30 79 63 79 42 87 28 82 17 75 29 103 61 113 98 101 141 88 174 73 198 70Z" fill="#eeeaff" stroke="#c7c0df" stroke-width="2"/><path d="M193 59C154 43 119 37 76 39M192 72C151 61 113 58 59 65M174 83C139 77 104 78 69 88M146 94C121 91 101 96 83 103" fill="none" stroke="#b9b0d2" stroke-width="7" stroke-linecap="round"/><path d="M181 48C150 25 116 20 83 23M163 58C132 42 102 38 71 43" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></span><i class="wing-feather feather-a"></i><i class="wing-feather feather-b"></i><i class="wing-feather feather-c"></i><i class="wing-feather feather-d"></i></div><h2 id="resultTitle">GOOD!</h2><div class="win-amount" id="winAmount">0 GC</div></div></div>
-<script>
+<script type="module">
+import { auth, db, storage } from "../firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { ref as storageRef, getBytes, uploadString } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 const SYMBOLS=[{n:"ZEUS",v:10,img:"zeus.webp"},{n:"CROWN",v:8,img:"crown.webp"},{n:"TRIDENT",v:7,img:"trident.webp"},{n:"CHALICE",v:6,img:"chalice.webp"},{n:"SAPPHIRE",v:5,img:"sappire.webp"},{n:"RUBY",v:4,img:"ruby.webp"},{n:"AMETHYST",v:3,img:"amethyst.webp"},{n:"SHIELD",v:2,img:"shield.webp"},{n:"SCATTER",v:0,img:"scatter.webp"},{n:"WILD",v:0,img:"wild.webp"},{n:"MULTIPLIER",v:0,m:2,img:"2x.webp"},{n:"MULTIPLIER",v:0,m:3,img:"3x.webp"},{n:"MULTIPLIER",v:0,m:5,img:"5x.webp"},{n:"MULTIPLIER",v:0,m:10,img:"10x.webp"},{n:"MULTIPLIER",v:0,m:25,img:"25x.webp"},{n:"MULTIPLIER",v:0,m:50,img:"50x.webp"}];
 const COLS=6,ROWS=5,MIN_CLUSTER=8;
-let grid=[],busy=false,balance=10000,gpBalance=1000,goldCoins=0,silverCoins=0,bet=10,spins=0,history=[],mode="normal",freeSpins=0,multiCount=1,stopRequested=false,freeFeatureActive=false,freeMultiplierBank=0,audio=null,multiRemaining=0,multiTotal=0,autoFreeQueue=0,freeBatchRunning=false,sequenceWinTotal=0,freeFeatureWinTotal=0;
+let grid=[],busy=false,balance=0,gpBalance=0,goldCoins=0,silverCoins=0,bet=10,spins=0,history=[],mode="normal",freeSpins=0,multiCount=1,stopRequested=false,freeFeatureActive=false,freeMultiplierBank=0,audio=null,multiRemaining=0,multiTotal=0,autoFreeQueue=0,freeBatchRunning=false,sequenceWinTotal=0,freeFeatureWinTotal=0;\nlet currentUser=null,accountReady=false,saveInFlight=null,saveAgain=false;
 const $=id=>document.getElementById(id),wait=ms=>new Promise(r=>setTimeout(r,ms));
 function sound(freq=440,duration=.09,type="sine"){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.045,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+duration)}catch(e){}}function buzzWin(){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume();const now=audio.currentTime,o=audio.createOscillator(),g=audio.createGain(),f=audio.createBiquadFilter();o.type="sawtooth";o.frequency.setValueAtTime(105,now);o.frequency.exponentialRampToValueAtTime(62,now+.16);f.type="lowpass";f.frequency.value=420;g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.075,now+.018);g.gain.exponentialRampToValueAtTime(.0001,now+.2);o.connect(f);f.connect(g);g.connect(audio.destination);o.start(now);o.stop(now+.21)}catch(e){}}
 const AUDIO_BASE="./assets/audio/";
@@ -138,7 +142,7 @@ async function showWinCelebration(streak,total,heading=null){const ratio=total/M
 function setMode(m){mode=m;if(m==="free")multiCount=Math.min(multiCount,maxFreeBatch());$("modeSelect").value=m;const labels={normal:"PILIHAN: NORMAL SPIN · 1× BET",lucky:"LUCKY SPIN · 1,2× BET",free:"FREE SPINS · "+freeSpins+" TERSISA"};setStatus(labels[m]);$("spin").textContent="⚡";updateUI();updateButtons()}
 $("modeSelect").addEventListener("change",()=>{if(!busy)setMode($("modeSelect").value)});
 function costFor(m){return m==="lucky"?Math.round(bet*1.2):m==="free"?0:bet}
-function updateButtons(){const disabled=busy;$("spin").disabled=disabled;$("betDown").disabled=disabled;$("betUp").disabled=disabled;$("multiDown").disabled=disabled||multiCount<=1;$("multiUp").disabled=disabled||(mode==="free"?multiCount>=maxFreeBatch():multiCount>=100);}
+function updateButtons(){const disabled=busy||!accountReady;$("spin").disabled=disabled;$("betDown").disabled=disabled;$("betUp").disabled=disabled;$("multiDown").disabled=disabled||multiCount<=1;$("multiUp").disabled=disabled||(mode==="free"?multiCount>=maxFreeBatch():multiCount>=100);}
 async function runSingleSpin(kind){
  const isFree=kind==="free";if(isFree)setBgmScene("free");if(isFree&&freeSpins<=0){setStatus("BELUM ADA FREE SPINS · DAPATKAN DARI SCATTER");return false}
  const cost=costFor(kind);if(!isFree&&balance<cost){setStatus("DEMO GC TIDAK CUKUP · MULTI SPIN DIHENTIKAN");return false}
@@ -160,14 +164,98 @@ async function runSingleSpin(kind){
  else if(total>0)setStatus("MENANG "+Math.round(total).toLocaleString("en-US")+" GC · CASCADE "+cascade);else setStatus("PUTARAN SELESAI · COBA FITUR LAIN");
  return true;
 }
-async function play(){if(busy)return;if(mode==="free"&&freeSpins<=0){setStatus("TIDAK ADA FREE SPINS");return}sequenceWinTotal=0;normalizeMultiCount();const kind=mode;const count=kind==="free"?Math.min(multiCount,freeSpins):multiCount;if(count<1)return;busy=true;stopRequested=false;$("stopMulti").disabled=false;updateButtons();$("stopMulti").style.display=kind==="free"?"none":"inline-block";let completed=0;multiTotal=count;multiRemaining=count;updateUI();
+async function play(){if(!accountReady){setStatus("MEMUAT DATA AKUN...");return}if(busy)return;if(mode==="free"&&freeSpins<=0){setStatus("TIDAK ADA FREE SPINS");return}sequenceWinTotal=0;normalizeMultiCount();const kind=mode;const count=kind==="free"?Math.min(multiCount,freeSpins):multiCount;if(count<1)return;busy=true;stopRequested=false;$("stopMulti").disabled=false;updateButtons();$("stopMulti").style.display=kind==="free"?"none":"inline-block";let completed=0;multiTotal=count;multiRemaining=count;updateUI();
  try{for(let i=0;i<count;i++){if(stopRequested)break;if(kind==="free"&&freeSpins<=0)break;const ok=await runSingleSpin(kind);if(!ok)break;completed++;multiRemaining=Math.max(0,count-completed);updateUI();if(autoFreeQueue>0&&freeSpins>0){freeBatchRunning=true;updateUI()}while(autoFreeQueue>0&&freeSpins>0){$("stopMulti").style.display="none";autoFreeQueue--;updateUI();setStatus("AUTO FREE SPINS · "+freeSpins+" TERSISA");const freeOk=await runSingleSpin("free");if(!freeOk){autoFreeQueue=0;break}updateUI()}if(freeBatchRunning){freeBatchRunning=false;updateUI()}if(stopRequested)break;if(kind!=="free"&&freeSpins>0)setStatus("FREE SPINS TERSIMPAN · PILIH MODE FREE SPINS");}}finally{busy=false;freeBatchRunning=false;multiRemaining=0;multiTotal=0;autoFreeQueue=0;if(kind==="free")normalizeMultiCount();$("stopMulti").disabled=false;$("stopMulti").style.display="none";updateUI();updateButtons();if(mode!=="free"){if(sequenceWinTotal>0)await showWinCelebration(7,sequenceWinTotal,"TOTAL SESSION WIN");setStatus(stopRequested?"MULTI SPIN DIHENTIKAN · "+completed+" PUTARAN SELESAI":completed>1?"MULTI SPIN SELESAI · "+completed+" PUTARAN":"SIAP UNTUK PUTARAN BERIKUTNYA");}}}
-function exchangeNotice(message){setStatus(message);sound(620,.12,"triangle");updateUI()}function spendGP(amount){if(gpBalance<amount){setStatus("SALDO GP DEMO TIDAK CUKUP");return false}gpBalance-=amount;return true}function spendGC(amount){if(balance<amount){setStatus("SALDO G-CREDIT DEMO TIDAK CUKUP");return false}balance-=amount;return true}$("offerFree").addEventListener("click",()=>{if(busy)return;if(!spendGP(10))return;freeSpins+=15;exchangeNotice("PENUKARAN BERHASIL · +15 FREE SPINS · TOTAL SISA "+freeSpins+" · SISA "+gpBalance+" GP")});$("offerBulk").addEventListener("click",()=>{if(busy)return;if(!spendGP(10))return;balance+=200;exchangeNotice("PENUKARAN BERHASIL · +200 G-CREDIT")});$("offerGold").addEventListener("click",()=>{if(busy)return;if(!spendGC(75))return;goldCoins+=1;exchangeNotice("PENUKARAN BERHASIL · GOLD COIN: "+goldCoins+" · SISA "+balance+" GC")});$("offerSilver").addEventListener("click",()=>{if(busy)return;if(!spendGC(100))return;silverCoins+=5;exchangeNotice("PENUKARAN BERHASIL · SILVER COIN: "+silverCoins+" · SISA "+balance+" GC")});
+function exchangeNotice(message){setStatus(message);sound(620,.12,"triangle");updateUI()}
+async function spendGPFromAccount(amount){
+ if(!currentUser)throw new Error("Silakan login terlebih dahulu");
+ const userRef=doc(db,"users",currentUser.uid);
+ const nextBalance=await runTransaction(db,async tx=>{
+  const snap=await tx.get(userRef);
+  if(!snap.exists())throw new Error("Data akun GMTC tidak ditemukan");
+  const current=Math.max(0,Number(snap.data().gPoint)||0);
+  if(current<amount)throw new Error("Saldo GP tidak mencukupi");
+  const next=current-amount;
+  tx.update(userRef,{gPoint:next});
+  return next;
+ });
+ gpBalance=nextBalance;
+ return true;
+}
+function spendGC(amount){if(balance<amount){setStatus("SALDO G-CREDIT TIDAK CUKUP");return false}balance-=amount;return true}
+async function handleGPExchange(kind){
+ if(busy||!accountReady)return;
+ $("offerFree").disabled=true;$("offerBulk").disabled=true;
+ try{
+  await spendGPFromAccount(10);
+  if(kind==="free"){freeSpins+=15;exchangeNotice("PENUKARAN BERHASIL · +15 FREE SPINS · TOTAL SISA "+freeSpins+" · SISA "+gpBalance+" GP")}
+  else{balance+=200;exchangeNotice("PENUKARAN BERHASIL · +200 G-CREDIT · SISA "+gpBalance+" GP")}
+ }catch(error){setStatus(error.message||"PENUKARAN GAGAL");}
+ finally{updateButtons();}
+}
+$("offerFree").addEventListener("click",()=>handleGPExchange("free"));
+$("offerBulk").addEventListener("click",()=>handleGPExchange("gc"));
+$("offerGold").addEventListener("click",()=>{if(busy||!accountReady)return;if(!spendGC(75))return;goldCoins+=1;exchangeNotice("PENUKARAN BERHASIL · GOLD COIN: "+goldCoins+" · SISA "+balance+" GC")});
+$("offerSilver").addEventListener("click",()=>{if(busy||!accountReady)return;if(!spendGC(100))return;silverCoins+=5;exchangeNotice("PENUKARAN BERHASIL · SILVER COIN: "+silverCoins+" · SISA "+balance+" GC")});
 $("bgmToggle").addEventListener("click",()=>{if(bgmOn)stopBgm();else startBgm()});$("spin").addEventListener("click",play);$("stopMulti").addEventListener("click",()=>{stopRequested=true;$("stopMulti").disabled=true;setStatus("STOP DIMINTA · MENYELESAIKAN PUTARAN SAAT INI...")});
 $("multiDown").addEventListener("click",()=>{if(!busy){multiCount=multiCount<=5?1:multiCount-5;updateUI();updateButtons();sound(300,.05)}});$("multiUp").addEventListener("click",()=>{if(!busy){multiCount=multiCount===1?5:Math.min(mode==="free"?maxFreeBatch():100,multiCount+5);updateUI();updateButtons();sound(420,.05)}});
 $("betDown").addEventListener("click",()=>{if(!busy){bet=Math.max(10,bet-10);updateUI()}});$("betUp").addEventListener("click",()=>{if(!busy){bet=Math.min(500,bet+10);updateUI()}});
 
+async function waitForAuth(){
+ return new Promise((resolve,reject)=>{
+  const unsubscribe=onAuthStateChanged(auth,user=>{unsubscribe();if(user)resolve(user);else reject(new Error("LOGIN_REQUIRED"));},reject);
+ });
+}
+function zeusSaveRef(){return storageRef(storage,"zeus/"+currentUser.uid+"/save.json")}
+async function loadGameState(){
+ const userRef=doc(db,"users",currentUser.uid);
+ const profile=await getDoc(userRef);
+ if(!profile.exists())throw new Error("Data akun GMTC tidak ditemukan");
+ gpBalance=Math.max(0,Number(profile.data().gPoint)||0);
+ try{
+  const bytes=await getBytes(zeusSaveRef(),1024*64);
+  const saved=JSON.parse(new TextDecoder().decode(bytes));
+  if(saved&&saved.version===1){
+   balance=Math.max(0,Number(saved.balance)||0);
+   freeSpins=Math.max(0,Math.floor(Number(saved.freeSpins)||0));
+   goldCoins=Math.max(0,Math.floor(Number(saved.goldCoins)||0));
+   silverCoins=Math.max(0,Math.floor(Number(saved.silverCoins)||0));
+   spins=Math.max(0,Math.floor(Number(saved.spins)||0));
+  }
+ }catch(error){
+  if(error.code!=="storage/object-not-found")throw error;
+  balance=0;freeSpins=0;goldCoins=0;silverCoins=0;spins=0;
+ }
+}
+async function saveGameState(){
+ if(!currentUser)return;
+ if(saveInFlight){saveAgain=true;return saveInFlight;}
+ const payload={version:1,balance,freeSpins,goldCoins,silverCoins,spins,updatedAt:new Date().toISOString()};
+ saveInFlight=uploadString(zeusSaveRef(),JSON.stringify(payload),"raw",{contentType:"application/json"});
+ try{await saveInFlight;}
+ catch(error){console.error("Zeus save failed:",error);setStatus("PENYIMPANAN ZEUS GAGAL · PERIKSA KONEKSI");}
+ finally{
+  saveInFlight=null;
+  if(saveAgain){saveAgain=false;return saveGameState();}
+ }
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")void saveGameState()});
+window.addEventListener("pagehide",()=>{void saveGameState()});
+async function initializeZeusAccount(){
+ try{
+  currentUser=await waitForAuth();
+  await loadGameState();
+  accountReady=true;
+  grid=makeGrid();draw();updateUI();setMode("normal");updateButtons();
+  setStatus("SALDO AKUN BERHASIL DIMUAT · ZEUS SIAP");
+ }catch(error){
+  console.error("Zeus account initialization failed:",error);
+  setStatus(error.message==="LOGIN_REQUIRED"?"SILAKAN LOGIN GMTC UNTUK MEMAINKAN ZEUS":"GAGAL MEMUAT DATA AKUN · COBA MUAT ULANG");
+  updateButtons();
+ }
+}
 grid=makeGrid();draw();updateUI();setMode("normal");updateButtons();
+await initializeZeusAccount();
 </script>
 </body>
 </html>
