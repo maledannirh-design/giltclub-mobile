@@ -123,6 +123,39 @@ body{padding:env(safe-area-inset-top) 7px env(safe-area-inset-bottom);overflow:h
  .machine{flex:0 0 48dvh;min-height:180px}
  .exchange-booth{height:90px}
 }
+
+/* ================= COMPACT SLOT + INLINE SPIN CONTROLS ================= */
+/* Reduce the central reel area to give the exchange shop more room. */
+.machine{flex:0 1 42dvh;max-height:42dvh;min-height:0;padding:4px}
+.reels{min-height:0}
+.cell .symbol-art{width:64%;height:64%}
+.cell.multiplier .symbol-art{width:68%;height:68%}
+/* Put the main spin button beside the multi-spin controls, not below them. */
+.spin-control-card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto auto;align-items:center;column-gap:8px;row-gap:4px}
+.spin-control-card>.bgm-toggle,
+.spin-control-card>.mode-select,
+.spin-control-card>.bet-row{grid-column:1/-1}
+.spin-control-card>.multi-row{grid-column:1;grid-row:4;min-width:0;justify-content:flex-start;gap:5px}
+.spin-control-card>.multi-row>span{white-space:nowrap}
+.spin-control-card>.multi-row .multi-progress{display:none}
+.spin-control-card>.spin-actions{grid-column:2;grid-row:4;min-height:0;justify-content:center;align-self:center}
+.spin.spin{width:54px;height:54px;min-width:54px;font-size:24px;box-shadow:0 0 0 3px #6e492b,0 0 13px #ffcf6588,inset 0 3px 7px #fff}
+.exchange-booth{margin-top:3px}
+@media(max-height:740px){
+ .machine{flex-basis:39dvh;max-height:39dvh}
+ .spin.spin{width:48px;height:48px;min-width:48px;font-size:21px}
+ .spin-control-card{padding:4px;row-gap:3px}
+ .spin-control-card>.multi-row{gap:3px}
+ .spin-control-card>.multi-row .small-btn{padding:3px 5px}
+ .exchange-booth{margin-top:2px}
+}
+@media(max-width:370px){
+ .machine{flex-basis:38dvh;max-height:38dvh}
+ .spin-control-card>.multi-row{gap:2px}
+ .spin-control-card>.multi-row>span{font-size:6px}
+ .spin-control-card>.multi-row strong{font-size:10px}
+ .spin.spin{width:44px;height:44px;min-width:44px}
+}
 </style>
 </head>
 <body>
