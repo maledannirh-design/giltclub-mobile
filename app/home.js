@@ -130,30 +130,10 @@ content.innerHTML = `
       <span class="home-zeus-flash" aria-hidden="true"></span>
     </a>
 
-    <!-- GMTC GAME WORLD — COMING SOON -->
-    <section class="home-game-world-banner" aria-label="GMTC Game World coming soon">
-      <div class="game-world-skyline" aria-hidden="true"><span>🌳</span><span>🌾</span><span>🏰</span><span>🏙️</span></div>
-      <div class="game-world-heading">
-        <strong>GMTC <span>GAME WORLD</span></strong>
-        <small>Pilih Peran, Bangun Duniamu!</small>
-      </div>
-      <div class="game-world-roles">
-        <div class="game-world-role village">
-          <span class="game-world-role-icon" aria-hidden="true">🌱</span>
-          <strong>DESA — PETANI</strong>
-          <small>Bertani, panen, olah hasil, dan kirim barang ke kota.</small>
-        </div>
-        <div class="game-world-role city">
-          <span class="game-world-role-icon" aria-hidden="true">🏙️</span>
-          <strong>KOTA — PEMILIK USAHA</strong>
-          <small>Bangun café, toko, dan gedung mewah. Kelola bisnis, raih profit!</small>
-        </div>
-      </div>
-      <div class="game-world-coming">
-        <strong>COMING SOON!</strong>
-        <span>🪙 BANGUN DENGAN GOLD AND SILVER COIN! 🪙</span>
-      </div>
-    </section>
+    <!-- GMTC GAME WORLD — PROMOTIONAL ARTWORK -->
+    <a class="home-game-world-banner" href="#" aria-label="GMTC Game World — Coming Soon">
+      <img src="./assets/gmtc-game-world-banner.png" alt="GMTC Game World — Desa Petani dan Kota Pemilik Usaha. Coming Soon. Bangun dengan Gold and Silver Coin." loading="lazy">
+    </a>
 
     <!-- DAILY CHECK-IN -->
     <div class="home-progress-group">
