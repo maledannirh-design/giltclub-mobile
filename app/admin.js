@@ -195,8 +195,8 @@ export async function renderAdmin() {
       Export Sayembara Nama Maskot (Excel)
     </button>
 
-    <button onclick="exportMembersToCSV()" class="admin-btn" style="margin-top:10px;">
-      Export Members
+    <button onclick="exportMembersToXLSX()" class="admin-btn" style="margin-top:10px;">
+      Export Members (XLSX)
     </button>
 
     <button onclick="exportFullMutation()" class="admin-btn" style="margin-top:10px;">
@@ -912,65 +912,119 @@ window.exportBookingHistory = async function(){
   downloadCSV("booking_history.csv", rows);
 };
 
-window.exportMembersToCSV = async function(){
+window.exportMembersToXLSX = async function(){
+
+  const btn = document.querySelector('button[onclick="exportMembersToXLSX()"]');
 
   try{
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = "Mengambil data members...";
+    }
 
-    const snap = await getDocs(collection(db,"users"));
+    const snap = await getDocs(collection(db, "users"));
 
     if(snap.empty){
       alert("Tidak ada data user");
       return;
     }
 
+    // Kumpulkan semua field level teratas dari seluruh dokumen users.
+    // Dengan demikian header baru otomatis ikut tanpa perlu daftar manual.
     const fieldSet = new Set();
 
-    snap.forEach(docSnap=>{
-      const data = docSnap.data();
-      Object.keys(data).forEach(k=>fieldSet.add(k));
+    snap.forEach(docSnap => {
+      Object.keys(docSnap.data() || {}).forEach(key => fieldSet.add(key));
     });
 
     const fields = Array.from(fieldSet).sort();
-
     const headers = ["UID", ...fields];
+    const phoneColumnIndexes = headers
+      .map((header, index) => ({ header, index }))
+      .filter(item => /phone|mobile|whatsapp|telephone|telp|nomor.?hp|no.?hp|^wa$/i.test(item.header))
+      .map(item => item.index);
 
-    let rows = [headers];
+    const rows = [headers];
 
-    snap.forEach(docSnap=>{
+    snap.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      const row = [String(docSnap.id)];
 
-      const d = docSnap.data();
+      fields.forEach(field => {
+        let value = data[field];
 
-      const row = [docSnap.id];
-
-      fields.forEach(f=>{
-
-        let val = d[f];
-
-        if(val?.toDate){
-          val = val.toDate().toLocaleString("id-ID");
+        if(value && typeof value.toDate === "function"){
+          value = value.toDate().toLocaleString("id-ID");
+        }else if(value instanceof Date){
+          value = value.toLocaleString("id-ID");
+        }else if(typeof value === "object" && value !== null){
+          value = JSON.stringify(value);
+        }else if(value === true){
+          value = "YES";
+        }else if(value === false){
+          value = "NO";
         }
 
-        if(typeof val === "object" && val !== null){
-          val = JSON.stringify(val);
+        row.push(value ?? "");
+      });
+
+      // Nomor telepon dipaksa menjadi string sebelum masuk ke workbook.
+      phoneColumnIndexes.forEach(index => {
+        const value = row[index];
+        if(value !== "" && value !== null && value !== undefined){
+          row[index] = String(value);
         }
-
-        if(val === true) val = "YES";
-        if(val === false) val = "NO";
-
-        row.push(val ?? "");
-
       });
 
       rows.push(row);
-
     });
 
-    downloadCSV("giltclub_members_all_fields.csv", rows);
+    // Load SheetJS only when this export is requested; tidak menambah beban awal aplikasi.
+    const XLSX = await import("https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm");
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
 
+    // Kunci kolom UID dan nomor HP sebagai teks agar Excel tidak mengubahnya
+    // menjadi scientific notation atau membuang nol di depan.
+    const textColumnIndexes = [0, ...phoneColumnIndexes];
+    for(let rowIndex = 1; rowIndex < rows.length; rowIndex++){
+      textColumnIndexes.forEach(columnIndex => {
+        const address = XLSX.utils.encode_cell({ r: rowIndex, c: columnIndex });
+        const cell = worksheet[address];
+        if(cell && cell.v !== undefined && cell.v !== null && cell.v !== ""){
+          cell.t = "s";
+          cell.v = String(cell.v);
+          cell.z = "@";
+        }
+      });
+    }
+
+    worksheet["!cols"] = headers.map((header, index) => ({
+      wch: Math.min(
+        Math.max(
+          String(header).length + 3,
+          ...rows.slice(1, Math.min(rows.length, 101)).map(row => String(row[index] ?? "").length + 2)
+        ),
+        40
+      )
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "MEMBERS");
+
+    const dateStamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    XLSX.writeFile(workbook, `gmtc_members_master_${dateStamp}.xlsx`);
+
+    alert("Berhasil mengekspor " + snap.size + " member dengan " + fields.length + " field.");
   }
   catch(err){
-    console.error(err);
-    alert("Gagal export members");
+    console.error("Export members XLSX failed:", err);
+    alert("Gagal export members ke XLSX. Periksa koneksi internet dan izin akses Admin.");
+  }
+  finally{
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Export Members (XLSX)";
+    }
   }
 
 };
