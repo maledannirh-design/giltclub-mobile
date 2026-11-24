@@ -155,6 +155,7 @@ export async function createBooking({
       attendance: false,
       completed: false,
       status: "active",
+      waitlisted: false,
       createdAt: serverTimestamp()
     });
 
