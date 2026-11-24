@@ -1640,6 +1640,7 @@ async function openAdminMemberAssignment({ scheduleId, slotIndex }) {
             attendance: false,
             completed: false,
             status: "active",
+            waitlisted: false,
             manualEntry: true,
             bookingSource: "ADMIN_MANUAL",
             createdAt: serverTimestamp(),
@@ -2491,7 +2492,9 @@ async function openEditSessionSheet(scheduleId){
           )
         );
 
-        const activeBookings = bookingSnap.size;
+        const activeBookings = bookingSnap.docs.filter(
+          bookingDoc => bookingDoc.data().waitlisted !== true
+        ).length;
 
         // 🔥 HITUNG LOCKED SLOT
         const currentSnap = await getDoc(scheduleRef);
