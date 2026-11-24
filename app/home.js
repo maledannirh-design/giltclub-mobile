@@ -360,6 +360,7 @@ function renderWelcomeMascot(isGuest){
     <button type="button" class="g-mascot-float" aria-label="Buka sambutan GMTC" aria-expanded="true">
       <img src="./image/mascot-welcome.webp" alt="Maskot Welcome GMTC">
     </button>
+    <button type="button" class="g-mascot-dismiss" aria-label="Tutup maskot" title="Tutup">×</button>
     <div class="g-mascot-quick-actions"><button type="button" class="g-mascot-name-cta">Beri nama?</button><button type="button" class="g-mascot-tutorial-cta">Kak tutorial dong, butuh panduan sistem?</button></div>
   `;
   document.body.appendChild(welcome);
@@ -388,6 +389,12 @@ function renderWelcomeMascot(isGuest){
   welcome.querySelector(".g-mascot-bubble-close")?.addEventListener("click",()=>{
     bubble.classList.add("is-hidden");
     mascot.setAttribute("aria-expanded","false");
+  });
+  // Dismiss only for the current page view; it returns after refresh or re-entry.
+  welcome.querySelector(".g-mascot-dismiss")?.addEventListener("click",(event)=>{
+    event.preventDefault();
+    event.stopPropagation();
+    welcome.remove();
   });
   positionWelcomeBubble(welcome, bubble, mascot);
   let dragStartX = 0, dragStartY = 0, mascotStartX = 0, mascotStartY = 0;
