@@ -935,7 +935,7 @@ if((s.sportType || "tennis") !== "tennis"){
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="cancelled" ${s.status === "cancelled" ? "disabled" : ""}>Cancelled</button>
             </div>` : ""}
               <div class="session-admin-actions">
-                <button class="edit-participants-btn" data-id="${s.id}">✎ Edit Peserta</button>
+                <button class="edit-participants-btn" data-id="${s.id}" style="padding:10px 13px;border:1px solid #cfe2d3;border-radius:12px;background:#edf6ef;color:#246b40;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 5px rgba(25,80,45,.07);">✎ Edit Peserta</button>
                 <button class="edit-session-btn" data-id="${s.id}">
                   ✏️ Edit Session
                 </button>
@@ -1121,60 +1121,111 @@ attachSlotInteraction(currentUserRole);
     btn.onclick = async () => {
       const session = sessions.find(item => item.id === btn.dataset.id);
       if (!session) return;
-      const currentMembers = (bookingsBySchedule.get(session.id) || [])
-        .filter(item => item.data.waitlisted !== true)
-        .map(item => {
-          const profile = memberProfiles.get(item.data.userId) || {};
-          const name = profile.usernameID || profile.username || profile.fullName || item.data.displayName || "Member";
-          return { bookingId: item.id, userId: item.data.userId, name };
-        });
-      if (!currentMembers.length) {
-        showToast("Belum ada peserta di slot utama.", "warning");
+      const sessionItems = bookingsBySchedule.get(session.id) || [];
+      const participantOptions = sessionItems.map(item => {
+        const profile = memberProfiles.get(item.data.userId) || {};
+        const name = profile.usernameID || profile.username || profile.fullName || item.data.displayName || "Member";
+        return {
+          bookingId: item.id,
+          userId: item.data.userId,
+          name,
+          waitlisted: item.data.waitlisted === true
+        };
+      });
+      const mainParticipants = participantOptions.filter(item => !item.waitlisted);
+      const waitingParticipants = participantOptions.filter(item => item.waitlisted);
+      if (!participantOptions.length) {
+        showToast("Belum ada peserta untuk diedit.", "warning");
         return;
       }
+
       const overlay = document.createElement("div");
-      overlay.style.cssText = "position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:18px;";
+      overlay.style.cssText = "position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(3px);";
       const card = document.createElement("div");
-      card.style.cssText = "width:min(100%,400px);background:#fff;border-radius:18px;padding:20px;color:#18352a;";
+      card.style.cssText = "width:min(100%,420px);background:#fff;border:1px solid #e5eadf;border-radius:20px;padding:22px;color:#18352a;box-shadow:0 22px 65px rgba(15,23,42,.25);";
       const title = document.createElement("h3");
       title.textContent = "Edit Peserta";
-      title.style.cssText = "margin:0 0 8px;font-size:18px;";
+      title.style.cssText = "margin:0 0 7px;font-size:19px;font-weight:750;letter-spacing:-.2px;";
       const hint = document.createElement("p");
-      hint.textContent = "Pilih peserta dari slot utama untuk dipindahkan ke daftar tunggu.";
-      hint.style.cssText = "margin:0 0 14px;font-size:13px;color:#64748b;";
+      hint.textContent = "Pilih peserta, lalu tentukan posisi peserta pada sesi ini.";
+      hint.style.cssText = "margin:0 0 16px;font-size:13px;color:#64748b;line-height:1.5;";
+      const label = document.createElement("label");
+      label.textContent = "PESERTA";
+      label.style.cssText = "display:block;margin-bottom:7px;font-size:11px;font-weight:750;letter-spacing:.7px;color:#607568;";
       const select = document.createElement("select");
-      select.style.cssText = "width:100%;padding:12px;border:1px solid #d7e2da;border-radius:10px;background:#fff;font-size:15px;";
-      select.innerHTML = '<option value="">Pilih peserta...</option>';
-      currentMembers.forEach(member => {
-        const option = document.createElement("option");
-        option.value = member.bookingId;
-        option.textContent = member.name;
-        select.appendChild(option);
-      });
+      select.style.cssText = "box-sizing:border-box;width:100%;padding:13px 14px;border:1px solid #d9e4da;border-radius:12px;background:#fbfdfb;color:#18352a;font-size:14px;outline:none;";
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Pilih peserta...";
+      select.appendChild(placeholder);
+      if (mainParticipants.length) {
+        const group = document.createElement("optgroup");
+        group.label = "Peserta slot utama";
+        mainParticipants.forEach(member => {
+          const option = document.createElement("option");
+          option.value = member.bookingId;
+          option.textContent = member.name;
+          group.appendChild(option);
+        });
+        select.appendChild(group);
+      }
+      if (waitingParticipants.length) {
+        const group = document.createElement("optgroup");
+        group.label = "Daftar tunggu";
+        waitingParticipants.forEach(member => {
+          const option = document.createElement("option");
+          option.value = member.bookingId;
+          option.textContent = member.name;
+          group.appendChild(option);
+        });
+        select.appendChild(group);
+      }
+
+      const actionHint = document.createElement("div");
+      actionHint.textContent = "Pilih salah satu tindakan:";
+      actionHint.style.cssText = "margin:17px 0 9px;font-size:12px;font-weight:650;color:#64748b;";
       const actions = document.createElement("div");
-      actions.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:18px;";
+      actions.style.cssText = "display:grid;grid-template-columns:1fr;gap:9px;";
+      const waitButton = document.createElement("button");
+      waitButton.type = "button";
+      waitButton.textContent = "↓  Put in Waitlisted";
+      waitButton.style.cssText = "width:100%;padding:12px 14px;border:0;border-radius:12px;background:#f3ead8;color:#795522;font-size:14px;font-weight:700;cursor:pointer;";
+      const mainButton = document.createElement("button");
+      mainButton.type = "button";
+      mainButton.textContent = "↑  Taroh di Slot Utama";
+      mainButton.style.cssText = "width:100%;padding:12px 14px;border:0;border-radius:12px;background:#287b49;color:#fff;font-size:14px;font-weight:700;cursor:pointer;";
       const cancel = document.createElement("button");
       cancel.type = "button";
       cancel.textContent = "Batal";
-      const save = document.createElement("button");
-      save.type = "button";
-      save.textContent = "Put in Waitlisted";
-      save.style.cssText = "padding:10px 16px;border:0;border-radius:10px;background:#287b49;color:#fff;font-weight:600;";
-      actions.append(cancel, save);
-      card.append(title, hint, select, actions);
+      cancel.style.cssText = "width:100%;margin-top:3px;padding:11px 14px;border:1px solid #dce6dd;border-radius:12px;background:#fff;color:#52665a;font-size:14px;font-weight:650;cursor:pointer;";
+      actions.append(waitButton, mainButton, cancel);
+      card.append(title, hint, label, select, actionHint, actions);
       overlay.appendChild(card);
       document.body.appendChild(overlay);
       const close = () => overlay.remove();
       cancel.onclick = close;
       overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
-      save.onclick = async () => {
-        const selected = currentMembers.find(member => member.bookingId === select.value);
-        if (!selected) {
-          showToast("Pilih peserta terlebih dahulu.", "warning");
-          return;
-        }
-        save.disabled = true;
-        save.textContent = "Memindahkan...";
+
+      const setBusy = (button, text) => {
+        waitButton.disabled = true;
+        mainButton.disabled = true;
+        cancel.disabled = true;
+        button.textContent = text;
+        button.style.opacity = ".7";
+      };
+      const resetBusy = (button, text) => {
+        waitButton.disabled = false;
+        mainButton.disabled = false;
+        cancel.disabled = false;
+        button.textContent = text;
+        button.style.opacity = "1";
+      };
+
+      waitButton.onclick = async () => {
+        const selected = participantOptions.find(member => member.bookingId === select.value);
+        if (!selected) return showToast("Pilih peserta terlebih dahulu.", "warning");
+        if (selected.waitlisted) return showToast("Peserta sudah berada di daftar tunggu.", "warning");
+        setBusy(waitButton, "Memindahkan...");
         try {
           const bookingRef = doc(db, "bookings", selected.bookingId);
           const scheduleRef = doc(db, "schedules", session.id);
@@ -1190,7 +1241,7 @@ attachSlotInteraction(currentUserRole);
             const currentSlots = Number(schedule.slots ?? 0);
             const maxPlayers = Number(schedule.maxPlayers ?? 0);
             if (currentSlots >= maxPlayers) throw new Error("Jumlah slot sudah mencapai kapasitas maksimum.");
-            transaction.update(bookingRef, { waitlisted: true, waitlistedAt: serverTimestamp() });
+            transaction.update(bookingRef, { waitlisted: true, waitlistedAt: serverTimestamp(), slotIndex: null });
             transaction.update(scheduleRef, { slots: currentSlots + 1 });
             if (guardSnap.exists()) transaction.update(guardRef, { status: "waitlisted", updatedAt: serverTimestamp() });
           });
@@ -1199,8 +1250,61 @@ attachSlotInteraction(currentUserRole);
         } catch (error) {
           console.error("Waitlist assignment failed:", error);
           showToast(error.message || "Gagal memindahkan peserta.", "error");
-          save.disabled = false;
-          save.textContent = "Put in Waitlisted";
+          resetBusy(waitButton, "↓  Put in Waitlisted");
+        }
+      };
+
+      mainButton.onclick = async () => {
+        const selected = participantOptions.find(member => member.bookingId === select.value);
+        if (!selected) return showToast("Pilih peserta terlebih dahulu.", "warning");
+        if (!selected.waitlisted) return showToast("Peserta sudah berada di slot utama.", "warning");
+        setBusy(mainButton, "Memindahkan...");
+        try {
+          const bookingRef = doc(db, "bookings", selected.bookingId);
+          const scheduleRef = doc(db, "schedules", session.id);
+          const guardRef = doc(db, "bookingGuards", session.id + "_" + selected.userId);
+          const mainBookingItems = sessionItems.filter(item => item.data.waitlisted !== true && item.id !== selected.bookingId);
+          const lockedSlots = session.lockedSlots || [];
+          const occupied = new Set(lockedSlots.map(item => Number(item.index)));
+          let legacyCount = 0;
+          mainBookingItems.forEach(item => {
+            const idx = item.data.slotIndex;
+            if (Number.isInteger(idx) && idx >= 0) occupied.add(idx);
+            else legacyCount++;
+          });
+          for (let i = 0; i < legacyCount; i++) {
+            let idx = 0;
+            while (occupied.has(idx)) idx++;
+            occupied.add(idx);
+          }
+          let targetSlot = 0;
+          while (occupied.has(targetSlot)) targetSlot++;
+          try {
+            await runTransaction(db, async transaction => {
+              const bookingSnap = await transaction.get(bookingRef);
+              const scheduleSnap = await transaction.get(scheduleRef);
+              const guardSnap = await transaction.get(guardRef);
+              if (!bookingSnap.exists() || bookingSnap.data().status !== "active") throw new Error("Booking peserta tidak lagi aktif.");
+              if (bookingSnap.data().waitlisted !== true) throw new Error("Peserta sudah berada di slot utama.");
+              if (!scheduleSnap.exists()) throw new Error("Sesi tidak ditemukan.");
+              const schedule = scheduleSnap.data();
+              const currentSlots = Number(schedule.slots ?? 0);
+              const maxPlayers = Number(schedule.maxPlayers ?? 0);
+              if (currentSlots <= 0) throw new Error("Tidak ada slot utama yang tersedia.");
+              if (targetSlot >= maxPlayers) throw new Error("Tidak ditemukan nomor slot utama yang kosong.");
+              transaction.update(bookingRef, { waitlisted: false, slotIndex: targetSlot, waitlistedAt: null, promotedAt: serverTimestamp() });
+              transaction.update(scheduleRef, { slots: currentSlots - 1 });
+              if (guardSnap.exists()) transaction.update(guardRef, { status: "active", updatedAt: serverTimestamp() });
+            });
+            showToast("Peserta dikembalikan ke slot utama.", "success");
+            close();
+          } catch (error) {
+            throw error;
+          }
+        } catch (error) {
+          console.error("Waitlist promotion failed:", error);
+          showToast(error.message || "Gagal mengembalikan peserta ke slot utama.", "error");
+          resetBusy(mainButton, "↑  Taroh di Slot Utama");
         }
       };
     };
