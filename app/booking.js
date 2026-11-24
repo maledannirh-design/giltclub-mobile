@@ -625,7 +625,9 @@ async function openSessionPopup(dateStr) {
             "Member";
 
         members.push({
+          bookingId: bookingItem.id,
           userId: bookingData.userId,
+          waitlisted: bookingData.waitlisted === true,
           slotIndex: Number.isInteger(bookingData.slotIndex) ? bookingData.slotIndex : null,
           username: resolvedName,
           avatarInitial: resolvedName.charAt(0).toUpperCase(),
@@ -655,6 +657,8 @@ async function openSessionPopup(dateStr) {
 
       const sisaSlot = s.slots ?? 0;
       const isFull = sisaSlot <= 0;
+      const mainMembers = members.filter(member => !member.waitlisted);
+      const waitlistedMembers = members.filter(member => member.waitlisted);
       
  /* ===============================
    🔥 SPLIT RENDER NON TENNIS
@@ -769,7 +773,7 @@ if((s.sportType || "tennis") !== "tennis"){
       const legacyMembers = [];
 
       // Keep explicitly selected slots stable; older bookings without slotIndex fill remaining slots in order.
-      for (const member of members) {
+      for (const member of mainMembers) {
         if (Number.isInteger(member.slotIndex) && member.slotIndex >= 0 && member.slotIndex < maxPlayers) {
           assignedMembers.set(member.slotIndex, member);
         } else {
@@ -931,6 +935,7 @@ if((s.sportType || "tennis") !== "tennis"){
               <button type="button" class="session-status-btn" data-id="${s.id}" data-status="cancelled" ${s.status === "cancelled" ? "disabled" : ""}>Cancelled</button>
             </div>` : ""}
               <div class="session-admin-actions">
+                <button class="edit-participants-btn" data-id="${s.id}">✎ Edit Peserta</button>
                 <button class="edit-session-btn" data-id="${s.id}">
                   ✏️ Edit Session
                 </button>
@@ -950,6 +955,21 @@ if((s.sportType || "tennis") !== "tennis"){
           <div class="session-members">
             ${slotHtml}
           </div>
+          ${waitlistedMembers.length ? `
+            <div class="waitlist-card" style="margin-top:12px;padding:12px;border-radius:12px;background:#f3f0e8;border:1px solid #e7dcc5;">
+              <div style="font-weight:700;margin-bottom:10px;">Daftar Tunggu (${waitlistedMembers.length})</div>
+              <div class="session-members">
+                ${waitlistedMembers.map(member => `
+                  <div class="member-wrapper">
+                    <div class="member-avatar">
+                      ${member.photoURL ? `<img src="${member.photoURL}">` : `<div class="avatar-initial">${member.avatarInitial}</div>`}
+                    </div>
+                    <div class="member-name">${member.username}</div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          ` : ""}
 <div class="matches-entry" data-id="${s.id}">
   <div>
     <div style="font-weight:600;">Pertandingan</div>
@@ -1091,6 +1111,99 @@ attachSlotInteraction(currentUserRole);
 
     };
 
+  });
+
+  /* ===============================
+     EDIT PARTICIPANTS / WAITLIST
+  =============================== */
+
+  document.querySelectorAll(".edit-participants-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const session = sessions.find(item => item.id === btn.dataset.id);
+      if (!session) return;
+      const currentMembers = (bookingsBySchedule.get(session.id) || [])
+        .filter(item => item.data.waitlisted !== true)
+        .map(item => {
+          const profile = memberProfiles.get(item.data.userId) || {};
+          const name = profile.usernameID || profile.username || profile.fullName || item.data.displayName || "Member";
+          return { bookingId: item.id, userId: item.data.userId, name };
+        });
+      if (!currentMembers.length) {
+        showToast("Belum ada peserta di slot utama.", "warning");
+        return;
+      }
+      const overlay = document.createElement("div");
+      overlay.style.cssText = "position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:18px;";
+      const card = document.createElement("div");
+      card.style.cssText = "width:min(100%,400px);background:#fff;border-radius:18px;padding:20px;color:#18352a;";
+      const title = document.createElement("h3");
+      title.textContent = "Edit Peserta";
+      title.style.cssText = "margin:0 0 8px;font-size:18px;";
+      const hint = document.createElement("p");
+      hint.textContent = "Pilih peserta dari slot utama untuk dipindahkan ke daftar tunggu.";
+      hint.style.cssText = "margin:0 0 14px;font-size:13px;color:#64748b;";
+      const select = document.createElement("select");
+      select.style.cssText = "width:100%;padding:12px;border:1px solid #d7e2da;border-radius:10px;background:#fff;font-size:15px;";
+      select.innerHTML = '<option value="">Pilih peserta...</option>';
+      currentMembers.forEach(member => {
+        const option = document.createElement("option");
+        option.value = member.bookingId;
+        option.textContent = member.name;
+        select.appendChild(option);
+      });
+      const actions = document.createElement("div");
+      actions.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:18px;";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.textContent = "Batal";
+      const save = document.createElement("button");
+      save.type = "button";
+      save.textContent = "Put in Waitlisted";
+      save.style.cssText = "padding:10px 16px;border:0;border-radius:10px;background:#287b49;color:#fff;font-weight:600;";
+      actions.append(cancel, save);
+      card.append(title, hint, select, actions);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      const close = () => overlay.remove();
+      cancel.onclick = close;
+      overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+      save.onclick = async () => {
+        const selected = currentMembers.find(member => member.bookingId === select.value);
+        if (!selected) {
+          showToast("Pilih peserta terlebih dahulu.", "warning");
+          return;
+        }
+        save.disabled = true;
+        save.textContent = "Memindahkan...";
+        try {
+          const bookingRef = doc(db, "bookings", selected.bookingId);
+          const scheduleRef = doc(db, "schedules", session.id);
+          const guardRef = doc(db, "bookingGuards", session.id + "_" + selected.userId);
+          await runTransaction(db, async transaction => {
+            const bookingSnap = await transaction.get(bookingRef);
+            const scheduleSnap = await transaction.get(scheduleRef);
+            const guardSnap = await transaction.get(guardRef);
+            if (!bookingSnap.exists() || bookingSnap.data().status !== "active") throw new Error("Booking peserta tidak lagi aktif.");
+            if (bookingSnap.data().waitlisted === true) throw new Error("Peserta sudah berada di daftar tunggu.");
+            if (!scheduleSnap.exists()) throw new Error("Sesi tidak ditemukan.");
+            const schedule = scheduleSnap.data();
+            const currentSlots = Number(schedule.slots ?? 0);
+            const maxPlayers = Number(schedule.maxPlayers ?? 0);
+            if (currentSlots >= maxPlayers) throw new Error("Jumlah slot sudah mencapai kapasitas maksimum.");
+            transaction.update(bookingRef, { waitlisted: true, waitlistedAt: serverTimestamp() });
+            transaction.update(scheduleRef, { slots: currentSlots + 1 });
+            if (guardSnap.exists()) transaction.update(guardRef, { status: "waitlisted", updatedAt: serverTimestamp() });
+          });
+          showToast("Peserta dipindahkan ke daftar tunggu.", "success");
+          close();
+        } catch (error) {
+          console.error("Waitlist assignment failed:", error);
+          showToast(error.message || "Gagal memindahkan peserta.", "error");
+          save.disabled = false;
+          save.textContent = "Put in Waitlisted";
+        }
+      };
+    };
   });
 
   /* ===============================
