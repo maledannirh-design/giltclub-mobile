@@ -1313,6 +1313,175 @@ async function runMemberBookingFlow({ scheduleId, schedule, slotIndex = null }) 
   // Do not call renderBooking(): the existing snapshot updates the open session modal.
 }
 
+
+/* Admin-assisted assignment: add a real booking record without charging wallet. */
+async function openAdminMemberAssignment({ scheduleId, slotIndex }) {
+  const usersSnap = await getDocs(collection(db, "users"));
+  const members = usersSnap.docs
+    .map(userDoc => {
+      const data = userDoc.data() || {};
+      return {
+        uid: userDoc.id,
+        name: data.fullName || data.usernameID || data.username || data.email || userDoc.id,
+        username: data.usernameID || data.username || ""
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "id"));
+
+  if (!members.length) throw new Error("Belum ada akun member.");
+
+  return new Promise((resolve, reject) => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:18px;";
+    const card = document.createElement("div");
+    card.style.cssText = "width:min(100%,420px);background:#fff;border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.25);color:#18352a;";
+    const title = document.createElement("h3");
+    title.textContent = "Daftarkan Member";
+    title.style.cssText = "margin:0 0 8px;font-size:18px;";
+    const hint = document.createElement("p");
+    hint.textContent = "Pilih akun yang akan dimasukkan ke sesi ini. Tidak ada saldo yang dipotong.";
+    hint.style.cssText = "margin:0 0 14px;font-size:13px;color:#64748b;line-height:1.5;";
+    const select = document.createElement("select");
+    select.style.cssText = "width:100%;padding:12px;border:1px solid #d7e2da;border-radius:10px;background:#fff;font-size:15px;";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Pilih member...";
+    select.appendChild(placeholder);
+    members.forEach(member => {
+      const option = document.createElement("option");
+      option.value = member.uid;
+      option.textContent = member.username ? member.name + " · @" + member.username : member.name;
+      select.appendChild(option);
+    });
+    const actions = document.createElement("div");
+    actions.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:18px;";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Batal";
+    cancel.style.cssText = "padding:10px 16px;border:1px solid #d7e2da;border-radius:10px;background:#f8faf9;";
+    const save = document.createElement("button");
+    save.type = "button";
+    save.textContent = "Daftarkan";
+    save.style.cssText = "padding:10px 16px;border:0;border-radius:10px;background:#287b49;color:#fff;font-weight:600;";
+    actions.append(cancel, save);
+    card.append(title, hint, select, actions);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    const close = value => {
+      overlay.remove();
+      resolve(value);
+    };
+    cancel.onclick = () => close(null);
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay) close(null);
+    });
+    save.onclick = async () => {
+      const userId = select.value;
+      if (!userId) {
+        showToast("Pilih member terlebih dahulu.", "warning");
+        return;
+      }
+      save.disabled = true;
+      save.textContent = "Mendaftarkan...";
+      try {
+        const existing = await getDocs(query(
+          collection(db, "bookings"),
+          where("userId", "==", userId),
+          where("scheduleId", "==", scheduleId),
+          where("status", "==", "active")
+        ));
+        if (!existing.empty) throw new Error("Member ini sudah terdaftar di sesi tersebut.");
+
+        const scheduleRef = doc(db, "schedules", scheduleId);
+        const userRef = doc(db, "users", userId);
+        const guardRef = doc(db, "bookingGuards", `${scheduleId}_${userId}`);
+        const bookingRef = doc(collection(db, "bookings"));
+        await runTransaction(db, async transaction => {
+          const scheduleSnap = await transaction.get(scheduleRef);
+          const userSnap = await transaction.get(userRef);
+          const guardSnap = await transaction.get(guardRef);
+          if (!scheduleSnap.exists()) throw new Error("Sesi tidak ditemukan.");
+          if (!userSnap.exists()) throw new Error("Akun member tidak ditemukan.");
+          if (guardSnap.exists() && guardSnap.data().status === "active") {
+            throw new Error("Member ini sudah terdaftar di sesi tersebut.");
+          }
+          const schedule = scheduleSnap.data();
+          const availableSlots = schedule.slots ?? schedule.maxPlayers ?? 0;
+          if (availableSlots <= 0) throw new Error("Slot sesi sudah penuh.");
+          if (schedule.status === "closed" || schedule.status === "cancelled") {
+            throw new Error("Sesi sudah ditutup atau dibatalkan.");
+          }
+          transaction.set(bookingRef, {
+            userId,
+            scheduleId,
+            sessionPrice: 0,
+            price: 0,
+            racketQty: 0,
+            racketUnitPrice: 0,
+            racketTotal: 0,
+            slotIndex,
+            attendance: false,
+            completed: false,
+            status: "active",
+            manualEntry: true,
+            bookingSource: "ADMIN_MANUAL",
+            createdAt: serverTimestamp(),
+            createdBy: auth.currentUser?.uid || null
+          });
+          transaction.set(guardRef, {
+            userId,
+            scheduleId,
+            bookingId: bookingRef.id,
+            status: "active",
+            updatedAt: serverTimestamp()
+          });
+          transaction.update(scheduleRef, { slots: availableSlots - 1 });
+        });
+        showToast("Member berhasil dimasukkan ke sesi tanpa potong saldo.", "success");
+        close(userId);
+      } catch (error) {
+        save.disabled = false;
+        save.textContent = "Daftarkan";
+        reject(error);
+        overlay.remove();
+      }
+    };
+  });
+}
+
+function chooseAdminSlotType() {
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;z-index:10040;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:18px;";
+    const card = document.createElement("div");
+    card.style.cssText = "width:min(100%,360px);background:#fff;border-radius:18px;padding:20px;color:#18352a;";
+    const title = document.createElement("h3");
+    title.textContent = "Isi Slot";
+    title.style.margin = "0 0 14px";
+    const buttons = document.createElement("div");
+    buttons.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;";
+    [["member","Member"],["visitor","Visitor"]].forEach(([value,label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.style.cssText = "padding:14px 10px;border:1px solid #d7e2da;border-radius:12px;background:#f8faf9;font-weight:600;";
+      button.onclick = () => { overlay.remove(); resolve(value); };
+      buttons.appendChild(button);
+    });
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Batal";
+    cancel.style.cssText = "width:100%;margin-top:10px;padding:10px;border:0;background:transparent;color:#64748b;";
+    cancel.onclick = () => { overlay.remove(); resolve(null); };
+    card.append(title, buttons, cancel);
+    overlay.appendChild(card);
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay) { overlay.remove(); resolve(null); }
+    });
+    document.body.appendChild(overlay);
+  });
+}
+
 /* ===============================
    SLOT INTERACTION
 ================================= */
@@ -1364,50 +1533,40 @@ if (!isPrivileged) {
   return;
 }
 
-        // PRIVILEGED → LOCK SLOT
-        const label = prompt("Masukkan label untuk lock slot:");
-        if (!label) return;
-
+        // PRIVILEGED → pilih Member atau Visitor.
         try {
+          const assignmentType = await chooseAdminSlotType();
+          if (!assignmentType) return;
 
-          await runTransaction(db, async (transaction) => {
+          if (assignmentType === "member") {
+            await openAdminMemberAssignment({ scheduleId, slotIndex: index });
+            return;
+          }
 
+          // Visitor: pertahankan mekanisme label manual yang sudah berjalan.
+          const label = prompt("Masukkan nama Visitor:");
+          if (!label) return;
+
+          await runTransaction(db, async transaction => {
             const snap = await transaction.get(scheduleRef);
             if (!snap.exists()) throw new Error("Session tidak ditemukan");
-
             const data = snap.data();
             const currentSlots = data.slots ?? 0;
             const lockedSlots = data.lockedSlots || [];
-
-            if (currentSlots <= 0) {
-              throw new Error("Tidak ada slot tersisa");
+            if (currentSlots <= 0) throw new Error("Tidak ada slot tersisa");
+            if (lockedSlots.some(item => item.index === index)) {
+              throw new Error("Slot sudah terisi atau terkunci");
             }
-
-            const alreadyLocked =
-              lockedSlots.some(l => l.index === index);
-
-            if (alreadyLocked) {
-              throw new Error("Slot sudah terkunci");
-            }
-
             transaction.update(scheduleRef, {
-              lockedSlots: [
-                ...lockedSlots,
-                { index, label }
-              ],
+              lockedSlots: [...lockedSlots, { index, label }],
               slots: currentSlots - 1
             });
-
           });
-
-          showToast("Slot berhasil dikunci","success");
-          // Jangan renderBooking() di sini: onSnapshot schedules akan memperbarui UI.
-          // Menghindari unsubscribe/re-subscribe listener dan query ulang saat input history manual.
-
+          showToast("Visitor berhasil dimasukkan ke sesi.", "success");
         } catch (err) {
-          showToast(err.message || "Gagal lock slot","error");
+          console.error("Admin slot assignment failed:", err);
+          showToast(err.message || "Gagal mengisi slot", "error");
         }
-
         return;
       }
 
