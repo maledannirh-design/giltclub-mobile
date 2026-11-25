@@ -1,0 +1,11 @@
+{
+  "name": "gmtc-push-reminder",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "remind": "node send-reminders.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2"
+  }
+}
