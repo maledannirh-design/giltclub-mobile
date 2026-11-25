@@ -14,6 +14,43 @@ self.addEventListener("activate", event => {
   })());
 });
 
+// FCM sends data-only messages. This worker displays the notification so the
+// same push is not rendered twice by both FCM and a custom notification handler.
+self.addEventListener("push", event => {
+  if (!event.data) return;
+  event.waitUntil((async () => {
+    let payload = {};
+    try { payload = event.data.json(); } catch (_) { return; }
+    const data = payload.data || payload;
+    const title = data.title || "GMTC Community";
+    const options = {
+      body: data.body || "Ada pengingat sesi GMTC untuk kamu.",
+      icon: "/app/image/logo_giltclub.webp",
+      badge: "/app/image/logo_giltclub.webp",
+      tag: data.scheduleId ? "gmtc-session-" + data.scheduleId : "gmtc-push",
+      renotify: false,
+      data: { url: data.url || "/app/" }
+    };
+    await self.registration.showNotification(title, options);
+  })());
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const targetUrl = new URL(event.notification.data?.url || "/app/", self.location.origin).href;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of windows) {
+      if ("focus" in client) {
+        await client.focus();
+        if ("navigate" in client) await client.navigate(targetUrl);
+        return;
+      }
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(targetUrl);
+  })());
+});
+
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
