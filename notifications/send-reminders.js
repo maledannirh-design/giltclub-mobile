@@ -44,12 +44,16 @@ async function main() {
     const reminderKey = scheduleDoc.id + "_" + schedule.date + "_" + schedule.startTime;
     const bookingSnap = await db.collection("bookings")
       .where("scheduleId", "==", scheduleDoc.id)
-      .where("status", "==", "active")
       .get();
 
     for (const bookingDoc of bookingSnap.docs) {
       scanned++;
       const booking = bookingDoc.data();
+
+      if (booking.status !== "active") {
+        skipped++;
+        continue;
+      }
 
       // Waitlisted bookings never receive a session reminder. Legacy bookings
       // without this field are treated as main-slot bookings.
