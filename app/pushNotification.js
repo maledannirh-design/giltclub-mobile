@@ -8,7 +8,7 @@ import { showToast } from "./ui.js";
 
 // Public VAPID key only. Replace this placeholder with the Firebase Web Push
 // certificate's public key; never put the private key or service-account JSON here.
-const VAPID_PUBLIC_KEY = "PASTE_VAPID_PUBLIC_KEY_HERE";
+const VAPID_PUBLIC_KEY = "BNbHI3W-TdYPdoRwJbIMQQeZU7bNqJOVuiOAlOxqwxUDvOVydPEMPM8ETatSYJZ5tlQr3aXNeAk7LI6op7EwFVM";
 
 async function deviceId(token) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
