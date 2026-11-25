@@ -10,10 +10,9 @@ import { showToast } from "./ui.js";
 // certificate's public key; never put the private key or service-account JSON here.
 const VAPID_PUBLIC_KEY = "PASTE_VAPID_PUBLIC_KEY_HERE";
 
-function deviceId() {
-  const bytes = new Uint8Array(12);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+async function deviceId(token) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
 }
 
 export async function renderPushSettings() {
@@ -72,7 +71,7 @@ export async function renderPushSettings() {
         serviceWorkerRegistration: registration
       });
       if (!token) throw new Error("Token perangkat tidak berhasil dibuat.");
-      const id = deviceId();
+      const id = await deviceId(token);
       await setDoc(doc(db, "users", user.uid, "pushSubscriptions", id), {
         token,
         platform: /Android/i.test(navigator.userAgent) ? "android-web" : "web",
@@ -96,8 +95,16 @@ export async function renderPushSettings() {
       disableBtn.disabled = true;
       const registration = await navigator.serviceWorker.ready;
       const messaging = getMessaging(getApps()[0]);
-      const subscriptions = await getDocs(collection(db, "users", user.uid, "pushSubscriptions"));
-      await Promise.all(subscriptions.docs.map(item => deleteDoc(item.ref)));
+      const currentToken = await getToken(messaging, {
+        vapidKey: VAPID_PUBLIC_KEY,
+        serviceWorkerRegistration: registration
+      }).catch(() => null);
+      if (currentToken) {
+        const subscriptions = await getDocs(collection(db, "users", user.uid, "pushSubscriptions"));
+        await Promise.all(subscriptions.docs
+          .filter(item => item.data().token === currentToken)
+          .map(item => deleteDoc(item.ref)));
+      }
       await deleteToken(messaging).catch(() => {});
       await registration.pushManager.getSubscription().then(subscription => subscription?.unsubscribe()).catch(() => {});
       status.textContent = "Subscription notifikasi di perangkat ini telah dinonaktifkan.";
