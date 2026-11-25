@@ -354,6 +354,7 @@ export async function renderAccountUI(){
 
 <div class="account-group">
   <div class="group-row" id="menuKeamanan">Akun & Keamanan <span>›</span></div>
+  <div class="group-row" id="menuPushNotifications">Notifikasi Play Session <span>›</span></div>
   <div class="group-row" id="menuProfil">Informasi Pribadi <span>›</span></div>
   <div class="group-row" id="menuSosial">Sosial Media <span>›</span></div>
   <div class="group-row" id="menuPrivasi">Pengaturan Privasi <span>›</span></div>
@@ -436,6 +437,7 @@ export async function renderAccountUI(){
   // =============================
 
   const menuKeamanan = document.getElementById("menuKeamanan");
+const menuPushNotifications = document.getElementById("menuPushNotifications");
 const menuProfil   = document.getElementById("menuProfil");
 const menuSosial   = document.getElementById("menuSosial");
 const menuPrivasi  = document.getElementById("menuPrivasi");
@@ -446,6 +448,14 @@ const menuMembers  = document.getElementById("menuMembers");
     window.showMemberAccessModal?.();
     return false;
   };
+
+  if(menuPushNotifications){
+    menuPushNotifications.onclick = async ()=>{
+      if(!requireMemberAccess()) return;
+      const module = await import("./pushNotification.js");
+      module.renderPushSettings();
+    };
+  }
 
   if(menuKeamanan){
     menuKeamanan.onclick = async ()=>{
